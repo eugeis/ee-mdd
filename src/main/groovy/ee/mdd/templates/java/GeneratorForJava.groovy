@@ -16,6 +16,7 @@
 package ee.mdd.templates.java
 
 import ee.mdd.generator.CommonProcessorFactory
+import ee.mdd.templates.java.cg.TemplatesForJavaCg
 
 /**
  *
@@ -28,7 +29,7 @@ class GeneratorForJava {
 
     def model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
 
-    def generator = TemplatesForJava.build()
+    def generator = TemplatesForJavaCg.build()
     def commonProcessorFactory = new CommonProcessorFactory()
     def javaProcessorFactory = new ProcessorsForJava()
 

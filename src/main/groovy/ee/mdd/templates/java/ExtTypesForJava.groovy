@@ -28,7 +28,7 @@ import ee.mdd.model.component.Namespace
 class ExtTypesForJava {
   boolean firstModel = true
   def primitiveTypes = ['int', 'long', 'float', 'double', 'boolean', 'Integer', 'Long', 'Float', 'Fouble', 'Boolean', 'String']
-  def externalTypeNameToNamespace = ['Date':'java.util']
+  def externalTypeNameToNamespace = ['Date':'java.util', 'ClusterSingleton':'com.siemens.ra.cg.pl.env.model']
   def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
     if(firstModel && node instanceof Model) {
       firstModel = false
