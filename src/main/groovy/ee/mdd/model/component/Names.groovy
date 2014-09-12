@@ -15,36 +15,21 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Composite
-
-
+import java.beans.Introspector
 
 /**
  *
  * @author Eugen Eisler
  */
-class StructureUnit extends Composite {
-  String key
-  Namespace namespace
-  Names n
-  Map<String, Facet> facets = [:]
+class Names {
 
-  def add(Facet child) {
-    facets[child.name] = super.add(child); child
-  }
+  String base
+  Names cap, uncap, underscored
 
-  StructureUnit getSu() {
-    this
-  }
-
-  Namespace getNs() {
-    namespace ? namespace : parent.ns
-  }
-
-  Names getN() {
-    if (!n) {
-      n = new Names(key)
-    }
-    n
+  Names(String base) {
+    this.base = base
+    cap = new NamesBuilder(base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
+    uncap = new NamesBuilder(base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
+    underscored = new NamesBuilder(base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
   }
 }

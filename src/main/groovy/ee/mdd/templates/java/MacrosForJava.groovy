@@ -105,7 +105,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
 
       template('initializer', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
 public interface $c.className {
-  void init(ClusterSingleton clusterSingleton);
+  void init(${c.name('ClusterSingleton')} clusterSingleton);
 }''')
     }
   }

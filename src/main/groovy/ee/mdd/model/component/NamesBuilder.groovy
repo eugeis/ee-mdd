@@ -15,36 +15,28 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Composite
-
-
-
 /**
  *
  * @author Eugen Eisler
  */
-class StructureUnit extends Composite {
-  String key
-  Namespace namespace
-  Names n
-  Map<String, Facet> facets = [:]
+class NamesBuilder {
 
-  def add(Facet child) {
-    facets[child.name] = super.add(child); child
+  Map storage = [:]
+  String base
+  Closure builder = { b, n -> "${b}$n" }
+
+  def propertyMissing(String name, value) {
+    storage[name] = value
   }
 
-  StructureUnit getSu() {
-    this
-  }
-
-  Namespace getNs() {
-    namespace ? namespace : parent.ns
-  }
-
-  Names getN() {
-    if (!n) {
-      n = new Names(key)
+  def propertyMissing(String name) {
+    if(!storage.containsKey(name)) {
+      storage[name] = builder(base, name)
     }
-    n
+    storage[name]
+  }
+
+  void putAll(Map m) {
+    storage.putAll(m)
   }
 }
