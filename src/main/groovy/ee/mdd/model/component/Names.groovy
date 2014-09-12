@@ -24,7 +24,7 @@ import java.beans.Introspector
 class Names {
 
   String base
-  Names cap, uncap, underscored
+  NamesBuilder cap, uncap, underscored
 
   Names(String base) {
     this.base = base
