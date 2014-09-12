@@ -32,9 +32,13 @@ class TemplatesForJavaCg {
       items ('component',
       query: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
       before: { c -> def component = c.item; c.putAll( [ component: component ] ) } ) {
+<<<<<<< HEAD
         template('initializer', body: '''<% c.className = component.n.cap.initializer %>${macros.generate('initializer', c)}''')
         //template('initializerBean', body: '''<% c.className="${component.cap}InitializerBean" %>${macros.generate('initializerBean', c)}''')
         //template('initializerBase', body: '''<% c.classname="${component.cap}InitializerBase"; def profile = component.hasProfiles(); def startupInitializers = component.backend ''')
+=======
+        template('initializer', body: '''<% c.className = $component.n.cap.initializer %>${macros.generate('initializer', c)}''')
+>>>>>>> branch 'master' of https://github.com/eugeis/ee-mdd.git
       }
     }
 

@@ -24,7 +24,11 @@ import java.beans.Introspector
 class Names {
 
   String base
+<<<<<<< HEAD
   NamesBuilder cap, uncap, underscored
+=======
+  Names cap, uncap, underscored
+>>>>>>> branch 'master' of https://github.com/eugeis/ee-mdd.git
 
   Names(String base) {
     this.base = base

@@ -106,6 +106,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
       template('initializer', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
 public interface $c.className {
   void init(${c.name('ClusterSingleton')} clusterSingleton);
+<<<<<<< HEAD
 }''')
 
       template('initializerBean', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
@@ -124,6 +125,8 @@ public class $c.className extends ${component.names.initializer}Base {
       log.error("$className failed", e);
     }
   }
+=======
+>>>>>>> branch 'master' of https://github.com/eugeis/ee-mdd.git
 }''')
     }
   }
