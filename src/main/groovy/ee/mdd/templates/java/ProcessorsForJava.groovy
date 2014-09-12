@@ -1,24 +1,22 @@
 /*
-* Copyright 2011-2012 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2011-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ee.mdd.templates.java
 
-import ee.mdd.generator.AbstractGenerator
 import ee.mdd.generator.Processor
 import ee.mdd.model.Element
-import ee.mdd.model.component.Namespace
 
 
 
@@ -31,7 +29,15 @@ class ProcessorsForJava {
   Processor javaImportsPathProcessor() {
     Processor ret = new Processor(name: 'javaImportsPath')
 
-    def noImportTypes = ['int', 'Integer', 'long', 'float', 'Float', 'double', 'Double']
+    def noImportTypes = [
+      'int',
+      'Integer',
+      'long',
+      'float',
+      'Float',
+      'double',
+      'Double'
+    ]
 
     //default types and resolved
     def nameToPackage = ['Test': 'org.junit', 'Date': 'java.util', 'Before': 'org.junit',
@@ -56,7 +62,7 @@ class ProcessorsForJava {
             if(pkg.startsWith('static')) {
               staticImports << pkg
             } else {
-              if(c.subPkg || !c.module?.ns.dot != pkg ) {
+              if(c.subPkg || !(c.module ? c.module.ns : c.item.ns).dot != pkg ) {
                 imports << "$pkg.$name"
               }
             }
@@ -86,7 +92,7 @@ class ProcessorsForJava {
     }
     ret.after = { c ->
       if(c.className) {
-        def ns = c.module ? c.module.ns : c.item.ns
+        def ns = (c.module ? c.module.ns : c.item.ns)
         def subPkg = c.subPkg ? ".$c.subPkg" : ''
         def imports = c.imports.toList().sort().collect { "import $it;" }.join('\n')
         def staticImports =  c.staticImports ? c.staticImports.toList().sort().collect { "import $it;" }.join('\n') : ''

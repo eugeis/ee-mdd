@@ -105,7 +105,25 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
 
       template('initializer', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
 public interface $c.className {
-  void init(ClusterSingleton clusterSingleton);
+  void init(${c.name('ClusterSingleton')} clusterSingleton);
+}''')
+
+      template('initializerBean', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
+  /** Initializer bean for '$component.name' */
+@Singleton
+@Startup
+@SupportsEnvironments(@Environment(runtimes = { SERVER }))
+@Local(${component.names.initializer}.class)
+public class $c.className extends ${component.names.initializer}Base {
+  @PostConstruct
+  public void init() {
+    try {
+      init(clusterSingleton);
+      // add additional startup tasks here
+    } catch (Exception e) {
+      log.error("$className failed", e);
+    }
+  }
 }''')
     }
   }
