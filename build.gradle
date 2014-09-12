@@ -1,7 +1,11 @@
 def _scripts = System.getenv('CG_CM_SCRIPTS_HOME') ?: 'D:/CG/src/cg-cm/cg-cm-scripts'
 ext.scripts = project.hasProperty('superpom') ? project.superpom : "$_scripts/gradlebuild"
 logger.info "Calculated 'superpom' location: $scripts"
-if(file("$scripts/build.gradle").exists()) {
+
+def f = null
+try { f = file("$scripts/build.gradle") } catch (e) {}
+
+if(f && f.exists()) {
   apply from: "$scripts/build.gradle"
 } else {
 

@@ -109,16 +109,16 @@ public interface $c.className {
 }''')
 
       template('initializerBean', body: '''<% if(!c.className) { c.className="${c.item.name}InitializerBean" } %>{{imports}}
-  /** Initializer bean for '$component.name' */
+/** Initializer bean for '$component.name' */
 @Singleton
 @Startup
 @SupportsEnvironments(@Environment(runtimes = { SERVER }))
-@Local(${component.n.cap.initializerBean}.class)
+@Local(${component.n.cap.initializer}.class)
 public class $c.className extends ${component.n.cap.initializer}Base {
   @PostConstruct
   public void init() {
     try {
-      init(${c.name('ClusterSingleton').uncap});
+      init(clusterSingleton);
       // add additional startup tasks here
     } catch (Exception e) {
       log.error("$className failed", e);

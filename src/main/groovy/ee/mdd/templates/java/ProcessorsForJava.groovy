@@ -91,7 +91,7 @@ class ProcessorsForJava {
       }
     }
     ret.after = { c ->
-      if(c.className) {
+      if (!c.error && c.className) {
         def ns = (c.module ? c.module.ns : c.item.ns)
         def subPkg = c.subPkg ? ".$c.subPkg" : ''
         def imports = c.imports.toList().sort().collect { "import $it;" }.join('\n')

@@ -35,7 +35,7 @@ class CommonProcessorFactory {
     }
 
     ret.after = { c ->
-      if(c.path) {
+      if(!c.error && c.path) {
         File file = new File("$target/$c.path")
         if(!file.parentFile.exists()) {
           file.parentFile.mkdirs()
@@ -52,7 +52,7 @@ class CommonProcessorFactory {
   Processor printProcessor(String target) {
     Processor ret = new Processor(name: 'prinln')
 
-    ret.after = { c -> println c.output }
+    ret.after = { c -> if (!c.error) { println c.output } }
     ret
   }
 

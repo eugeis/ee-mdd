@@ -34,7 +34,7 @@ class TemplatesForJavaCg {
       before: { c -> def component = c.item; c.putAll( [ component: component ] ) } ) {
         template('initializer', body: '''<% c.className = component.n.cap.initializer %>${macros.generate('initializer', c)}''')
         template('initializerBean', body: '''<% c.className = component.n.cap.initializerBean %>${macros.generate('initializerBean', c)}''')
-        //template('initializerBase', body: '''<% c.classname = component.n.cap.initializerBase %>${macros.generate('initializerBase', c)}''')
+//        template('initializerBase', body: '''<% c.classname = component.n.cap.initializerBase %>${macros.generate('initializerBase', c)}''')
       }
     }
 
