@@ -108,24 +108,57 @@ public interface $c.className {
   void init(${c.name('ClusterSingleton')} clusterSingleton);
 }''')
 
-      template('initializerBean', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
+      template('initializerBean', body: '''<% if(!c.className) { c.className="${c.item.name}InitializerBean" } %>{{imports}}
   /** Initializer bean for '$component.name' */
 @Singleton
 @Startup
 @SupportsEnvironments(@Environment(runtimes = { SERVER }))
-@Local(${component.names.initializer}.class)
-public class $c.className extends ${component.names.initializer}Base {
+@Local(${component.n.cap.initializerBean}.class)
+public class $c.className extends ${component.n.cap.initializer}Base {
   @PostConstruct
   public void init() {
     try {
-      init(clusterSingleton);
+      init(${c.name('ClusterSingleton').uncap});
       // add additional startup tasks here
     } catch (Exception e) {
       log.error("$className failed", e);
     }
   }
-=======
->>>>>>> branch 'master' of https://github.com/eugeis/ee-mdd.git
+}''')
+
+      template('initializerBase', body: '''/** Initializer for '$module.name' */
+@Alternative
+public class $c.className implements ${component.n.cap.initializer} {
+  protected XLogger log = XLoggerFactory.getXLogger(getClass());
+  <% if(module.entities) { %>
+  protected ${module.capShortName}SchemaGenerator schemaGenerator;<% } %>
+  protected ClusterSingleton clusterSingleton;<% startupInitializers.each { %>
+  protected ${it.names.initializer} ${it.names.initializerInstance};<% } %>
+
+  @Override
+  public void init(ClusterSingleton clusterSingleton) {
+    log.info("init({})", clusterSingleton);<% if (module.entities) { %>
+    if (clusterSingleton.isStandaloneOrMaster()) {<% if(module.entities) { %>
+      schemaGenerator.createSchema();<% } %>
+    }<% } %>
+    <% startupInitializers.each { %>
+    ${it.names.initializerInstance}.init(clusterSingleton);<% } %>
+  }<% startupInitializers.each { %>
+  
+  @Inject
+  public void set${it.names.initializer}(${it.names.initializer} ${it.names.initializerInstance}) {
+    this.${it.names.initializerInstance} = ${it.names.initializerInstance};
+  }<% } %>
+
+  @Inject
+  public void setClusterSingleton(ClusterSingleton clusterSingleton) {
+    this.clusterSingleton = clusterSingleton;
+  }<% if(module.entities) { %>
+  
+  @Inject
+  public void setSchemaGenerator(${module.capShortName}SchemaGenerator schemaGenerator) {
+    this.schemaGenerator = schemaGenerator;
+  }<% } %>
 }''')
     }
   }
