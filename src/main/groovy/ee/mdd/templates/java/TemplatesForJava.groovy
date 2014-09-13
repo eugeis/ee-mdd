@@ -34,7 +34,7 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity ] ) } ) {
 
-        template('ifc', body: '''<% c.serializable=true; c.className="${entity.name}Base" %>${macros.generate('ifc', c)}''')
+        template('ifc', body: '''<% c.serializable = true; c.className = entity.n.cap.base %>${macros.generate('ifc', c)}''')
         template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
       }
 
@@ -42,16 +42,16 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
 
-        template('impl', body: '''<% c.virtual=true; c.serializable=true; c.className="${entity.name}ImplBase" %>${macros.generate('impl', c)}''')
-        template('implExtends', body: '''<% c.serializable=true; c.className="${entity.name}Impl" %>${macros.generate('implExtends', c)}''')
+        template('impl', body: '''<% c.virtual = true; c.serializable = true; c.className = entity.n.cap.implBase %>${macros.generate('impl', c)}''')
+        template('implExtends', body: '''<% c.serializable = true; c.className = entity.n.cap.impl %>${macros.generate('implExtends', c)}''')
       }
 
       items ('test',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl', scope: 'test'] ) } ) {
 
-        template('test', body: '''<% c.virtual=true; c.className="${entity.name}TestBase"; c.itemInit="new ${entity.name}Impl()" %>${macros.generate('test', c)}''')
-        template('testExtends', body: '''<% c.className="${entity.name}Test" %>${macros.generate('implExtends', c)}''')
+        template('test', body: '''<% c.virtual = true; c.className = entity.n.cap.testBase; c.itemInit = "new $entity.n.cap.impl()" %>${macros.generate('test', c)}''')
+        template('testExtends', body: '''<% c.className = entity.n.cap.test %>${macros.generate('implExtends', c)}''')
       }
 
       items ('enum',
@@ -60,8 +60,6 @@ class TemplatesForJava {
 
         template('enum', body: '''${macros.generate('enum', c)}''')
       }
-
-      items ('')
     }
   }
 }

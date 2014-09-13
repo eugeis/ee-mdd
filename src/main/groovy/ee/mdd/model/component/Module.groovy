@@ -21,42 +21,51 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  */
 class Module extends StructureUnit {
-  String artifact
-  boolean startupInitializer = false
+	String artifact
+	boolean startupInitializer = false
 
-  List<EnumType> enumTypes = []
-  List<Pojo> pojos = []
-  List<Entity> entities = []
-  List<BasicType> basicType = []
-  List<ExternalType> externalTypes = []
+	List<EnumType> enumTypes = []
+	List<Pojo> pojos = []
+	List<Entity> entities = []
+	List<BasicType> basicType = []
+	List<ExternalType> externalTypes = []
+	List<Controller> controllers = []
+	List<Initializer> initializers = []
+	List<Service> services = []
 
-  def init() {
-    super.init()
-    if(!artifact) {
-    }
-    this
-  }
+	def init() {
+		super.init()
+		if(!artifact) {
+		}
+		this
+	}
 
-  Component getComponent() {
-    parent.component
-  }
-  Module getModule() {
-    this
-  }
+	Component getComponent() {
+		parent.component
+	}
+	Module getModule() {
+		this
+	}
 
-  def add(EnumType child) {
-    enumTypes << child; super.add(child)
-  }
-  def add(Pojo child) {
-    pojos << child; super.add(child)
-  }
-  def add(Entity child) {
-    entities << child; super.add(child)
-  }
-  def add(BasicType child) {
-    basicType << child; super.add(child)
-  }
-  def add(ExternalType child) {
-    externalTypes << child; super.add(child)
-  }
+	def add(EnumType child) {
+		enumTypes << child; super.add(child)
+	}
+	def add(Pojo child) {
+		pojos << child; super.add(child)
+	}
+	def add(Entity child) {
+		entities << child; super.add(child)
+	}
+	def add(BasicType child) {
+		basicType << child; super.add(child)
+	}
+	def add(Controller child) {
+		controllers << child; super.add(child)
+	}
+	def add(Service child) {
+		services << child; super.add(child)
+	}
+	def add(Initializer child) {
+		initializers << child; super.add(child)
+	}
 }

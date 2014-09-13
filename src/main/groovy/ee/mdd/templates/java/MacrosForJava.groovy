@@ -108,13 +108,14 @@ public interface $c.className {
   void init(${c.name('ClusterSingleton')} clusterSingleton);
 }''')
 
-      template('initializerBean', body: '''<% if(!c.className) { c.className="${c.item.name}InitializerBean" } %>{{imports}}
+      template('initializerBean', body: '''<% if(!c.className) { c.className = c.item.n.cap.initializerBean } %>{{imports}}
 /** Initializer bean for '$component.name' */
 @Singleton
 @Startup
 @SupportsEnvironments(@Environment(runtimes = { SERVER }))
-@Local(${component.n.cap.initializer}.class)
-public class $c.className extends ${component.n.cap.initializer}Base {
+@Local(${item.n.cap.initializer}.class)
+public class $c.className extends $item.n.cap.initializerBase {
+  
   @PostConstruct
   public void init() {
     try {
@@ -126,12 +127,13 @@ public class $c.className extends ${component.n.cap.initializer}Base {
   }
 }''')
 
-      template('initializerBase', body: '''/** Initializer for '$module.name' */
+      template('initializerBase', body: '''<% if(!c.className) { c.className = c.item.n.cap.initializerBase }; def startupInitializers = item.modules.findAll { it.startupInitializer }  %>
+/** Initializer for '$item.name' */
 @Alternative
-public class $c.className implements ${component.n.cap.initializer} {
+public class $c.className implements $item.n.cap.initializer {
   protected XLogger log = XLoggerFactory.getXLogger(getClass());
-  <% if(module.entities) { %>
-  protected ${module.capShortName}SchemaGenerator schemaGenerator;<% } %>
+  <% if(item.entities) { %>
+  protected ${item.capShortName}SchemaGenerator schemaGenerator;<% } %>
   protected ClusterSingleton clusterSingleton;<% startupInitializers.each { %>
   protected ${it.names.initializer} ${it.names.initializerInstance};<% } %>
 

@@ -68,6 +68,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     def factoryConstructor = new CompositeFactory(beanClass: Constructor, childFactories: ['param', 'body',])
     def factoryContainer = new CompositeFactory(beanClass: Container, childFactories: ['prop', 'op', 'controller'])
     def factoryController = new CompositeFactory(beanClass: Controller, childFactories: ['prop', 'op'])
+	def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: ['prop', 'op'])
     def factoryCount = new CompositeFactory(beanClass: Count, childFactories: ['cond'])
     def factoryCreate = new CompositeFactory(beanClass: Create, childFactories: ['param', 'cond'])
     def factoryDelete = new CompositeFactory(beanClass: Delete, childFactories: ['cond'])
@@ -97,7 +98,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'constr', factoryConstructor
     registerFactory 'container', factoryContainer
     registerFactory 'controller', factoryController
-    registerFactory 'counter', factoryCount
+	registerFactory 'initializer', factoryInitializer
+	registerFactory 'counter', factoryCount
     registerFactory 'creator', factoryCreate
     registerFactory 'delete', factoryDelete
     registerFactory 'entity', factoryEntity

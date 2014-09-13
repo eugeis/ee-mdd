@@ -18,6 +18,7 @@ package ee.mdd.templates.java.cg
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
 import ee.mdd.model.component.Component
+import ee.mdd.templates.java.TemplatesForJava
 
 
 
@@ -27,20 +28,20 @@ import ee.mdd.model.component.Component
  */
 class TemplatesForJavaCg {
 
-  static Generator build() {
-    Generator cg = new GeneratorBuilder().generator('model') {
-      items ('component',
-      query: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
-      before: { c -> def component = c.item; c.putAll( [ component: component ] ) } ) {
-        template('initializer', body: '''<% c.className = component.n.cap.initializer %>${macros.generate('initializer', c)}''')
-        template('initializerBean', body: '''<% c.className = component.n.cap.initializerBean %>${macros.generate('initializerBean', c)}''')
-//        template('initializerBase', body: '''<% c.classname = component.n.cap.initializerBase %>${macros.generate('initializerBase', c)}''')
-      }
-    }
+	static Generator build() {
+		Generator cg = new GeneratorBuilder().generator('model') {
+			items ('component',
+			query: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) } ) },
+			before: { c -> def component = c.item; c.putAll( [ component: component ] ) } ) {
+				//        template('initializer', body: '''<% c.className = component.n.cap.initializer %>${macros.generate('initializer', c)}''')
+				//        template('initializerBean', body: '''<% c.className = component.n.cap.initializerBean %>${macros.generate('initializerBean', c)}''')
+				//        template('initializerBase', body: '''<% c.classname = component.n.cap.initializerBase %>${macros.generate('initializerBase', c)}''')
+			}
+		}
 
-    //Generator ret = TemplatesForJava.build()
-    //ret.categories.putAll(cg.categories)
-    //ret
-    cg
-  }
+		Generator ret = TemplatesForJava.build()
+		ret.categories.putAll(cg.categories)
+		ret
+		//cg
+	}
 }
