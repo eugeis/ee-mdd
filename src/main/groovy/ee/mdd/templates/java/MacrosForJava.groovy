@@ -29,7 +29,7 @@ class MacrosForJava {
   static CategoryGenerator build() {
     new GeneratorBuilder().category ('macros') {
 
-      template('header', body: '''/* Eugeis Software */''')
+      template('header', body: '''/* EE Software */''')
 
       template('propsMember', body: '''<% item.props.each { prop -> %>
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
@@ -63,26 +63,26 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap; 
   }<% } %>''')
 
-      template('ifc', body: '''<% if(!c.className) { c.className=item.name } %>{{imports}}
-public interface $c.className<% if(c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
+      template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src=true %><% if(!c.className) { c.className=item.name } %><% c.src=true %>{{imports}}
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% c.src = true %>{{imports}}
 public interface $c.className extends ${c.className}Base {
 }''')
 
-      template('impl', body: '''<% if(!c.className) { c.className=item.name } %>{{imports}}
-public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if(c.serializable) { %>
+      template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src=true %><% if(!c.className) { c.className=item.name } %>{{imports}}
-public class $c.className extends ${c.className}Base {<% if(c.serializable) { %>
+      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-      template('test', body: '''<% c.scope='test' %><% if(!c.className) { c.className=item.name } %><% if(!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
+      template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className {
   protected ${c.name(item)} item;
   
@@ -93,73 +93,13 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
   ${macros.generate('testProperties', c)}
 }''')
 
-      template('enum', body: '''<% if(!c.className) { c.className=item.name } %>{{imports}}
+      template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
   $lit.underscored${lit == last ? ';' : ','}<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
   
   public boolean $lit.is {
     return this == $lit.underscored; 
-  }<% } %>
-}''')
-
-      template('initializer', body: '''<% if(!c.className) { c.className="${c.item.name}Initializer" } %>{{imports}}
-public interface $c.className {
-  void init(${c.name('ClusterSingleton')} clusterSingleton);
-}''')
-
-      template('initializerBean', body: '''<% if(!c.className) { c.className = c.item.n.cap.initializerBean } %>{{imports}}
-/** Initializer bean for '$component.name' */
-@Singleton
-@Startup
-@SupportsEnvironments(@Environment(runtimes = { SERVER }))
-@Local(${item.n.cap.initializer}.class)
-public class $c.className extends $item.n.cap.initializerBase {
-  
-  @PostConstruct
-  public void init() {
-    try {
-      init(clusterSingleton);
-      // add additional startup tasks here
-    } catch (Exception e) {
-      log.error("$className failed", e);
-    }
-  }
-}''')
-
-      template('initializerBase', body: '''<% if(!c.className) { c.className = c.item.n.cap.initializerBase }; def startupInitializers = item.modules.findAll { it.startupInitializer }  %>
-/** Initializer for '$item.name' */
-@Alternative
-public class $c.className implements $item.n.cap.initializer {
-  protected XLogger log = XLoggerFactory.getXLogger(getClass());
-  <% if(item.entities) { %>
-  protected ${item.capShortName}SchemaGenerator schemaGenerator;<% } %>
-  protected ClusterSingleton clusterSingleton;<% startupInitializers.each { %>
-  protected ${it.names.initializer} ${it.names.initializerInstance};<% } %>
-
-  @Override
-  public void init(ClusterSingleton clusterSingleton) {
-    log.info("init({})", clusterSingleton);<% if (module.entities) { %>
-    if (clusterSingleton.isStandaloneOrMaster()) {<% if(module.entities) { %>
-      schemaGenerator.createSchema();<% } %>
-    }<% } %>
-    <% startupInitializers.each { %>
-    ${it.names.initializerInstance}.init(clusterSingleton);<% } %>
-  }<% startupInitializers.each { %>
-  
-  @Inject
-  public void set${it.names.initializer}(${it.names.initializer} ${it.names.initializerInstance}) {
-    this.${it.names.initializerInstance} = ${it.names.initializerInstance};
-  }<% } %>
-
-  @Inject
-  public void setClusterSingleton(ClusterSingleton clusterSingleton) {
-    this.clusterSingleton = clusterSingleton;
-  }<% if(module.entities) { %>
-  
-  @Inject
-  public void setSchemaGenerator(${module.capShortName}SchemaGenerator schemaGenerator) {
-    this.schemaGenerator = schemaGenerator;
   }<% } %>
 }''')
     }

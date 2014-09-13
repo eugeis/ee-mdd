@@ -24,19 +24,19 @@ import ee.mdd.templates.java.cg.TemplatesForJavaCg
  */
 class GeneratorForJava {
 
-  static void main(def args) {
-    EnhancerForJava.enhanceClasses()
+	static void main(def args) {
+		EnhancerForJava.enhanceClasses()
 
-    def model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+		def model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
 
-    def generator = TemplatesForJavaCg.build()
-    def commonProcessorFactory = new CommonProcessorFactory()
-    def javaProcessorFactory = new ProcessorsForJava()
+		def generator = TemplatesForJavaCg.build()
+		def commonProcessorFactory = new CommonProcessorFactory()
+		def javaProcessorFactory = new ProcessorsForJava()
 
-    generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
-    generator.add(javaProcessorFactory.javaImportsPathProcessor())
-    generator.add(commonProcessorFactory.printProcessor())
-    generator.add(commonProcessorFactory.fileProcessor('D:/git/ee-mdd-example'))
-    generator.generate(model)
-  }
+		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
+		generator.add(javaProcessorFactory.javaImportsPathProcessor())
+		generator.add(commonProcessorFactory.printProcessor())
+		generator.add(commonProcessorFactory.fileProcessor('D:/git/ee-mdd-example'))
+		generator.generate(model)
+	}
 }

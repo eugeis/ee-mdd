@@ -20,52 +20,58 @@ import ee.mdd.model.component.Model
 
 class ModelBuilderExample {
 
-  void testComponentChildren() {
-    def model = build()
-    assert model != null
-  }
+	void testComponentChildren() {
+		def model = build()
+		assert model != null
+	}
 
-  static Model build(Closure postInstantiateDelegate = null) {
-    def ret =  new ModelBuilder(postInstantiateDelegate).model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
+	static Model build(Closure postInstantiateDelegate = null) {
+		def ret =  new ModelBuilder(postInstantiateDelegate).model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
 
-      model ('Platform', key: 'pl') {
+			model ('Platform', key: 'pl') {
 
-        component('User Management', key: 'um') {
-          facet( )
+				component('User Management', key: 'um') {
+					facet( )
 
+					facet('common')
 
-          facet('common')
+					module('shared') {
 
-          module('shared') {
+						enumType('TaskStatus') {
+							prop('code', type: 'int')
 
-            enumType('TaskStatus') {
-              prop('code', type: 'int')
+							lit('open')
+							lit('closed')
+						}
 
-              lit('open')
-              lit('closed')
-            }
+						entity('Comment') {
+						}
 
-            entity('Comment') {
-            }
+						entity('Task') {
+							prop('comment', type: 'Comment')
+							prop('created', type: 'Date')
+							prop('closed', type: 'Date')
+							op('hello') {
+								param('Test', type: 'String')
+							}
 
-            entity('Task') {
-              prop('comment', type: 'Comment')
-              prop('created', type: 'Date')
-              prop('closed', type: 'Date')
-              op('hello') {
-                param('Test', type: 'String')
-              }
-            }
-          }
+							manager { }
+						}
+					}
 
-          module('backend') {
-          }
+					module('backend') {
+						controller('TaskAgregator') {
+							op('hello') {
+								param('Test', type: 'String')
+							}
+						}
+					}
 
-          module('ui', namespace: 'ui') {
-          }
-        }
-      }
-    }
-    ret
-  }
+					module('ui', namespace: 'ui') {
+					}
+				}
+			}
+		}
+		ret
+	}
 }

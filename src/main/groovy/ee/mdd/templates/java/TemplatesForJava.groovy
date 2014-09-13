@@ -17,8 +17,10 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
+import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Service
 
 
 
@@ -29,29 +31,30 @@ import ee.mdd.model.component.EnumType
 class TemplatesForJava {
 
   static Generator build() {
-    def ret = new GeneratorBuilder().generator('model') {
-      items ('api',
+    def model = new GeneratorBuilder().generator('javaEe') {
+      //model
+	  items ('modelApi',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity ] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% c.serializable = true; c.className = entity.n.cap.base %>${macros.generate('ifc', c)}''')
+        template('ifc', body: '''<% c.serializable = true; c.className = item.n.cap.base %>${macros.generate('ifc', c)}''')
         template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
       }
 
-      items ('impl',
+      items ('modelImpl',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('impl', body: '''<% c.virtual = true; c.serializable = true; c.className = entity.n.cap.implBase %>${macros.generate('impl', c)}''')
-        template('implExtends', body: '''<% c.serializable = true; c.className = entity.n.cap.impl %>${macros.generate('implExtends', c)}''')
+        template('impl', body: '''<% c.virtual = true; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('impl', c)}''')
+        template('implExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implExtends', c)}''')
       }
 
-      items ('test',
+      items ('modelTest',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl', scope: 'test'] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl', scope: 'test'] ) } ) {
 
-        template('test', body: '''<% c.virtual = true; c.className = entity.n.cap.testBase; c.itemInit = "new $entity.n.cap.impl()" %>${macros.generate('test', c)}''')
-        template('testExtends', body: '''<% c.className = entity.n.cap.test %>${macros.generate('implExtends', c)}''')
+        template('test', body: '''<% c.virtual = true; c.className = item.n.cap.testBase; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
+        template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('implExtends', c)}''')
       }
 
       items ('enum',
@@ -60,6 +63,16 @@ class TemplatesForJava {
 
         template('enum', body: '''${macros.generate('enum', c)}''')
       }
+	  
+	  
+	  //logic
+	  items ('logicApi',
+	  query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
+	  before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+
+		template('ifc', body: '''<% c.className = item.n.cap.base %>${macros.generate('ifc', c)}''')
+        template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
+	  }
     }
   }
 }
