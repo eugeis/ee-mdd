@@ -20,7 +20,9 @@ import javafx.beans.property.*
 import javafx.collections.*
 import javafx.scene.control.*
 import ee.mdd.model.Element
+import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.Literal
+import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Prop
 
 
@@ -97,6 +99,39 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'testValue'
         if(!properties.containsKey(key)) {
           properties[key] = typeToTestValue.get(delegate.type.name)
+        }
+        properties[key]
+      }
+    }
+
+    LogicUnit.metaClass {
+
+      getCall << {
+        ->
+        def key = System.identityHashCode(delegate) + 'call'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.params.collect { it.uncap }.join(', ')
+        }
+        properties[key]
+      }
+
+      getSignature << {
+        ->
+        def key = System.identityHashCode(delegate) + 'signature'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.params.collect { it.signature }.join(', ')
+        }
+        properties[key]
+      }
+    }
+
+    Attribute.metaClass {
+
+      getSignature << {
+        ->
+        def key = System.identityHashCode(delegate) + 'signature'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.params.collect { it.type.cap it.uncap }
         }
         properties[key]
       }

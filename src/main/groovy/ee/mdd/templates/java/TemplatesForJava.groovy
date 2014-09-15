@@ -55,6 +55,7 @@ class TemplatesForJava {
 
         template('test', body: '''<% c.virtual = true; c.className = item.n.cap.testBase; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
         template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('implExtends', c)}''')
+        template('baseConstructor', body: '''<% c.className = item.n.cap.test %>${macros.generate('baseConstructor', c)}''')
       }
 
       items ('enum',

@@ -19,7 +19,6 @@ import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.CategoryGenerator
 
 
-
 /**
  *
  * @author Eugen Eisler
@@ -58,9 +57,13 @@ class MacrosForJava {
   void $prop.setter;<% } %>''')
 
       template('propsSetter', body: '''<% item.props.each { prop -> %>
-  @Produces
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
+  }<% } %>''')
+
+      template('baseConstructor', body: ''' <% item.constructors.each { op -> %>
+    public $className(op.signature) {<% op.params.each { prop -> %>
+    this.$prop.uncap = $prop.uncap;<% } %>
   }<% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
