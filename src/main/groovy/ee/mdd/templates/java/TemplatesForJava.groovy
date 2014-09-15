@@ -33,7 +33,7 @@ class TemplatesForJava {
   static Generator build() {
     def model = new GeneratorBuilder().generator('javaEe') {
       //model
-	  items ('modelApi',
+      items ('modelApi',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
@@ -63,16 +63,16 @@ class TemplatesForJava {
 
         template('enum', body: '''${macros.generate('enum', c)}''')
       }
-	  
-	  
-	  //logic
-	  items ('logicApi',
-	  query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
-	  before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-		template('ifc', body: '''<% c.className = item.n.cap.base %>${macros.generate('ifc', c)}''')
+
+      //logic
+      items ('logicApi',
+      query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+
+        template('ifc', body: '''<% c.className = item.n.cap.base;  %>${macros.generate('ifc', c)}''')
         template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
-	  }
+      }
     }
   }
 }

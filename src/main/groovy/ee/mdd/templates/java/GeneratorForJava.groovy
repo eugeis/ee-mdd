@@ -16,6 +16,7 @@
 package ee.mdd.templates.java
 
 import ee.mdd.generator.CommonProcessorFactory
+import ee.mdd.model.component.Model
 import ee.mdd.templates.java.cg.TemplatesForJavaCg
 
 /**
@@ -24,19 +25,20 @@ import ee.mdd.templates.java.cg.TemplatesForJavaCg
  */
 class GeneratorForJava {
 
-	static void main(def args) {
-		EnhancerForJava.enhanceClasses()
+  static void main(def args) {
+    EnhancerForJava.enhanceClasses()
 
-		def model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+    Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+    //model.fillRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
 
-		def generator = TemplatesForJavaCg.build()
-		def commonProcessorFactory = new CommonProcessorFactory()
-		def javaProcessorFactory = new ProcessorsForJava()
+    def generator = TemplatesForJavaCg.build()
+    def commonProcessorFactory = new CommonProcessorFactory()
+    def javaProcessorFactory = new ProcessorsForJava()
 
-		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
-		generator.add(javaProcessorFactory.javaImportsPathProcessor())
-		generator.add(commonProcessorFactory.printProcessor())
-		generator.add(commonProcessorFactory.fileProcessor('D:/git/ee-mdd-example'))
-		generator.generate(model)
-	}
+    generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
+    generator.add(javaProcessorFactory.javaImportsPathProcessor())
+    generator.add(commonProcessorFactory.printProcessor())
+    generator.add(commonProcessorFactory.fileProcessor('D:/git/ee-mdd-example'))
+    generator.generate(model)
+  }
 }

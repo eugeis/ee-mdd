@@ -58,7 +58,7 @@ class MacrosForJava {
   void $prop.setter;<% } %>''')
 
       template('propsSetter', body: '''<% item.props.each { prop -> %>
-  
+  @Produces
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
   }<% } %>''')

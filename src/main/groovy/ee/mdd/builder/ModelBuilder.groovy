@@ -1,21 +1,20 @@
 /*
-* Copyright 2011-2012 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2011-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ee.mdd.builder
 
-import groovy.lang.Closure
 import ee.mdd.factory.*
 import ee.mdd.model.*
 import ee.mdd.model.component.BasicType
@@ -60,27 +59,69 @@ class ModelBuilder extends AbstractFactoryBuilder {
   }
 
   void registerAll() {
-    def factoryBasicType = new CompositeFactory(beanClass: BasicType, childFactories: ['prop', 'op'])
+    def factoryBasicType = new CompositeFactory(beanClass: BasicType, childFactories: ['constr', 'prop', 'op'])
     def factoryBody = new CompositeFactory(beanClass: Body, childFactories: ['type'])
     def factoryComponent = new CompositeFactory(beanClass: Component, childFactories: ['module', 'facet'])
     def factoryCondition = new CompositeFactory(beanClass: Condition, childFactories: ['type', 'op', 'controller'])
-    def factoryConfig = new CompositeFactory(beanClass: Config, childFactories: ['prop', 'op', 'controller'])
+    def factoryConfig = new CompositeFactory(beanClass: Config, childFactories: [
+      'constr',
+      'prop',
+      'op',
+      'controller'
+    ])
     def factoryConstructor = new CompositeFactory(beanClass: Constructor, childFactories: ['param', 'body',])
-    def factoryContainer = new CompositeFactory(beanClass: Container, childFactories: ['prop', 'op', 'controller'])
-    def factoryController = new CompositeFactory(beanClass: Controller, childFactories: ['prop', 'op'])
-	def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: ['prop', 'op'])
+    def factoryContainer = new CompositeFactory(beanClass: Container, childFactories: [
+      'constr',
+      'prop',
+      'op',
+      'controller'
+    ])
+    def factoryController = new CompositeFactory(beanClass: Controller, childFactories: ['constr', 'prop', 'op'])
+    def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: ['constr', 'prop', 'op'])
     def factoryCount = new CompositeFactory(beanClass: Count, childFactories: ['cond'])
     def factoryCreate = new CompositeFactory(beanClass: Create, childFactories: ['param', 'cond'])
     def factoryDelete = new CompositeFactory(beanClass: Delete, childFactories: ['cond'])
-    def factoryEntity = new CompositeFactory(beanClass: Entity, childFactories: ['prop', 'op', 'manager'])
-    def factoryEnumType = new CompositeFactory(beanClass: EnumType, childFactories: ['lit', 'prop', 'op'])
+    def factoryEntity = new CompositeFactory(beanClass: Entity, childFactories: [
+      'constr',
+      'prop',
+      'op',
+      'manager'
+    ])
+    def factoryEnumType = new CompositeFactory(beanClass: EnumType, childFactories: [
+      'constr',
+      'lit',
+      'prop',
+      'op'
+    ])
     def factoryExist = new CompositeFactory(beanClass: Exist, childFactories: ['cond'])
     def factoryExternalType = new CompositeFactory(beanClass: ExternalType, childFactories: ['prop', 'op'])
     def factoryFacet = new CompositeFactory(beanClass: Facet)
     def factoryFind = new CompositeFactory(beanClass: Find, childFactories: ['cond'])
-    def factoryModel = new CompositeFactory(beanClass: Model, childFactories: ['model', 'component', 'facet', 'extType'])
-    def factoryManager = new CompositeFactory(beanClass: Manager, childFactories: ['prop', 'op', 'count', 'create', 'delete', 'exist', 'find'])
-    def factoryModule = new CompositeFactory(beanClass: Module, childFactories: ['facet', 'entity', 'basicType', 'enumType', 'pojo', 'config', 'extType', 'controller'])
+    def factoryModel = new CompositeFactory(beanClass: Model, childFactories: [
+      'model',
+      'component',
+      'facet',
+      'extType'
+    ])
+    def factoryManager = new CompositeFactory(beanClass: Manager, childFactories: [
+      'prop',
+      'op',
+      'count',
+      'create',
+      'delete',
+      'exist',
+      'find'
+    ])
+    def factoryModule = new CompositeFactory(beanClass: Module, childFactories: [
+      'facet',
+      'entity',
+      'basicType',
+      'enumType',
+      'pojo',
+      'config',
+      'extType',
+      'controller'
+    ])
     def factoryOperation = new CompositeFactory(beanClass: Operation, childFactories: ['param', 'body'])
     def factoryParam = new CompositeFactory(beanClass: Param, childFactories: [])
     def factoryPojo = new CompositeFactory(beanClass: Pojo, childFactories: ['prop', 'op'])
@@ -98,8 +139,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'constr', factoryConstructor
     registerFactory 'container', factoryContainer
     registerFactory 'controller', factoryController
-	registerFactory 'initializer', factoryInitializer
-	registerFactory 'counter', factoryCount
+    registerFactory 'initializer', factoryInitializer
+    registerFactory 'counter', factoryCount
     registerFactory 'creator', factoryCreate
     registerFactory 'delete', factoryDelete
     registerFactory 'entity', factoryEntity
