@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.Element
+
 
 /**
  *
@@ -22,4 +24,16 @@ package ee.mdd.model.component
  */
 class Param extends Attribute {
   Prop prop
+
+  def init() {
+    if(prop) {
+      if(!type) {
+        type = prop.type
+      }
+    }
+  }
+
+  String deriveName(Element p = parent ) {
+    prop ? prop.name : super.deriveName(p)
+  }
 }
