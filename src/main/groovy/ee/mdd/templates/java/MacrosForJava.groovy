@@ -67,13 +67,13 @@ class MacrosForJava {
   }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { op -> %>
-    public $className(op.signature) {
-    super($op.signatureNames);
+    public $className($op.signature) {
+    super($op.signature);
   }<% } %>''')
 
       template('enumConstructor', body: '''<% item.constructors.each { op -> %>
-    private $className(op.signature) {<% op.params.each { prop -> %>
-      this.$prop.uncap = $propAttr.defaultValue;<% } %>
+    private $className(op.signature) {<% op.params.each { prop ->%>
+      this.$prop.uncap = $prop.uncap;<% } %>
     }<% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}

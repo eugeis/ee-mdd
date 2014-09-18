@@ -54,9 +54,9 @@ class ModelBuilderExample {
               prop('closed', type: 'Date')
 
               constr {
-                prop('comment', type: 'Comment')
-                prop('created', type: 'String')
-                prop('closed', type: 'String')
+                param(prop: 'comment')
+                param(prop: 'created')
+                param(prop: 'closed')
                 prop('caller', type: 'String')
               }
 
@@ -74,8 +74,6 @@ class ModelBuilderExample {
                 param('Test', type: 'String')
               }
             }
-
-            service('CommandService') { delegate(ref: 'TaskAgregator.hello') }
           }
 
           module('ui', namespace: 'ui') {
