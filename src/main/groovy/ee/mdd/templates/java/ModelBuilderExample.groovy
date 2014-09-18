@@ -54,10 +54,10 @@ class ModelBuilderExample {
               prop('closed', type: 'Date')
 
               constr {
-                prop('comment', type: 'Comment')
-                prop('created', type: 'String')
-                prop('closed', type: 'String')
-                prop('caller', type: 'String')
+                param(prop: 'comment')
+                param(prop: 'created')
+                param(prop: 'closed')
+                param('caller', type: 'String')
               }
 
               op('hello') {

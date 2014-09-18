@@ -22,6 +22,7 @@ package ee.mdd.model
  */
 class Composite extends Element {
   List<Element> children = []
+  Map<String, Element> refToResolved
 
   def add(Element child) {
     children << child; child.parent = this; child.init(); child
