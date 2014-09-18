@@ -22,7 +22,7 @@ package ee.mdd.model.component
 class NamesBuilder {
 
   Map storage = [:]
-  String base
+  String _base
   Closure builder = { b, n -> "${b}$n" }
 
   def propertyMissing(String name, value) {
@@ -31,7 +31,8 @@ class NamesBuilder {
 
   def propertyMissing(String name) {
     if(!storage.containsKey(name)) {
-      storage[name] = builder(base, name)
+      storage[name] = builder(_base, name)
+      //println "New name $name ${storage[name]}"
     }
     storage[name]
   }

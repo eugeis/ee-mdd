@@ -80,8 +80,8 @@ class MacrosForJava {
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% c.src = true %>{{imports}}
-public interface $c.className extends ${c.className}Base {
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.classBase) { c.classBase = item.n.cap.base } %><% c.src = true %>{{imports}}
+public interface $c.className extends $c.classBase {
 }''')
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -90,8 +90,8 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.i
   ${macros.generate('propsMember', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
-public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.classBase) { c.classBase = item.n.cap.implBase } %>{{imports}}
+public class $c.className extends $c.classBase {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 

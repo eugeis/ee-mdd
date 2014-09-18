@@ -23,13 +23,13 @@ import java.beans.Introspector
  */
 class Names {
 
-  String base
+  String _base
   NamesBuilder cap, uncap, underscored
 
   Names(String base) {
-    this.base = base
-    cap = new NamesBuilder(base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
-    uncap = new NamesBuilder(base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
-    underscored = new NamesBuilder(base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
+    this._base = base
+    cap = new NamesBuilder(_base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
+    uncap = new NamesBuilder(_base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
+    underscored = new NamesBuilder(_base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
   }
 }

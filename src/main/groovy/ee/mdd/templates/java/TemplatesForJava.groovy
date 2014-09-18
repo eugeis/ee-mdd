@@ -55,7 +55,7 @@ class TemplatesForJava {
 
         template('test', body: '''<% c.virtual = true; c.className = item.n.cap.testBase; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
         template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('implExtends', c)}''')
-        template('baseConstructor', body: '''<% c.className = item.n.cap.test %>${macros.generate('baseConstructor', c)}''')
+        template('baseConstructor', body: '''<% c.className = item.n.cap %>${macros.generate('baseConstructor', c)}''')
         template('superConstructor', body: '''<% c.className = item.n.cap %>${macros.generate('superConstructor', c)}''')
 
       }
