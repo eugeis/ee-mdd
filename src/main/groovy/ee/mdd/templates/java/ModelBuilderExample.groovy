@@ -71,7 +71,7 @@ class ModelBuilderExample {
           module('backend') {
             controller('TaskAgregator') {
               op('hello') {
-                param('Test', type: 'String')
+                param('test', type: 'String')
               }
             }
 
