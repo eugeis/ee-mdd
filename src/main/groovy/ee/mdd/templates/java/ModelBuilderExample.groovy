@@ -53,8 +53,8 @@ class ModelBuilderExample {
               prop('closed', type: 'Date')
 
               constr {
-                param('comment')
-                param('sdfsd')
+                param(prop: 'comment')
+                param('source')
               }
 
               op('hello') {
@@ -71,6 +71,8 @@ class ModelBuilderExample {
                 param('Test', type: 'String')
               }
             }
+
+            service('CommandService') { delegate(ref: 'TaskAgregator.hello') }
           }
 
           module('ui', namespace: 'ui') {

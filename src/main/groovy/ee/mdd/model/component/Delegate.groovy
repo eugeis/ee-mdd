@@ -15,15 +15,13 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.Element
+
 
 /**
  *
  * @author Eugen Eisler
  */
-class Operation extends LogicUnit {
-  Type type
-
-  String getNameExternal() {
-    name
-  }
+class Delegate extends Operation {
+  Element ref
 }

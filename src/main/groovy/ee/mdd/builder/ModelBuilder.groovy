@@ -59,10 +59,20 @@ class ModelBuilder extends AbstractFactoryBuilder {
   }
 
   void registerAll() {
-    def factoryBasicType = new CompositeFactory(beanClass: BasicType, childFactories: ['constr', 'prop', 'op'])
+    def factoryBasicType = new CompositeFactory(beanClass: BasicType, childFactories: [
+      'constr',
+      'prop',
+      'op',
+      'delegate'
+    ])
     def factoryBody = new CompositeFactory(beanClass: Body, childFactories: ['type'])
     def factoryComponent = new CompositeFactory(beanClass: Component, childFactories: ['module', 'facet'])
-    def factoryCondition = new CompositeFactory(beanClass: Condition, childFactories: ['type', 'op', 'controller'])
+    def factoryCondition = new CompositeFactory(beanClass: Condition, childFactories: [
+      'type',
+      'op',
+      'delegate',
+      'controller'
+    ])
     def factoryConfig = new CompositeFactory(beanClass: Config, childFactories: [
       'constr',
       'prop',
@@ -76,8 +86,18 @@ class ModelBuilder extends AbstractFactoryBuilder {
       'op',
       'controller'
     ])
-    def factoryController = new CompositeFactory(beanClass: Controller, childFactories: ['constr', 'prop', 'op'])
-    def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: ['constr', 'prop', 'op'])
+    def factoryController = new CompositeFactory(beanClass: Controller, childFactories: [
+      'constr',
+      'prop',
+      'op',
+      'delegate'
+    ])
+    def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: [
+      'constr',
+      'prop',
+      'op',
+      'delegate'
+    ])
     def factoryCount = new CompositeFactory(beanClass: Count, childFactories: ['cond'])
     def factoryCreate = new CompositeFactory(beanClass: Create, childFactories: ['param', 'cond'])
     def factoryDelete = new CompositeFactory(beanClass: Delete, childFactories: ['cond'])
@@ -94,7 +114,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
       'op'
     ])
     def factoryExist = new CompositeFactory(beanClass: Exist, childFactories: ['cond'])
-    def factoryExternalType = new CompositeFactory(beanClass: ExternalType, childFactories: ['prop', 'op'])
+    def factoryExternalType = new CompositeFactory(beanClass: ExternalType, childFactories: ['prop', 'op', 'delegate'])
     def factoryFacet = new CompositeFactory(beanClass: Facet)
     def factoryFind = new CompositeFactory(beanClass: Find, childFactories: ['cond'])
     def factoryModel = new CompositeFactory(beanClass: Model, childFactories: [
@@ -120,14 +140,16 @@ class ModelBuilder extends AbstractFactoryBuilder {
       'pojo',
       'config',
       'extType',
-      'controller'
+      'controller',
+      'service'
     ])
     def factoryOperation = new CompositeFactory(beanClass: Operation, childFactories: ['param', 'body'])
+    def factoryDelegate = new CompositeFactory(beanClass: Operation, childFactories: ['param', 'body'])
     def factoryParam = new CompositeFactory(beanClass: Param, childFactories: [])
-    def factoryPojo = new CompositeFactory(beanClass: Pojo, childFactories: ['prop', 'op'])
+    def factoryPojo = new CompositeFactory(beanClass: Pojo, childFactories: ['prop', 'op', 'delegate'])
     def factoryProp = new CompositeFactory(beanClass: Prop, childFactories: [])
     def factoryLiteral = new CompositeFactory(beanClass: Literal, childFactories: [])
-    def factoryService = new CompositeFactory(beanClass: Service, childFactories: ['prop', 'op'])
+    def factoryService = new CompositeFactory(beanClass: Service, childFactories: ['prop', 'op', 'delegate'])
     def factoryUpdate = new CompositeFactory(beanClass: Update, childFactories: ['param', 'cond'])
 
 
@@ -153,6 +175,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'manager', factoryManager
     registerFactory 'module', factoryModule
     registerFactory 'op', factoryOperation
+    registerFactory 'delegate', factoryDelegate
     registerFactory 'param', factoryParam
     registerFactory 'pojo', factoryPojo
     registerFactory 'prop', factoryProp

@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.builder
 
+import ee.mdd.model.Composite
+import ee.mdd.model.Element
 
 /**
  *
  * @author Eugen Eisler
  */
-class Operation extends LogicUnit {
-  Type type
-
-  String getNameExternal() {
-    name
-  }
+interface RefResolveHandler {
+  void onElement(Element el)
+  void addResolveRequest(String ref, Composite parent, Closure setter)
 }

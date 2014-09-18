@@ -22,9 +22,14 @@ package ee.mdd.model
  */
 class Composite extends Element {
   List<Element> children = []
+  Map<String, Element> refToResolved
 
   def add(Element child) {
-    children << child; child.parent = this; child.init(); child
+    children << child; child.parent = this; child.init()
+    if(refToResolved != null) {
+      element.fillReference(refToResolved)
+    }
+    child
   }
 
   Element find(Closure matcher) {
@@ -59,5 +64,19 @@ class Composite extends Element {
       parent.findRecursiveUp(matcher)
     }
     ret
+  }
+
+  Element resolve(String ref) {
+    //lazy init of resolved
+    if(refToResolved == null) {
+      refToResolved = [:]
+      children.each { Element element -> element.fillReference(refToResolved) }
+    }
+    refToResolved[ref]
+  }
+
+  /** resolve */
+  def propertyMissing(String ref) {
+    resolve(ref)
   }
 }

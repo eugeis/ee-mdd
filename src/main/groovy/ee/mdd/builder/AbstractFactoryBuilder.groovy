@@ -37,6 +37,7 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
     this.allowedRoots = allowedRoots
     refAttrResolver = new RefAttributesResolver()
     refAttrResolver.add('type', Type)
+    refAttrResolver.add('ref', Element)
     refAttrResolver.add('prop', Prop, false)
     refAttrResolver.add('module', Module)
     addAttributeDelegate(refAttrResolver.attributteDelegate)
