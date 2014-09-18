@@ -25,4 +25,6 @@ import ee.mdd.model.Element
 interface RefResolveHandler {
   void onElement(Element el)
   void addResolveRequest(String ref, Composite parent, Closure setter)
+  boolean isResolved()
+  void printNotResolved()
 }

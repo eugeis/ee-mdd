@@ -68,7 +68,7 @@ class MacrosForJava {
 
       template('superConstructor', body: ''' <% item.constructors.each { op -> %>
     public $className($op.signature) {
-    super($op.signature);
+    super($op.signatureNames);
   }<% } %>''')
 
       template('enumConstructor', body: '''<% item.constructors.each { op -> %>

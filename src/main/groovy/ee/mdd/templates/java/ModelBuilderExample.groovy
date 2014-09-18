@@ -57,7 +57,7 @@ class ModelBuilderExample {
                 param(prop: 'comment')
                 param(prop: 'created')
                 param(prop: 'closed')
-                prop('caller', type: 'String')
+                param('caller', type: 'String')
               }
 
               op('hello') {
@@ -74,6 +74,8 @@ class ModelBuilderExample {
                 param('Test', type: 'String')
               }
             }
+
+            service('CommandService') { delegate(ref: 'TaskAgregator.hello') }
           }
 
           module('ui', namespace: 'ui') {

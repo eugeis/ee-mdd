@@ -19,6 +19,7 @@ import ee.mdd.model.Composite
 import ee.mdd.model.Element
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -26,6 +27,7 @@ import ee.mdd.model.Element
 class RefParentResolveHandler implements RefResolveHandler {
   String name
   Class type
+  List<String> notResolved = []
 
   void onElement(Element el) {
   }
@@ -34,7 +36,23 @@ class RefParentResolveHandler implements RefResolveHandler {
     //e.g. parent is constructor for param(prop: ref), so we need compilation unit => parent.parent
     def base = parent?.parent
     def el = base?.find { Element el -> type.isInstance(el) && el.name == ref }
-    assert el, "The '$ref' can not be resolved in $base for child of $parent"
-    setter(el)
+    if(el) {
+      setter(el)
+    } else {
+      notResolved[ref] = "The '$ref' can not be resolved in $base for child of $parent"
+    }
   }
+
+  @Override
+  boolean isResolved() {
+    notResolved.isEmpty()
+  }
+
+  @Override
+  void printNotResolved() {
+    if(!notResolved.isEmpty()) {
+      println "$name: $notResolved"
+    }
+  }
+
 }

@@ -17,10 +17,7 @@ package ee.mdd.builder
 
 import ee.mdd.factory.*
 import ee.mdd.model.*
-import ee.mdd.model.component.Module
 import ee.mdd.model.component.Namespace
-import ee.mdd.model.component.Prop
-import ee.mdd.model.component.Type
 
 
 /**
@@ -35,12 +32,8 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   AbstractFactoryBuilder(Set<String> allowedRoots, boolean init = true) {
     super(init)
     this.allowedRoots = allowedRoots
+
     refAttrResolver = new RefAttributesResolver()
-    refAttrResolver.add('type', Type)
-    refAttrResolver.add('prop', Prop, false)
-    refAttrResolver.add('module', Module)
-    addAttributeDelegate(refAttrResolver.attributteDelegate)
-    addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
 
     attributeToObject = new AttributeToObject()
     attributeToObject.add('namespace', new MddFactory(beanClass: Namespace))

@@ -83,4 +83,12 @@ class Element {
       underscored = getName().replaceAll(/(\B[A-Z])/,'_$1').toUpperCase()
     }; underscored
   }
+
+  String getReference() {
+    getName()
+  }
+
+  void fillReference(Map<String, Element> fillRefToResolved) {
+    fillRefToResolved[reference] = this
+  }
 }

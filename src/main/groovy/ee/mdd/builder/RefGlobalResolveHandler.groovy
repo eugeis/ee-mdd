@@ -74,13 +74,14 @@ class RefGlobalResolveHandler implements RefResolveHandler {
     def el = base
     def partsSize = parts.size()
     for(int i = 0; i < partsSize; i++) {
-      def resolved = el.resolve(parts[i])
+      String refPart = parts[i]
+      def resolved = el.resolve(refPart)
       if(resolved) {
         el = resolved
       } else {
         def subParts = (i < partsSize-1) ? parts[i+1..partsSize-1] : []
-        notResolvedPathRefToResolvers[parts[i]] = { resolve(el.resolve(it), subParts, setter) }
-        println "Can not resolve ${parts[i]} in '$el'"
+        notResolvedPathRefToResolvers[refPart] = { resolve(el.resolve(it), subParts, setter) }
+        println "Can not resolve ${refPart} in '$el.reference'"
         el = null
         break
       }
@@ -92,5 +93,22 @@ class RefGlobalResolveHandler implements RefResolveHandler {
       notResolvedRefToSetters[ref] = []
     }
     notResolvedRefToSetters[ref] << setter
+  }
+
+  @Override
+  boolean isResolved() {
+    notResolvedRefToSetters.isEmpty() && notResolvedPathRefToResolvers.isEmpty()
+  }
+
+  @Override
+  void printNotResolved() {
+
+    if(!notResolvedRefToSetters.isEmpty()) {
+      println "$name: ${notResolvedRefToSetters.keySet()}"
+    }
+
+    if(!notResolvedPathRefToResolvers.isEmpty()) {
+      println "$name: ${notResolvedPathRefToResolvers.keySet()}"
+    }
   }
 }
