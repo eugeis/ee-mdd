@@ -38,7 +38,7 @@ class GeneratorForJava {
     generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
     generator.add(javaProcessorFactory.javaImportsPathProcessor())
     generator.add(commonProcessorFactory.printProcessor())
-    generator.add(commonProcessorFactory.fileProcessor('D:/git/ee-mdd-example'))
+    //generator.add(commonProcessorFactory.fileProcessor('D:/git/ee-mdd-example'))
     generator.generate(model)
   }
 }

@@ -131,7 +131,7 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'signature'
         if(!properties.containsKey(key)) {
-          properties[key] = delegate.params.collect { it.type.cap it.uncap }
+          properties[key] = "$delegate.type.cap $delegate.uncap"
         }
         properties[key]
       }

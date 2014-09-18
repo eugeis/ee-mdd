@@ -54,9 +54,9 @@ class ModelBuilderExample {
               prop('closed', type: 'Date')
 
               constr {
-                param(prop: 'comment')
-                param(prop: 'created')
-                param(prop: 'closed')
+                param('comment', type: 'Comment')
+                param('created', type: 'Date')
+                param('closed', type: 'Date')
                 param('caller', type: 'String')
               }
 

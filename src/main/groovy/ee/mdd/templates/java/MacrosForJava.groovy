@@ -61,18 +61,19 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap; 
   }<% } %>''')
 
-      template('baseConstructor', body: ''' <% item.constructors.each { op -> %>
-    public $className(op.signature) {<% op.params.each { prop -> %>
+      template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
+
+  public $className($constr.signature) {<% constr.params.each { prop -> %>
     this.$prop.uncap = $prop.uncap;<% } %>
+  } <% } %>''')
+
+      template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
+  public $className($constr.signature) {
+    super($constr.call);
   }<% } %>''')
 
-      template('superConstructor', body: ''' <% item.constructors.each { op -> %>
-    public $className($op.signature) {
-    super($op.signatureNames);
-  }<% } %>''')
-
-      template('enumConstructor', body: '''<% item.constructors.each { op -> %>
-    private $className(op.signature) {<% op.params.each { prop ->%>
+      template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
+    private $className($constr.signature) {<% constr.params.each { prop ->%>
       this.$prop.uncap = $prop.uncap;<% } %>
     }<% } %>''')
 
@@ -80,19 +81,20 @@ class MacrosForJava {
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.classBase) { c.classBase = item.n.cap.base } %><% c.src = true %>{{imports}}
-public interface $c.className extends $c.classBase {
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% c.src = true %>{{imports}}
+public interface $c.className extends ${c.className}Base {
 }''')
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
+  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.classBase) { c.classBase = item.n.cap.implBase } %>{{imports}}
-public class $c.className extends $c.classBase {<% if (c.serializable) { %>
+      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+public class $c.className extends ${c.className}Base" {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
+  ${macros.generate('superConstructor', c)}
 }''')
 
       template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
@@ -109,7 +111,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
   $lit.underscored${lit == last ? ';' : ','}<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
+  ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
   
   public boolean $lit.is {
     return this == $lit.underscored; 
