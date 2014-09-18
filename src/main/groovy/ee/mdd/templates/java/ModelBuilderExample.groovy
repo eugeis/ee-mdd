@@ -45,6 +45,7 @@ class ModelBuilderExample {
             }
 
             entity('Comment') {
+
             }
 
             entity('Task') {
@@ -53,8 +54,10 @@ class ModelBuilderExample {
               prop('closed', type: 'Date')
 
               constr {
-                param(prop: 'comment')
-                param('source')
+                prop('comment', type: 'Comment')
+                prop('created', type: 'String')
+                prop('closed', type: 'String')
+                prop('caller', type: 'String')
               }
 
               op('hello') {
