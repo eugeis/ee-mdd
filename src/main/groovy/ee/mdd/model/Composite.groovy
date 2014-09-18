@@ -60,4 +60,18 @@ class Composite extends Element {
     }
     ret
   }
+
+  Element resolve(String ref) {
+    //lazy init of resolved
+    if(refToResolved == null) {
+      refToResolved = [:]
+      children.each { Element element -> element.fillReference(refToResolved) }
+    }
+    refToResolved[ref]
+  }
+
+  /** resolve */
+  def propertyMissing(String ref) {
+    resolve(ref)
+  }
 }
