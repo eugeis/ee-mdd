@@ -66,6 +66,16 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap;<% } %>
   }<% } %>''')
 
+      template('superConstructor', body: ''' <% item.constructors.each { op -> %>
+    public $className(op.signature) {
+    super($op.signatureNames);
+  }<% } %>''')
+
+      template('enumConstructor', body: '''<% item.constructors.each { op -> %>
+    private $className(op.signature) {<% op.params.each { prop -> %>
+      this.$prop.uncap = $propAttr.defaultValue;<% } %>
+    }<% } %>''')
+
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
