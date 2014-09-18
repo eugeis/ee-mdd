@@ -43,6 +43,7 @@ import ee.mdd.model.component.Param
 import ee.mdd.model.component.Pojo
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Service
+import ee.mdd.model.component.Type
 import ee.mdd.model.component.Update
 
 /**
@@ -53,6 +54,23 @@ class ModelBuilder extends AbstractFactoryBuilder {
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
     super(['model'] as Set)
+
+    refAttrResolver.addGlobalResolver('type', Type)
+    refAttrResolver.addGlobalResolver('ref', Element)
+    refAttrResolver.addParentResolver('prop', Prop)
+    refAttrResolver.addGlobalResolver('module', Module)
+    refAttrResolver.addGlobalTypes([
+      Model,
+      Module,
+      Component,
+      Type,
+      Controller,
+      Service
+    ])
+    addAttributeDelegate(refAttrResolver.attributteDelegate)
+    addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
+    addPostNodeCompletionDelegate(refAttrResolver.postNodeCompletionDelegate)
+
     if(postInstantiateDelegate) {
       super.addPostInstantiateDelegate(postInstantiateDelegate)
     }

@@ -26,6 +26,6 @@ class Manager extends Controller {
 
   void fillReference(Map<String, Element> refToMe) {
     super.fillReference(refToMe)
-    refToMe['manager'] = it
+    refToMe['manager'] = this
   }
 }

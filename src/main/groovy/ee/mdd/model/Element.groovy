@@ -84,7 +84,7 @@ class Element {
     getName()
   }
 
-  void fillReference(Map<String, Element> refToResolved) {
-    refToResolved[reference] = it
+  void fillReference(Map<String, Element> fillRefToResolved) {
+    fillRefToResolved[reference] = this
   }
 }

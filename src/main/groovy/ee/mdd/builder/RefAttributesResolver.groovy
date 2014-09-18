@@ -17,25 +17,35 @@ package ee.mdd.builder
 
 import ee.mdd.model.Element
 
-
 /**
  *
  * @author Eugen Eisler
  */
 class RefAttributesResolver {
+  Set<String> duplicateReferences = [] as Set
+  Set<Class> globalTypes = [] as Set
   Map<String, Element> refToResolved = [:]
   Map<String, RefResolveHandler> refHolders = [:]
 
-  RefResolveHandler add(String name, Class type, boolean global = true) {
-    if(global) {
-      refHolders[name] = new RefGlobalResolveHandler(refToResolved: refToResolved, name: name, type: type)
-    } else {
-      refHolders[name] = new RefParentResolveHandler(name: name, type: type)
-    }
+
+  RefResolveHandler addGlobalResolver(String name, Class type) {
+    refHolders[name] = new RefGlobalResolveHandler(refToResolved: refToResolved, name: name, type: type)
+  }
+
+  RefResolveHandler addParentResolver(String name, Class type) {
+    refHolders[name] = new RefParentResolveHandler(name: name, type: type)
   }
 
   RefResolveHandler get(String name) {
     refHolders.get(name)
+  }
+
+  boolean addGlobalType(Class item) {
+    globalTypes.add(item)
+  }
+
+  boolean addGlobalTypes(Collection<? extends Class> items) {
+    globalTypes.addAll(items)
   }
 
   def attributteDelegate = { FactoryBuilderSupport builder, node, Map attributes ->
@@ -54,9 +64,30 @@ class RefAttributesResolver {
 
   def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
     if(node instanceof Element) {
-      refToResolved[node.reference] = node
-      refHolders.each { name, RefResolveHandler ref ->
-        ref.onElement(node)
+
+      def ref = node.reference
+      Class globalType = globalTypes.find { Class clazz -> clazz.isInstance(node) }
+      if(globalType && !duplicateReferences.contains(ref)) {
+        def old = refToResolved.put(ref, node)
+        if(old) {
+          refToResolved.remove(ref)
+          println "Duplicate global reference '$ref' first='$old' and second='$node', remove and ignore this reference."
+          duplicateReferences << ref
+        }
+      }
+
+      refHolders.each { name, RefResolveHandler handler ->
+        handler.onElement(node)
+      }
+    }
+  }
+
+  def postNodeCompletionDelegate = { FactoryBuilderSupport builder, Object parent, Object node ->
+    if(parent == null) {
+      refHolders.each { name, RefResolveHandler handler ->
+        if(!handler.resolved) {
+          handler.printNotResolved()
+        }
       }
     }
   }
