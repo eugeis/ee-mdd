@@ -57,6 +57,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     super(['model'] as Set)
 
     refAttrResolver.addGlobalResolver('type', Type)
+    refAttrResolver.addGlobalResolver('ret', Type)
     refAttrResolver.addGlobalResolver('ref', Element)
     refAttrResolver.addParentResolver('prop', Prop)
     refAttrResolver.addGlobalResolver('module', Module)

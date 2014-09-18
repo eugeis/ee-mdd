@@ -60,7 +60,7 @@ class ModelBuilderExample {
                 param('caller', type: 'String')
               }
 
-              op('hello') {
+              op('hello', ret: 'String') {
                 param('Test', type: 'String')
               }
 
@@ -75,7 +75,7 @@ class ModelBuilderExample {
               }
             }
 
-            service('CommandService') { delegate(ref: 'TaskAgregator.hello') }
+            service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
           }
 
           module('ui', namespace: 'ui') {
