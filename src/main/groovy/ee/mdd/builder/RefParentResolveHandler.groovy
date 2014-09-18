@@ -15,39 +15,26 @@
  */
 package ee.mdd.builder
 
+import ee.mdd.model.Composite
 import ee.mdd.model.Element
+
 
 /**
  *
  * @author Eugen Eisler
  */
-class RefHolder {
+class RefParentResolveHandler implements RefResolveHandler {
   String name
   Class type
-  boolean global = true
 
-  Map<String, Object> refToResolved = [:]
-  Map<String, List<Closure>> notResolvedRefToSetters = [:]
-
-  void addResolved(Element el) {
-    def ref = el.name
-    refToResolved[ref] = el
-
-    //resolve not resolved yet
-    if(notResolvedRefToSetters.containsKey(ref)) {
-      notResolvedRefToSetters[ref].each { it.call(el) }
-      notResolvedRefToSetters.remove(ref)
-    }
+  void onElement(Element el) {
   }
 
-  void resolveOrStore(String ref, Closure setter) {
-    if(refToResolved.containsKey(ref)) {
-      setter.call(refToResolved[ref])
-    } else {
-      if(!notResolvedRefToSetters[ref]) {
-        notResolvedRefToSetters[ref] = []
-      }
-      notResolvedRefToSetters[ref] << setter
-    }
+  void addResolveRequest(String ref, Composite parent, Closure setter) {
+    //e.g. parent is constructor for param(prop: ref), so we need compilation unit => parent.parent
+    def base = parent?.parent
+    def el = base?.find { Element el -> type.isInstance(el) && el.name == ref }
+    assert el, "The '$ref' can not be resolved in $base for child of $parent"
+    setter(el)
   }
 }

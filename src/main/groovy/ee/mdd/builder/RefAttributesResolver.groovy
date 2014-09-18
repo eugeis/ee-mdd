@@ -22,40 +22,41 @@ import ee.mdd.model.Element
  * @author Eugen Eisler
  */
 class RefAttributesResolver {
-  Map<String, RefHolder> refHolders = [:]
+  Map<String, Element> refToResolved = [:]
+  Map<String, RefResolveHandler> refHolders = [:]
 
-  RefHolder add(String name, Class type, boolean global = true) {
-    refHolders[name] = new RefHolder(name: name, type: type, global: global)
+  RefResolveHandler add(String name, Class type, boolean global = true) {
+    if(global) {
+      refHolders[name] = new RefGlobalResolveHandler(refToResolved: refToResolved, name: name, type: type)
+    } else {
+      refHolders[name] = new RefParentResolveHandler(name: name, type: type)
+    }
   }
 
-  RefHolder get(String name) {
+  RefResolveHandler get(String name) {
     refHolders.get(name)
   }
 
   def attributteDelegate = { FactoryBuilderSupport builder, node, Map attributes ->
-    refHolders.each { name, RefHolder ref ->
+    refHolders.each { name, RefResolveHandler ref ->
       if (attributes.containsKey(name)) {
         String refName = attributes[name]
-        if(ref.global) {
-          ref.resolveOrStore(refName, { node[name] = it })
-        } else {
-          //try to resolve by parents
-          def parent = builder.parent?.parent
-          def resolved = parent?.find { Element el -> ref.type.isInstance(el) && el.name == refName }
-          assert resolved, "The '$refName' can not be resolved in $node.parent for $node"
-
-          node[name] = resolved
-        }
+        def parent = builder.parent
+        ref.addResolveRequest(refName, parent, { node[name] = it })
       }
     }
-    refHolders.each { name, RefHolder ref ->
+
+    refHolders.each { name, RefResolveHandler ref ->
       attributes.remove(name)
     }
   }
 
   def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
     if(node instanceof Element) {
-      refHolders.findAll { name, RefHolder ref -> ref.global && ref.type.isInstance(node) }.each { name, RefHolder ref -> ref.addResolved(node) }
+      refToResolved[node.reference] = node
+      refHolders.each { name, RefResolveHandler ref ->
+        ref.onElement(node)
+      }
     }
   }
 }

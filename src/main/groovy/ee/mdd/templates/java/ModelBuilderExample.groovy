@@ -74,6 +74,8 @@ class ModelBuilderExample {
                 param('Test', type: 'String')
               }
             }
+
+            service('CommandService') { delegate(ref: 'TaskAgregator.hello') }
           }
 
           module('ui', namespace: 'ui') {
