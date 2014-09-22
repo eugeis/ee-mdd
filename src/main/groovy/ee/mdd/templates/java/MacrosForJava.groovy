@@ -63,12 +63,12 @@ class MacrosForJava {
 
       template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
 
-  public $className($constr.signature) {<% constr.params.each { prop -> %>
+  public $className(${constr.signature(c)}) {<% constr.params.each { prop -> %>
     this.$prop.uncap = $prop.uncap;<% } %>
   } <% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
-  public $className($constr.signature) {
+  public $className(${constr.signature(c)}) {
     super($constr.call);
   }<% } %>''')
 
@@ -92,7 +92,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.i
 }''')
 
       template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
-public class $c.className extends ${c.className}Base" {<% if (c.serializable) { %>
+public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('superConstructor', c)}
 }''')

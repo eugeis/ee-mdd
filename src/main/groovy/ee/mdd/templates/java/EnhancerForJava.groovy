@@ -19,6 +19,7 @@ import javafx.beans.binding.*
 import javafx.beans.property.*
 import javafx.collections.*
 import javafx.scene.control.*
+import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.Literal
@@ -123,6 +124,12 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      signature << { Context c ->
+        //register usage of the type, in order to calculate imports, etc.
+        delegate.params.each { c.name(it.type) }
+        delegate.signature
+      }
     }
 
     Attribute.metaClass {
@@ -134,6 +141,12 @@ class EnhancerForJava {
           properties[key] = "$delegate.type.cap $delegate.uncap"
         }
         properties[key]
+      }
+
+      signature << { Context c ->
+        //register usage of the type, in order to calculate imports, etc.
+        c.name(delegate.type)
+        delegate.signature
       }
     }
   }
