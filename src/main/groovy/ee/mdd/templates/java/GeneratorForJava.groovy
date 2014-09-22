@@ -16,7 +16,9 @@
 package ee.mdd.templates.java
 
 import ee.mdd.generator.CommonProcessorFactory
+import ee.mdd.model.component.Delegate
 import ee.mdd.model.component.Model
+import ee.mdd.model.component.Prop
 import ee.mdd.templates.java.cg.TemplatesForJavaCg
 
 /**
@@ -29,7 +31,12 @@ class GeneratorForJava {
     EnhancerForJava.enhanceClasses()
 
     Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
-    //model.fillRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
+
+    //create props for delegates
+    model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->
+      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+
+    //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
 
     def generator = TemplatesForJavaCg.build()
     def commonProcessorFactory = new CommonProcessorFactory()

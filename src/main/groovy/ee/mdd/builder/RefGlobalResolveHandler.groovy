@@ -81,10 +81,14 @@ class RefGlobalResolveHandler implements RefResolveHandler {
       } else {
         def subParts = (i < partsSize-1) ? parts[i+1..partsSize-1] : []
         notResolvedPathRefToResolvers[refPart] = { resolve(el.resolve(it), subParts, setter) }
-        println "Can not resolve ${refPart} in '$el.reference'"
+        //println "Can not resolve ${refPart} in '$el.reference'"
         el = null
         break
       }
+    }
+
+    if(el) {
+      setter(el)
     }
   }
 
