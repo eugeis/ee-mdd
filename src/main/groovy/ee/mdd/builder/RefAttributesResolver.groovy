@@ -63,6 +63,9 @@ class RefAttributesResolver {
   }
 
   def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
+  }
+
+  def postNodeCompletionDelegate = { FactoryBuilderSupport builder, Object parent, Object node ->
     if(node instanceof Element) {
 
       def ref = node.reference
@@ -80,9 +83,7 @@ class RefAttributesResolver {
         handler.onElement(node)
       }
     }
-  }
 
-  def postNodeCompletionDelegate = { FactoryBuilderSupport builder, Object parent, Object node ->
     if(parent == null) {
       refHolders.each { name, RefResolveHandler handler ->
         if(!handler.resolved) {

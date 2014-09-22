@@ -31,6 +31,7 @@ class Param extends Attribute {
         type = prop.type
       }
     }
+    this
   }
 
   String deriveName(Element p = parent ) {

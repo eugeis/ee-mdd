@@ -55,6 +55,13 @@ class ModelBuilderExample {
               prop('created', type: 'Date')
               prop('closed', type: 'Date')
 
+              constr {}
+
+              constr {
+                param(prop: 'comment', type: 'Comment')
+                param(prop: 'created', type: 'Date', value: 'new Date()')
+              }
+
               constr {
                 param(prop: 'comment')
                 param(prop: 'created')

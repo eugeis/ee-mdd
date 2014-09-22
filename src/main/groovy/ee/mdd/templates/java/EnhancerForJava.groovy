@@ -31,6 +31,7 @@ import ee.mdd.model.component.Prop
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class EnhancerForJava {
   private static final Object[] EMPTY_ARGUMENTS = {}
@@ -110,8 +111,9 @@ class EnhancerForJava {
       getCall << {
         ->
         def key = System.identityHashCode(delegate) + 'call'
+        def customParams = delegate.params.findAll { it.value == null }
         if(!properties.containsKey(key)) {
-          properties[key] = delegate.params.collect { it.uncap }.join(', ')
+          properties[key] = customParams.collect { it.uncap }.join(', ')
         }
         properties[key]
       }
@@ -119,8 +121,9 @@ class EnhancerForJava {
       getSignature << {
         ->
         def key = System.identityHashCode(delegate) + 'signature'
+        def customParams = delegate.params.findAll { it.value == null }
         if(!properties.containsKey(key)) {
-          properties[key] = delegate.params.collect { it.signature }.join(', ')
+          properties[key] = customParams.collect { it.signature }.join(', ')
         }
         properties[key]
       }
@@ -138,7 +141,8 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'signature'
         if(!properties.containsKey(key)) {
-          properties[key] = "$delegate.type.cap $delegate.uncap"
+          //use 'name', because of primitive types
+          properties[key] = "$delegate.type.name $delegate.uncap"
         }
         properties[key]
       }

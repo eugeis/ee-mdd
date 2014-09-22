@@ -22,6 +22,7 @@ import ee.mdd.generator.CategoryGenerator
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class MacrosForJava {
 
@@ -67,10 +68,10 @@ class MacrosForJava {
   }''')
 
       template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
-
-  public $className(${constr.signature(c)}) {<% constr.params.each { prop -> %>
-    this.$prop.uncap = $prop.uncap;<% } %>
-  } <% } %>''')
+  public $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
+    this.$it.prop.uncap = $it.value;<% } else { %>
+    this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
+  } <% }%>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
   public $className(${constr.signature(c)}) {
@@ -78,8 +79,9 @@ class MacrosForJava {
   }<% } %>''')
 
       template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
-    private $className($constr.signature) {<% constr.params.each { prop ->%>
-      this.$prop.uncap = $prop.uncap;<% } %>
+    private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
+      this.$it.prop.uncap = $it.value;<% } else { %>
+      this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
     }<% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -93,7 +95,7 @@ public interface $c.className extends ${c.className}Base {
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('defaultConstructor', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
+  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
       template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -115,7 +117,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
-  $lit.underscored${lit == last ? ';' : ','}<% } %>
+  $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
   
   public boolean $lit.is {
