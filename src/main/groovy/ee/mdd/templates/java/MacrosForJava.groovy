@@ -31,7 +31,8 @@ class MacrosForJava {
       template('header', body: '''/* EE Software */''')
 
       template('propsMember', body: '''<% item.props.each { prop -> %>
-  protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
+  protected ${c.name(prop.type)} $prop.uncap;<% } %>
+  ''')
 
       template('propsGetterIfc', body: '''<% item.props.each { prop -> %>
 
@@ -61,6 +62,10 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap; 
   }<% } %>''')
 
+      template('defaultConstructor', body:'''
+  public $className() {
+  }''')
+
       template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
 
   public $className(${constr.signature(c)}) {<% constr.params.each { prop -> %>
@@ -88,7 +93,7 @@ public interface $c.className extends ${c.className}Base {
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
+  ${macros.generate('propsMember', c)}${macros.generate('defaultConstructor', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
       template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
