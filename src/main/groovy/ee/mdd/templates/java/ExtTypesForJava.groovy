@@ -29,14 +29,17 @@ class ExtTypesForJava {
   boolean firstModel = true
   def primitiveTypes = ['int', 'long', 'float', 'double', 'boolean', 'Integer', 'Long', 'Float', 'Fouble', 'Boolean', 'String']
   def externalTypeNameToNamespace = ['Date':'java.util', 'ClusterSingleton':'com.siemens.ra.cg.pl.env.model']
+  
   def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
     if(firstModel && node instanceof Model) {
       firstModel = false
+      
       primitiveTypes.each { name ->
         ExternalType newExternalType = new ExternalType(name: name)
         node.add(newExternalType)
         builder.postInstantiate(null, null, newExternalType)
       }
+      
       externalTypeNameToNamespace.each { name, namespace ->
         ExternalType newExternalType = new ExternalType(name: name)
         newExternalType.namespace = new Namespace(name: namespace, parent: newExternalType).init()

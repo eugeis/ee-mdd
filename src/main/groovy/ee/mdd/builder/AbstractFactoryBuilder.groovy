@@ -1,3 +1,5 @@
+
+
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -40,7 +42,6 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
     addAttributeDelegate(attributeToObject.attributteDelegate)
   }
 
-
   def propertyMissing(String name) {
     throw new MissingPropertyException("Unrecognized property: ${name}", name, this.class)
   }
@@ -56,7 +57,12 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
 
   @Override
   protected Object createNode(Object name, Map attributes, Object value) {
-    def node = super.createNode(name, attributes, value)
+    def node
+    if(attributes == null && value != null) {
+      node = super.createNode(name, [:], value)
+    } else {
+      node = super.createNode(name, attributes, value)
+    }
 
     //no parent => root element, call init()
     Object current = getParent()

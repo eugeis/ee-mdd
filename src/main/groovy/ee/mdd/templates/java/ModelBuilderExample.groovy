@@ -40,8 +40,10 @@ class ModelBuilderExample {
             enumType('TaskStatus') {
               prop('code', type: 'int')
 
-              lit('open')
-              lit('closed')
+              constr { param(prop: 'code') }
+
+              lit('open', body: '1')
+              lit('closed', body: '2')
             }
 
             entity('Comment') {
@@ -52,12 +54,11 @@ class ModelBuilderExample {
               prop('comment', type: 'Comment')
               prop('created', type: 'Date')
               prop('closed', type: 'Date')
-              prop('caller', type: 'String')
 
               constr {
-                param('comment', type: 'Comment')
-                param('created', type: 'Date')
-                param('closed', type: 'Date')
+                param(prop: 'comment')
+                param(prop: 'created')
+                param(prop: 'closed')
                 param('caller', type: 'String')
               }
 

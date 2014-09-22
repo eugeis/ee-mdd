@@ -158,7 +158,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
       'service'
     ])
     def factoryOperation = new CompositeFactory(beanClass: Operation, childFactories: ['param', 'body'])
-    def factoryDelegate = new CompositeFactory(beanClass: Delegate, childFactories: ['param', 'body'])
+    def factoryDelegate = new CompositeFactory(beanClass: Delegate, valueProperty: 'ref', childFactories: ['param', 'body'])
     def factoryParam = new CompositeFactory(beanClass: Param, childFactories: [])
     def factoryPojo = new CompositeFactory(beanClass: Pojo, childFactories: ['prop', 'op'])
     def factoryProp = new CompositeFactory(beanClass: Prop, childFactories: [])
