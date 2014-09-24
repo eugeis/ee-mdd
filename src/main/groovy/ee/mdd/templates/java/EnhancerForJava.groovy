@@ -152,6 +152,22 @@ class EnhancerForJava {
         c.name(delegate.type)
         delegate.signature
       }
+
+      resolveValue << { Context c ->
+        def ret
+        def value = "$delegate.value"
+        if (delegate.prop == null) {
+          ret = "$delegate.value"
+        } else {
+          if(delegate.value[0].equals('#')) {
+            ret = "this.$delegate.prop.uncap = ${c.macros.generate("${value.substring(1, value.size())}", c)}"
+        } else {
+          ret = "this.$delegate.prop.uncap = $delegate.value"
+        }
+      }
+      ret
     }
+
   }
+}
 }

@@ -31,9 +31,10 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
+      template('abc', body: '''<% def type = 'new '+c.v.substring(4, c.v.size())+'()' %>''')
+
       template('propsMember', body: '''<% item.props.each { prop -> %>
-  protected ${c.name(prop.type)} $prop.uncap;<% } %>
-  ''')
+  protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
       template('propsGetterIfc', body: '''<% item.props.each { prop -> %>
 
@@ -68,10 +69,11 @@ class MacrosForJava {
   }''')
 
       template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
-  public $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
-    this.$it.prop.uncap = $it.value;<% } else { %>
-    this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
-  } <% }%>''')
+  
+  public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
+    ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
+    this.$param.prop.uncap = $param.prop.uncap; <% } } %>
+   }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
   public $className(${constr.signature(c)}) {
@@ -124,6 +126,8 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
+
+      template('newDate', body: '''<% def ret = 'new Date()' %>$ret''')
     }
   }
 }

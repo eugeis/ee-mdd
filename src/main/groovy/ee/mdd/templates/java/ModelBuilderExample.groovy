@@ -54,12 +54,14 @@ class ModelBuilderExample {
               prop('comment', type: 'Comment')
               prop('created', type: 'Date')
               prop('closed', type: 'Date')
+              prop('tested', type: 'String')
 
               constr {}
 
               constr {
                 param(prop: 'comment', type: 'Comment')
-                param(prop: 'created', type: 'Date', value: 'new Date()')
+                param(prop: 'created', type: 'Date', value: '#newDate')
+                param(prop: 'tested', value: 'testvalue1')
               }
 
               constr {
@@ -67,6 +69,7 @@ class ModelBuilderExample {
                 param(prop: 'created')
                 param(prop: 'closed')
                 param('caller', type: 'String')
+                param(prop:'tested', value: 'testvalue2')
               }
 
               op('hello', ret: 'String') {
