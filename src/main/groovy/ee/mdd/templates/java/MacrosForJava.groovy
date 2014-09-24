@@ -58,6 +58,7 @@ class MacrosForJava {
   void $prop.setter;<% } %>''')
 
       template('propsSetter', body: '''<% item.props.each { prop -> %>
+
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
   }<% } %>''')
@@ -71,14 +72,16 @@ class MacrosForJava {
   public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
     ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
     this.$param.prop.uncap = $param.prop.uncap;<% } } %>
-   }<% } %>''')
+  }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
+
   public $className(${constr.signature(c)}) {
     super($constr.call);
   }<% } %>''')
 
       template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
+
     private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
       this.$it.prop.uncap = $it.value;<% } else { %>
       this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
@@ -117,15 +120,17 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
   public void before$c.className() {
     item = $c.itemInit;
   }
-  ${macros.generate('testProperties', c)}
-  ${macros.generate('testConstructors', c)}
+  ${macros.generate('testProperties', c)}${macros.generate('testConstructors', c)}
 }''')
 
       template('testConstructors', body: '''<% item.constructors.each { constr -> %><% def className = item.n.cap.impl %>
+
   @${c.name('Test')}
-  public void testConstructor${constr.getParamsName(c)}() { <% constr.params.each { param -> %><% if(param.prop != null) { %> 
-     $param.type.name $param.prop.uncap = new $param.type.name(); <% } } %>
-     ${c.name(item)} instance = new $className(${constr.signature(c)});
+  public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %> 
+     ${c.name(param.type)} $param.uncap = ${param.prop.testable ? param.prop.testValue : 'null'};<% } %>
+     ${c.name(item)} instance = new $className(${constr.call});
+     <% customParams.each { param -> def prop = param.prop; %>
+     ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}

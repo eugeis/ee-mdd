@@ -30,4 +30,8 @@ class LogicUnit extends Body {
   def add(Param child) {
     params << child; super.add(child)
   }
+
+  List<Param> getParamsCustom() {
+    params.findAll { !it.value }
+  }
 }

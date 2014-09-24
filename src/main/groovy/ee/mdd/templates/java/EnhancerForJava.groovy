@@ -111,9 +111,8 @@ class EnhancerForJava {
       getCall << {
         ->
         def key = System.identityHashCode(delegate) + 'call'
-        def customParams = delegate.params.findAll { it.value == null }
         if(!properties.containsKey(key)) {
-          properties[key] = customParams.collect { it.uncap }.join(', ')
+          properties[key] = delegate.paramsCustom.collect { it.uncap }.join(', ')
         }
         properties[key]
       }
@@ -121,9 +120,8 @@ class EnhancerForJava {
       getSignature << {
         ->
         def key = System.identityHashCode(delegate) + 'signature'
-        def customParams = delegate.params.findAll { it.value == null }
         if(!properties.containsKey(key)) {
-          properties[key] = customParams.collect { it.signature }.join(', ')
+          properties[key] = delegate.paramsCustom.collect { it.signature }.join(', ')
         }
         properties[key]
       }
@@ -134,13 +132,13 @@ class EnhancerForJava {
         delegate.signature
       }
 
-      getParamsName << { Context c ->
-
-        String name=""
-        delegate.params.each {
-          name = name+'And'+"$it.cap"
+      getParamsName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'paramsName'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.paramsCustom.collect { it.cap }.join('And')
         }
-        name-'And'
+        properties[key]
       }
     }
 
