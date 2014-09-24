@@ -133,6 +133,15 @@ class EnhancerForJava {
         delegate.params.each { c.name(it.type) }
         delegate.signature
       }
+
+      getParamsName << { Context c ->
+
+        String name=""
+        delegate.params.each {
+          name = name+'And'+"$it.cap"
+        }
+        name-'And'
+      }
     }
 
     Attribute.metaClass {

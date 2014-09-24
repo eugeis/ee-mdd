@@ -31,8 +31,6 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('abc', body: '''<% def type = 'new '+c.v.substring(4, c.v.size())+'()' %>''')
-
       template('propsMember', body: '''<% item.props.each { prop -> %>
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
@@ -72,7 +70,7 @@ class MacrosForJava {
   
   public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
     ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
-    this.$param.prop.uncap = $param.prop.uncap; <% } } %>
+    this.$param.prop.uncap = $param.prop.uncap;<% } } %>
    }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
@@ -106,6 +104,11 @@ public class $c.className extends ${c.className}Base {<% if (c.serializable) { %
   ${macros.generate('superConstructor', c)}
 }''')
 
+      template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+  private static final long serialVersionUID = 1L;<% } %>
+}''')
+
       template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className {
   protected ${c.name(item)} item;
@@ -115,7 +118,15 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
     item = $c.itemInit;
   }
   ${macros.generate('testProperties', c)}
+  ${macros.generate('testConstructors', c)}
 }''')
+
+      template('testConstructors', body: '''<% item.constructors.each { constr -> %><% def className = item.n.cap.impl %>
+  @${c.name('Test')}
+  public void testConstructor${constr.getParamsName(c)}() { <% constr.params.each { param -> %><% if(param.prop != null) { %> 
+     $param.type.name $param.prop.uncap = new $param.type.name(); <% } } %>
+     ${c.name(item)} instance = new $className(${constr.signature(c)});
+  }<% } %>''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
@@ -127,7 +138,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
   }<% } %>
 }''')
 
-      template('newDate', body: '''<% def ret = 'new Date()' %>$ret''')
+      template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
     }
   }
 }

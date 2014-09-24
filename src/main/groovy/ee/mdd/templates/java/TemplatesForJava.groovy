@@ -55,7 +55,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl', scope: 'test'] ) } ) {
 
         template('test', body: '''<% c.virtual = true; c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
-        template('testExtends', body: '''<% c.className = item.n.cap.test %>''')
+        template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
 
       }
 
