@@ -17,19 +17,22 @@ package ee.mdd.model.component
 
 import java.beans.Introspector
 
+import ee.mdd.model.Element
+
 /**
  *
  * @author Eugen Eisler
  */
 class Names {
-
+  Element el
   String _base
   NamesBuilder cap, uncap, underscored
 
-  Names(String base) {
+  Names(Element el, String base) {
+    this.el = el
     this._base = base
-    cap = new NamesBuilder(_base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
-    uncap = new NamesBuilder(_base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
-    underscored = new NamesBuilder(_base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
+    cap = new NamesBuilder(el: el, _base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
+    uncap = new NamesBuilder(el: el, _base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
+    underscored = new NamesBuilder(el: el, _base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
   }
 }

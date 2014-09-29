@@ -35,7 +35,7 @@ class CompilationUnit extends Type {
 
   Names getN() {
     if (!n) {
-      n = new Names(name)
+      n = new Names(this, name)
     }
     n
   }

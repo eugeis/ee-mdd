@@ -15,13 +15,15 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.Element
+
 /**
  *
  * @author Eugen Eisler
  */
 class NamesBuilder {
-
   Map storage = [:]
+  Element el
   String _base
   Closure builder = { b, n -> "${b}$n" }
 
@@ -35,6 +37,11 @@ class NamesBuilder {
       //println "New name $name ${storage[name]}"
     }
     storage[name]
+  }
+
+  def methodMissing(String name, callback) {
+    String ret = propertyMissing(name)
+    callback[0](el, ret)
   }
 
   void putAll(Map m) {
