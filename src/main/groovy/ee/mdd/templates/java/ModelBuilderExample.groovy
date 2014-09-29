@@ -40,6 +40,7 @@ class ModelBuilderExample {
             enumType('TaskStatus') {
               prop('code', type: 'int')
 
+
               constr { param(prop: 'code') }
 
               lit('open', body: '1')
@@ -66,7 +67,7 @@ class ModelBuilderExample {
                 param(prop: 'comment')
                 param(prop: 'created')
                 param(prop: 'closed')
-                param('caller', type: 'String')
+
               }
 
               op('hello', ret: 'String') {

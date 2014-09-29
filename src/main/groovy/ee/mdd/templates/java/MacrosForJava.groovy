@@ -82,7 +82,7 @@ class MacrosForJava {
 
       template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
 
-    private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
+  private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
       this.$it.prop.uncap = $it.value;<% } else { %>
       this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
     }<% } %>''')
@@ -133,14 +133,18 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
-      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% if (!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
+      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %>{{imports}}
 public class $c.className {
-  protected ${c.name(item)} item;
-
+  
   @${c.name('Before')}
   public void before$c.className() {
-    item = $c.itemInit;
   }
+  
+  @${c.name('Test')}
+  public void testLiterals() { <% item.literals.each { lit -> %><% item.props.each { prop -> %>
+  assert TaskStatus.${lit.underscored}.get${prop.cap}() == $lit.body;    <% } } %>
+  }
+}
  ''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
