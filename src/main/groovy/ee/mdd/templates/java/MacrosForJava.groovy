@@ -127,7 +127,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
 
   @${c.name('Test')}
   public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %> 
-     ${c.name(param.type)} $param.uncap = ${param.prop.testable ? param.prop.testValue : 'null'};<% } %>
+     ${c.name(param.type)} $param.uncap = ${param.prop.testable ? param.prop.testValue : param.prop.type.n.cap.impl(c.nameRegister)};<% } %>
      ${c.name(item)} instance = new $className(${constr.call});
      <% customParams.each { param -> def prop = param.prop; %>
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>

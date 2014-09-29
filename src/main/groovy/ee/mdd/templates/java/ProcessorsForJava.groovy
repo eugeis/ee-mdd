@@ -49,13 +49,6 @@ class ProcessorsForJava {
       c.imports = [] as Set
       c.metaClass {
 
-        name = { Element element ->
-          if(!nameToPackage.containsKey(element.name)) {
-            nameToPackage[element.name] = element.ns?.dot
-          }
-          addImport(element.name)
-        }
-
         addImport = { String name ->
           String pkg = nameToPackage[name]
           if(pkg) {
@@ -69,6 +62,16 @@ class ProcessorsForJava {
           }
           name
         }
+
+        name = { Element element -> name(element, element.name) }
+
+        name = { Element element, String derivedName ->
+          if(!nameToPackage.containsKey(derivedName)) {
+            nameToPackage[derivedName] = element.ns?.dot
+          }
+          addImport(derivedName)
+        }
+
 
         name = { String ref ->
           //static import for Tests?
@@ -88,7 +91,10 @@ class ProcessorsForJava {
             }
           }
         }
+
+        getNameRegister << { { Element element, String derivedName -> name(element, derivedName) } }
       }
+
     }
     ret.after = { c ->
       if (!c.error && c.className) {
