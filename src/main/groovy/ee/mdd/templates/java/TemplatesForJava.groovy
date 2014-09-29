@@ -66,13 +66,20 @@ class TemplatesForJava {
         template('enum', body: '''${macros.generate('enum', c)}''')
       }
 
+      items ('enumTest',
+      query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
+      before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType, scope: 'test' ] ) } ) {
+
+        template('testEnum', body: '''<% c.className = item.n.cap.test %>${macros.generate('testEnum', c)}''')
+      }
+
 
       //logic
       items ('logicApi',
       query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% c.className = "${item.cap}Base";  %>${macros.generate('ifc', c)}''')
+        template('ifc', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
         template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
       }
     }

@@ -133,6 +133,16 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
+      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% if (!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
+public class $c.className {
+  protected ${c.name(item)} item;
+
+  @${c.name('Before')}
+  public void before$c.className() {
+    item = $c.itemInit;
+  }
+ ''')
+
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
   $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } %>
