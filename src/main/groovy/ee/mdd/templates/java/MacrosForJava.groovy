@@ -126,7 +126,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
       template('testConstructors', body: '''<% item.constructors.each { constr -> %><% def className = item.n.cap.impl %>
 
   @${c.name('Test')}
-  public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %><% def instance; if (param.prop.testable) { instance = param.prop.testValue } else { instance = 'new '+param.prop.type.n.cap.impl(c.nameRegister)+'()' } %>
+  public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %><% def instance; if (param.prop.testable) { instance = param.prop.testValue } else { instance = 'new '+param.prop.type.n.cap.impl+'()' } %>
      ${c.name(param.type)} $param.uncap = $instance;<% } %>
      ${c.name(item)} instance = new $className(${constr.call});
      <% customParams.each { param -> def prop = param.prop; %>
@@ -136,13 +136,14 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
       template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %>{{imports}}
 public class $c.className {
   
-  @${c.name('Before')}
-  public void before$c.className() {
-  }
-  
   @${c.name('Test')}
-  public void testLiterals() { <% item.literals.each { lit -> %><% item.props.each { prop -> %>
-  assert TaskStatus.${lit.underscored}.get${prop.cap}() == $lit.body;    <% } } %>
+  public void testVal() { <% item.literals.each { lit -> %><% item.props.each { prop -> %>
+  ${c.name('assertNotNull')}(TaskStatus.${lit.underscored}.get${prop.cap}());    <% } } %>
+  }
+
+  @${c.name('Test')}
+  public void testIsLiteral() { <% item.literals.each { lit -> %>
+  ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% } %>
   }
 }
  ''')

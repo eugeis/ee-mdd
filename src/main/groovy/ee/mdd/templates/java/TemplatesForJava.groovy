@@ -70,7 +70,8 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
       before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType, scope: 'test' ] ) } ) {
 
-        template('testEnum', body: '''<% c.className = item.n.cap.test %>${macros.generate('testEnum', c)}''')
+        template('testEnum', body: '''<% c.className = "${item.n.cap.test}Base" %>${macros.generate('testEnum', c)}''')
+        template('testEnumExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
       }
 
 
