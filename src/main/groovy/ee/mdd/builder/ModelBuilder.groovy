@@ -120,7 +120,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
       'op',
       'manager'
     ])
-    def factoryEnumType = new CompositeFactory(beanClass: EnumType, childFactories: [
+    def factoryEnumType = new EnumTypeFactory(beanClass: EnumType, childFactories: [
       'constr',
       'lit',
       'prop',

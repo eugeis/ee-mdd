@@ -39,7 +39,7 @@ class RefParentResolveHandler implements RefResolveHandler {
     if(el) {
       setter(el)
     } else {
-      notResolved[ref] = "The '$ref' can not be resolved in $base for child of $parent"
+      notResolved << "The '$ref' can not be resolved in $base for child of $parent"
     }
   }
 

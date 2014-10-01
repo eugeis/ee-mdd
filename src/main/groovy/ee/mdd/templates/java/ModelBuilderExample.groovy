@@ -37,14 +37,15 @@ class ModelBuilderExample {
 
           module('shared') {
 
-            enumType('TaskStatus') {
+            enumType('TaskStatus', defaultLiteral: 'Unknown') {
               prop('code', type: 'int')
 
 
               constr { param(prop: 'code') }
 
-              lit('open', body: '1')
-              lit('closed', body: '2')
+			  lit('Unknown', body: '-1')
+              lit('Open', body: '1')
+              lit('Closed', body: '2')
             }
 
             entity('Comment') {
