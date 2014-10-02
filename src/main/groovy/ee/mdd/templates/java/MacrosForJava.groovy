@@ -72,7 +72,7 @@ class MacrosForJava {
   
   public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
     ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
-    this.$param.prop.uncap = $param.prop.uncap;<% } } %>
+    this.$param.prop.uncap = $param.prop.uncap;<% } }%>
   }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
@@ -98,7 +98,8 @@ public interface $c.className extends ${c.className}Base {
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
-  private static final long serialVersionUID = 1L;<% } %>
+  private static final long serialVersionUID = 1L;
+  <% } %>
   ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
@@ -143,9 +144,9 @@ public class $c.className {
   }
 
   @${c.name('Test')}
-  public void testIsLiteral() { <% item.literals.eachWithIndex { lit, idx -> %>
+  public void testIsLiteral() { <% item.literals.eachWithIndex { lit, i -> %>
   ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
-  ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[idx+1].cap}());<% } else { %>
+  ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
   ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }

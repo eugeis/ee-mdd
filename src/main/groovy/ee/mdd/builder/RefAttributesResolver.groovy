@@ -27,7 +27,6 @@ class RefAttributesResolver {
   Map<String, Element> refToResolved = [:]
   Map<String, RefResolveHandler> refHolders = [:]
 
-
   RefResolveHandler addGlobalResolver(String name, Class type) {
     refHolders[name] = new RefGlobalResolveHandler(refToResolved: refToResolved, name: name, type: type)
   }

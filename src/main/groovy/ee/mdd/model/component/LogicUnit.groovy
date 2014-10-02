@@ -19,8 +19,10 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class LogicUnit extends Body {
+  List<MetaAttribute> meta
   List<Param> params = []
   String paramsLogicName
 

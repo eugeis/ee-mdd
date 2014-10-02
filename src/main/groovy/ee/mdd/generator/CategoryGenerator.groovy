@@ -16,7 +16,6 @@
 package ee.mdd.generator
 
 import groovy.util.logging.Slf4j
-import ee.mdd.model.component.Model
 
 /**
  *
@@ -24,61 +23,61 @@ import ee.mdd.model.component.Model
  */
 @Slf4j
 class CategoryGenerator extends AbstractGenerator {
-	Map<String, TemplateGenerator> templates = [:]
-	Closure before
+  Map<String, TemplateGenerator> templates = [:]
+  Closure before
 
-	void generate(Context globalContext, Closure executor) {
-		log.info "$name: Generate for contetx '$globalContext'"
+  void generate(Context globalContext, Closure executor) {
+    log.info "$name: Generate for context '$globalContext'"
 
-		templates.each { templateName, TemplateGenerator template ->
-			Context templateContext = globalContext.clone()
-			extendContext(templateContext)
-			generate(template, templateContext, executor)
-		}
-	}
+    templates.each { templateName, TemplateGenerator template ->
+      Context templateContext = globalContext.clone()
+      extendContext(templateContext)
+      generate(template, templateContext, executor)
+    }
+  }
 
-	def generate(TemplateGenerator template, Context templateContext, Closure executor) {
-		def ret
-		executor(template, templateContext) { tmpl, c ->
-			ret = generateTemplate(tmpl, c)
-		}
-		ret
-	}
+  def generate(TemplateGenerator template, Context templateContext, Closure executor) {
+    def ret
+    executor(template, templateContext) { tmpl, c ->
+      ret = generateTemplate(tmpl, c)
+    }
+    ret
+  }
 
-	def generate(String template, Context c) {
-		def ret = ''
-		if(templates.containsKey(template)){
-			ret = generateTemplate(templates[template], c)
-		} else {
-			c.error = new IllegalStateException("$name: Generation of '$template' is not possible, because template '$template' does not exists.")
-			log.error c.error.message
-		}
-		ret
-	}
+  def generate(String template, Context c) {
+    def ret = ''
+    if(templates.containsKey(template)){
+      ret = generateTemplate(templates[template], c)
+    } else {
+      c.error = new IllegalStateException("$name: Generation of '$template' is not possible, because template '$template' does not exists.")
+      log.error c.error.message
+    }
+    ret
+  }
 
-	protected def generateTemplate(TemplateGenerator template, Context c) {
-		before(c)
-		template.generate(c)
-		after(c)
-		c.output
-	}
+  protected def generateTemplate(TemplateGenerator template, Context c) {
+    before(c)
+    template.generate(c)
+    after(c)
+    c.output
+  }
 
-	protected void extendContext(Context c) {
-		try {
-			before?.call(c)
-		} catch (e) {
-			log.error "Context can not be extended.", e
-		}
-	}
+  protected void extendContext(Context c) {
+    try {
+      before?.call(c)
+    } catch (e) {
+      log.error "Context can not be extended.", e
+    }
+  }
 
-	def add(TemplateGenerator child) {
-		templates[child.name] = super.add(child); child
-	}
+  def add(TemplateGenerator child) {
+    templates[child.name] = super.add(child); child
+  }
 
-	def add(Processor child) {
-		if(processors == null) {
-			processors = []
-		}
-		processors << child; super.add(child)
-	}
+  def add(Processor child) {
+    if(processors == null) {
+      processors = []
+    }
+    processors << child; super.add(child)
+  }
 }

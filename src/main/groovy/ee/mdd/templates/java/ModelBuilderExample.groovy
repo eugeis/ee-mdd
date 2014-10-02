@@ -64,7 +64,7 @@ class ModelBuilderExample {
 
               constr {
                 param(prop: 'comment', type: 'Comment')
-                param(prop: 'created', type: 'Date', value: '#newDate')
+                param(prop: 'created', type: 'Date')
               }
 
               constr {
@@ -84,6 +84,7 @@ class ModelBuilderExample {
 
           module('backend') {
             controller('TaskAgregator') {
+              meta(type: 'ApplicationScoped')
               op('hello') {
                 param('test', type: 'String')
               }
