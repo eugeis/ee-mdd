@@ -46,10 +46,11 @@ class MacrosForJava {
 
       template('testProperties', body: '''
   @${c.name('Test')}
-  public void testProperties() {<% def testableProps = item.props.findAll { it.testable } %><% testableProps.each { prop -> %>
-    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } %><% testableProps.each { prop -> %>
+  public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
+    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
     item.$prop.call;<% } %>
-    <% testableProps.each { prop -> %>
+    <% item.props.each { prop -> %>
     ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
   }''')
 
@@ -133,18 +134,19 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
-      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %>{{imports}}
+      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
 public class $c.className {
   
   @${c.name('Test')}
-  public void testVal() { <% item.literals.each { lit -> %><% item.props.each { prop -> %>
+  public void testVal() { <% item.literals.each { lit -> lastLit = lit.cap %><% item.props.each { prop -> %>
   ${c.name('assertNotNull')}(TaskStatus.${lit.underscored}.get${prop.cap}());    <% } } %>
   }
 
   @${c.name('Test')}
-  public void testIsLiteral() { <% item.literals.each { lit -> %>
-  ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}());
-  ${c.name('assertFalse')}(TaskStatus.${lit.underscored} == null);<% } %>
+  public void testIsLiteral() { <% item.literals.eachWithIndex { lit, idx -> %>
+  ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
+  ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[idx+1].cap}());<% } else { %>
+  ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }
  ''')
