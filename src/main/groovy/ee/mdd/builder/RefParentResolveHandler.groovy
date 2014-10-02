@@ -28,16 +28,17 @@ class RefParentResolveHandler implements RefResolveHandler {
   String name
   Class type
   List<String> notResolved = []
+  Closure setter
 
   void onElement(Element el) {
   }
 
-  void addResolveRequest(String ref, Composite parent, Closure setter) {
+  void addResolveRequest(String ref, Composite parent, item) {
     //e.g. parent is constructor for param(prop: ref), so we need compilation unit => parent.parent
     def base = parent?.parent
     def el = base?.find { Element el -> type.isInstance(el) && el.name == ref }
     if(el) {
-      setter(el)
+      setter(item, el)
     } else {
       notResolved << "The '$ref' can not be resolved in $base for child of $parent"
     }

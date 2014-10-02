@@ -15,22 +15,11 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Element
 
 /**
  *
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
-class Attribute extends Element {
-	Type type
-	List<MetaAttribute> metas
-	def value
-	boolean multi = false
-
-	def add(MetaAttribute item) {
-		if(!metas) {
-			metas = []
-		}; metas << super.add(item)
-	}
+class MetaAttribute extends Attribute {
 }

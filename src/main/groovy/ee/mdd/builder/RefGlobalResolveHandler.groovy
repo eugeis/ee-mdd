@@ -24,95 +24,98 @@ import ee.mdd.model.Element
  * @author Eugen Eisler
  */
 class RefGlobalResolveHandler implements RefResolveHandler {
-  final static SEPARATOR = '.'
-  String name
-  Class type
+	final static SEPARATOR = '.'
+	String name
+	Class type
+	Closure setter
 
-  Map<String, Object> refToResolved
-  Map<String, List<Closure>> notResolvedRefToSetters = [:]
-  Map<String, List<Closure>> notResolvedPathRefToResolvers = [:]
+	Map<String, Object> refToResolved
+	Map<String, List<Object>> notResolvedRefToItems = [:]
+	Map<String, List<Object>> notResolvedPathRefToItems = [:]
 
-  void onElement(Element el) {
-    if (type.isInstance(el)) {
-      def ref = el.reference
-      //resolve not resolved yet
-      if(notResolvedRefToSetters.containsKey(ref)) {
-        resolve(ref, el)
-      }
-    }
-  }
+	void onElement(Element el) {
+		if (type.isInstance(el)) {
+			def ref = el.reference
+			//resolve not resolved yet
+			if(notResolvedRefToItems.containsKey(ref)) {
+				resolve(ref, el)
+			}
+		}
+	}
 
-  private resolve(String ref, Element el) {
-    notResolvedRefToSetters[ref].each { it.call(el) }
-    notResolvedRefToSetters.remove(ref)
-  }
+	private resolve(String ref, Element el) {
+		notResolvedRefToItems[ref].each {  item ->
+			setter(item, el)
+		}
+		notResolvedRefToItems.remove(ref)
+	}
 
-  void addResolveRequest(String ref, Composite parent, Closure setter) {
-    if (refToResolved.containsKey(ref)) {
-      setter.call(refToResolved[ref])
-    } else {
-      if(ref.contains(SEPARATOR)) {
-        addResolvePathRequest(ref, parent, setter)
-      } else {
-        addRequest(ref, setter)
-      }
-    }
-  }
+	void addResolveRequest(String ref, Composite parent, item) {
+		if (refToResolved.containsKey(ref)) {
+			setter.call(item, refToResolved[ref])
+		} else {
+			if(ref.contains(SEPARATOR)) {
+				addResolvePathRequest(ref, parent, item)
+			} else {
+				addRequest(ref, item)
+			}
+		}
+	}
 
-  private addResolvePathRequest(String ref, Composite parent, Closure setter) {
-    def parts = ref.split("\\$SEPARATOR")
-    String refPart = parts[0]
-    if(refToResolved.containsKey(refPart)) {
-      resolve(refToResolved[refPart], parts[1..parts.length-1], setter)
-    } else {
-      def subParts = parts[1..parts.length-1]
-      notResolvedRefToSetters[refPart] = { resolve(it, subParts, setter) }
-    }
-  }
+	private addResolvePathRequest(String ref, Composite parent, item) {
+		def parts = ref.split("\\$SEPARATOR")
+		String refPart = parts[0]
+		if(refToResolved.containsKey(refPart)) {
+			resolve(refToResolved[refPart], parts[1..parts.length-1], item)
+		} else {
+			def subParts = parts[1..parts.length-1]
+			notResolvedRefToItems[refPart] = { resolve(it, subParts, item) }
+		}
+	}
 
-  private void resolve(Element base, List<String> parts, Closure setter) {
-    def el = base
-    def partsSize = parts.size()
-    for(int i = 0; i < partsSize; i++) {
-      String refPart = parts[i]
-      def resolved = el.resolve(refPart)
-      if(resolved) {
-        el = resolved
-      } else {
-        def subParts = (i < partsSize-1) ? parts[i+1..partsSize-1] : []
-        notResolvedPathRefToResolvers[refPart] = { resolve(el.resolve(it), subParts, setter) }
-        //println "Can not resolve ${refPart} in '$el.reference'"
-        el = null
-        break
-      }
-    }
+	private void resolve(Element base, List<String> parts, item) {
+		def el = base
+		def partsSize = parts.size()
+		for(int i = 0; i < partsSize; i++) {
+			String refPart = parts[i]
+			def resolved = el.resolve(refPart)
+			if(resolved) {
+				el = resolved
+			} else {
+				def subParts = (i < partsSize-1) ? parts[i+1..partsSize-1] : []
+				notResolvedPathRefToResolvers[refPart] = { resolve(el.resolve(it), subParts, item) }
+				//println "Can not resolve ${refPart} in '$el.reference'"
+				el = null
+				break
+			}
+		}
 
-    if(el) {
-      setter(el)
-    }
-  }
+		if(el) {
+			setter(item, el)
+		}
+	}
 
-  private addRequest(String ref, Closure setter) {
-    if (!notResolvedRefToSetters[ref]) {
-      notResolvedRefToSetters[ref] = []
-    }
-    notResolvedRefToSetters[ref] << setter
-  }
+	private addRequest(String ref, item) {
+		if (!notResolvedRefToItems[ref]) {
+			notResolvedRefToItems[ref] = []
+		}
+		notResolvedRefToItems[ref] << item
+	}
 
-  @Override
-  boolean isResolved() {
-    notResolvedRefToSetters.isEmpty() && notResolvedPathRefToResolvers.isEmpty()
-  }
+	@Override
+	boolean isResolved() {
+		notResolvedRefToItems.isEmpty() && notResolvedPathRefToItems.isEmpty()
+	}
 
-  @Override
-  void printNotResolved() {
+	@Override
+	void printNotResolved() {
 
-    if(!notResolvedRefToSetters.isEmpty()) {
-      println "$name: ${notResolvedRefToSetters.keySet()}"
-    }
+		if(!notResolvedRefToItems.isEmpty()) {
+			println "$name: ${notResolvedRefToItems.keySet()}"
+		}
 
-    if(!notResolvedPathRefToResolvers.isEmpty()) {
-      println "$name: ${notResolvedPathRefToResolvers.keySet()}"
-    }
-  }
+		if(!notResolvedPathRefToItems.isEmpty()) {
+			println "$name: ${notResolvedPathRefToItems.keySet()}"
+		}
+	}
 }

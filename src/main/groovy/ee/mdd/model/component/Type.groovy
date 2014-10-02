@@ -24,12 +24,19 @@ import ee.mdd.model.Composite
  * @author Niklas Cappelmann
  */
 class Type extends Composite {
-  List<MetaAttribute> meta
-  Namespace getNs() {
-    parent.ns
-  }
+	List<MetaAttribute> metas
 
-  Model getModel() {
-    parent.model
-  }
+	Namespace getNs() {
+		parent.ns
+	}
+
+	Model getModel() {
+		parent.model
+	}
+
+	def add(MetaAttribute item) {
+		if(!metas) {
+			metas = []
+		}; metas << super.add(item)
+	}
 }
