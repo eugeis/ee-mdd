@@ -143,7 +143,8 @@ public class $c.className {
 
   @${c.name('Test')}
   public void testIsLiteral() { <% item.literals.each { lit -> %>
-  ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% } %>
+  ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}());
+  ${c.name('assertFalse')}(TaskStatus.${lit.underscored} == null);<% } %>
   }
 }
  ''')

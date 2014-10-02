@@ -19,6 +19,7 @@ import ee.mdd.factory.*
 import ee.mdd.model.*
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Condition
 import ee.mdd.model.component.Config
@@ -61,13 +62,13 @@ class ModelBuilder extends AbstractFactoryBuilder {
     refAttrResolver.addGlobalResolver('ref', Element)
     refAttrResolver.addParentResolver('prop', Prop)
     refAttrResolver.addGlobalResolver('module', Module)
+    refAttrResolver.addGlobalResolver('superUnit', CompilationUnit)
     refAttrResolver.addGlobalTypes([
       Model,
       Module,
       Component,
       Type,
-      Controller,
-      Service
+      CompilationUnit
     ])
     addAttributeDelegate(refAttrResolver.attributteDelegate)
     addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)

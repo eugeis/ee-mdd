@@ -22,26 +22,27 @@ import ee.mdd.model.component.Literal
  * @author Eugen Eisler
  */
 class EnumTypeFactory extends CompositeFactory {
-	static final String ATTR_DEFAULT_LITERAL = 'defaultLiteral'
-	Map<Object, String> nodeToDefaultLiteral = [:]
+  static final String ATTR_DEFAULT_LITERAL = 'defaultLiteral'
+  Map<Object, String> nodeToDefaultLiteral = [:]
 
-	boolean onHandleNodeAttributes(FactoryBuilderSupport builder, Object node, Map attributes ) {
-		if(attributes.containsKey(ATTR_DEFAULT_LITERAL)) {
-			nodeToDefaultLiteral[node] = attributes.remove(ATTR_DEFAULT_LITERAL)
-		}
-		true
-	}
+  boolean onHandleNodeAttributes(FactoryBuilderSupport builder, Object node, Map attributes ) {
+    if(attributes.containsKey(ATTR_DEFAULT_LITERAL)) {
+      nodeToDefaultLiteral[node] = attributes.remove(ATTR_DEFAULT_LITERAL)
+    }
+    true
+  }
 
-	void onNodeCompleted( FactoryBuilderSupport builder, Object parent, Object node ) {
-		if (nodeToDefaultLiteral.containsKey(node)) {
-			println "Dafault literal '${nodeToDefaultLiteral[node]}' was not resolved in '$node'"
-		}
-	}
+  void onNodeCompleted( FactoryBuilderSupport builder, Object parent, Object node ) {
+    if (nodeToDefaultLiteral.containsKey(node)) {
+      println "Dafault literal '${nodeToDefaultLiteral[node]}' was not resolved in '$node'"
+    }
+  }
 
-	void setChild( FactoryBuilderSupport builder, Object parent, Object child ) {
-		if(nodeToDefaultLiteral.containsKey(parent) && Literal.isInstance(child) && nodeToDefaultLiteral[parent].equals(child.name)) {
-			parent.defaultLiteral = child
-			nodeToDefaultLiteral.remove(parent)
-		}
-	}
+  void setChild( FactoryBuilderSupport builder, Object parent, Object child ) {
+    super.setChild(builder, parent, child)
+    if(nodeToDefaultLiteral.containsKey(parent) && Literal.isInstance(child) && nodeToDefaultLiteral[parent].equals(child.name)) {
+      parent.defaultLiteral = child
+      nodeToDefaultLiteral.remove(parent)
+    }
+  }
 }

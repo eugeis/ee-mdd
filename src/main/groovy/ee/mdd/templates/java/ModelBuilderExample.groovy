@@ -40,19 +40,22 @@ class ModelBuilderExample {
             enumType('TaskStatus', defaultLiteral: 'Unknown') {
               prop('code', type: 'int')
 
-
               constr { param(prop: 'code') }
 
-			  lit('Unknown', body: '-1')
+              lit('Unknown', body: '-1')
               lit('Open', body: '1')
               lit('Closed', body: '2')
             }
 
-            entity('Comment') {
+            entity('UmEntity', virtual: true) {
 
             }
 
-            entity('Task') {
+            entity('Comment', superUnit: 'UmEntity') {
+
+            }
+
+            entity('Task', superUnit: 'UmEntity') {
               prop('comment', type: 'Comment')
               prop('created', type: 'Date')
               prop('closed', type: 'Date')

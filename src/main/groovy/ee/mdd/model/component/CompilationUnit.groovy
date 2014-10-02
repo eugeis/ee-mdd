@@ -21,6 +21,8 @@ package ee.mdd.model.component
  */
 class CompilationUnit extends Type {
   Names n
+  boolean virtual = false
+  CompilationUnit superUnit
   List<Prop> props
   List<Constructor> constructors
   List<Operation> operations
