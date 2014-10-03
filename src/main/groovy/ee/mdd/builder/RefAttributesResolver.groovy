@@ -27,21 +27,16 @@ class RefAttributesResolver {
 	Map<String, Element> refToResolved = [:]
 	Map<String, RefResolveHandler> refHolders = [:]
 
-	RefResolveHandler addGlobalResolver(String name, Class type) {
-		refHolders[name] = new RefGlobalResolveHandler(
-				refToResolved: refToResolved, name: name, type: type,
-				setter: { node, resolved ->
-					node[name] = resolved
-				} )
+	RefResolveHandler addGlobalResolver(String name, Class type, Closure converter = null, boolean multi = false) {
+		refHolders[name] = new RefGlobalResolveHandler( refToResolved: refToResolved, name: name, type: type, setter: setter(name, converter, multi))
 	}
 
-	RefResolveHandler addParentResolver(String name, Class type) {
-		refHolders[name] = new RefParentResolveHandler(
-				name: name, type: type,
-				setter: { node, resolved ->
-					node[name] = resolved
-				}
-				)
+	RefResolveHandler addParentResolver(String name, Class type, Closure converter = null, boolean multi = false) {
+		refHolders[name] = new RefParentResolveHandler(name: name, type: type, setter: setter(name, converter, multi))
+	}
+
+	Closure setter(String name, Closure converter, boolean multi) {
+		def setter = multi ? { node, resolved -> node.add(converter ? converter(resolved) : resolved) } : { node, resolved -> node[name] = converter ? converter(resolved) : resolved }
 	}
 
 	RefResolveHandler get(String name) {
@@ -59,15 +54,25 @@ class RefAttributesResolver {
 	def attributteDelegate = { FactoryBuilderSupport builder, node, Map attributes ->
 		refHolders.each { name, RefResolveHandler ref ->
 			if (attributes.containsKey(name)) {
-				String refName = attributes[name]
 				def parent = builder.parent
-				ref.addResolveRequest(refName, parent, node)
+				def refName = attributes[name]
+				if(isCollectionOrArray(refName)) {
+					refName.each {
+						ref.addResolveRequest(it, parent, node)
+					}
+				}else {
+					ref.addResolveRequest(refName, parent, node)
+				}
 			}
 		}
 
 		refHolders.each { name, RefResolveHandler ref ->
 			attributes.remove(name)
 		}
+	}
+
+	boolean isCollectionOrArray(object) {
+		[Collection, Object[]].any { it.isAssignableFrom(object.getClass()) }
 	}
 
 	def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
