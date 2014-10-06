@@ -41,7 +41,7 @@ class ProcessorsForJava {
 
     //default types and resolved
     def nameToPackage = ['Test': 'org.junit', 'Date': 'java.util', 'Before': 'org.junit',
-      'Assert': 'static junit.framework.Assert.*', 'Serializable': 'java.io', 'ApplicationScoped' : 'javax.enterprise.context.ApplicationScoped', 'Produces' : 'javax.enterprise.inject.Produces']
+      'Assert': 'static junit.framework.Assert.*', 'Serializable': 'java.io', 'Produces' : 'javax.enterprise.inject.Produces']
 
     ret.before = { c ->
       //add 'name' method to context object

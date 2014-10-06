@@ -20,83 +20,86 @@ import ee.mdd.model.component.Model
 
 class ModelBuilderExample {
 
-	void testComponentChildren() {
-		def model = build()
-		assert model != null
-	}
+  void testComponentChildren() {
+    def model = build()
+    assert model != null
+  }
 
-	static Model build(Closure postInstantiateDelegate = null) {
-		def ret =  new ModelBuilder(postInstantiateDelegate).model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
+  static Model build(Closure postInstantiateDelegate = null) {
+    def ret =  new ModelBuilder(postInstantiateDelegate).model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
 
-			model ('Platform', key: 'pl') {
-				//constr
-				component('User Management', key: 'um') {
-					facet( )
+      model ('Platform', key: 'pl') {
+        //constr
+        component('User Management', key: 'um') {
+          facet( )
 
-					facet('common')
+          facet('common')
 
-					module('shared') {
+          module('shared') {
 
-						enumType('TaskStatus', defaultLiteral: 'Unknown') {
-							prop('code', type: 'int')
+            enumType('TaskStatus', defaultLiteral: 'Unknown') {
+              prop('code', type: 'int')
 
-							constr { param(prop: 'code') }
+              constr { param(prop: 'code') }
 
-							lit('Unknown', body: '-1')
-							lit('Open', body: '1')
-							lit('Closed', body: '2')
-						}
+              lit('Unknown', body: '-1')
+              lit('Open', body: '1')
+              lit('Closed', body: '2')
+            }
 
-						entity('UmEntity', virtual: true) {
+            entity('UmEntity', virtual: true) {
 
-						}
+            }
 
-						entity('Comment', superUnit: 'UmEntity') {
+            entity('Comment', superUnit: 'UmEntity') {
 
-						}
+            }
 
-						entity('Task', superUnit: 'UmEntity') {
-							prop('comment', type: 'Comment')
-							prop('created', type: 'Date')
-							prop('closed', type: 'Date')
+            entity('Task', superUnit: 'UmEntity') {
+              prop('comment', type: 'Comment')
+              prop('created', type: 'Date')
+              prop('closed', type: 'Date')
 
-							constr {}
+              constr {}
 
-							constr {
-								param(prop: 'comment', type: 'Comment')
-								param(prop: 'created', type: 'Date')
-							}
+              constr {
 
-							constr {
-								param(prop: 'comment')
-								param(prop: 'created')
-								param(prop: 'closed')
+                param(prop: 'comment', type: 'Comment')
+                param(prop: 'created', type: 'Date')
+              }
 
-							}
+              constr {
+                param(prop: 'comment')
+                param(prop: 'created')
+                param(prop: 'closed')
 
-							op('hello', ret: 'String') {
-								param('Test', type: 'String')
-							}
+              }
 
-							manager { }
-						}
-					}
+              op('hello', ret: 'String') {
+                param('Test', type: 'String')
+              }
 
-					module('backend') {
-						controller('TaskAgregator', meta: ['ApplicationScoped', 'ApplicationScoped']) {
-							op('hello') {
-								param('test', type: 'String')
-							}
-						}
+              manager { }
+            }
+          }
 
-						service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
-					}
+          module('backend') {
+            controller('TaskAgregator', meta: [
+              'ApplicationScoped'
+            ]) {
+              op('hello') {
+                param('test', type: 'String')
+              }
+            }
 
-					module('ui', namespace: 'ui') {
-					}
-				}
-			}
-		}
-		ret
-	}
+            service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
+          }
+
+          module('ui', namespace: 'ui') {
+          }
+        }
+      }
+    }
+    ret
+  }
 }

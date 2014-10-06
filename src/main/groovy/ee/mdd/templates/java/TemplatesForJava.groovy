@@ -45,7 +45,7 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('impl', body: '''<% c.virtual = true; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('impl', c)}''')
+        template('impl', body: '''<% c.virtual = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('impl', c)}''')
         template('implExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implExtends', c)}''')
 
       }

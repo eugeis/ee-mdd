@@ -34,6 +34,9 @@ class MacrosForJava {
       template('propsMember', body: '''<% item.props.each { prop -> %>
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
+      template('propsMemberJpa', body: '''<% item.props.each { prop -> %>
+  protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
+
       template('propsGetterIfc', body: '''<% item.props.each { prop -> %>
 
   ${c.name(prop.type)} $prop.getter;<% } %>''')
@@ -93,7 +96,8 @@ public interface $c.className<% if (c.serializable) { %> extends ${c.name('Seria
 }''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% c.src = true %>{{imports}}
-public interface $c.className extends ${c.className}Base {
+${macros.generate('metaAttributes', c)}
+public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
 }''')
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -107,6 +111,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.i
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('superConstructor', c)}
+  
 }''')
 
       template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -114,9 +119,9 @@ public class $c.className extends ${c.className}Base {<% if (c.serializable) { %
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-      template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new ${c.name(item)}()" } %>{{imports}}
+      template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className {
-  protected ${c.name(item)} item;
+  protected $item.n.cap.impl item;
   
   @${c.name('Before')}
   public void before$c.className() {
@@ -129,9 +134,9 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
 
   @${c.name('Test')}
   public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %><% def instance; if (param.prop.testable) { instance = param.prop.testValue } else { instance = 'new '+param.prop.type.n.cap.impl+'()' } %>
-     ${c.name(param.type)} $param.uncap = $instance;<% } %>
-     ${c.name(item)} instance = new $className(${constr.call});
-     <% customParams.each { param -> def prop = param.prop; %>
+     ${c.name(param.type)} $param.uncap = $instance;<% } %><% if (item.superUnit) { %>
+     $item.n.cap.impl instance = new $className(${constr.call});<% } else { %>
+     ${c.name(item)} instance = new $className(${constr.call});<% } %><% customParams.each { param -> def prop = param.prop; %>
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
@@ -161,6 +166,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
+      template('metaAttributes', body: '''<% String ret = ''; String newLine = System.properties['line.separator']; if (c.metas) { c.metas.each { metaAttr -> ret = ret+newLine+'@'+metaAttr.type.name; c.name(metaAttr.type) } } %>${ret-newLine}''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
     }
