@@ -49,7 +49,7 @@ class EnhancerForJs {
 
     Literal.metaClass {
 
-      getIs << {
+      getIsCall << {
         ->
         def key = System.identityHashCode(delegate) + 'is'
         if(!properties.containsKey(key)) {
@@ -57,6 +57,15 @@ class EnhancerForJs {
         }
         properties[key]
       }
+	  
+	  getIs << {
+		  ->
+		  def key = System.identityHashCode(delegate) + 'is'
+		  if(!properties.containsKey(key)) {
+			properties[key] = "is$delegate.cap"
+		  }
+		  properties[key]
+		}
 
       getInit << {
         ->
