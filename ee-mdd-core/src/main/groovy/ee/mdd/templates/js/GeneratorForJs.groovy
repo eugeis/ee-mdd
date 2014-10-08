@@ -26,19 +26,21 @@ import ee.mdd.templates.java.ModelBuilderExample
  */
 class GeneratorForJs {
 
-  static void main(def args) {
-    EnhancerForJs.enhanceClasses()
+	static void main(def args) {
+		String target = args ? new File("${args[0]}/../ee-mdd-example") : '/Users/eugeis/git/ee-mdd/ee-mdd-example'
 
-    def model =  ModelBuilderExample.build(new ExtTypeInjecterForJs().postInstantiateDelegate)
+		EnhancerForJs.enhanceClasses()
 
-    def generator = TemplatesForJs.build()
-    def commonProcessorFactory = new CommonProcessorFactory()
-    def processorFactory = new ProcessorsForJs()
+		def model =  ModelBuilderExample.build(new ExtTypeInjecterForJs().postInstantiateDelegate)
 
-    generator.add(commonProcessorFactory.macrosProcessor(MacrosForJs.build()))
-    generator.add(processorFactory.jsPathProcessor())
-    generator.add(commonProcessorFactory.printProcessor())
-    generator.add(commonProcessorFactory.fileProcessor('D:/views/git/ee-mdd/ee-mdd-example'))
-    generator.generate(model)
-  }
+		def generator = TemplatesForJs.build()
+		def commonProcessorFactory = new CommonProcessorFactory()
+		def processorFactory = new ProcessorsForJs()
+
+		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJs.build()))
+		generator.add(processorFactory.jsPathProcessor())
+		generator.add(commonProcessorFactory.printProcessor())
+		generator.add(commonProcessorFactory.fileProcessor(target))
+		generator.generate(model)
+	}
 }

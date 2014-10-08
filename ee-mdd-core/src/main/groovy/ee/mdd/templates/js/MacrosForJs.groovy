@@ -43,7 +43,7 @@ function $c.className($item.signature) {${macros.generate('propsInit', c)}
 }''')
 
       template('implExtends', body: '''<% c.src=true %><% if(!c.className) { c.className=item.name } %>
-function $c.className {
+function $c.className() {
   // inherit from base class
   ${c.className}.prototype = new <% if (item.superUnit) {%>$item.superUnit.cap()<% } else { %>${c.className}Base()<% } %>;
 
@@ -59,7 +59,7 @@ function $classNameLit($item.signature) {
 ${classNameLit}.prototype = {
   constructor: ${classNameLit},<% last = item.literals.last(); item.literals.each { lit -> %>
   
-  $lit.is : function {
+  $lit.is : function() {
     return this === ${c.className}.$lit.underscored; 
   }${lit == last ? '' : ','}<% } %>
 }

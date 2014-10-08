@@ -27,25 +27,28 @@ import ee.mdd.templates.java.cg.TemplatesForJavaCg
  */
 class GeneratorForJava {
 
-  static void main(def args) {
-    EnhancerForJava.enhanceClasses()
+	static void main(def args) {
+		String target = args ? new File("${args[0]}/../ee-mdd-example") : '/Users/eugeis/git/ee-mdd/ee-mdd-example'
 
-    Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+		println args
+		EnhancerForJava.enhanceClasses()
 
-    //create props for delegates
-    model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->
-      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+		Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
 
-    //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
+		//create props for delegates
+		model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->
+			d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
 
-    def generator = TemplatesForJavaCg.build()
-    def commonProcessorFactory = new CommonProcessorFactory()
-    def javaProcessorFactory = new ProcessorsForJava()
+		//model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
 
-    generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
-    generator.add(javaProcessorFactory.javaImportsPathProcessor())
-    generator.add(commonProcessorFactory.printProcessor())
-    generator.add(commonProcessorFactory.fileProcessor('D:/views/git/ee-mdd/ee-mdd-example'))
-    generator.generate(model)
-  }
+		def generator = TemplatesForJavaCg.build()
+		def commonProcessorFactory = new CommonProcessorFactory()
+		def javaProcessorFactory = new ProcessorsForJava()
+
+		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
+		generator.add(javaProcessorFactory.javaImportsPathProcessor())
+		generator.add(commonProcessorFactory.printProcessor())
+		generator.add(commonProcessorFactory.fileProcessor(target))
+		generator.generate(model)
+	}
 }
