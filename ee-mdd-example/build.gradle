@@ -1,0 +1,54 @@
+def _scripts = System.getenv('CG_CM_SCRIPTS_HOME') ?: 'D:/CG/src/cg-cm/cg-cm-scripts'
+ext.scripts = project.hasProperty('superpom') ? project.superpom : "$_scripts/gradlebuild"
+logger.info "Calculated 'superpom' location: $scripts"
+
+def f = null
+try { f = file("$scripts/build.gradle") } catch (e) {}
+
+if(f && f.exists()) {
+  apply from: "$scripts/build.gradle"
+} else {
+
+  apply plugin: 'java'
+  apply plugin: 'groovy'
+  apply plugin: 'eclipse'
+  apply plugin: 'maven'
+
+  repositories { mavenCentral() }
+}
+
+group = 'ee'
+version = '1.0'
+
+sourceCompatibility = 1.7
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'Example for Java Generatin of from ee-mdd DSL', 'Implementation-Version': version
+  }
+}
+
+dependencies {
+  compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.7'
+  runtime group: 'ch.qos.logback', name:'logback-classic', version: '1.1.2'
+
+  testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+eclipse {
+
+  project {
+    //see docs for EclipseProject
+  }
+
+  classpath { downloadSources = true //see docs for EclipseClasspath
+  }
+}
+
+test { systemProperties 'property': 'value' }
+
+uploadArchives {
+  repositories {
+    flatDir { dirs 'repos' }
+  }
+}
