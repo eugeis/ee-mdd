@@ -21,7 +21,6 @@ import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 
 
-
 /**
  *
  * @author Eugen Eisler
