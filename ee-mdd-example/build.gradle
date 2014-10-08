@@ -16,7 +16,7 @@ if(f && f.exists()) {
   repositories { mavenCentral() }
 }
 
-group = 'ee'
+group = 'ee-mdd'
 version = '1.0'
 
 sourceCompatibility = 1.7
