@@ -36,7 +36,7 @@ class ExtTypesForJava {
     'Integer',
     'Long',
     'Float',
-    'Fouble',
+    'Double',
     'Boolean',
     'String'
   ]
