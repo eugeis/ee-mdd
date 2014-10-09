@@ -15,10 +15,13 @@ if(f && f.exists()) {
 	apply plugin: 'eclipse'
 	apply plugin: 'maven'
 
-	repositories { mavenCentral() }
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
 }
 
-group = 'ee-mdd'
+group = 'ee-mdd-example'
 version = '1.0'
 
 sourceCompatibility = 1.7
@@ -30,7 +33,7 @@ sourceSets {
 			'src-gen/main/java'
 		]
 	}
-	
+
 	test {
 		java.srcDirs = [
 			'src/test/java',
@@ -65,5 +68,6 @@ eclipse {
 test { systemProperties 'property': 'value' }
 
 uploadArchives {
-	repositories { flatDir { dirs 'repos' } }
+	repositories { flatDir { dirs 'repos'
+		} }
 }

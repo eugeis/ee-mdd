@@ -28,7 +28,7 @@ import ee.mdd.templates.java.cg.TemplatesForJavaCg
 class GeneratorForJava {
 
 	static void main(def args) {
-		String target = args ? new File("${args[0]}/../ee-mdd-example") : '/Users/eugeis/git/ee-mdd/ee-mdd-example'
+		String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
 
 		println args
 		EnhancerForJava.enhanceClasses()

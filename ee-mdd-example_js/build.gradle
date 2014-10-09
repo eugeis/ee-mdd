@@ -1,0 +1,38 @@
+apply plugin: 'js'
+apply plugin: 'css'
+apply plugin: 'eclipse'
+
+
+// define the dependencies gradle buildscript will use to build
+// the app (not the app itself)
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+
+	dependencies {
+		classpath 'com.eriwen:gradle-js-plugin:1.12.1'
+		classpath 'com.eriwen:gradle-css-plugin:1.11.1'
+	}
+
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+
+group = 'ee-mdd-example'
+version = '1.0'
+
+eclipse {
+
+	project {
+		//see docs for EclipseProject
+	}
+
+	classpath { downloadSources = true //see docs for EclipseClasspath
+	}
+}

@@ -27,7 +27,7 @@ import ee.mdd.templates.java.ModelBuilderExample
 class GeneratorForJs {
 
 	static void main(def args) {
-		String target = args ? new File("${args[0]}/../ee-mdd-example") : '/Users/eugeis/git/ee-mdd/ee-mdd-example'
+		String target = args ? new File("${args[0]}/../ee-mdd-example_js") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_js'
 
 		EnhancerForJs.enhanceClasses()
 
