@@ -95,7 +95,7 @@ class MacrosForJava {
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% c.src = true %>{{imports}}
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
 ${macros.generate('metaAttributes', c)}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
 }''')
