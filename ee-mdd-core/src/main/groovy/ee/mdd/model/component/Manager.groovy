@@ -24,6 +24,22 @@ import ee.mdd.model.Element
  */
 class Manager extends Controller {
 
+  List<Find> getFinders() {
+    operations?.findAll { Find.isInstance(it) }
+  }
+
+  List<Count> getCounters() {
+    operations?.findAll { Count.isInstance(it) }
+  }
+
+  List<Exist> getExists() {
+    operations?.findAll { Exist.isInstance(it) }
+  }
+
+  List<Delete> getDeleters() {
+    operations?.findAll { Delete.isInstance(it) }
+  }
+
   void fillReference(Map<String, Element> refToMe) {
     super.fillReference(refToMe)
     refToMe['manager'] = this

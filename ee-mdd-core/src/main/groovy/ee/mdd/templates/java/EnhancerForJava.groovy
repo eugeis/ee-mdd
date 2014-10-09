@@ -22,9 +22,12 @@ import javafx.scene.control.*
 import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
+import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
+import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
+import ee.mdd.templates.java.model.annotations.MetaAttributeNamedQuery
 
 
 
@@ -44,6 +47,40 @@ class EnhancerForJava {
       Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
+    }
+
+    Entity.metaClass {
+
+      getMetasForEntity << {
+        ->
+        def key = System.identityHashCode(delegate) + 'metasForEntity'
+        if(!properties.containsKey(key)) {
+          Entity entity = delegate
+          def metasForEntity = properties[key] = []
+          if(entity.metas) {
+            metasForEntity.addAll(entity.metas)
+          }
+          metasForEntity << new MetaAttribute(type: 'Entity')
+
+          def namedQueries = new MetaAttribute(type: 'NamedQueries', multi: true, value: [])
+          metasForEntity << namedQueries
+
+          def finders = entity.manager?.finders
+          def counters = entity.manager?.counters
+          def existers = entity.manager?.finders
+          def deleters = entity.manager?.deleters
+          if ( finders != null ) {
+            finders.each { finder ->
+              def namedQuery =  new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
+              namedQuery.name = entity.name+'.'+finder.underscored
+              namedQuery.query = "\"SELECT e FROM ${entity.n.cap.entity} e $propWhere\")"
+              namedQueries.value << new MetaAttribute(type: 'NamedQuery', namedQuery)
+            }
+          }
+          properties[key] = "is$delegate.cap()"
+        }
+        properties[key]
+      }
     }
 
     Literal.metaClass {
@@ -176,5 +213,30 @@ class EnhancerForJava {
     }
 
   }
+
+  MetaAttribute.metaClass {
+
+    getAnnotation << { Context c ->
+      def ret = ''
+      def values = ''
+      String newLine = System.properties['line.separator']
+      if(delegate.multi){
+        delegate.value.each {
+          if(it.instanceof(MetaAttribute)) {
+            MetaAttribute subMeta = it
+            subMeta.value.each { key, value ->
+              values = values+key+" = "+"\"$value\","
+            }
+            ret = ret+newLine+'@'+subMeta.type.name+'('+values+'),'
+          }
+        }
+      } else {
+        ret = '@'+delegate.type.name;
+      }
+      ret-newLine
+    }
+
+  }
+
 }
 }

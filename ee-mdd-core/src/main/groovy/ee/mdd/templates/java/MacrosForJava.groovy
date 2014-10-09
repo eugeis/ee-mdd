@@ -166,7 +166,9 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
-      template('metaAttributes', body: '''<% String ret = ''; String newLine = System.properties['line.separator']; if (c.metas) { c.metas.each { metaAttr -> ret = ret+newLine+'@'+metaAttr.type.name; c.name(metaAttr.type) } } %>${ret-newLine}''')
+      template('metaAttributes', body: '''<% String ret = ''; String newLine = System.properties['line.separator']; if (c.metas) { c.metas.each { metaAttr -> %>
+      metaAttr.toStringJava(c)<% } %>
+ret = ret+newLine+'@'+metaAttr.type.name; c.name(metaAttr.type) } } %>${ret-newLine}''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
     }

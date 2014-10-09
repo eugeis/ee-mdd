@@ -56,6 +56,7 @@ class ModelBuilderExample {
             }
 
             entity('Task', superUnit: 'UmEntity') {
+              meta('NamedQueries', multi: true, value: [])
               prop('comment', type: 'Comment')
               prop('created', type: 'Date')
               prop('closed', type: 'Date')
@@ -85,7 +86,8 @@ class ModelBuilderExample {
 
           module('backend') {
             controller('TaskAgregator', meta: [
-              'ApplicationScoped'
+              'ApplicationScoped',
+              'NamedQueries'
             ]) {
               op('hello') {
                 param('test', type: 'String')
