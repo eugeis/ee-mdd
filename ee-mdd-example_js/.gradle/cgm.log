@@ -1,0 +1,138 @@
+12:36:07.644 906  [main] INFO  org.gradle.BuildLogger - Starting Build
+12:36:07.647 909  [main] DEBUG org.gradle.BuildLogger - Gradle user home: C:\Users\z003dc0n\.gradle
+12:36:07.648 910  [main] DEBUG org.gradle.BuildLogger - Current dir: D:\git\ee-mdd\ee-mdd-example_js
+12:36:07.648 910  [main] DEBUG org.gradle.BuildLogger - Settings file: null
+12:36:07.648 910  [main] DEBUG org.gradle.BuildLogger - Build file: null
+12:36:07.677 939  [main] DEBUG o.g.i.buildsrc.BuildSourceBuilder - Starting to build the build sources.
+12:36:07.677 939  [main] DEBUG o.g.i.buildsrc.BuildSourceBuilder - Gradle source dir does not exist. We leave.
+12:36:07.678 940  [main] DEBUG o.g.i.DefaultGradlePropertiesLoader - Found env project properties: []
+12:36:07.678 940  [main] DEBUG o.g.i.DefaultGradlePropertiesLoader - Found system project properties: []
+12:36:08.112 1374 [main] DEBUG o.g.i.ScriptEvaluatingSettingsProcessor - Timing: Processing settings took: 0.434 secs
+12:36:08.112 1374 [main] INFO  org.gradle.BuildLogger - Settings evaluated using empty settings script.
+12:36:08.235 1497 [main] DEBUG o.g.i.ProjectPropertySettingBuildLoader - Looking for project properties from: D:\git\ee-mdd\ee-mdd-example_js\gradle.properties
+12:36:08.235 1497 [main] DEBUG o.g.i.ProjectPropertySettingBuildLoader - project property file does not exists. We continue!
+12:36:08.236 1498 [main] INFO  org.gradle.BuildLogger - Projects loaded. Root project using build file 'D:\git\ee-mdd\ee-mdd-example_js\build.gradle'.
+12:36:08.236 1498 [main] INFO  org.gradle.BuildLogger - Included projects: [root project 'ee-mdd-example_js']
+12:36:08.622 1884 [main] INFO  o.g.c.project.BuildScriptProcessor - Evaluating root project 'ee-mdd-example_js' using build file 'D:\git\ee-mdd\ee-mdd-example_js\build.gradle'.
+12:36:08.642 1904 [main] DEBUG o.g.c.i.DefaultFileLockManager - Waiting to acquire shared lock on buildscript class cache for build file 'D:\git\ee-mdd\ee-mdd-example_js\build.gradle' (C:\Users\z003dc0n\.gradle\caches\1.10\scripts\build_2ttuc7b1mp6k4cf96njm4p60dm\ProjectScript\buildscript).
+12:36:08.643 1905 [main] DEBUG o.g.c.i.DefaultFileLockManager - Lock acquired.
+12:36:08.647 1909 [File lock request listener] DEBUG o.g.c.i.l.DefaultFileLockContentionHandler - Starting file lock listener thread.
+12:36:08.838 2100 [main] DEBUG o.g.c.i.DefaultFileLockManager - Waiting to acquire exclusive lock on artifact cache (C:\Users\z003dc0n\.gradle\caches\modules-2).
+12:36:08.840 2102 [main] DEBUG o.g.c.i.DefaultFileLockManager - Lock acquired.
+12:36:08.840 2102 [main] DEBUG o.g.a.i.a.i.r.DefaultDependencyResolver - Resolving configuration ':classpath'
+12:36:08.856 2118 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'ivy.default.settings.dir' to 'jar:file:/D:/CG/cg-tools-gradle/lib/ivy-2.2.0.jar!/org/apache/ivy/core/settings'
+12:36:08.858 2120 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'ivy.basedir' to 'D:\git\ee-mdd\ee-mdd-example_js\.'
+12:36:08.858 2120 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'ivy.default.conf.dir' to 'jar:file:/D:/CG/cg-tools-gradle/lib/ivy-2.2.0.jar!/org/apache/ivy/core/settings'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.runtime.name' to 'Java(TM) SE Runtime Environment'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.boot.library.path' to 'D:\CG\cg-tools-jdk\jre\bin'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.version' to '24.45-b08'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.vendor' to 'Oracle Corporation'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vendor.url' to 'http://java.oracle.com/'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'path.separator' to ';'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.name' to 'Java HotSpot(TM) 64-Bit Server VM'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'file.encoding.pkg' to 'sun.io'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.country' to 'DE'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.script' to ''
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.java.launcher' to 'SUN_STANDARD'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.os.patch.level' to 'Service Pack 1'
+12:36:08.895 2157 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.specification.name' to 'Java Virtual Machine Specification'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.dir' to 'D:\git\ee-mdd\ee-mdd-example_js'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.runtime.version' to '1.7.0_45-b18'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.awt.graphicsenv' to 'sun.awt.Win32GraphicsEnvironment'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.endorsed.dirs' to 'D:\CG\cg-tools-jdk\jre\lib\endorsed'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'os.arch' to 'amd64'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.io.tmpdir' to 'C:\Users\z003dc0n\AppData\Local\Temp\'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'line.separator' to '
+'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'org.gradle.appname' to 'gradle'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.specification.vendor' to 'Oracle Corporation'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.variant' to ''
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'os.name' to 'Windows 7'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'jna.boot.library.path' to 'C:\Users\z003dc0n\.gradle\native\jna\win32-amd64'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.jnu.encoding' to 'Cp1252'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.library.path' to 'D:\CG\cg-tools-jdk\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;"D:\CG\cg-tools-jdk\bin";"D:\CG\cg-tools-gradle\bin";"D:\CG\cg-tools-groovy\bin";"D:\CG\cg-tools-maven\bin";"D:\CG\src\cg-cm\cg-cm-scripts\gradle";D:\CG\src\cg-pl\cg-pl-smm-scripts\build\install\cgm\bin;D:\CG\src\cg-pl\cg-pl-smm-remote\build\install\bin;d:\sandbox\scripts;"D:\CG\cg-tools-jdk\bin";"D:\CG\cg-tools-gradle\bin";"D:\CG\cg-tools-groovy\bin";"D:\CG\cg-tools-maven\bin";"D:\CG\src\cg-cm\cg-cm-scripts\gradle";D:\CG\src\cg-pl\cg-pl-smm-scripts\build\install\cgm\bin;D:\CG\src\cg-pl\cg-pl-smm-remote\build\install\bin;d:\sandbox\scripts;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\WIDCOMM\Bluetooth Software\;C:\Program Files\WIDCOMM\Bluetooth Software\syswow64;C:\Program Files (x86)\QuickTime\QTSystem\;;;.'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.class.version' to '51.0'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.specification.name' to 'Java Platform API Specification'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.management.compiler' to 'HotSpot 64-Bit Tiered Compilers'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'os.version' to '6.1'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.home' to 'C:\Users\z003dc0n'
+12:36:08.896 2158 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.timezone' to 'Europe/Berlin'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.awt.printerjob' to 'sun.awt.windows.WPrinterJob'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.specification.version' to '1.7'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'file.encoding' to 'Cp1252'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.name' to 'z003dc0n'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.class.path' to 'D:\CG\cg-tools-gradle\bin\..\lib\gradle-launcher-1.10.jar'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.specification.version' to '1.7'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.arch.data.model' to '64'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.java.command' to 'org.gradle.launcher.GradleMain cleanEclipse eclipse'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.home' to 'D:\CG\cg-tools-jdk\jre'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.specification.vendor' to 'Oracle Corporation'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'user.language' to 'de'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'awt.toolkit' to 'sun.awt.windows.WToolkit'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vm.info' to 'mixed mode'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.version' to '1.7.0_45'
+12:36:08.897 2159 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.ext.dirs' to 'D:\CG\cg-tools-jdk\jre\lib\ext;C:\WINDOWS\Sun\Java\lib\ext'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.boot.class.path' to 'D:\CG\cg-tools-jdk\jre\lib\resources.jar;D:\CG\cg-tools-jdk\jre\lib\rt.jar;D:\CG\cg-tools-jdk\jre\lib\sunrsasign.jar;D:\CG\cg-tools-jdk\jre\lib\jsse.jar;D:\CG\cg-tools-jdk\jre\lib\jce.jar;D:\CG\cg-tools-jdk\jre\lib\charsets.jar;D:\CG\cg-tools-jdk\jre\lib\jfr.jar;D:\CG\cg-tools-jdk\jre\classes'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vendor' to 'Oracle Corporation'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'file.separator' to '\'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'java.vendor.url.bug' to 'http://bugreport.sun.com/bugreport/'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.io.unicode.encoding' to 'UnicodeLittle'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.cpu.endian' to 'little'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.desktop' to 'windows'
+12:36:08.898 2160 [main] DEBUG o.g.a.i.a.i.IvyLoggingAdaper - setting 'sun.cpu.isalist' to 'amd64'
+12:36:08.952 2214 [main] DEBUG o.g.a.i.a.i.i.m.InMemoryDependencyMetadataCache - Creating new in-memory cache for repo 'MavenLocal' [b13230cad92a1cdf25b87acddfe44368].
+12:36:09.006 2268 [main] DEBUG o.g.a.i.a.i.i.m.InMemoryDependencyMetadataCache - Creating new in-memory cache for repo 'MavenRepo' [e9d03b7c6586155fbee8fb2de8b5b149].
+12:36:09.057 2319 [main] DEBUG o.g.a.i.a.i.r.DependencyGraphBuilder - Visiting configuration :ee-mdd-example_js:unspecified(classpath).
+12:36:09.065 2327 [main] DEBUG o.g.a.i.a.i.r.DependencyGraphBuilder - Visiting dependency :ee-mdd-example_js:unspecified(classpath) -> com.eriwen:gradle-js-plugin:1.12.1(dependency: com.eriwen#gradle-js-plugin;1.12.1 {classpath=[default]})
+12:36:09.068 2330 [main] DEBUG o.g.a.i.a.i.r.DependencyGraphBuilder - Selecting new module version com.eriwen:gradle-js-plugin:1.12.1
+12:36:09.068 2330 [main] DEBUG o.g.a.i.a.i.i.UserResolverChain - Attempting to resolve module 'com.eriwen:gradle-js-plugin:1.12.1' using repositories [MavenLocal, MavenRepo]
+12:36:09.072 2334 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Loading D:\CG-maven-repo/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.pom
+12:36:09.075 2337 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Resource not reachable for com.eriwen#gradle-js-plugin;1.12.1!gradle-js-plugin.pom: res=MissingResource: D:\CG-maven-repo/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.pom
+12:36:09.076 2338 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Loading D:\CG-maven-repo/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.jar
+12:36:09.076 2338 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Resource not reachable for com.eriwen#gradle-js-plugin;1.12.1!gradle-js-plugin.jar: res=MissingResource: D:\CG-maven-repo/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.jar
+12:36:09.076 2338 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - No meta-data file nor artifact found for module 'com.eriwen#gradle-js-plugin;1.12.1' in repository 'MavenLocal'.
+12:36:09.095 2357 [main] DEBUG o.g.c.i.b.BTreePersistentIndexedCache - Opening cache dynamic-revisions.bin (C:\Users\z003dc0n\.gradle\caches\modules-2\metadata-2.1\dynamic-revisions.bin)
+12:36:09.105 2367 [main] DEBUG o.g.c.i.b.BTreePersistentIndexedCache - Opening cache module-metadata.bin (C:\Users\z003dc0n\.gradle\caches\modules-2\metadata-2.1\module-metadata.bin)
+12:36:09.107 2369 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Loading http://repo1.maven.org/maven2/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.pom
+12:36:09.107 2369 [main] DEBUG o.g.a.i.e.t.DefaultCacheAwareExternalResourceAccessor - Constructing external resource: http://repo1.maven.org/maven2/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.pom
+12:36:09.108 2370 [main] DEBUG o.g.c.i.b.BTreePersistentIndexedCache - Opening cache artifact-at-url.bin (C:\Users\z003dc0n\.gradle\caches\modules-2\metadata-2.1\artifact-at-url.bin)
+12:36:09.119 2381 [main] DEBUG o.g.a.i.e.t.h.HttpResourceAccessor - Constructing external resource: http://repo1.maven.org/maven2/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.pom
+12:36:09.122 2384 [main] DEBUG o.g.a.i.e.t.http.HttpClientHelper - Performing HTTP GET: http://repo1.maven.org/maven2/com/eriwen/gradle-js-plugin/1.12.1/gradle-js-plugin-1.12.1.pom
+12:36:09.302 2564 [main] DEBUG o.a.h.i.c.PoolingClientConnectionManager - Connection request: [route: {}->http://repo1.maven.org][total kept alive: 0; route allocated: 0 of 5; total allocated: 0 of 10]
+12:36:09.312 2574 [main] DEBUG o.a.h.i.c.PoolingClientConnectionManager - Connection leased: [id: 0][route: {}->http://repo1.maven.org][total kept alive: 0; route allocated: 1 of 5; total allocated: 1 of 10]
+12:36:09.333 2595 [main] DEBUG o.a.h.i.c.DefaultClientConnectionOperator - Connecting to repo1.maven.org:80
+12:36:30.336 23598 [main] DEBUG o.a.h.i.c.DefaultClientConnection - Connection org.apache.http.impl.conn.DefaultClientConnection@bc7559f closed
+12:36:30.336 23598 [main] DEBUG o.a.h.i.c.DefaultClientConnection - Connection org.apache.http.impl.conn.DefaultClientConnection@bc7559f shut down
+12:36:30.337 23599 [main] DEBUG o.a.h.i.c.DefaultClientConnection - Connection org.apache.http.impl.conn.DefaultClientConnection@bc7559f closed
+12:36:30.337 23599 [main] DEBUG o.a.h.i.c.PoolingClientConnectionManager - Connection released: [id: 0][route: {}->http://repo1.maven.org][total kept alive: 0; route allocated: 0 of 5; total allocated: 0 of 10]
+12:36:30.342 23604 [main] DEBUG o.g.a.i.a.i.r.DependencyGraphBuilder - Visiting dependency :ee-mdd-example_js:unspecified(classpath) -> com.eriwen:gradle-css-plugin:1.11.1(dependency: com.eriwen#gradle-css-plugin;1.11.1 {classpath=[default]})
+12:36:30.342 23604 [main] DEBUG o.g.a.i.a.i.r.DependencyGraphBuilder - Selecting new module version com.eriwen:gradle-css-plugin:1.11.1
+12:36:30.343 23605 [main] DEBUG o.g.a.i.a.i.i.UserResolverChain - Attempting to resolve module 'com.eriwen:gradle-css-plugin:1.11.1' using repositories [MavenLocal, MavenRepo]
+12:36:30.344 23606 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Loading D:\CG-maven-repo/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.pom
+12:36:30.344 23606 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Resource not reachable for com.eriwen#gradle-css-plugin;1.11.1!gradle-css-plugin.pom: res=MissingResource: D:\CG-maven-repo/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.pom
+12:36:30.345 23607 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Loading D:\CG-maven-repo/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.jar
+12:36:30.345 23607 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Resource not reachable for com.eriwen#gradle-css-plugin;1.11.1!gradle-css-plugin.jar: res=MissingResource: D:\CG-maven-repo/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.jar
+12:36:30.346 23608 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - No meta-data file nor artifact found for module 'com.eriwen#gradle-css-plugin;1.11.1' in repository 'MavenLocal'.
+12:36:30.347 23609 [main] DEBUG o.g.a.i.a.r.r.ExternalResourceResolver - Loading http://repo1.maven.org/maven2/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.pom
+12:36:30.348 23610 [main] DEBUG o.g.a.i.e.t.DefaultCacheAwareExternalResourceAccessor - Constructing external resource: http://repo1.maven.org/maven2/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.pom
+12:36:30.349 23611 [main] DEBUG o.g.a.i.e.t.h.HttpResourceAccessor - Constructing external resource: http://repo1.maven.org/maven2/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.pom
+12:36:30.349 23611 [main] DEBUG o.g.a.i.e.t.http.HttpClientHelper - Performing HTTP GET: http://repo1.maven.org/maven2/com/eriwen/gradle-css-plugin/1.11.1/gradle-css-plugin-1.11.1.pom
+12:36:30.350 23612 [main] DEBUG o.a.h.i.c.PoolingClientConnectionManager - Connection request: [route: {}->http://repo1.maven.org][total kept alive: 0; route allocated: 0 of 5; total allocated: 0 of 10]
+12:36:30.350 23612 [main] DEBUG o.a.h.i.c.PoolingClientConnectionManager - Connection leased: [id: 1][route: {}->http://repo1.maven.org][total kept alive: 0; route allocated: 1 of 5; total allocated: 1 of 10]
+12:36:30.350 23612 [main] DEBUG o.a.h.i.c.DefaultClientConnectionOperator - Connecting to repo1.maven.org:80
+12:36:51.361 44623 [main] DEBUG o.a.h.i.c.DefaultClientConnection - Connection org.apache.http.impl.conn.DefaultClientConnection@68574b19 closed
+12:36:51.361 44623 [main] DEBUG o.a.h.i.c.DefaultClientConnection - Connection org.apache.http.impl.conn.DefaultClientConnection@68574b19 shut down
+12:36:51.362 44624 [main] DEBUG o.a.h.i.c.DefaultClientConnection - Connection org.apache.http.impl.conn.DefaultClientConnection@68574b19 closed
+12:36:51.362 44624 [main] DEBUG o.a.h.i.c.PoolingClientConnectionManager - Connection released: [id: 1][route: {}->http://repo1.maven.org][total kept alive: 0; route allocated: 0 of 5; total allocated: 0 of 10]
+12:36:51.375 44637 [main] DEBUG o.g.a.i.a.i.r.DependencyGraphBuilder - Attaching :ee-mdd-example_js:unspecified(classpath) to its parents.
+12:36:51.382 44644 [main] DEBUG o.g.a.i.a.i.r.o.TransientConfigurationResultsBuilder - Flushing resolved configuration data in Binary store in C:\Users\z003dc0n\AppData\Local\Temp\gradle3916675517956014245.bin. Wrote root :ee-mdd-example_js:unspecified:classpath.
+12:36:51.406 44668 [main] DEBUG o.g.c.project.BuildScriptProcessor - Timing: Running the build script took 42.783 secs
+12:36:51.528 44790 [main] DEBUG o.g.c.i.DefaultFileLockManager - Releasing lock on buildscript class cache for build file 'D:\git\ee-mdd\ee-mdd-example_js\build.gradle' (C:\Users\z003dc0n\.gradle\caches\1.10\scripts\build_2ttuc7b1mp6k4cf96njm4p60dm\ProjectScript\buildscript).
+12:36:51.529 44791 [main] DEBUG o.g.c.i.b.BTreePersistentIndexedCache - Closing cache module-metadata.bin (C:\Users\z003dc0n\.gradle\caches\modules-2\metadata-2.1\module-metadata.bin)
+12:36:51.530 44792 [main] DEBUG o.g.c.i.b.BTreePersistentIndexedCache - Closing cache dynamic-revisions.bin (C:\Users\z003dc0n\.gradle\caches\modules-2\metadata-2.1\dynamic-revisions.bin)
+12:36:51.531 44793 [main] DEBUG o.g.c.i.b.BTreePersistentIndexedCache - Closing cache artifact-at-url.bin (C:\Users\z003dc0n\.gradle\caches\modules-2\metadata-2.1\artifact-at-url.bin)
+12:36:51.532 44794 [main] DEBUG o.g.c.i.DefaultFileLockManager - Releasing lock on artifact cache (C:\Users\z003dc0n\.gradle\caches\modules-2).
+12:36:51.537 44799 [main] DEBUG o.g.a.i.a.i.r.s.CachedStoreFactory - Resolution result cache closed. Cache reads: 0, disk reads: 0 (avg: 0.0 secs, total: 0.0 secs)
+12:36:51.538 44800 [main] DEBUG o.g.a.i.a.i.r.s.CachedStoreFactory - Resolved configuration cache closed. Cache reads: 0, disk reads: 0 (avg: 0.0 secs, total: 0.0 secs)
+12:36:51.538 44800 [main] DEBUG o.g.a.i.a.i.r.s.ResolutionResultsStoreFactory - Deleted 2 resolution results binary files in 0.002 secs
+12:36:51.538 44800 [main] DEBUG o.g.a.i.a.i.i.m.InMemoryDependencyMetadataCache - In-memory dependency metadata cache closed. Repos cached: 2, cache instances: 2, modules served from cache: 0, artifacts: 0
