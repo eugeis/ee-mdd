@@ -34,11 +34,11 @@ class MddFactory extends AbstractFactory {
       //attributes[valueProperty] = value
       ret[valueProperty] = value
     }
-    return ret
+    ret
   }
 
   boolean checkValue(Object name, Object value) {
-    return value != null && beanClass.isAssignableFrom(value.class)
+    value != null && beanClass.isAssignableFrom(value.class)
   }
 
   boolean isChildAllowed(String childFactoryName) {

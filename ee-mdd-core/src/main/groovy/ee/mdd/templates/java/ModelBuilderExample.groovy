@@ -61,12 +61,16 @@ class ModelBuilderExample {
               prop('created', type: 'Date')
               prop('closed', type: 'Date')
 
+              index {
+
+              }
+
               constr {}
 
               constr {
 
-                param(prop: 'comment', type: 'Comment')
-                param(prop: 'created', type: 'Date')
+                param(prop: 'comment')
+                param(prop: 'created')
               }
 
               constr {

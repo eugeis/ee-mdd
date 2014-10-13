@@ -36,6 +36,7 @@ import ee.mdd.model.component.Exist
 import ee.mdd.model.component.ExternalType
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Find
+import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
@@ -64,18 +65,12 @@ class ModelBuilder extends AbstractFactoryBuilder {
     refAttrResolver.addParentResolver('prop', Prop)
     refAttrResolver.addGlobalResolver('module', Module)
     refAttrResolver.addGlobalResolver('superUnit', CompilationUnit)
-	
-	MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
-	refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
-    
-	refAttrResolver.addGlobalTypes([
-      Model,
-      Module,
-      Component,
-      Type,
-      CompilationUnit
-    ])
-	
+
+    MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
+    refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
+
+    refAttrResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
+
     addAttributeDelegate(refAttrResolver.attributteDelegate)
     addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
     addPostNodeCompletionDelegate(refAttrResolver.postNodeCompletionDelegate)
@@ -86,109 +81,37 @@ class ModelBuilder extends AbstractFactoryBuilder {
   }
 
   void registerAll() {
-    def factoryBasicType = new CompositeFactory(beanClass: BasicType, childFactories: [
-      'meta',
-      'constr',
-      'prop',
-      'op'
-    ])
+    def factoryBasicType = new CompositeFactory(beanClass: BasicType, childFactories: ['meta', 'index', 'constr', 'prop', 'op'])
     def factoryBody = new CompositeFactory(beanClass: Body, childFactories: ['type'])
     def factoryComponent = new CompositeFactory(beanClass: Component, childFactories: ['module', 'facet'])
     def factoryCondition = new CompositeFactory(beanClass: Condition, childFactories: ['type', 'op', 'controller'])
-    def factoryConfig = new CompositeFactory(beanClass: Config, childFactories: [
-      'meta',
-      'constr',
-      'prop',
-      'op',
-      'controller',
-      'delegate'
-    ])
+    def factoryConfig = new CompositeFactory(beanClass: Config, childFactories: ['meta', 'constr', 'prop', 'op', 'controller', 'delegate'])
     def factoryConstructor = new CompositeFactory(beanClass: Constructor, childFactories: ['param', 'body',])
-    def factoryContainer = new CompositeFactory(beanClass: Container, childFactories: [
-      'meta',
-      'constr',
-      'prop',
-      'op',
-      'controller',
-      'delegate'
-    ])
-    def factoryController = new CompositeFactory(beanClass: Controller, childFactories: [
-      'meta',
-      'constr',
-      'prop',
-      'op',
-      'delegate'
-    ])
+    def factoryContainer = new CompositeFactory(beanClass: Container, childFactories: ['meta', 'constr', 'prop', 'op', 'controller', 'delegate'])
+    def factoryController = new CompositeFactory(beanClass: Controller, childFactories: ['meta', 'constr', 'prop', 'op', 'delegate'])
 
-    def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: [
-      'meta',
-      'constr',
-      'prop',
-      'op',
-      'delegate'
-    ])
+    def factoryIndex = new CompositeFactory(beanClass: Index, childFactories: [])
+    def factoryInitializer = new CompositeFactory(beanClass: Controller, childFactories: ['meta', 'constr', 'prop', 'op', 'delegate'])
     def factoryCount = new CompositeFactory(beanClass: Count, childFactories: ['meta', 'cond'])
     def factoryCreate = new CompositeFactory(beanClass: Create, childFactories: ['meta', 'param', 'cond'])
     def factoryDelete = new CompositeFactory(beanClass: Delete, childFactories: ['meta', 'cond'])
-    def factoryEntity = new CompositeFactory(beanClass: Entity, childFactories: [
-      'meta',
-      'constr',
-      'prop',
-      'op',
-      'manager'
-    ])
-    def factoryEnumType = new EnumTypeFactory(beanClass: EnumType, childFactories: [
-      'meta',
-      'constr',
-      'lit',
-      'prop',
-      'op'
-    ])
+    def factoryEntity = new CompositeFactory(beanClass: Entity, childFactories: ['meta', 'index', 'constr', 'prop', 'op', 'manager'])
+    def factoryEnumType = new EnumTypeFactory(beanClass: EnumType, childFactories: ['meta', 'index', 'constr', 'lit', 'prop', 'op'])
     def factoryExist = new CompositeFactory(beanClass: Exist, childFactories: ['meta', 'cond'])
     def factoryExternalType = new CompositeFactory(beanClass: ExternalType, childFactories: ['prop', 'op'])
     def factoryFacet = new CompositeFactory(beanClass: Facet)
     def factoryFind = new CompositeFactory(beanClass: Find, childFactories: ['meta', 'cond'])
-    def factoryModel = new CompositeFactory(beanClass: Model, childFactories: [
-      'model',
-      'component',
-      'facet',
-      'extType'
-    ])
-    def factoryManager = new CompositeFactory(beanClass: Manager, childFactories: [
-      'meta',
-      'prop',
-      'op',
-      'count',
-      'create',
-      'delete',
-      'exist',
-      'find',
-      'delegate'
-    ])
+    def factoryModel = new CompositeFactory(beanClass: Model, childFactories: ['model', 'component', 'facet', 'extType'])
+    def factoryManager = new CompositeFactory(beanClass: Manager, childFactories: ['meta', 'prop', 'op', 'count', 'create', 'delete', 'exist', 'find', 'delegate'])
     def factoryMetaAttribute = new CompositeFactory(beanClass: MetaAttribute, childFactories: [])
-    def factoryModule = new CompositeFactory(beanClass: Module, childFactories: [
-      'facet',
-      'entity',
-      'basicType',
-      'enumType',
-      'pojo',
-      'config',
-      'extType',
-      'controller',
-      'service'
-    ])
+    def factoryModule = new CompositeFactory(beanClass: Module, childFactories: ['facet', 'entity', 'basicType', 'enumType', 'pojo', 'config', 'extType', 'controller', 'service'])
     def factoryOperation = new CompositeFactory(beanClass: Operation, childFactories: ['meta', 'param', 'body'])
     def factoryDelegate = new CompositeFactory(beanClass: Delegate, valueProperty: 'ref', childFactories: ['meta', 'param', 'body'])
     def factoryParam = new CompositeFactory(beanClass: Param, childFactories: ['meta'])
     def factoryPojo = new CompositeFactory(beanClass: Pojo, childFactories: ['meta', 'prop', 'op'])
-    def factoryProp = new CompositeFactory(beanClass: Prop, childFactories: ['meta'])
+    def factoryProp = new PropFactory(childFactories: ['meta'])
     def factoryLiteral = new CompositeFactory(beanClass: Literal, childFactories: [])
-    def factoryService = new CompositeFactory(beanClass: Service, childFactories: [
-      'meta',
-      'prop',
-      'op',
-      'delegate'
-    ])
+    def factoryService = new CompositeFactory(beanClass: Service, childFactories: ['meta', 'prop', 'op', 'delegate'])
     def factoryUpdate = new CompositeFactory(beanClass: Update, childFactories: ['meta', 'param', 'cond'])
 
 
@@ -201,6 +124,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'container', factoryContainer
     registerFactory 'controller', factoryController
     registerFactory 'delegate', factoryDelegate
+    registerFactory 'index', factoryIndex
     registerFactory 'initializer', factoryInitializer
     registerFactory 'counter', factoryCount
     registerFactory 'creator', factoryCreate

@@ -71,6 +71,8 @@ class EnhancerForJava {
           namedQueries.value.addAll(entity.manager.existerNamedQuery)
           namedQueries.value.addAll(entity.manager.deleterNamedQuery)
 
+
+
           metasForEntity << namedQueries
           properties[key] = metasForEntity
         }
