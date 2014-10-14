@@ -15,7 +15,10 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Element
+import java.util.List;
+import java.util.Map;
+
+import ee.mdd.model.Element;
 
 
 /**

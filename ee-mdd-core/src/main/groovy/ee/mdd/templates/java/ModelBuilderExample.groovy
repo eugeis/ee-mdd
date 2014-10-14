@@ -15,8 +15,8 @@
  */
 package ee.mdd.templates.java
 
-import ee.mdd.builder.ModelBuilder
-import ee.mdd.model.component.Model
+import ee.mdd.model.component.Model;
+import groovy.lang.Closure;
 
 class ModelBuilderExample {
 

@@ -17,9 +17,11 @@
  */
 package ee.mdd.builder
 
-import ee.mdd.factory.*
-import ee.mdd.model.*
-import ee.mdd.model.component.Namespace
+import groovy.util.Factory;
+import groovy.util.FactoryBuilderSupport;
+
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -35,11 +37,14 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
     super(init)
     this.allowedRoots = allowedRoots
 
-    refAttrResolver = new RefAttributesResolver()
-
     attributeToObject = new AttributeToObject()
     attributeToObject.add('namespace', new MddFactory(beanClass: Namespace))
     addAttributeDelegate(attributeToObject.attributteDelegate)
+
+    refAttrResolver = new RefAttributesResolver()
+    addAttributeDelegate(refAttrResolver.attributteDelegate)
+    addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
+    addPostNodeCompletionDelegate(refAttrResolver.postNodeCompletionDelegate)
   }
 
   def propertyMissing(String name) {

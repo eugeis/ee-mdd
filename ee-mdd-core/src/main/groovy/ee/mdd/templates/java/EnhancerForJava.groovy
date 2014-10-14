@@ -15,19 +15,6 @@
  */
 package ee.mdd.templates.java
 
-import javafx.beans.binding.*
-import javafx.beans.property.*
-import javafx.collections.*
-import javafx.scene.control.*
-import ee.mdd.generator.Context
-import ee.mdd.model.Element
-import ee.mdd.model.component.Attribute
-import ee.mdd.model.component.Entity
-import ee.mdd.model.component.Literal
-import ee.mdd.model.component.LogicUnit
-import ee.mdd.model.component.MetaAttribute
-import ee.mdd.model.component.Prop
-import ee.mdd.templates.java.model.annotations.MetaAttributeNamedQuery
 
 
 

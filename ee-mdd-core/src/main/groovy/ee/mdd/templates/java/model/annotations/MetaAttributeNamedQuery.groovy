@@ -4,9 +4,8 @@
  */
 package ee.mdd.templates.java.model.annotations
 
-import static java.lang.annotation.RetentionPolicy.*
-import ee.mdd.generator.Context
-import ee.mdd.model.component.MetaAttribute
+import ee.mdd.generator.Context;
+import ee.mdd.model.component.MetaAttribute;
 
 class MetaAttributeNamedQuery extends MetaAttribute {
   String query;

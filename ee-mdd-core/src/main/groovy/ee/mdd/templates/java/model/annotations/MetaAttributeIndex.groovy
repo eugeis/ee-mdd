@@ -4,8 +4,7 @@
  */
 package ee.mdd.templates.java.model.annotations
 
-import static java.lang.annotation.RetentionPolicy.*
-import ee.mdd.model.component.MetaAttribute
+import ee.mdd.model.component.MetaAttribute;
 
 class MetaAttributeIndex extends MetaAttribute {
   String columnList

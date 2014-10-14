@@ -15,9 +15,6 @@
  */
 package ee.mdd.templates.java
 
-import ee.mdd.model.component.ExternalType
-import ee.mdd.model.component.Model
-import ee.mdd.model.component.Namespace
 
 
 

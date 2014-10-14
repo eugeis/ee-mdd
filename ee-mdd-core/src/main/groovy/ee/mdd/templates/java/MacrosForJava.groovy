@@ -15,8 +15,7 @@
  */
 package ee.mdd.templates.java
 
-import ee.mdd.builder.GeneratorBuilder
-import ee.mdd.generator.CategoryGenerator
+import ee.mdd.generator.CategoryGenerator;
 
 
 /**
