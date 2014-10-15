@@ -282,7 +282,7 @@ class EnhancerForJava {
       def key = System.identityHashCode(delegate) + 'annotation'
       if(!properties.containsKey(key)) {
         def ret = "@${c.name(delegate.type)}"
-        if(delegate.multi && delegate.value){
+        if(delegate.multi && delegate.value) {
           String newLine = System.properties['line.separator']
           ret += ' {'
           delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
