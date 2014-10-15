@@ -15,7 +15,8 @@
  */
 package ee.mdd.templates.java
 
-import ee.mdd.generator.CategoryGenerator;
+import ee.mdd.builder.GeneratorBuilder
+import ee.mdd.generator.CategoryGenerator
 
 
 /**
@@ -165,9 +166,8 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
-      template('metaAttributes', body: '''<% String ret = ''; String newLine = System.properties['line.separator']; if (c.metas) { c.metas.each { metaAttr -> %>
-      metaAttr.toStringJava(c)<% } %>
-ret = ret+newLine+'@'+metaAttr.type.name; c.name(metaAttr.type) } } %>${ret-newLine}''')
+      template('metaAttributes', body: '''<% def ret = ''; if (c.metas) { c.metas.each { ret += it.annotation(c) } } %>
+$ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
     }

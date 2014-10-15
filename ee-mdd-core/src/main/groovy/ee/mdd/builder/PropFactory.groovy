@@ -15,39 +15,37 @@
  */
 package ee.mdd.builder
 
+import ee.mdd.model.component.DataTypeProp
+import ee.mdd.model.component.Prop
+
+
 /**
  *
  * @author Eugen Eisler
  */
-class MddFactory extends AbstractFactory {
-  Class beanClass
-  Set<String> childFactories
-  String valueProperty = 'name'
+class PropFactory extends CompositeFactory {
 
-  @Override
-  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
+  public PropFactory() {
+    super()
+    this.beanClass = Prop
+  }
+
+  Object newInstance(AbstractFactoryBuilder builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
     if (checkValue(name, value)) {
       return value
     }
-    def ret = beanClass.newInstance()
+    def parent = builder.getParent()
+    def ret
+    if(DataTypeProp.isInstance(parent)) {
+      ret = new DataTypeProp()
+    } else {
+      ret = new Prop()
+    }
+
     if(value != null) {
       //attributes[valueProperty] = value
       ret[valueProperty] = value
     }
     ret
   }
-
-  boolean checkValue(Object name, Object value) {
-    value != null && beanClass.isAssignableFrom(value.class)
-  }
-
-  boolean isChildAllowed(String childFactoryName) {
-    childFactories && childFactories.contains(childFactoryName)
-  }
-
-  @Override
-  public String toString() {
-    return  "${getClass().simpleName} [beanClass=" + beanClass + "]"
-  }
 }
-

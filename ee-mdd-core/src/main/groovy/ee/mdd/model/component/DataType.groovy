@@ -19,11 +19,19 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class DataType extends CompilationUnit {
   Manager manager
+  List<Index> indexes
 
   def add(Manager item) {
     manager = super.add(item)
+  }
+
+  def add(Index item) {
+    if(!indexes) {
+      indexes = []
+    }; indexes << super.add(item)
   }
 }

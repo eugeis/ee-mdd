@@ -17,11 +17,8 @@
  */
 package ee.mdd.builder
 
-import groovy.util.Factory;
-import groovy.util.FactoryBuilderSupport;
-
-import java.util.Map;
-import java.util.Set;
+import ee.mdd.model.Element
+import ee.mdd.model.component.Namespace
 
 
 /**

@@ -24,6 +24,7 @@ import ee.mdd.model.Element;
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Manager extends Controller {
 
