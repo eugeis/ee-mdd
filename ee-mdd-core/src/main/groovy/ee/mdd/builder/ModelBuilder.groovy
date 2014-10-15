@@ -36,6 +36,7 @@ import ee.mdd.model.component.Exist
 import ee.mdd.model.component.ExternalType
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Find
+import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
@@ -56,7 +57,7 @@ import ee.mdd.model.component.Update
 class ModelBuilder extends AbstractFactoryBuilder {
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
-    super(['model'] as Set)
+    super(['model'] as Set, postInstantiateDelegate)
 
     refAttrResolver.addGlobalResolver('type', Type)
     refAttrResolver.addGlobalResolver('ret', Type)
@@ -69,14 +70,6 @@ class ModelBuilder extends AbstractFactoryBuilder {
     refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
 
     refAttrResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
-
-    addAttributeDelegate(refAttrResolver.attributteDelegate)
-    addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
-    addPostNodeCompletionDelegate(refAttrResolver.postNodeCompletionDelegate)
-
-    if(postInstantiateDelegate) {
-      super.addPostInstantiateDelegate(postInstantiateDelegate)
-    }
   }
 
   void registerAll() {

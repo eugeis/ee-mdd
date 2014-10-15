@@ -52,7 +52,7 @@ class RefParentResolveHandler implements RefResolveHandler {
   @Override
   void printNotResolved() {
     if(!notResolved.isEmpty()) {
-      println "$name: $notResolved"
+      println "Not resolved: $name: $notResolved"
     }
   }
 

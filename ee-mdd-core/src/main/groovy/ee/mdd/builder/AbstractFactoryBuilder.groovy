@@ -30,7 +30,7 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   AttributeToObject attributeToObject
   protected Set<String> allowedRoots
 
-  AbstractFactoryBuilder(Set<String> allowedRoots, boolean init = true) {
+  AbstractFactoryBuilder(Set<String> allowedRoots, Closure postInstantiateDelegate = null, boolean init = true) {
     super(init)
     this.allowedRoots = allowedRoots
 
@@ -42,6 +42,10 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
     addAttributeDelegate(refAttrResolver.attributteDelegate)
     addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
     addPostNodeCompletionDelegate(refAttrResolver.postNodeCompletionDelegate)
+
+    if(postInstantiateDelegate) {
+      addPostInstantiateDelegate(postInstantiateDelegate)
+    }
   }
 
   def propertyMissing(String name) {
