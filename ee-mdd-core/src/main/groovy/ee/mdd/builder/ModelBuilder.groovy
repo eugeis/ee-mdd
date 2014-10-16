@@ -57,7 +57,7 @@ import ee.mdd.model.component.Update
 class ModelBuilder extends AbstractFactoryBuilder {
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
-    super(['model'] as Set, postInstantiateDelegate)
+    super(postInstantiateDelegate)
 
     refAttrResolver.addGlobalResolver('type', Type)
     refAttrResolver.addGlobalResolver('ret', Type)

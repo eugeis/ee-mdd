@@ -29,12 +29,9 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   protected  Map<String, Object> storedContinuationData
   RefAttributesResolver refAttrResolver
   AttributeToObject attributeToObject
-  protected Set<String> allowedRoots
-  boolean freeMode = false
 
-  AbstractFactoryBuilder(Set<String> allowedRoots, Closure postInstantiateDelegate = null, boolean init = true) {
+  AbstractFactoryBuilder(Closure postInstantiateDelegate = null, boolean init = true) {
     super(init)
-    this.allowedRoots = allowedRoots
 
     attributeToObject = new AttributeToObject()
     attributeToObject.add('namespace', new MddFactory(beanClass: Namespace))
@@ -85,15 +82,9 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   }
 
   boolean checkFactoryAllowed(Object name) {
-    if(!freeMode) {
-      MddFactory parent = getParentFactory()
-      if(parent == null) {
-        if(!allowedRoots.contains(name) ) {
-          throw new RuntimeException("The '$name' is not allowed as root, only $allowedRoots.")
-        }
-      } else if(!parent.isChildAllowed(name)) {
-        throw new RuntimeException("Child element '$name' in not allowed for parent '$parent'.")
-      }
+    MddFactory parent = getParentFactory()
+    if(parent != null && !parent.isChildAllowed(name)) {
+      throw new RuntimeException("Child element '$name' in not allowed for parent '$parent'.")
     }
     true
   }

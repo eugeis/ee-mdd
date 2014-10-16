@@ -34,7 +34,6 @@ class GeneratorForJava {
     EnhancerForJava.enhanceClasses()
 
     Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
-    model.builder.freeMode = true
 
     //create props for delegates
     model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->

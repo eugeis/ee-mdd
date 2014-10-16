@@ -27,7 +27,7 @@ import ee.mdd.model.system.Workspace
 class SystemBuilder extends AbstractFactoryBuilder {
 
   SystemBuilder(Closure postInstantiateDelegate = null) {
-    super(['system'] as Set, postInstantiateDelegate)
+    super(postInstantiateDelegate)
 
     refAttrResolver.addGlobalResolver('machine', Machine)
     refAttrResolver.addGlobalResolver('workspace', Workspace)
