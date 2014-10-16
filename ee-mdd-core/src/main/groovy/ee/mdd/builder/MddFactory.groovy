@@ -30,6 +30,11 @@ class MddFactory extends AbstractFactory {
       return value
     }
     def ret = beanClass.newInstance()
+
+    if(BuilderAware.isInstance(ret)) {
+      ret.builder = builder
+    }
+
     if(value != null) {
       //attributes[valueProperty] = value
       ret[valueProperty] = value

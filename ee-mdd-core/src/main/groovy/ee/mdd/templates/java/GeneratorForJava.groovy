@@ -27,28 +27,29 @@ import ee.mdd.templates.java.cg.TemplatesForJavaCg
  */
 class GeneratorForJava {
 
-	static void main(def args) {
-		String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
+  static void main(def args) {
+    String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
 
-		println args
-		EnhancerForJava.enhanceClasses()
+    println args
+    EnhancerForJava.enhanceClasses()
 
-		Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+    Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+    model.builder.freeMode = true
 
-		//create props for delegates
-		model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->
-			d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+    //create props for delegates
+    model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->
+      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
 
-		//model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
+    //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
 
-		def generator = TemplatesForJavaCg.build()
-		def commonProcessorFactory = new CommonProcessorFactory()
-		def javaProcessorFactory = new ProcessorsForJava()
+    def generator = TemplatesForJavaCg.build()
+    def commonProcessorFactory = new CommonProcessorFactory()
+    def javaProcessorFactory = new ProcessorsForJava()
 
-		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
-		generator.add(javaProcessorFactory.javaImportsPathProcessor())
-		generator.add(commonProcessorFactory.printProcessor())
-		generator.add(commonProcessorFactory.fileProcessor(target))
-		generator.generate(model)
-	}
+    generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
+    generator.add(javaProcessorFactory.javaImportsPathProcessor())
+    generator.add(commonProcessorFactory.printProcessor())
+    generator.add(commonProcessorFactory.fileProcessor(target))
+    generator.generate(model)
+  }
 }

@@ -15,11 +15,10 @@
  */
 package ee.mdd.generator
 
+import ee.mdd.model.component.Model
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.Callable
-
-import ee.mdd.model.component.Model
 
 /**
  *
@@ -27,43 +26,44 @@ import ee.mdd.model.component.Model
  */
 @Slf4j
 class Generator extends AbstractGenerator {
-	Map<String, CategoryGenerator> categories = [:]
+  Map<String, CategoryGenerator> categories = [:]
 
-	void generate(Model model) {
-		log.info "$name: Generate for model '$model.name'"
-		Executor executor = new Executor(5)
+  void generate(Model model) {
+    log.info "$name: Generate for model '$model.name'"
+    //Executor executor = new Executor(5)
+    Executor executor = new Executor(1)
 
-		Context c = new Context()
-		c.model = model
+    Context c = new Context()
+    c.model = model
 
-		categories.each { catName, CategoryGenerator category ->
-			category.generate(c) { template, templateContext, generator ->
+    categories.each { catName, CategoryGenerator category ->
+      category.generate(c) { template, templateContext, generator ->
 
-				executor.submit ( {
-					before(templateContext)
-					generator(template, templateContext)
-					after(templateContext)
-				} as Callable )
-			}
-		}
-		executor.shutdownAndAwaitTermination()
-	}
+        executor.submit ( {
+          before(templateContext)
+          generator(template, templateContext)
+          after(templateContext)
+        } as Callable )
+      }
+    }
+    executor.shutdownAndAwaitTermination()
+  }
 
 
-	def generate(String catName, String template, Context c) {
-		def ret = ''
-		if(categories.containsKey(catName)){
-			before(c)
-			ret = categories[catName].generate(template, c)
-			after(c)
-		} else {
-			c.error = new IllegalStateException("$name: Generation of '${catName}.$template is not possible, because category '$catName' does not exists.")
-			log.error c.error.message
-		}
-		ret
-	}
+  def generate(String catName, String template, Context c) {
+    def ret = ''
+    if(categories.containsKey(catName)){
+      before(c)
+      ret = categories[catName].generate(template, c)
+      after(c)
+    } else {
+      c.error = new IllegalStateException("$name: Generation of '${catName}.$template is not possible, because category '$catName' does not exists.")
+      log.error c.error.message
+    }
+    ret
+  }
 
-	def add(CategoryGenerator child) {
-		categories[child.name] = super.add(child); child
-	}
+  def add(CategoryGenerator child) {
+    categories[child.name] = super.add(child); child
+  }
 }

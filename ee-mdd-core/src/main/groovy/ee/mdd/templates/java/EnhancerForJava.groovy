@@ -19,6 +19,7 @@ import javafx.beans.binding.*
 import javafx.beans.property.*
 import javafx.collections.*
 import javafx.scene.control.*
+import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
@@ -60,16 +61,15 @@ class EnhancerForJava {
           if(entity.metas) {
             metasForEntity.addAll(entity.metas)
           }
-          metasForEntity << new MetaAttribute(type: 'Entity')
+          ModelBuilder builder = entity.component.builder
+          metasForEntity << builder.meta(type: 'Entity')
 
-          def namedQueries = new MetaAttribute(type: 'NamedQueries', multi: true, value: [])
+          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
 
           namedQueries.value.addAll(entity.manager.finderNamedQuery)
           namedQueries.value.addAll(entity.manager.counterNamedQuery)
           namedQueries.value.addAll(entity.manager.existerNamedQuery)
           namedQueries.value.addAll(entity.manager.deleterNamedQuery)
-
-
 
           metasForEntity << namedQueries
           properties[key] = metasForEntity

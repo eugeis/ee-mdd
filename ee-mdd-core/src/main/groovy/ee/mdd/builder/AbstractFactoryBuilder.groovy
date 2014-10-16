@@ -26,9 +26,11 @@ import ee.mdd.model.component.Namespace
  * @author Eugen Eisler
  */
 class AbstractFactoryBuilder extends FactoryBuilderSupport {
+  protected  Map<String, Object> storedContinuationData
   RefAttributesResolver refAttrResolver
   AttributeToObject attributeToObject
   protected Set<String> allowedRoots
+  boolean freeMode = false
 
   AbstractFactoryBuilder(Set<String> allowedRoots, Closure postInstantiateDelegate = null, boolean init = true) {
     super(init)
@@ -83,14 +85,17 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   }
 
   boolean checkFactoryAllowed(Object name) {
-    MddFactory parent = getParentFactory()
-    if(parent == null) {
-      if(!allowedRoots.contains(name) ) {
-        throw new RuntimeException("The '$name' is not allowed as root, only $allowedRoots.")
+    if(!freeMode) {
+      MddFactory parent = getParentFactory()
+      if(parent == null) {
+        if(!allowedRoots.contains(name) ) {
+          throw new RuntimeException("The '$name' is not allowed as root, only $allowedRoots.")
+        }
+      } else if(!parent.isChildAllowed(name)) {
+        throw new RuntimeException("Child element '$name' in not allowed for parent '$parent'.")
       }
-    } else if(!parent.isChildAllowed(name)) {
-      throw new RuntimeException("Child element '$name' in not allowed for parent '$parent'.")
     }
+    true
   }
 }
 

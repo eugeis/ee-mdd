@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.builder.BuilderAware
+import ee.mdd.builder.ModelBuilder
 import ee.mdd.model.Composite
 
 
@@ -23,7 +25,8 @@ import ee.mdd.model.Composite
  *
  * @author Eugen Eisler
  */
-class StructureUnit extends Composite {
+class StructureUnit extends Composite implements BuilderAware {
+  ModelBuilder builder
   String key
   Namespace namespace
   Names n
@@ -46,5 +49,9 @@ class StructureUnit extends Composite {
       n = new Names(key)
     }
     n
+  }
+
+  Model getModel() {
+    parent ? parent.model : null
   }
 }
