@@ -56,7 +56,7 @@ class ModelBuilderExample {
             }
 
             entity('Task', superUnit: 'UmEntity') {
-              meta('NamedQueries', multi: true, value: [])
+              meta(type: 'NamedQueries', multi: true, value: [])
               prop('comment', type: 'Comment')
               prop('created', type: 'Date')
               prop('closed', type: 'Date')

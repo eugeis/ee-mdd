@@ -37,15 +37,15 @@ class MacrosForJava {
       template('propsMemberJpa', body: '''<% item.props.each { prop -> %>
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
-      template('propsGetterIfc', body: '''<% item.props.each { prop -> %>
+      template('propsGetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
 
-  ${c.name(prop.type)} $prop.getter;<% } %>''')
+  ${c.name(prop.type)} $prop.getter;<% } } %>''')
 
-      template('propsGetter', body: '''<% item.props.each { prop -> %>
+      template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%>
   
   public ${c.name(prop.type)} $prop.getter {
     return $prop.uncap; 
-  }<% } %>''')
+  }<% } } %>''')
 
       template('testProperties', body: '''
   @${c.name('Test')}
@@ -57,15 +57,15 @@ class MacrosForJava {
     ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
   }''')
 
-      template('propsSetterIfc', body: '''<% item.props.each { prop -> %>
+      template('propsSetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
   
-  void $prop.setter;<% } %>''')
+  void $prop.setter;<% } } %>''')
 
-      template('propsSetter', body: '''<% item.props.each { prop -> %>
+      template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable) { %>
 
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
-  }<% } %>''')
+  }<% } } %>''')
 
       template('defaultConstructor', body:'''
   public $className() {
@@ -95,8 +95,7 @@ class MacrosForJava {
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
-${macros.generate('metaAttributes', c)}
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}${macros.generate('metaAttributes', c)}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
 }''')
 
@@ -166,8 +165,8 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
-      template('metaAttributes', body: '''<% def ret = ''; if (c.metas) { c.metas.each { ret += it.annotation(c) } } %>
-$ret''')
+      template('metaAttributes', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; if (c.metas) { c.metas.each { meta ->  ret += newLine+meta.annotation(c) } } %>
+${ret-newLine}''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
     }

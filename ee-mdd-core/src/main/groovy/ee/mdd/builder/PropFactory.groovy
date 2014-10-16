@@ -34,7 +34,7 @@ class PropFactory extends CompositeFactory {
     if (checkValue(name, value)) {
       return value
     }
-    def parent = builder.getParent()
+    def parent = builder.parent()
     def ret
     if(DataTypeProp.isInstance(parent)) {
       ret = new DataTypeProp()
