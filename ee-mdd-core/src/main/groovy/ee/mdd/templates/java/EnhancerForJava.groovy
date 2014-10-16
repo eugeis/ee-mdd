@@ -22,6 +22,7 @@ import javafx.scene.control.*
 import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
+import ee.mdd.model.component.Body
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
@@ -37,6 +38,10 @@ import ee.mdd.templates.java.model.annotations.MetaAttributeNamedQuery
  */
 class EnhancerForJava {
   private static final Object[] EMPTY_ARGUMENTS = {
+  }
+
+  private static String resolveMacro(Context c, String value) {
+    c.macros.generate("${value.substring(1, value.size())}", c)
   }
 
   static void enhanceClasses() {
@@ -263,43 +268,61 @@ class EnhancerForJava {
         def ret
         def value = "$delegate.value"
         if (delegate.prop == null) {
-          ret = "$delegate.value"
+          ret = value
         } else {
           if(delegate.value[0].equals('#')) {
-            ret = "this.$delegate.prop.uncap = ${c.macros.generate("${value.substring(1, value.size())}", c)}"
-        } else {
-          ret = "this.$delegate.prop.uncap = $delegate.value"
-        }
-      }
-      ret
-    }
-
-  }
-
-  MetaAttribute.metaClass {
-
-    annotation << { Context c ->
-      def key = System.identityHashCode(delegate) + 'annotation'
-      if(!properties.containsKey(key)) {
-        def ret = "@${c.name(delegate.type)}"
-        if(delegate.multi && delegate.value) {
-          String newLine = System.properties['line.separator']
-          ret += ' {'
-          delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
-          ret += '}'
-        } else if(delegate.value) {
-          if(Map.isInstance(delegate.value)) {
-            ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
+            ret = "this.$delegate.prop.uncap = "+resolveMacro(c, value)
           } else {
-            ret += "($delegate.value)"
+            ret = "this.$delegate.prop.uncap = "+value
           }
         }
-        properties[key] = ret
       }
-      properties[key]
+
     }
 
-  }
+    Body.metaClass {
 
+      resolveBody << { Context c ->
+        def ret
+        def body = "$delegate.body"
+        if (delegate.body == null) {
+          ret = ''
+        } else {
+          if(delegate.body[0].equals('#')) {
+            resolveMacro(c, body)
+          } else {
+            ret = body
+          }
+        }
+      }
+    }
+
+    MetaAttribute.metaClass {
+
+      annotation << { Context c ->
+        def key = System.identityHashCode(delegate) + 'annotation'
+        if(!properties.containsKey(key)) {
+          def ret = "@${c.name(delegate.type)}"
+          if(delegate.multi && delegate.value) {
+            String newLine = System.properties['line.separator']
+            ret += ' {'
+            delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
+            ret += '}'
+          } else if(delegate.value) {
+            if(Map.isInstance(delegate.value)) {
+              ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
+            } else {
+              ret += "($delegate.value)"
+            }
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+    }
+
+
+  }
 }
-}
+

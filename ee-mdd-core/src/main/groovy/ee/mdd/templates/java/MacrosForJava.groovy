@@ -91,22 +91,28 @@ class MacrosForJava {
       this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
     }<% } %>''')
 
+      template('methods', body: '''<% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
+  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.name}%>${ret-seperator}) {
+  ${op.resolveBody(c)}
+  }<% } } %> ''')
+
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}${macros.generate('metaAttributes', c)}
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
+${macros.generate('methods', c)}
 }''')
 
-      template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributes', c)}
+      template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;
   <% } %>
   ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributes', c)}
+      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('superConstructor', c)}
@@ -169,6 +175,13 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
 $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
+
+      template('testBody', body: '''int count = 10;
+  while (count!=0) {
+    System.out.println(count+"...");
+    count--;
+  }
+  System.out.println("BOOM");''')
     }
   }
 }

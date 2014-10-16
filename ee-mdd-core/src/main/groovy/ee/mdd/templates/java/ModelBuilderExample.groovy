@@ -69,20 +69,19 @@ class ModelBuilderExample {
               constr {}
 
               constr {
-
                 param(prop: 'comment')
-                param(prop: 'created')
+                param(prop: 'created', value: '#newDate')
               }
 
               constr {
                 param(prop: 'comment')
                 param(prop: 'created')
                 param(prop: 'closed')
-
               }
 
               op('hello', ret: 'String') {
                 param('Test', type: 'String')
+                param('counter', type: 'int')
               }
 
               manager { }
@@ -94,11 +93,10 @@ class ModelBuilderExample {
               'ApplicationScoped',
               'NamedQueries'
             ]) {
-              op('hello') {
+              op('hello', ret: 'String', body: '#testBody') {
                 param('test', type: 'String')
               }
             }
-
             service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
           }
 
