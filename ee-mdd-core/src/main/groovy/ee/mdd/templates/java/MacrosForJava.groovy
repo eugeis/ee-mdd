@@ -150,14 +150,14 @@ public class $c.className {
   
   @${c.name('Test')}
   public void testVal() { <% item.literals.each { lit -> lastLit = lit.cap %><% item.props.each { prop -> %>
-  ${c.name('assertNotNull')}(TaskStatus.${lit.underscored}.get${prop.cap}());    <% } } %>
+      ${c.name('assertNotNull')}(TaskStatus.${lit.underscored}.get${prop.cap}());    <% } } %>
   }
 
   @${c.name('Test')}
   public void testIsLiteral() { <% item.literals.eachWithIndex { lit, i -> %>
-  ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
-  ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
-  ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
+    ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
+    ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
+    ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }
  ''')
