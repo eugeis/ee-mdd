@@ -21,6 +21,7 @@ package ee.mdd.builder
  */
 class MddFactory extends AbstractFactory {
   Class beanClass
+  MddFactory parent
   Set<String> childFactories
   String valueProperty = 'name'
 
@@ -47,7 +48,7 @@ class MddFactory extends AbstractFactory {
   }
 
   boolean isChildAllowed(String childFactoryName) {
-    childFactories && childFactories.contains(childFactoryName)
+    ( childFactories && childFactories.contains(childFactoryName) ) || ( parent && parent.isChildAllowed(childFactoryName) )
   }
 
   @Override

@@ -15,26 +15,12 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.builder.BuilderAware
-import ee.mdd.builder.ModelBuilder
-import ee.mdd.model.Element
-
 
 /**
  *
  * @author Eugen Eisler
  */
-class Facet extends Element implements BuilderAware {
-  ModelBuilder builder
-  Module module
 
-  List<ExternalType> externalTypes = []
-
-  Model getModel() {
-    this
-  }
-
-  def add(ExternalType child) {
-    externalTypes << super.add(child)
-  }
+class ConditionParam extends Param {
+  Operator operator
 }

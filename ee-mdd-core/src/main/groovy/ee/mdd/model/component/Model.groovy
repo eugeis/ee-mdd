@@ -27,13 +27,6 @@ class Model extends StructureUnit {
   List<Component> components = []
   List<ExternalType> externalTypes = []
 
-  def init() {
-    if(!namespace) {
-      namespace = new Namespace(name: key, parent: this).init()
-    }
-    super.init()
-  }
-
   Model getModel() {
     this
   }

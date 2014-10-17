@@ -13,49 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.builder
 
-import ee.mdd.builder.BuilderAware
-import ee.mdd.builder.ModelBuilder
-import ee.mdd.model.Composite
-
+import ee.mdd.model.component.Model
 
 
 /**
  *
  * @author Eugen Eisler
  */
-class StructureUnit extends Composite implements BuilderAware {
-  ModelBuilder builder
-  String key
-  Namespace namespace
-  Names n
-  Map<String, Facet> facets = [:]
+class ModelFactory extends CompositeFactory {
 
-  def add(Facet child) {
-    facets[child.name] = super.add(child); child
+  public ModelFactory() {
+    super()
+    this.beanClass = Model
   }
 
-  StructureUnit getSu() {
-    this
-  }
-
-  Namespace getNs() {
-    namespace ? namespace : parent.ns
-  }
-
-  Names getN() {
-    if (!n) {
-      n = new Names(key)
+  Object newInstance(AbstractFactoryBuilder builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
+    if (checkValue(name, value)) {
+      return value
     }
-    n
-  }
+    def parent = builder.parent()
+    def ret = new Model()
 
-  Model getModel() {
-    parent ? parent.model : null
-  }
+    if(!attributes.containsKey('namespace') && attributes.key) {
+      attributes['namespace'] = attributes.key
+    }
 
-  def add(Namespace item) {
-    namespace = item
+    if(value != null) {
+      //attributes[valueProperty] = value
+      ret[valueProperty] = value
+    }
+    ret
   }
 }

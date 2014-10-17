@@ -28,7 +28,6 @@ class Module extends StructureUnit {
   List<Pojo> pojos = []
   List<Entity> entities = []
   List<BasicType> basicType = []
-  List<ExternalType> externalTypes = []
   List<Controller> controllers = []
   List<Initializer> initializers = []
   List<Service> services = []
