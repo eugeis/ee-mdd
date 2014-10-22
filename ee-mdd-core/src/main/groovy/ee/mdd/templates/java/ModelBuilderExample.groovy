@@ -86,10 +86,13 @@ class ModelBuilderExample {
               manager {
                 prop('testProp', type: 'String')
                 prop('testCounter', type: 'int')
-                find('findByTestPropertyAndTestCounter')
-                counter('countByTestCounterAndTestProp')
-                exist('ExistsByTestPropAndTestCounter')
-                delete('DeleteByTestPropAndTestCounter')
+                find ('finder') {
+                  param(prop: 'testProp' )
+                  param(prop: 'testCounter')
+                }
+                //                counter('countByTestCounterAndTestProp')
+                //                exist('ExistsByTestPropAndTestCounter')
+                //                delete('DeleteByTestPropAndTestCounter')
               }
             }
           }

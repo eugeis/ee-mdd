@@ -24,7 +24,12 @@ import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.Count
+import ee.mdd.model.component.DataTypeOperation
+import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
+import ee.mdd.model.component.Exist
+import ee.mdd.model.component.Find
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Manager
@@ -71,9 +76,9 @@ class EnhancerForJava {
 
           if(entity.manager) {
             namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+            //            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
+            //            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
+            //            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
             metasForEntity << namedQueries
           }
 
@@ -91,8 +96,8 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.finders.each { finder ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+finder.underscored
-            namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
+            namedQuery.value['name'] = c.item.name+'.'+finder.operationName
+            namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
             finderQueries << namedQuery
           }
           finderQueries
@@ -105,7 +110,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.counters.each { counter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+counter.underscored
+            namedQuery.value['name'] = c.item.name+'.'+counter.operationName
             namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             counterQueries << namedQuery
           }
@@ -119,7 +124,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.exists.each { exist ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+exist.underscored
+            namedQuery.value['name'] = c.item.name+'.'+exist.operationName
             namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             existsQueries << namedQuery
           }
@@ -133,21 +138,43 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.deleters.each { deleter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+deleter.underscored
+            namedQuery.value['name'] = c.item.name+'.'+deleter.operationName
             namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             deleterQueries << namedQuery
           }
           deleterQueries
         }
       }
+    }
+
+    DataTypeOperation.metaClass {
 
       getPropWhere << {
         ->
         String separator = ' AND '
-        def ret = delegate.props.collect { prop ->
-          prop.multi?"e.$prop.name IN :${prop.name}s":"e.$prop.name = :$prop.name"
+        def ret = delegate.params.collect { param ->
+          param.prop.multi?"e.$param.prop.name IN :${param.name}s":"e.$param.prop.name = :$param.name"
         }.join(separator)
         ret
+      }
+
+      getOperationName << {
+        ->
+        def ret = ''
+        def separator = '_AND_'
+        if(Find.isInstance(delegate)) {
+          ret = 'FIND_BY_'
+        } else if (Count.isInstance(delegate)) {
+          ret = 'COUNT_BY_'
+        } else if (Delete.isInstance(delegate)) {
+          ret = 'DELETE_BY_'
+        } else if (Exist.isInstance(delegate)) {
+          ret = 'EXISTS_BY_'
+        }
+        delegate.params.each { param ->
+          ret += separator+param.prop.underscored
+        }
+        ret-separator
       }
     }
 
