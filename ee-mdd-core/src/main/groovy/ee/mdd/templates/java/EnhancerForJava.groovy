@@ -30,7 +30,6 @@ import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
-import ee.mdd.templates.java.model.annotations.MetaAttributeNamedQuery
 
 /**
  *
@@ -57,8 +56,7 @@ class EnhancerForJava {
 
     Entity.metaClass {
 
-      getMetasForEntity << {
-        ->
+      metasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'metasForEntity'
         if(!properties.containsKey(key)) {
           Entity entity = delegate
@@ -69,16 +67,15 @@ class EnhancerForJava {
             metasForEntity.addAll(entity.metas)
           }
 
+          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
+
           if(entity.manager) {
-            def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
             namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
             namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
             namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
             namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
             metasForEntity << namedQueries
           }
-
-
 
           properties[key] = metasForEntity
         }
@@ -91,69 +88,66 @@ class EnhancerForJava {
       finderNamedQuery << { Context c ->
         if(delegate.finders != null) {
           def finderQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.finders.each { finder ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = c.item.name+'.'+finder.underscored
-            namedQuery.query = "\"SELECT e FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\" )"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+finder.underscored
+            namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             finderQueries << namedQuery
           }
           finderQueries
-        } else {
-          def empty =[]
         }
       }
 
       counterNamedQuery << { Context c ->
         if(delegate.counters != null) {
           def counterQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.counters.each { counter ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = c.item.name+'.'+finder.underscored
-            namedQuery.query = "\"SELECT COUNT(e) FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+counter.underscored
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             counterQueries << namedQuery
           }
           counterQueries
-        } else {
-          def empty =[]
         }
       }
 
       existerNamedQuery << { Context c ->
         if(delegate.exists != null) {
           def existsQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.exists.each { exist ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = c.item.name+'.'+finder.underscored
-            namedQuery.query = "\"SELECT COUNT(e) FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+exist.underscored
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             existsQueries << namedQuery
           }
           existsQueries
-        } else {
-          def empty =[]
         }
       }
 
       deleterNamedQuery << { Context c ->
         if(delegate.deleters != null) {
           def deleterQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.deleters.each { deleter ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = c.item.name+'.'+finder.underscored
-            namedQuery.query = "\"DELETE FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+deleter.underscored
+            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
             deleterQueries << namedQuery
           }
           deleterQueries
-        } else {
-          def empty =[]
         }
       }
 
       getPropWhere << {
         ->
-        String seperator = 'AND'
-        ret = delegate.props.collect { prop ->
+        String separator = ' AND '
+        def ret = delegate.props.collect { prop ->
           prop.multi?"e.$prop.name IN :${prop.name}s":"e.$prop.name = :$prop.name"
         }.join(separator)
+        ret
       }
     }
 
@@ -309,15 +303,16 @@ class EnhancerForJava {
       annotation << { Context c ->
         def key = System.identityHashCode(delegate) + 'annotation'
         if(!properties.containsKey(key)) {
+          String newLine = System.properties['line.separator']
           def ret = "@${c.name(delegate.type)}"
           if(delegate.multi && delegate.value) {
-            String newLine = System.properties['line.separator']
-            ret += ' {'
+            //            String newLine = System.properties['line.separator']
+            ret += '({'
             delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
-            ret += '}'
+            ret += '})'
           } else if(delegate.value) {
             if(Map.isInstance(delegate.value)) {
-              ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
+              ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(','+newLine+'            ') + ')'
             } else {
               ret += "($delegate.value)"
             }

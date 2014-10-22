@@ -22,24 +22,24 @@ package ee.mdd.model.component
  * @author Niklas Cappelmann
  */
 class LogicUnit extends Body {
-	List<MetaAttribute> metas
-	List<Param> params = []
-	String paramsLogicName
+  List<MetaAttribute> metas
+  List<Param> params = []
+  String paramsLogicName
 
-	String deriveParamsLogicName() {
-	}
+  String deriveParamsLogicName() {
+  }
 
-	def add(Param child) {
-		params << child; super.add(child)
-	}
+  def add(Param child) {
+    params << child; super.add(child)
+  }
 
-	List<Param> getParamsCustom() {
-		params.findAll { !it.value }
-	}
+  List<Param> getParamsCustom() {
+    params.findAll { !it.value }
+  }
 
-	def add(MetaAttribute item) {
-		if(!metas) {
-			metas = []
-		}; metas << super.add(item)
-	}
+  def add(MetaAttribute item) {
+    if(!metas) {
+      metas = []
+    }; metas << super.add(item)
+  }
 }

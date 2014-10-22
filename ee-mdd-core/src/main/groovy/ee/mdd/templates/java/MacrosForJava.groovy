@@ -171,7 +171,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
-      template('metaAttributes', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity; if(annotations) { annotations.each { if(it) {ret += newLine+'@'+it.type.name } } } else { ret = 'DAS OBJEKT IST NULL' } %>
+      template('metaAttributes', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } else { ret = 'DAS OBJEKT IST NULL' } %>
 $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')

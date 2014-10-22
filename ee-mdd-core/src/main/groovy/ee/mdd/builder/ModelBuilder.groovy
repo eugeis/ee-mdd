@@ -109,7 +109,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     def facet = new CompositeFactory(beanClass: Facet)
     def finder = new CompositeFactory(beanClass: Find, parent: dataTypeOperation)
     def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
-    def manager = new CompositeFactory(beanClass: Manager, parent: operation)
+    def manager = new CompositeFactory(beanClass: Manager, childFactories: ['prop', 'find', 'exist', 'delete', 'counter'], parent: operation)
     def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
     def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service'], parent: su)
     def delegateOp = new CompositeFactory(beanClass: Delegate, valueProperty: 'ref', parent: operation)
