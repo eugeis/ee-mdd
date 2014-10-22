@@ -62,21 +62,24 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'metasForEntity'
         if(!properties.containsKey(key)) {
           Entity entity = delegate
-          def metasForEntity = properties[key] = []
+          ModelBuilder builder = entity.component.builder
+          def metasForEntity = []
+          metasForEntity << builder.meta(type: 'Entity')
           if(entity.metas) {
             metasForEntity.addAll(entity.metas)
           }
-          ModelBuilder builder = entity.component.builder
-          metasForEntity << builder.meta(type: 'Entity')
 
-          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
+          if(entity.manager) {
+            def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
+            namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+            metasForEntity << namedQueries
+          }
 
-          namedQueries.value.addAll(entity.manager.finderNamedQuery)
-          namedQueries.value.addAll(entity.manager.counterNamedQuery)
-          namedQueries.value.addAll(entity.manager.existerNamedQuery)
-          namedQueries.value.addAll(entity.manager.deleterNamedQuery)
 
-          metasForEntity << namedQueries
+
           properties[key] = metasForEntity
         }
         properties[key]
@@ -85,59 +88,63 @@ class EnhancerForJava {
 
     Manager.metaClass {
 
-      finderNamedQuery << {
-        ->
+      finderNamedQuery << { Context c ->
         if(delegate.finders != null) {
           def finderQueries = []
           delegate.finders.each { finder ->
             def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
+            namedQuery.name = c.item.name+'.'+finder.underscored
             namedQuery.query = "\"SELECT e FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\" )"
             finderQueries << namedQuery
           }
           finderQueries
+        } else {
+          def empty =[]
         }
       }
 
-      counterNamedQuery << {
-        ->
+      counterNamedQuery << { Context c ->
         if(delegate.counters != null) {
           def counterQueries = []
           delegate.counters.each { counter ->
             def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
+            namedQuery.name = c.item.name+'.'+finder.underscored
             namedQuery.query = "\"SELECT COUNT(e) FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
             counterQueries << namedQuery
           }
           counterQueries
+        } else {
+          def empty =[]
         }
       }
 
-      existerNamedQuery << {
-        ->
+      existerNamedQuery << { Context c ->
         if(delegate.exists != null) {
           def existsQueries = []
           delegate.exists.each { exist ->
             def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
+            namedQuery.name = c.item.name+'.'+finder.underscored
             namedQuery.query = "\"SELECT COUNT(e) FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
             existsQueries << namedQuery
           }
           existsQueries
+        } else {
+          def empty =[]
         }
       }
 
-      deleterNamedQuery << {
-        ->
+      deleterNamedQuery << { Context c ->
         if(delegate.deleters != null) {
           def deleterQueries = []
           delegate.deleters.each { deleter ->
             def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
+            namedQuery.name = c.item.name+'.'+finder.underscored
             namedQuery.query = "\"DELETE FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
             deleterQueries << namedQuery
           }
           deleterQueries
+        } else {
+          def empty =[]
         }
       }
 

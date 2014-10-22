@@ -48,7 +48,10 @@ class ModelBuilderExample {
               lit('Closed', body: '2')
             }
 
-            entity('UmEntity', virtual: true) {
+            entity('UmEntity', virtual: true, meta: [
+              'ApplicationScoped',
+              'NamedQueries'
+            ]) {
 
             }
 
@@ -57,14 +60,10 @@ class ModelBuilderExample {
             }
 
             entity('Task', superUnit: 'UmEntity') {
-              meta(type: 'NamedQueries', multi: true, value: [])
               prop('comment', type: 'Comment')
               prop('created', type: 'Date')
               prop('closed', type: 'Date')
 
-              index {
-
-              }
 
               constr {}
 
@@ -89,10 +88,7 @@ class ModelBuilderExample {
           }
 
           module('backend') {
-            controller('TaskAgregator', meta: [
-              'ApplicationScoped',
-              'NamedQueries'
-            ]) {
+            controller('TaskAgregator') {
               op('hello', ret: 'String', body: '#testBody') {
                 param('test', type: 'String')
               }

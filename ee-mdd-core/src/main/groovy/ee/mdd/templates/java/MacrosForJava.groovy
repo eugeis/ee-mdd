@@ -92,7 +92,7 @@ class MacrosForJava {
     }<% } %>''')
 
       template('methods', body: '''<% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
-  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.name}%>${ret-seperator}) {
+  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}) {
   ${op.resolveBody(c)}
   }<% } } %> ''')
 
@@ -105,14 +105,14 @@ public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.
 ${macros.generate('methods', c)}
 }''')
 
-      template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+      template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributes', c)}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;
   <% } %>
   ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributes', c)}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('superConstructor', c)}
@@ -171,7 +171,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
-      template('metaAttributes', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity; if(annotations) { annotations.each { ret += newLine+it.name } } else { ret = 'DAS OBJEKT IST NULL' }%>
+      template('metaAttributes', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity; if(annotations) { annotations.each { if(it) {ret += newLine+'@'+it.type.name } } } else { ret = 'DAS OBJEKT IST NULL' } %>
 $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
