@@ -74,13 +74,13 @@ class EnhancerForJava {
 
           def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
 
-          if(entity.manager) {
+          if(entity.manager && entity.manager.operations) {
             namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
-            //            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
-            //            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
-            //            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
-            metasForEntity << namedQueries
+            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
           }
+          metasForEntity << namedQueries
 
           properties[key] = metasForEntity
         }
@@ -111,7 +111,7 @@ class EnhancerForJava {
           delegate.counters.each { counter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.item.name+'.'+counter.operationName
-            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
             counterQueries << namedQuery
           }
           counterQueries
@@ -125,7 +125,7 @@ class EnhancerForJava {
           delegate.exists.each { exist ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.item.name+'.'+exist.operationName
-            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
             existsQueries << namedQuery
           }
           existsQueries
@@ -139,7 +139,7 @@ class EnhancerForJava {
           delegate.deleters.each { deleter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.item.name+'.'+deleter.operationName
-            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${delegate.propWhere} )\""
+            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
             deleterQueries << namedQuery
           }
           deleterQueries
@@ -343,6 +343,8 @@ class EnhancerForJava {
             } else {
               ret += "($delegate.value)"
             }
+          } else if(delegate.multi) {
+            ret += '({'+newLine+'})'
           }
           properties[key] = ret
         }

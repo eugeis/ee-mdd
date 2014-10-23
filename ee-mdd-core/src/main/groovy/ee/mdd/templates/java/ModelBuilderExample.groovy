@@ -49,8 +49,7 @@ class ModelBuilderExample {
             }
 
             entity('UmEntity', virtual: true, meta: [
-              'ApplicationScoped',
-              'NamedQueries'
+              'ApplicationScoped'
             ]) {
 
             }
@@ -90,9 +89,10 @@ class ModelBuilderExample {
                   param(prop: 'testProp' )
                   param(prop: 'testCounter')
                 }
-                //                counter('countByTestCounterAndTestProp')
-                //                exist('ExistsByTestPropAndTestCounter')
-                //                delete('DeleteByTestPropAndTestCounter')
+                counter('countByTestCounter') { param(prop: 'testCounter') }
+                exist('ExistsByTestProp') { param(prop: 'testProp') }
+                delete('DeleteByTestProp') { param(prop: 'testProp') }
+
               }
             }
           }
