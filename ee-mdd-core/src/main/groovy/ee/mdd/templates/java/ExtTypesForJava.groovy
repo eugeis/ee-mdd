@@ -43,7 +43,7 @@ class ExtTypesForJava {
   ]
   def externalTypeNameToNamespace = ['Date':'java.util', 'ClusterSingleton':'com.siemens.ra.cg.pl.env.model',
     'ApplicationScoped':'javax.enterprise.context', 'NamedQuery':'javax.persistence.NamedQuery',
-    'NamedQueries':'javax.persistence.NamedQueries', 'Entity':'javax.persistence.Entity']
+    'NamedQueries':'javax.persistence.NamedQueries', 'Entity':'javax.persistence.Entity', 'Table':'javax.persistence.Table', 'Index':'javax.persistence.Index']
 
   def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
     if(firstModel && node instanceof Model) {

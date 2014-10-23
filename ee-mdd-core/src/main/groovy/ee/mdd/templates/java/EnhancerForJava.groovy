@@ -84,7 +84,7 @@ class EnhancerForJava {
 
           def table = builder.meta(type: 'Table', value: [:])
           table.value['name'] = delegate.name+'.TABLE'
-          table.value['indexes'] = delegate.indexesForMeta
+          //          table.value['indexes'] = delegate.indexesForMeta
 
           metasForEntity << table
 
@@ -98,7 +98,7 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'indexesForMeta'
         if(!properties.containsKey(key)) {
-          ModelBuilder builder = entity.component.builder
+          ModelBuilder builder = delegate.component.builder
           String newLine = System.properties['line.separator']
           String prefix = delegate.indexes[0].underscored.takeWhile { it != '_' }
           def ret = '{'+newLine
@@ -110,9 +110,9 @@ class EnhancerForJava {
             ret += separator+index.annotation(c)
           }
           ret += ' }'
-          ret-separator
-
+          properties[key] = ret-separator
         }
+        properties[key]
       }
     }
 
