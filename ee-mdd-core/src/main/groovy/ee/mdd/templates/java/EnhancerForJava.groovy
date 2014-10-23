@@ -82,9 +82,37 @@ class EnhancerForJava {
           }
           metasForEntity << namedQueries
 
+          def table = builder.meta(type: 'Table', value: [:])
+          table.value['name'] = delegate.name+'.TABLE'
+          table.value['indexes'] = delegate.indexesForMeta
+
+          metasForEntity << table
+
           properties[key] = metasForEntity
         }
         properties[key]
+      }
+
+      //Replace underscored with appropriate sql name
+      getIndexesForMeta << {
+        ->
+        def key = System.identityHashCode(delegate) + 'indexesForMeta'
+        if(!properties.containsKey(key)) {
+          ModelBuilder builder = entity.component.builder
+          String newLine = System.properties['line.separator']
+          String prefix = delegate.indexes[0].underscored.takeWhile { it != '_' }
+          def ret = '{'+newLine
+          def separator = ','+newline
+          delegate.indexes.each  {
+            def index = builder.meta(type: 'Index', value: [:])
+            index.value['name'] = it.underscored
+            index.value['columnList'] = it.underscored-prefix
+            ret += separator+index.annotation(c)
+          }
+          ret += ' }'
+          ret-separator
+
+        }
       }
     }
 
