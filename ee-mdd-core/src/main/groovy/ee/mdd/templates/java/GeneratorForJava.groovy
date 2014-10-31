@@ -15,10 +15,15 @@
  */
 package ee.mdd.templates.java
 
+import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.CommonProcessorFactory
 import ee.mdd.model.component.Delegate
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Prop
+import ee.mdd.model.component.java.Cdi
+import ee.mdd.model.component.java.Common
+import ee.mdd.model.component.java.Jpa
+import ee.mdd.model.component.java.Test
 import ee.mdd.templates.java.cg.TemplatesForJavaCg
 
 /**
@@ -33,7 +38,13 @@ class GeneratorForJava {
     println args
     EnhancerForJava.enhanceClasses()
 
-    Model model =  ModelBuilderExample.build(new ExtTypesForJava().postInstantiateDelegate)
+	def builder = new ModelBuilder()
+	builder.registerFacet(Common)
+	builder.registerFacet(Jpa)
+	builder.registerFacet(Cdi)
+	builder.registerFacet(Test)
+	
+    Model model =  ModelBuilderExample.build (builder)
 
     //create props for delegates
     model.findAllRecursiveDown { Delegate.isInstance(it) }.each { Delegate d ->
