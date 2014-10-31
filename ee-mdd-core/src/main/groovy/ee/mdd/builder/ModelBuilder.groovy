@@ -81,7 +81,6 @@ class ModelBuilder extends AbstractFactoryBuilder {
 	}
 
 	void registerAll() {
-
 		def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
 		def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate'], parent: type)
 		def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['manager', 'index'], parent: cu)
@@ -112,7 +111,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
 		def externalType = new CompositeFactory(beanClass: ExternalType, parent: type)
 		def finder = new CompositeFactory(beanClass: Find, parent: dataTypeOperation)
 		def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
-		def manager = new CompositeFactory(beanClass: Manager, parent: operation)
+		def manager = new CompositeFactory(beanClass: Manager, childFactories: ['create', 'delete', 'exist', 'count', 'find'], parent: controller)
 		def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
 		def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service'], parent: su)
 		def delegateOp = new CompositeFactory(beanClass: Delegate, valueProperty: 'ref', parent: operation)
@@ -132,8 +131,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
 		registerFactory 'delegate', delegateOp
 		registerFactory 'index', index
 		registerFactory 'initializer', initializer
-		registerFactory 'counter', counter
-		registerFactory 'creator', create
+		registerFactory 'count', counter
+		registerFactory 'create', create
 		registerFactory 'delete', delete
 		registerFactory 'entity', entity
 		registerFactory 'enumType', enumType

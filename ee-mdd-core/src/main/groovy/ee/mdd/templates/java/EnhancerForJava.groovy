@@ -24,13 +24,17 @@ import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.Count
+import ee.mdd.model.component.DataTypeOperation
+import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
+import ee.mdd.model.component.Exist
+import ee.mdd.model.component.Find
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
-import ee.mdd.templates.java.model.annotations.MetaAttributeNamedQuery
 
 /**
  *
@@ -57,27 +61,56 @@ class EnhancerForJava {
 
     Entity.metaClass {
 
-      getMetasForEntity << {
-        ->
+      metasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'metasForEntity'
         if(!properties.containsKey(key)) {
           Entity entity = delegate
-          def metasForEntity = properties[key] = []
+          ModelBuilder builder = entity.component.builder
+          def metasForEntity = []
+          metasForEntity << builder.meta(type: 'Entity')
           if(entity.metas) {
             metasForEntity.addAll(entity.metas)
           }
-          ModelBuilder builder = entity.component.builder
-          metasForEntity << builder.meta(type: 'Entity')
 
           def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
 
-          namedQueries.value.addAll(entity.manager.finderNamedQuery)
-          namedQueries.value.addAll(entity.manager.counterNamedQuery)
-          namedQueries.value.addAll(entity.manager.existerNamedQuery)
-          namedQueries.value.addAll(entity.manager.deleterNamedQuery)
-
+          if(entity.manager && entity.manager.operations) {
+            namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
+            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+          }
           metasForEntity << namedQueries
+
+          def table = builder.meta(type: 'Table', value: [:])
+          table.value['name'] = delegate.name+'.TABLE'
+          //          table.value['indexes'] = delegate.indexesForMeta
+
+          metasForEntity << table
+
           properties[key] = metasForEntity
+        }
+        properties[key]
+      }
+
+      //Replace underscored with appropriate sql name
+      getIndexesForMeta << {
+        ->
+        def key = System.identityHashCode(delegate) + 'indexesForMeta'
+        if(!properties.containsKey(key)) {
+          ModelBuilder builder = delegate.component.builder
+          String newLine = System.properties['line.separator']
+          String prefix = delegate.indexes[0].underscored.takeWhile { it != '_' }
+          def ret = '{'+newLine
+          def separator = ','+newline
+          delegate.indexes.each  {
+            def index = builder.meta(type: 'Index', value: [:])
+            index.value['name'] = it.underscored
+            index.value['columnList'] = it.underscored-prefix
+            ret += separator+index.annotation(c)
+          }
+          ret += ' }'
+          properties[key] = ret-separator
         }
         properties[key]
       }
@@ -85,68 +118,91 @@ class EnhancerForJava {
 
     Manager.metaClass {
 
-      finderNamedQuery << {
-        ->
+      finderNamedQuery << { Context c ->
         if(delegate.finders != null) {
           def finderQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.finders.each { finder ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
-            namedQuery.query = "\"SELECT e FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\" )"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+finder.operationName
+            namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
             finderQueries << namedQuery
           }
           finderQueries
         }
       }
 
-      counterNamedQuery << {
-        ->
+      counterNamedQuery << { Context c ->
         if(delegate.counters != null) {
           def counterQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.counters.each { counter ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
-            namedQuery.query = "\"SELECT COUNT(e) FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+counter.operationName
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
             counterQueries << namedQuery
           }
           counterQueries
         }
       }
 
-      existerNamedQuery << {
-        ->
+      existerNamedQuery << { Context c ->
         if(delegate.exists != null) {
           def existsQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.exists.each { exist ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
-            namedQuery.query = "\"SELECT COUNT(e) FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+exist.operationName
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
             existsQueries << namedQuery
           }
           existsQueries
         }
       }
 
-      deleterNamedQuery << {
-        ->
+      deleterNamedQuery << { Context c ->
         if(delegate.deleters != null) {
           def deleterQueries = []
+          ModelBuilder builder = c.item.component.builder
           delegate.deleters.each { deleter ->
-            def namedQuery = new MetaAttributeNamedQuery(type: 'NamedQuery', value: [:])
-            namedQuery.name = entity.name+'.'+finder.underscored
-            namedQuery.query = "\"DELETE FROM ${entity.n.cap.entity} e WHERE ( "+delegate.getPropWhere+"\")"
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.item.name+'.'+deleter.operationName
+            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
             deleterQueries << namedQuery
           }
           deleterQueries
         }
       }
+    }
+
+    DataTypeOperation.metaClass {
 
       getPropWhere << {
         ->
-        String seperator = 'AND'
-        ret = delegate.props.collect { prop ->
-          prop.multi?"e.$prop.name IN :${prop.name}s":"e.$prop.name = :$prop.name"
+        String separator = ' AND '
+        def ret = delegate.params.collect { param ->
+          param.prop.multi?"e.$param.prop.name IN :${param.name}s":"e.$param.prop.name = :$param.name"
         }.join(separator)
+        ret
+      }
+
+      getOperationName << {
+        ->
+        def ret = ''
+        def separator = '_AND_'
+        if(Find.isInstance(delegate)) {
+          ret = 'FIND_BY_'
+        } else if (Count.isInstance(delegate)) {
+          ret = 'COUNT_BY_'
+        } else if (Delete.isInstance(delegate)) {
+          ret = 'DELETE_BY_'
+        } else if (Exist.isInstance(delegate)) {
+          ret = 'EXISTS_BY_'
+        }
+        delegate.params.each { param ->
+          ret += separator+param.prop.underscored
+        }
+        ret-separator
       }
     }
 
@@ -302,18 +358,21 @@ class EnhancerForJava {
       annotation << { Context c ->
         def key = System.identityHashCode(delegate) + 'annotation'
         if(!properties.containsKey(key)) {
+          String newLine = System.properties['line.separator']
           def ret = "@${c.name(delegate.type)}"
           if(delegate.multi && delegate.value) {
-            String newLine = System.properties['line.separator']
-            ret += ' {'
+            //            String newLine = System.properties['line.separator']
+            ret += '({'
             delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
-            ret += '}'
+            ret += '})'
           } else if(delegate.value) {
             if(Map.isInstance(delegate.value)) {
-              ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
+              ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(','+newLine+'            ') + ')'
             } else {
               ret += "($delegate.value)"
             }
+          } else if(delegate.multi) {
+            ret += '({'+newLine+'})'
           }
           properties[key] = ret
         }
