@@ -39,17 +39,7 @@ class GeneratorForJava {
     EnhancerForJava.enhanceClasses()
 
 	def builder = new ModelBuilder()
-	builder.registerFacet(CommonJava)
-	builder.registerFacet(Jpa)
-	builder.registerFacet(Cdi)
-	builder.registerFacet(Test)
-	
-	def factets = builder.model('facets') {
-		commonJava()
-		cdi()
-		jpa()
-		test()
-    }
+	registerFacets(builder)
 	
     Model model =  ModelBuilderExample.build (builder)
 
@@ -69,4 +59,18 @@ class GeneratorForJava {
     generator.add(commonProcessorFactory.fileProcessor(target))
     generator.generate(model)
   }
+
+	private static registerFacets(ModelBuilder builder) {
+		builder.registerFacet(CommonJava)
+		builder.registerFacet(Jpa)
+		builder.registerFacet(Cdi)
+		builder.registerFacet(Test)
+
+		def factets = builder.model('facets') {
+			commonJava()
+			cdi()
+			jpa()
+			test()
+		}
+	}
 }

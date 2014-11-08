@@ -35,11 +35,7 @@ class GeneratorForJs {
 		EnhancerForJs.enhanceClasses()
 
 		def builder = new ModelBuilder()
-		builder.registerFacet(CommonJs)
-
-		def factets = builder.model('facets') {
-			commonJs()
-		}
+		registerJs(builder)
 
 		Model model =  ModelBuilderExample.build (builder)
 
@@ -52,5 +48,13 @@ class GeneratorForJs {
 		generator.add(commonProcessorFactory.printProcessor())
 		generator.add(commonProcessorFactory.fileProcessor(target))
 		generator.generate(model)
+	}
+
+	private static registerJs(ModelBuilder builder) {
+		builder.registerFacet(CommonJs)
+
+		def factets = builder.model('facets') {
+			commonJs()
+		}
 	}
 }
