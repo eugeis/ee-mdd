@@ -30,12 +30,7 @@ class ModelBuilderExample {
     def ret =  builder.
 	
 	model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
-		
-	  common()
-	  cdi()
-	  jpa()
-	  test()
-		
+				
       model ('Platform', key: 'pl') {
         //constr
         component('User Management', key: 'um') {

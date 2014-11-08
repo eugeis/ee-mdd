@@ -44,6 +44,13 @@ class GeneratorForJava {
 	builder.registerFacet(Cdi)
 	builder.registerFacet(Test)
 	
+	def factets = builder.model('facets') {
+		common()
+		cdi()
+		jpa()
+		test()
+    }
+	
     Model model =  ModelBuilderExample.build (builder)
 
     //create props for delegates
