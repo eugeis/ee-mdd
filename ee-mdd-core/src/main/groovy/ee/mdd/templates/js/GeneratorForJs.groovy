@@ -15,7 +15,10 @@
  */
 package ee.mdd.templates.js
 
+import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.CommonProcessorFactory
+import ee.mdd.model.component.Model
+import ee.mdd.model.component.js.CommonJs
 import ee.mdd.templates.java.ModelBuilderExample
 
 
@@ -31,7 +34,14 @@ class GeneratorForJs {
 
 		EnhancerForJs.enhanceClasses()
 
-		def model =  ModelBuilderExample.build(new ExtTypeInjecterForJs().postInstantiateDelegate)
+		def builder = new ModelBuilder()
+		builder.registerFacet(CommonJs)
+
+		def factets = builder.model('facets') {
+			commonJs()
+		}
+
+		Model model =  ModelBuilderExample.build (builder)
 
 		def generator = TemplatesForJs.build()
 		def commonProcessorFactory = new CommonProcessorFactory()

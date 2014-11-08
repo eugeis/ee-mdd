@@ -153,8 +153,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
 		registerFactory 'update', update
 	}
 
-	void registerFacet(Class beanClass) {
-		registerFacet Introspector.decapitalize(beanClass.simpleName), beanClass
+	void registerFacet(Class beanClass, String name = beanClass.simpleName) {
+		registerFacet Introspector.decapitalize(name), beanClass
 	}
 
 	void registerFacet(String name, Class beanClass) {

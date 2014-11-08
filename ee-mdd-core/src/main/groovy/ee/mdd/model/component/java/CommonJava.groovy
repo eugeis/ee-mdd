@@ -23,7 +23,7 @@ import ee.mdd.model.component.Facet;
  *
  * @author Eugen Eisler
  */
-class Common extends Facet {
+class CommonJava extends Facet {
 
 	def primitiveTypes = [
 		'int',

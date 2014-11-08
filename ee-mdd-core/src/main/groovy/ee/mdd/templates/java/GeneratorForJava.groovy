@@ -21,7 +21,7 @@ import ee.mdd.model.component.Delegate
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.java.Cdi
-import ee.mdd.model.component.java.Common
+import ee.mdd.model.component.java.CommonJava
 import ee.mdd.model.component.java.Jpa
 import ee.mdd.model.component.java.Test
 import ee.mdd.templates.java.cg.TemplatesForJavaCg
@@ -39,13 +39,13 @@ class GeneratorForJava {
     EnhancerForJava.enhanceClasses()
 
 	def builder = new ModelBuilder()
-	builder.registerFacet(Common)
+	builder.registerFacet(CommonJava)
 	builder.registerFacet(Jpa)
 	builder.registerFacet(Cdi)
 	builder.registerFacet(Test)
 	
 	def factets = builder.model('facets') {
-		common()
+		commonJava()
 		cdi()
 		jpa()
 		test()
