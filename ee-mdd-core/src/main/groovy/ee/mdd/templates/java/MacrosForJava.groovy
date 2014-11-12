@@ -31,7 +31,8 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% item.props.each { prop -> %>
+      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> def anno = ''; def annotations = prop.metasForProp(c); annotations.each { anno += newLine+'  '+it.annotation(c) } %>
+${anno-newLine}
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
       template('propsMemberJpa', body: '''<% item.props.each { prop -> %>
@@ -107,8 +108,7 @@ ${macros.generate('methods', c)}
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
-  private static final long serialVersionUID = 1L;
-  <% } %>
+  private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
@@ -171,6 +171,7 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
     return this == $lit.underscored; 
   }<% } %>
 }''')
+
       template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 

@@ -110,6 +110,16 @@ class EnhancerForJava {
             index.value['columnList'] = it.underscored-prefix
             ret += separator+index.annotation(c)
           }
+          delegate.props.each {
+            if(it.unique == true) {
+              def index = builder.meta(type: 'Index', value: [:])
+              String prefix = it.underscored.takeWhile { it != '_' } + '_'
+              index.value['name'] = it.underscored
+              index.value['unique'] = true
+              index.value['columnList'] = it.underscored-prefix
+              ret += separator+index.annotation(c)
+            }
+          }
           ret += ' }'
           properties[key] = ret-separator
         }
@@ -262,6 +272,22 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'testValue'
         if(!properties.containsKey(key)) {
           properties[key] = typeToTestValue.get(delegate.type.name)
+        }
+        properties[key]
+      }
+
+      metasForProp << { Context c ->
+        def key = System.identityHashCode(delegate) + 'metasForProp'
+        if(!properties.containsKey(key)) {
+          ModelBuilder builder = c.item.component.builder
+          def metasForProp = []
+          if(delegate.primaryKey == true) {
+            def column = builder.meta(type: 'Column', value: [:])
+            column.value['name'] = "\"${delegate.underscored}\""
+            metasForProp << column
+            metasForProp << builder.meta(type: 'Id')
+          }
+          properties[key] = metasForProp
         }
         properties[key]
       }

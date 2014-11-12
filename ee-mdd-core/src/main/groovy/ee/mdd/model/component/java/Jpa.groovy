@@ -26,6 +26,6 @@ class Jpa extends Facet {
   protected Map nameToNamespace() {
     ['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence',
       'NamedQueries' : 'javax.persistence', 'Entity' : 'javax.persistence',
-      'Table':'javax.persistence', 'Index':'javax.persistence']
+      'Table':'javax.persistence', 'Index':'javax.persistence', 'Column' : 'javax.persistence', 'Id':'javax.persistence']
   }
 }

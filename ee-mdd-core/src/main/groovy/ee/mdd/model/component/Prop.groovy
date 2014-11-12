@@ -25,4 +25,8 @@ class Prop extends Attribute {
   boolean readable = true
   boolean writable = true
   boolean api = true
+  boolean unique = false
+  boolean primaryKey = false
+  boolean hashCode = false
+  boolean lob = false
 }

@@ -61,6 +61,7 @@ class ModelBuilderExample {
                 }
 
                 entity('Task', superUnit: 'UmEntity') {
+                  prop('id', type: 'Long', unique: true, primaryKey: true)
                   prop('comment', type: 'Comment')
                   prop('created', type: 'Date')
                   prop('closed', type: 'Date')
@@ -88,15 +89,13 @@ class ModelBuilderExample {
                   index('zweiterTestIndex')
 
                   manager {
-                    prop('testProp', type: 'String')
-                    prop('testCounter', type: 'int')
                     findBy { param(prop: 'comment' ) }
-                    count { param(prop: 'testCounter') }
+                    count { param(prop: 'created') }
                     exist {
-                      param(prop: 'testProp')
-                      param(prop: 'testCounter')
+                      param(prop: 'created')
+                      param(prop: 'closed')
                     }
-                    delete { param(prop: 'testProp') }
+                    delete { param(prop: 'closed') }
 
                   }
                 }
