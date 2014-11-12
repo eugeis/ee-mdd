@@ -28,94 +28,94 @@ class ModelBuilderExample {
 
   static Model build(ModelBuilder builder) {
     def ret =  builder.
-	
-	model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
-				
-      model ('Platform', key: 'pl') {
-        //constr
-        component('User Management', key: 'um') {
-          facet( )
 
-          facet('common')
+        model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
 
-          module('shared') {
+          model ('Platform', key: 'pl') {
+            //constr
+            component('User Management', key: 'um') {
+              facet( )
 
-            enumType('TaskStatus', defaultLiteral: 'Unknown') {
-              prop('code', type: 'int')
+              facet('common')
 
-              constr { param(prop: 'code') }
+              module('shared') {
 
-              lit('Unknown', body: '-1')
-              lit('Open', body: '1')
-              lit('Closed', body: '2')
-            }
+                enumType('TaskType', defaultLiteral: 'Unknown', desc: '''Defines the type of a task''') {
+                  prop('code', type: 'int')
 
-            entity('UmEntity', virtual: true, meta: [
-              'ApplicationScoped'
-            ]) {
+                  constr { param(prop: 'code') }
 
-            }
-
-            entity('Comment', superUnit: 'UmEntity') {
-
-            }
-
-            entity('Task', superUnit: 'UmEntity') {
-              prop('comment', type: 'Comment')
-              prop('created', type: 'Date')
-              prop('closed', type: 'Date')
-
-
-              constr {}
-
-              constr {
-                param(prop: 'comment')
-                param(prop: 'created', value: '#newDate')
-              }
-
-              constr {
-                param(prop: 'comment')
-                param(prop: 'created')
-                param(prop: 'closed')
-              }
-
-              op('hello', ret: 'String') {
-                param('Test', type: 'String')
-                param('counter', type: 'int')
-              }
-
-              index('ersterIndex')
-              index('zweiterTestIndex')
-
-              manager {
-                prop('testProp', type: 'String')
-                prop('testCounter', type: 'int')
-                find ('finder') {
-                  param(prop: 'testProp' )
-                  param(prop: 'testCounter')
+                  lit('Unknown', body: '-1')
+                  lit('Open', body: '1')
+                  lit('Closed', body: '2')
                 }
-                count('countByTestCounter') { param(prop: 'testCounter') }
-                exist('ExistsByTestProp') { param(prop: 'testProp') }
-                delete('DeleteByTestProp') { param(prop: 'testProp') }
 
+                entity('UmEntity', virtual: true, meta: [
+                  'ApplicationScoped'
+                ]) {
+
+                }
+
+                entity('Comment', superUnit: 'UmEntity') {
+
+                }
+
+                entity('Task', superUnit: 'UmEntity') {
+                  prop('comment', type: 'Comment')
+                  prop('created', type: 'Date')
+                  prop('closed', type: 'Date')
+
+
+                  constr {}
+
+                  constr {
+                    param(prop: 'comment')
+                    param(prop: 'created', value: '#newDate')
+                  }
+
+                  constr {
+                    param(prop: 'comment')
+                    param(prop: 'created')
+                    param(prop: 'closed')
+                  }
+
+                  op('hello', ret: 'String') {
+                    param('Test', type: 'String')
+                    param('counter', type: 'int')
+                  }
+
+                  index('ersterIndex')
+                  index('zweiterTestIndex')
+
+                  manager {
+                    prop('testProp', type: 'String')
+                    prop('testCounter', type: 'int')
+                    findBy { param(prop: 'comment' ) }
+                    count { param(prop: 'testCounter') }
+                    exist {
+                      param(prop: 'testProp')
+                      param(prop: 'testCounter')
+                    }
+                    delete { param(prop: 'testProp') }
+
+                  }
+                }
+              }
+
+              module('backend') {
+                controller('TaskAgregator') {
+                  op('hello', ret: 'String', body: '#testBody') {
+                    param('test', type: 'String')
+                  }
+                }
+                service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
+              }
+
+              module('ui', namespace: 'ui') {
               }
             }
-          }
-
-          module('backend') {
-            controller('TaskAgregator') {
-              op('hello', ret: 'String', body: '#testBody') {
-                param('test', type: 'String')
-              }
-            }
-            service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
-          }
-
-          module('ui', namespace: 'ui') {
           }
         }
-      }
-    }
     ret
   }
 }
