@@ -15,9 +15,7 @@
  */
 package ee.mdd.model.component.java
 
-import java.util.Map;
-
-import ee.mdd.model.component.Facet;
+import ee.mdd.model.component.Facet
 
 /**
  *
@@ -25,9 +23,9 @@ import ee.mdd.model.component.Facet;
  */
 class Jpa extends Facet {
 
-	protected Map nameToNamespace() {
-		['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence.NamedQuery',
-			'NamedQueries' : 'javax.persistence.NamedQueries', 'Entity' : 'javax.persistence.Entity',
-			'Table':'javax.persistence.Table', 'Index':'javax.persistence.Index']
-	}
+  protected Map nameToNamespace() {
+    ['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence',
+      'NamedQueries' : 'javax.persistence', 'Entity' : 'javax.persistence',
+      'Table':'javax.persistence', 'Index':'javax.persistence']
+  }
 }

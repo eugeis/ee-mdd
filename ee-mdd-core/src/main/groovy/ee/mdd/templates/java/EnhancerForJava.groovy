@@ -105,7 +105,7 @@ class EnhancerForJava {
           def separator = ', '+newLine
           delegate.indexes.each  {
             def index = builder.meta(type: 'Index', value: [:])
-            String prefix = '_' + it.underscored.takeWhile { it != '_' }
+            String prefix = it.underscored.takeWhile { it != '_' } + '_'
             index.value['name'] = it.underscored
             index.value['columnList'] = it.underscored-prefix
             ret += separator+index.annotation(c)
