@@ -36,7 +36,11 @@ class RefParentResolveHandler implements RefResolveHandler {
   void addResolveRequest(String ref, Composite parent, item) {
     //e.g. parent is constructor for param(prop: ref), so we need compilation unit => parent.parent
     def base = parent?.parent
-    def el = base?.find { Element el -> type.isInstance(el) && el.name == ref }
+    def el = base?.find { Element e -> type.isInstance(e) && e.name == ref }
+    if(!el && base?.parent) {
+      //base of param in finder to entity
+      el = base?.parent?.find { Element e -> type.isInstance(e) && e.name == ref }
+    }
     if(el) {
       setter(item, el)
     } else {
