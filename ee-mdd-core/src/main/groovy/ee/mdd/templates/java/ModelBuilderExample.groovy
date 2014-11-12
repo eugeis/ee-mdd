@@ -82,6 +82,9 @@ class ModelBuilderExample {
                 param('counter', type: 'int')
               }
 
+              index('ersterIndex')
+              index('zweiterTestIndex')
+
               manager {
                 prop('testProp', type: 'String')
                 prop('testCounter', type: 'int')

@@ -83,8 +83,10 @@ class EnhancerForJava {
           metasForEntity << namedQueries
 
           def table = builder.meta(type: 'Table', value: [:])
-          table.value['name'] = delegate.name+'.TABLE'
-          //          table.value['indexes'] = delegate.indexesForMeta
+          table.value['name'] = entity.name+'.TABLE'
+          if(entity.indexes != null) {
+            table.value['indexes'] = entity.indexesForMeta(c)
+          }
 
           metasForEntity << table
 
@@ -94,17 +96,16 @@ class EnhancerForJava {
       }
 
       //Replace underscored with appropriate sql name
-      getIndexesForMeta << {
-        ->
+      indexesForMeta << { Context c ->
         def key = System.identityHashCode(delegate) + 'indexesForMeta'
         if(!properties.containsKey(key)) {
           ModelBuilder builder = delegate.component.builder
           String newLine = System.properties['line.separator']
-          String prefix = delegate.indexes[0].underscored.takeWhile { it != '_' }
           def ret = '{'+newLine
-          def separator = ','+newline
+          def separator = ', '+newLine
           delegate.indexes.each  {
             def index = builder.meta(type: 'Index', value: [:])
+            String prefix = '_' + it.underscored.takeWhile { it != '_' }
             index.value['name'] = it.underscored
             index.value['columnList'] = it.underscored-prefix
             ret += separator+index.annotation(c)
@@ -361,13 +362,16 @@ class EnhancerForJava {
           String newLine = System.properties['line.separator']
           def ret = "@${c.name(delegate.type)}"
           if(delegate.multi && delegate.value) {
-            //            String newLine = System.properties['line.separator']
             ret += '({'
             delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
             ret += '})'
           } else if(delegate.value) {
             if(Map.isInstance(delegate.value)) {
-              ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(','+newLine+'            ') + ')'
+              if(delegate.type.cap == 'NamedQuery') {
+                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine+'            ') + ')'
+              } else {
+                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
+              }
             } else {
               ret += "($delegate.value)"
             }
