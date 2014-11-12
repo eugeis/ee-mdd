@@ -13,35 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.model.component.java
 
-import ee.mdd.builder.BuilderAware
-import ee.mdd.builder.ModelBuilder
-import ee.mdd.model.Element
+import java.util.Map;
 
+import ee.mdd.model.component.Facet;
 
 /**
  *
  * @author Eugen Eisler
  */
-class Facet extends Element implements BuilderAware {
-	ModelBuilder builder
-	Module module
+class CommonJava extends Facet {
 
-	List<ExternalType> externalTypes = []
+	def primitiveTypes = [
+		'int',
+		'long',
+		'float',
+		'double',
+		'boolean',
+		'Integer',
+		'Long',
+		'Float',
+		'Double',
+		'Boolean',
+		'String'
+	]
 
 	def init() {
-		def nameToNamespace = nameToNamespace()
-		if(nameToNamespace) {
-			nameToNamespace.each { n, ns -> builder.extType(name: n, namespace: ns) }
-			super.init()
-		}
-	}
-
-	def add(ExternalType child) {
-		externalTypes << super.add(child)
+		primitiveTypes.each { n -> builder.extType(name: n) }
+		super.init();
 	}
 
 	protected Map nameToNamespace() {
+		['Date': 'java.util', 'List' : 'java.util.List', 'Map' : 'java.util.Map', 'Set' : 'java.util.Set', 'Serializable': 'java.io']
 	}
 }

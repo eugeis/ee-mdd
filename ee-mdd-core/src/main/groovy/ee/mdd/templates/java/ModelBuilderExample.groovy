@@ -26,9 +26,11 @@ class ModelBuilderExample {
     assert model != null
   }
 
-  static Model build(Closure postInstantiateDelegate = null) {
-    def ret =  new ModelBuilder(postInstantiateDelegate).model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
-
+  static Model build(ModelBuilder builder) {
+    def ret =  builder.
+	
+	model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
+				
       model ('Platform', key: 'pl') {
         //constr
         component('User Management', key: 'um') {
@@ -92,7 +94,7 @@ class ModelBuilderExample {
                   param(prop: 'testProp' )
                   param(prop: 'testCounter')
                 }
-                counter('countByTestCounter') { param(prop: 'testCounter') }
+                count('countByTestCounter') { param(prop: 'testCounter') }
                 exist('ExistsByTestProp') { param(prop: 'testProp') }
                 delete('DeleteByTestProp') { param(prop: 'testProp') }
 

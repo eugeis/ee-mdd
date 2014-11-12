@@ -39,7 +39,6 @@ class ProcessorsForJava {
       'Double'
     ]
 
-    //default types and resolved
     def nameToPackage = ['Test': 'org.junit', 'Date': 'java.util', 'Before': 'org.junit',
       'Assert': 'static junit.framework.Assert.*', 'Serializable': 'java.io', 'Produces' : 'javax.enterprise.inject.Produces']
 
