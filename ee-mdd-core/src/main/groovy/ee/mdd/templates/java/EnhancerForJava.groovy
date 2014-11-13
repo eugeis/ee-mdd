@@ -126,6 +126,17 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      getSqlName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'sqlName'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+          ret = ret.replaceAll(/(\w)\1+/, '$1')
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     Index.metaClass {
@@ -135,10 +146,8 @@ class EnhancerForJava {
         def index = delegate
         def metaIndex = builder.meta(type: 'Index', value: [:])
         def sqlNames = []
-        //TODO: change it.underscored to it.sqlName
-        index.props.each { sqlNames << it.underscored }
-        //TODO: change it.underscored to it.sqlName
-        metaIndex.value['name'] = index.props.collect {it.underscored}.join('_')
+        index.props.each { sqlNames << it.sqlName }
+        metaIndex.value['name'] = index.props.collect {it.sqlName}.join('_')
         metaIndex.value['columnList'] = sqlNames.join(', ')
         if(index.unique) {
           metaIndex['unique'] = true
@@ -296,6 +305,17 @@ class EnhancerForJava {
         properties[key]
       }
 
+      getSqlName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'sqlName'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+          ret = ret.replaceAll(/(\w)\1+/, '$1')
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       metasForProp << { Context c ->
         def key = System.identityHashCode(delegate) + 'metasForProp'
         if(!properties.containsKey(key)) {
@@ -320,11 +340,11 @@ class EnhancerForJava {
         if(!prop.primaryKey && (prop.index || prop.unique)) {
           index =  builder.meta(type: 'Index', value: [:])
           //TODO: change name to: entity.sqlName_prop.sqlName
-          index.value['name'] = c.item.underscored+'_'+prop.underscored
-          index.value['columnList'] = prop.underscored
+          index.value['name'] = c.item.sqlName+'_'+prop.sqlName
           if(prop.unique) {
             index.value['unique'] = true
           }
+          index.value['columnList'] = prop.sqlName
         }
         index
       }
