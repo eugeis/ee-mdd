@@ -70,12 +70,15 @@ class ModelBuilder extends AbstractFactoryBuilder {
     refAttrResolver.addGlobalResolver('type', Type)
     refAttrResolver.addGlobalResolver('ret', Type)
     refAttrResolver.addGlobalResolver('ref', Element)
-    refAttrResolver.addParentResolver('prop', Prop)
+
+    refAttrResolver.addParentResolver('prop', Prop, 2)
+
     refAttrResolver.addGlobalResolver('module', Module)
     refAttrResolver.addGlobalResolver('superUnit', CompilationUnit)
 
     MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
     refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
+    refAttrResolver.addParentResolver('props', Prop, 2, null, true)
 
     refAttrResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
   }

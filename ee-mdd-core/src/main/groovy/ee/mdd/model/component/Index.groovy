@@ -7,4 +7,9 @@ package ee.mdd.model.component
 import ee.mdd.model.Composite
 
 class Index extends Composite {
+  List<Prop> props = []
+
+  def add(Prop item) {
+    props << super.add(item)
+  }
 }

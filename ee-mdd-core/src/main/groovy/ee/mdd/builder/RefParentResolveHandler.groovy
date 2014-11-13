@@ -27,6 +27,7 @@ import ee.mdd.model.Element
 class RefParentResolveHandler implements RefResolveHandler {
   String name
   Class type
+  int depth = 0
   List<String> notResolved = []
   Closure setter
 
@@ -34,13 +35,19 @@ class RefParentResolveHandler implements RefResolveHandler {
   }
 
   void addResolveRequest(String ref, Composite parent, item) {
-    //e.g. parent is constructor for param(prop: ref), so we need compilation unit => parent.parent
-    def base = parent?.parent
-    def el = base?.find { Element e -> type.isInstance(e) && e.name == ref }
-    if(!el && base?.parent) {
-      //base of param in finder to entity
-      el = base?.parent?.find { Element e -> type.isInstance(e) && e.name == ref }
+    def el
+    def base = parent
+    for (int i = 0; i <= depth; i++) {
+      if (base) {
+        el = base.find { Element e -> type.isInstance(e) && e.name == ref }
+        if(el) {
+          break
+        } else {
+          base = base?.parent
+        }
+      }
     }
+
     if(el) {
       setter(item, el)
     } else {
@@ -59,5 +66,4 @@ class RefParentResolveHandler implements RefResolveHandler {
       println "Not resolved: $name: $notResolved"
     }
   }
-
 }
