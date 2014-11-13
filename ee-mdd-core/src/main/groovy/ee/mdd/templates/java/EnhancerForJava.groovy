@@ -30,6 +30,7 @@ import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Exist
 import ee.mdd.model.component.Find
+import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Manager
@@ -84,8 +85,9 @@ class EnhancerForJava {
 
           def table = builder.meta(type: 'Table', value: [:])
           table.value['name'] = entity.name+'.TABLE'
-          if(entity.indexes != null) {
-            table.value['indexes'] = entity.indexesForMeta(c)
+          def indexes = entity.indexesForMeta(c)
+          if(indexes != null) {
+            table.value['indexes'] = indexes
           }
 
           metasForEntity << table
@@ -95,35 +97,53 @@ class EnhancerForJava {
         properties[key]
       }
 
-      //Replace underscored with appropriate sql name
       indexesForMeta << { Context c ->
         def key = System.identityHashCode(delegate) + 'indexesForMeta'
         if(!properties.containsKey(key)) {
           ModelBuilder builder = delegate.component.builder
           String newLine = System.properties['line.separator']
           def ret = '{'+newLine
+          def propIndex
+          def index
           def separator = ', '+newLine
-          delegate.indexes.each  {
-            def index = builder.meta(type: 'Index', value: [:])
-            String prefix = it.underscored.takeWhile { it != '_' } + '_'
-            index.value['name'] = it.underscored
-            index.value['columnList'] = it.underscored-prefix
-            ret += separator+index.annotation(c)
-          }
+
           delegate.props.each {
-            if(it.unique == true) {
-              def index = builder.meta(type: 'Index', value: [:])
-              String prefix = it.underscored.takeWhile { it != '_' } + '_'
-              index.value['name'] = it.underscored
-              index.value['unique'] = true
-              index.value['columnList'] = it.underscored-prefix
+            propIndex = it.propIndex(c)
+            if(propIndex) {
+              ret += separator+propIndex.annotation(c)
+            }
+          }
+          delegate.indexes.each  {
+            index = it.metaIndex(c)
+            if(index) {
               ret += separator+index.annotation(c)
             }
           }
           ret += ' }'
-          properties[key] = ret-separator
+          if(propIndex || index) {
+            properties[key] = ret-separator
+          }
         }
         properties[key]
+      }
+    }
+
+    Index.metaClass {
+
+      metaIndex << { Context c ->
+        ModelBuilder builder = c.item.component.builder
+        def index = delegate
+        def metaIndex = builder.meta(type: 'Index', value: [:])
+        def sqlNames = []
+        //TODO: change it.underscored to it.sqlName
+        index.props.each { sqlNames << it.underscored }
+        //TODO: change it.underscored to it.sqlName
+        metaIndex.value['name'] = index.props.collect {it.underscored}.join('_')
+        metaIndex.value['columnList'] = sqlNames.join(', ')
+        if(index.unique) {
+          metaIndex['unique'] = true
+        }
+        metaIndex
       }
     }
 
@@ -290,6 +310,23 @@ class EnhancerForJava {
           properties[key] = metasForProp
         }
         properties[key]
+      }
+
+      propIndex << { Context c ->
+        ModelBuilder builder = c.item.component.builder
+        def prop = delegate
+        def index
+        //TODO: consider manyToOne when implemented
+        if(!prop.primaryKey && (prop.index || prop.unique)) {
+          index =  builder.meta(type: 'Index', value: [:])
+          //TODO: change name to: entity.sqlName_prop.sqlName
+          index.value['name'] = c.item.underscored+'_'+prop.underscored
+          index.value['columnList'] = prop.underscored
+          if(prop.unique) {
+            index.value['unique'] = true
+          }
+        }
+        index
       }
     }
 
