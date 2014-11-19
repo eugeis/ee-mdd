@@ -432,6 +432,23 @@ class EnhancerForJava {
         properties[key]
       }
 
+      jpaPropMapping << { Context c ->
+        def key = System.identityHashCode(delegate) + 'entityPropMapping'
+        if(!properties.containsKey(key)) {
+          ModelBuilder builder = c.item.component.builder
+          String newLine = System.properties['line.separator']
+          def prop = delegate
+          def metas = []
+          if(prop.type instanceof Date) {
+            builder.meta(type: 'Temporal', value: 'TemporalType.TIMESTAMP')
+          }
+
+
+          properties[key] = metas
+        }
+        properties[key]
+      }
+
       opposite << { Context c ->
         def module = c.item.module
         //def entity = module.entities.find { it.name == delegate.type.name }
