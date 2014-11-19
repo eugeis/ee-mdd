@@ -22,12 +22,15 @@ package ee.mdd.model.component
  * @author Niklas Cappelmann
  */
 class Prop extends Attribute {
+  boolean api = true
   boolean readable = true
   boolean writable = true
-  boolean api = true
   boolean unique = false
+  boolean owner = false
   boolean index = false
   boolean primaryKey = false
   boolean hashCode = false
   boolean lob = false
+  boolean mm = false
+  String opposite
 }

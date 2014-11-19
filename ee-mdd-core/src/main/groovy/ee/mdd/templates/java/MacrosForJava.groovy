@@ -31,8 +31,8 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> def anno = ''; def annotations = prop.metasForProp(c); annotations.each { anno += newLine+'  '+it.annotation(c) } %>
-${anno}
+      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop%>
+${macros.generate('metaAtrributesProp', c)}
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
       template('propsMemberJpa', body: '''<% item.props.each { prop -> %>
@@ -172,6 +172,9 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
 }''')
 
       template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
+
+      template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')

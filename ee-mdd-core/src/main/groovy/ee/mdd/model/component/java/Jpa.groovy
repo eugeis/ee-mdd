@@ -20,12 +20,16 @@ import ee.mdd.model.component.Facet
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Jpa extends Facet {
 
   protected Map nameToNamespace() {
     ['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence',
       'NamedQueries' : 'javax.persistence', 'Entity' : 'javax.persistence',
-      'Table':'javax.persistence', 'Index':'javax.persistence', 'Column' : 'javax.persistence', 'Id':'javax.persistence']
+      'Table' : 'javax.persistence', 'Index' : 'javax.persistence', 'Column' : 'javax.persistence',
+      'Id' : 'javax.persistence', 'OneToOne' : 'javax.persistence', 'OneToMany' : 'javax.persistence',
+      'ManyToOne' : 'javax.persistence', 'ManyToMany' : 'javax.persistence', 'JoinColumn' : 'javax.persistence',
+      'JoinTable' : 'javax.persistence']
   }
 }

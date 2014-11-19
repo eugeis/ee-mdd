@@ -72,7 +72,6 @@ class ModelBuilder extends AbstractFactoryBuilder {
     refAttrResolver.addGlobalResolver('ref', Element)
 
     refAttrResolver.addParentResolver('prop', Prop, 2)
-
     refAttrResolver.addGlobalResolver('module', Module)
     refAttrResolver.addGlobalResolver('superUnit', CompilationUnit)
 

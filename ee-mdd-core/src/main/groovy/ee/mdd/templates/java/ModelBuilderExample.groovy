@@ -57,12 +57,13 @@ class ModelBuilderExample {
                 }
 
                 entity('Comment', superUnit: 'UmEntity') {
-
+                  prop('testTask', type: 'Task', opposite: 'comment')
+                  prop('testProp', type: 'Task', multi: true)
                 }
 
                 entity('Task', superUnit: 'UmEntity') {
                   prop('id', type: 'Long', unique: true, primaryKey: true)
-                  prop('comment', type: 'Comment')
+                  prop('comment', type: 'Comment', opposite: 'testTask')
                   prop('created', type: 'Date', unique: true)
                   prop('closed', type: 'Date', index: true)
 

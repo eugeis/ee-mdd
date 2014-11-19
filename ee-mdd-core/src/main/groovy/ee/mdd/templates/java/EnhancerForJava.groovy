@@ -24,6 +24,7 @@ import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.Delete
@@ -58,6 +59,22 @@ class EnhancerForJava {
       Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
+    }
+
+    CompilationUnit.metaClass {
+
+      getIdProp << {
+        ->
+        def key = System.identityHashCode(delegate) + 'idProp'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.props.find { it.primaryKey }
+          if(!ret && delegate.superUnit) {
+            ret = delegate.superUnit.idProp
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     Entity.metaClass {
@@ -147,7 +164,7 @@ class EnhancerForJava {
         def metaIndex = builder.meta(type: 'Index', value: [:])
         def sqlNames = []
         index.props.each { sqlNames << it.sqlName }
-        metaIndex.value['name'] = index.props.collect {it.sqlName}.join('_')
+        metaIndex.value['name'] = index.props.collect { it.sqlName }.join('_')
         metaIndex.value['columnList'] = sqlNames.join(', ')
         if(index.unique) {
           metaIndex['unique'] = true
@@ -332,6 +349,97 @@ class EnhancerForJava {
         properties[key]
       }
 
+      propMapping << { Context c ->
+        def key = System.identityHashCode(delegate) + 'propMapping'
+        if(!properties.containsKey(key)) {
+          def propMapping = []
+          if(delegate.type instanceof Entity) {
+            propMapping = delegate.entityPropMapping(c)
+          } else {
+            //propMapping = delegate.jpaPropMapping(c)
+          }
+          properties[key] = propMapping
+        }
+        properties[key]
+      }
+
+      entityPropMapping << { Context c ->
+        def key = System.identityHashCode(delegate) + 'entityPropMapping'
+        if(!properties.containsKey(key)) {
+          ModelBuilder builder = c.item.component.builder
+          String newLine = System.properties['line.separator']
+          def prop = delegate
+          def opposite = prop.opposite(c)
+          def currentParent = prop.parent
+          def metas = []
+          def association
+          if(opposite) {
+            if(prop.multi) {
+              if(opposite.multi) {
+                association = builder.meta(type: 'ManyToMany')
+                association.value = ['mappedBy' : "\"$prop.opposite\""]
+              } else {
+                association = builder.meta(type: 'OneToMany')
+                association.value = ['cascade' : 'CascadeType.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+              }
+            } else {
+              if(opposite.multi) {
+                association = builder.meta(type: 'ManyToOne')
+              } else if(prop.owner) {
+                association = builder.meta(type: 'OneToOne')
+                association.value = ['cascade' : 'CascadeType.PERSIST', 'mappedBy' : "\"$prop.opposite\""]
+              } else {
+                association = builder.meta(type: 'OneToOne')
+                association.value = ['fetch' : 'FetchType.LAZY']
+              }
+              metas << association
+              if (opposite.multi || !prop.owner) {
+                def joinColumn = builder.meta(type : 'JoinColumn')
+                joinColumn.value =['name' : "COLUMN_$prop.underscored"]
+                metas << joinColumn
+              }
+            }
+          } else {
+            if(prop.multi) {
+              if(prop.mm) {
+                association = builder.meta(type: 'ManyToMany')
+                association.value = ['cascade' : 'CascadeType.ALL']
+              } else {
+                association = builder.meta(type: 'OneToMany')
+                association.value = ['cascade' : 'CascadeType.ALL']
+              }
+              def joinTable = builder.meta(type: 'JoinTable', value: [:])
+              joinTable.value['name'] =  "${currentParent.sqlName}_${prop.sqlName}"
+              if(prop.type) {
+                def invJoinColumn = builder.meta(type: 'JoinColumn')
+                invJoinColumn.value = ['name' : "${prop.type.sqlName}_ID"]
+                joinTable.value['inverseJoinColumns'] = invJoinColumn.annotation(c)
+              }
+              def joinColumn = builder.meta(type: 'JoinColumn')
+              joinColumn.value = ['name' : "${currentParent.sqlName}_ID"]
+              joinTable.value['joinColums'] = joinColumn.annotation(c)
+              metas << joinTable
+            } else {
+              association = builder.meta(type: 'ManyToOne')
+              def joinColumn = builder.meta(type: 'JoinColumn')
+              joinColumn.value = ['name' : 'COLUMN_${prop.underscored}']
+              metas << joinColumn
+            }
+            metas << association
+          }
+          properties[key] = metas
+        }
+        properties[key]
+      }
+
+      opposite << { Context c ->
+        def module = c.item.module
+        //def entity = module.entities.find { it.name == delegate.type.name }
+        def entity = delegate.type
+        def ret = entity.props.find { it.name == delegate.opposite }
+        ret
+      }
+
       propIndex << { Context c ->
         ModelBuilder builder = c.item.component.builder
         def prop = delegate
@@ -339,7 +447,6 @@ class EnhancerForJava {
         //TODO: consider manyToOne when implemented
         if(!prop.primaryKey && (prop.index || prop.unique)) {
           index =  builder.meta(type: 'Index', value: [:])
-          //TODO: change name to: entity.sqlName_prop.sqlName
           index.value['name'] = c.item.sqlName+'_'+prop.sqlName
           if(prop.unique) {
             index.value['unique'] = true
@@ -450,8 +557,8 @@ class EnhancerForJava {
             ret += '})'
           } else if(delegate.value) {
             if(Map.isInstance(delegate.value)) {
-              if(delegate.type.cap == 'NamedQuery') {
-                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine+'            ') + ')'
+              if(delegate.type.cap == 'NamedQuery' || delegate.type.cap == 'JoinTable') {
+                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine) + ')'
               } else {
                 ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
               }
