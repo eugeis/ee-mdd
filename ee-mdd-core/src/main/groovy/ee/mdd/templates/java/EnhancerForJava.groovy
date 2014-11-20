@@ -486,8 +486,10 @@ class EnhancerForJava {
         ModelBuilder builder = c.item.component.builder
         def prop = delegate
         def index
-        //TODO: consider manyToOne when implemented
-        if(!prop.primaryKey && (prop.index || prop.unique)) {
+        Boolean manyToOne
+        if(prop.type instanceof Entity && !prop.multi && !prop.opposite)
+          manyToOne = true
+        if(!prop.primaryKey && (prop.index || prop.unique || manyToOne)) {
           index =  builder.meta(type: 'Index', value: [:])
           index.value['name'] = c.item.sqlName+'_'+prop.sqlName
           if(prop.unique) {

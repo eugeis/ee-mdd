@@ -59,7 +59,7 @@ class ModelBuilderExample {
                 entity('Comment', superUnit: 'UmEntity') {
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)
-                  prop('dateOfCreation', type: 'Date', lob: true)
+                  prop('dateOfCreation', type: 'Date')
                 }
 
                 entity('Task', superUnit: 'UmEntity') {
