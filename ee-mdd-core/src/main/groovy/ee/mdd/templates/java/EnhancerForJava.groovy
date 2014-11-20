@@ -128,16 +128,16 @@ class EnhancerForJava {
           delegate.props.each {
             propIndex = it.propIndex(c)
             if(propIndex) {
-              ret += separator+propIndex.annotation(c)
+              ret += separator+'    '+propIndex.annotation(c)
             }
           }
           delegate.indexes.each  {
             index = it.metaIndex(c)
             if(index) {
-              ret += separator+index.annotation(c)
+              ret += separator+'    '+index.annotation(c)
             }
           }
-          ret += ' }'
+          ret += '}'
           if(propIndex || index) {
             properties[key] = ret-separator
           }
@@ -597,12 +597,12 @@ class EnhancerForJava {
           def ret = "@${c.name(delegate.type)}"
           if(delegate.multi && delegate.value) {
             ret += '({'
-            delegate.value.each { ret += "${newLine}${it.annotation(c)}" }
+            ret += delegate.value.collect { '\n    '+it.annotation(c) }.join(', ')
             ret += '})'
           } else if(delegate.value) {
             if(Map.isInstance(delegate.value)) {
               if(delegate.type.cap == 'NamedQuery' || delegate.type.cap == 'JoinTable') {
-                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine) + ')'
+                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine+'                ') + ')'
               } else {
                 ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
               }
@@ -618,8 +618,6 @@ class EnhancerForJava {
       }
 
     }
-
-
   }
 }
 
