@@ -23,6 +23,7 @@ import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
+import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
@@ -356,7 +357,7 @@ class EnhancerForJava {
           if(delegate.type instanceof Entity) {
             propMapping = delegate.entityPropMapping(c)
           } else {
-            //propMapping = delegate.jpaPropMapping(c)
+            propMapping = delegate.jpaPropMapping(c)
           }
           properties[key] = propMapping
         }
@@ -438,12 +439,36 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           String newLine = System.properties['line.separator']
           def prop = delegate
+          def currentParent = prop.parent
           def metas = []
-          if(prop.type instanceof Date) {
-            builder.meta(type: 'Temporal', value: 'TemporalType.TIMESTAMP')
+          if(prop.type.name.equals('Date')) {
+            metas << builder.meta(type: 'Temporal', value: 'TemporalType.TIMESTAMP')
+          } else if(prop.type instanceof Enum) {
+            metas << builder.meta(type: 'Enumerated', value: 'EnumType.STRING')
+          } else if(prop.type instanceof BasicType) {
+            if(!prop.multi) {
+              metas << builder.meta(type: 'Embedded')
+              def attrOverrides = builder.meta(type: 'AttributeOverrides', multi: true, value: [])
+              prop.type.props.each {
+                def attrOverride = builder.meta(type: 'AttributeOverride')
+                attrOverride.value = ['name' : "$it.underscored"]
+                attrOverrides.value << attrOverride
+              }
+              attrOverrides.value.addAll()
+            } else {
+              metas << builder.meta(type: 'Embedded')
+            }
+          } else if (prop.lob) {
+            metas << builder.meta(type: 'Lob')
           }
 
-
+          if(prop.multi) {
+            metas << builder.meta(type: 'ElementCollection', value: ['fetch' : 'FetchType.EAGER'])
+            def joinColum = builder.meta(type: 'JoinColumn', value: ['name' : "\"${currentParent.sqlName}_ID\""])
+            metas << builder.meta(type: 'CollectionTable', value: ['name' : "\"${currentParent.sqlName}_${prop.sqlName}\"", 'joinColumns' : "${joinColum.annotation(c)}"])
+          } else if (!(prop.type instanceof BasicType)) {
+            metas << builder.meta(type:'Column', value: ['name' : "COLUMN_${prop.underscored}"])
+          }
           properties[key] = metas
         }
         properties[key]
