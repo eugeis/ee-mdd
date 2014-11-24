@@ -38,7 +38,7 @@ class EnumTypeFactory extends CompositeFactory {
     }
   }
 
-  void setChild( FactoryBuilderSupport builder, Object parent, Object child ) {
+  void setChild(FactoryBuilderSupport builder, Object parent, Object child ) {
     super.setChild(builder, parent, child)
     if(nodeToDefaultLiteral.containsKey(parent) && Literal.isInstance(child) && nodeToDefaultLiteral[parent].equals(child.name)) {
       parent.defaultLiteral = child

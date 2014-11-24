@@ -20,13 +20,12 @@ import ee.mdd.generator.Generator
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 
-
 /**
  *
  * @author Eugen Eisler
  */
 class TemplatesForJs {
-
+	
   static Generator build() {
     def ret = new GeneratorBuilder().generator('model') {
 

@@ -29,11 +29,11 @@ class ModelFactory extends CompositeFactory {
     this.beanClass = Model
   }
 
-  Object newInstance(AbstractFactoryBuilder builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
+  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
     if (checkValue(name, value)) {
       return value
     }
-    def parent = builder.parent()
+    def parent = builder.parent
     def ret = new Model()
 
     if(!attributes.containsKey('namespace') && attributes.key) {

@@ -15,6 +15,7 @@
  */
 package ee.mdd.builder
 
+import ee.mdd.model.component.DataType
 import ee.mdd.model.component.DataTypeProp
 import ee.mdd.model.component.Prop
 
@@ -30,13 +31,13 @@ class PropFactory extends CompositeFactory {
     this.beanClass = Prop
   }
 
-  Object newInstance(AbstractFactoryBuilder builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
+  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
     if (checkValue(name, value)) {
       return value
     }
-    def parent = builder.parent()
+    def parent = builder.parent
     def ret
-    if(DataTypeProp.isInstance(parent)) {
+    if(DataType.isInstance(parent)) {
       ret = new DataTypeProp()
     } else {
       ret = new Prop()

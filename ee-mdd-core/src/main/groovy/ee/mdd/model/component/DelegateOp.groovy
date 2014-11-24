@@ -22,6 +22,6 @@ import ee.mdd.model.Element
  *
  * @author Eugen Eisler
  */
-class Delegate extends Operation {
+class DelegateOp extends Operation {
   Element ref
 }

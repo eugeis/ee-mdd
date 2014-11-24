@@ -5,5 +5,7 @@
 package ee.mdd.model.component;
 
 class DataTypeProp extends Prop {
-  boolean index = false
+  boolean unique, primaryKey, owner, index, mm
+  boolean lob
+  String opposite
 }
