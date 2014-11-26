@@ -19,6 +19,7 @@ import ee.mdd.builder.ModelBuilder
 import ee.mdd.model.component.Model
 
 
+
 class ModelBuilderExample {
 
   void testComponentChildren() {

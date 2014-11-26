@@ -32,6 +32,7 @@ class Jpa extends Facet {
       'ManyToOne' : 'javax.persistence', 'ManyToMany' : 'javax.persistence', 'JoinColumn' : 'javax.persistence',
       'JoinTable' : 'javax.persistence', 'Temporal' : 'javax.persistence', 'Enumerated' : 'javax.persistence',
       'Embedded' : 'javax.persistence', 'Lob' : 'javax.persistence', 'ElementCollection' : 'javax.persistence',
-      'CollectionTable' : 'javax.persistence']
+      'CollectionTable' : 'javax.persistence', 'CascadeType' : 'javax.persistence', 'FetchType' : 'javax.persistence',
+      'TemporalType' : 'javax.persistence']
   }
 }

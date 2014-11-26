@@ -381,7 +381,7 @@ class EnhancerForJava {
                 association.value = ['mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : 'CascadeType.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+                association.value = ['cascade' : "${c.name(CascadeType.ALL)}", 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
               }
             } else {
               if(opposite.multi) {
