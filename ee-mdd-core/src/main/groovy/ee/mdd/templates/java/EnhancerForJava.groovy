@@ -155,6 +155,54 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      getJpaConstants << {
+        ->
+        def key = System.identityHashCode(delegate) + 'jpaConstants'
+        if(!properties.containsKey(key)) {
+          String newLine = System.properties['line.separator']
+          def ret = newLine
+          def manager = delegate.manager
+          if(!delegate.virtual) {
+            ret = "public static final String TABLE = \"${delegate.sqlName}\";"+newLine
+          }
+          ret += newLine
+          delegate.props.each { prop ->
+            if(!delegate.virtual || (delegate.virtual && !prop.multi)) {
+              ret += "  public static final String COLUMN_${prop.underscored} = \"${prop.sqlName}\";"+newLine
+            }
+          }
+          ret += newLine
+          if(manager && !delegate.virtual) {
+            if(manager.finders != null) {
+              manager.finders.each {
+                def opName = it.operationName
+                ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
+              }
+            }
+            if(manager.counters != null) {
+              manager.counters.each {
+                def opName = it.operationName
+                ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
+              }
+            }
+            if(manager.exists != null) {
+              manager.exists.each {
+                def opName = it.operationName
+                ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
+              }
+            }
+            if(manager.deleters != null) {
+              manager.deleters.each {
+                def opName = it.operationName
+                ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
+              }
+            }
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     Index.metaClass {
@@ -381,7 +429,7 @@ class EnhancerForJava {
                 association.value = ['mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : "${c.name(CascadeType.ALL)}", 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+                association.value = ['cascade' : 'CascadeType.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
               }
             } else {
               if(opposite.multi) {
