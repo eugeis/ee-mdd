@@ -18,10 +18,12 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class CompilationUnit extends Type {
   Names n
   boolean virtual = false
+  boolean base = false
   boolean singleton = false
   CompilationUnit superUnit
   List<Prop> props

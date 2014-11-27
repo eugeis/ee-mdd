@@ -79,6 +79,7 @@ class ProcessorsForJava {
             ref
           } else {
             if(!nameToPackage.containsKey(ref)) {
+              def model = c.model
               Element resolved = c.model.findRecursiveUp { ref.equals(it.name) }
               if(resolved) {
                 name(resolved)

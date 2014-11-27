@@ -32,6 +32,11 @@ class ModelBuilderExample {
 
         model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
 
+          commonJava()
+          cdi()
+          jpa()
+          test()
+
           model ('Platform', key: 'pl') {
             //constr
             component('User Management', key: 'um') {
@@ -63,7 +68,7 @@ class ModelBuilderExample {
                   prop('dateOfCreation', type: 'Date')
                 }
 
-                entity('Task', superUnit: 'UmEntity') {
+                entity('Task') {
                   prop('id', type: 'Long', unique: true, primaryKey: true)
                   prop('comment', type: 'Comment', opposite: 'testTask')
                   prop('created', type: 'Date', unique: true)

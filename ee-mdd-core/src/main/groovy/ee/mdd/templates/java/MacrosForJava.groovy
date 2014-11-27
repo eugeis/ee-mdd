@@ -87,7 +87,7 @@ ${macros.generate('metaAtrributesProp', c)}
 
       template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
 
-  private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
+private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
       this.$it.prop.uncap = $it.value;<% } else { %>
       this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
     }<% } %>''')
@@ -97,13 +97,17 @@ ${macros.generate('metaAtrributesProp', c)}
   ${op.resolveBody(c)}
   }<% } } %> ''')
 
+      template('ifcMethods', body: '''<% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
+  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}); 
+<% } } %>''')
+
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
-${macros.generate('methods', c)}
+${macros.generate('ifcMethods', c)}
 }''')
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}

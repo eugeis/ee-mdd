@@ -102,7 +102,7 @@ class EnhancerForJava {
           metasForEntity << namedQueries
 
           def table = builder.meta(type: 'Table', value: [:])
-          table.value['name'] = entity.name+'.TABLE'
+          table.value['name'] = c.className+'.TABLE'
           def indexes = entity.indexesForMeta(c)
           if(indexes != null) {
             table.value['indexes'] = indexes
@@ -213,8 +213,10 @@ class EnhancerForJava {
         def metaIndex = builder.meta(type: 'Index', value: [:])
         def sqlNames = []
         index.props.each { sqlNames << it.sqlName }
-        metaIndex.value['name'] = index.props.collect { it.sqlName }.join('_')
-        metaIndex.value['columnList'] = sqlNames.join(', ')
+        def columns = sqlNames.join(', ')
+        def indexName =  index.props.collect { it.sqlName }.join('_')
+        metaIndex.value['name'] = "\"$indexName\""
+        metaIndex.value['columnList'] = "\"$columns\""
         if(index.unique) {
           metaIndex['unique'] = true
         }
@@ -230,7 +232,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.finders.each { finder ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+finder.operationName
+            namedQuery.value['name'] = c.className+'.'+finder.operationName
             namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
             finderQueries << namedQuery
           }
@@ -244,7 +246,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.counters.each { counter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+counter.operationName
+            namedQuery.value['name'] = c.className+'.'+counter.operationName
             namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
             counterQueries << namedQuery
           }
@@ -258,7 +260,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.exists.each { exist ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+exist.operationName
+            namedQuery.value['name'] = c.className+'.'+exist.operationName
             namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
             existsQueries << namedQuery
           }
@@ -272,7 +274,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.deleters.each { deleter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+deleter.operationName
+            namedQuery.value['name'] = c.className+'.'+deleter.operationName
             namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
             deleterQueries << namedQuery
           }
@@ -429,17 +431,17 @@ class EnhancerForJava {
                 association.value = ['mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : 'CascadeType.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
               }
             } else {
               if(opposite.multi) {
                 association = builder.meta(type: 'ManyToOne')
               } else if(prop.owner) {
                 association = builder.meta(type: 'OneToOne')
-                association.value = ['cascade' : 'CascadeType.PERSIST', 'mappedBy' : "\"$prop.opposite\""]
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.PERSIST', 'mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToOne')
-                association.value = ['fetch' : 'FetchType.LAZY']
+                association.value = ['fetch' : "${c.name('FetchType')}"+'.LAZY']
               }
               metas << association
               if (opposite.multi || !prop.owner) {
@@ -452,10 +454,10 @@ class EnhancerForJava {
             if(prop.multi) {
               if(prop.mm) {
                 association = builder.meta(type: 'ManyToMany')
-                association.value = ['cascade' : 'CascadeType.ALL']
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL']
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : 'CascadeType.ALL']
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL']
               }
               def joinTable = builder.meta(type: 'JoinTable', value: [:])
               joinTable.value['name'] =  "${currentParent.sqlName}_${prop.sqlName}"
@@ -490,9 +492,9 @@ class EnhancerForJava {
           def currentParent = prop.parent
           def metas = []
           if(prop.type.name.equals('Date')) {
-            metas << builder.meta(type: 'Temporal', value: 'TemporalType.TIMESTAMP')
+            metas << builder.meta(type: 'Temporal', value: "${c.name('TemporalType')}"+'.TIMESTAMP')
           } else if(prop.type instanceof Enum) {
-            metas << builder.meta(type: 'Enumerated', value: 'EnumType.STRING')
+            metas << builder.meta(type: 'Enumerated', value: "${c.name('EnumType')}"+'.STRING')
           } else if(prop.type instanceof BasicType) {
             if(!prop.multi) {
               metas << builder.meta(type: 'Embedded')
@@ -511,7 +513,7 @@ class EnhancerForJava {
           }
 
           if(prop.multi) {
-            metas << builder.meta(type: 'ElementCollection', value: ['fetch' : 'FetchType.EAGER'])
+            metas << builder.meta(type: 'ElementCollection', value: ['fetch' : "${c.name('FetchType')}"+'.EAGER'])
             def joinColum = builder.meta(type: 'JoinColumn', value: ['name' : "\"${currentParent.sqlName}_ID\""])
             metas << builder.meta(type: 'CollectionTable', value: ['name' : "\"${currentParent.sqlName}_${prop.sqlName}\"", 'joinColumns' : "${joinColum.annotation(c)}"])
           } else if (!(prop.type instanceof BasicType)) {
@@ -539,11 +541,11 @@ class EnhancerForJava {
           manyToOne = true
         if(!prop.primaryKey && (prop.index || prop.unique || manyToOne)) {
           index =  builder.meta(type: 'Index', value: [:])
-          index.value['name'] = c.item.sqlName+'_'+prop.sqlName
+          index.value['name'] = "\"${c.item.sqlName}_$prop.sqlName\""
           if(prop.unique) {
             index.value['unique'] = true
           }
-          index.value['columnList'] = prop.sqlName
+          index.value['columnList'] = "\"$prop.sqlName\""
         }
         index
       }

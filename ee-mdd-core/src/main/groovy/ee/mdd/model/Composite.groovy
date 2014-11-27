@@ -56,7 +56,7 @@ class Composite extends Element {
 
   Element findRecursiveUp(Closure matcher) {
     Element ret = children.find(matcher)
-    if(!ret) {
+    if(!ret && !parent) {
       parent.findRecursiveUp(matcher)
     }
     ret
