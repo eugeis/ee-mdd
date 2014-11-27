@@ -31,8 +31,7 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop%>
-${macros.generate('metaAtrributesProp', c)}
+      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %>${macros.generate('metaAtrributesProp', c)}
   protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
 
       template('propsMemberJpa', body: '''<% item.props.each { prop -> %>
@@ -43,10 +42,11 @@ ${macros.generate('metaAtrributesProp', c)}
   ${c.name(prop.type)} $prop.getter;<% } } %>''')
 
       template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%>
-  
+  @Override
   public ${c.name(prop.type)} $prop.getter {
     return $prop.uncap; 
-  }<% } } %>''')
+  }
+<% } } %>''')
 
       template('testProperties', body: '''
   @${c.name('Test')}
@@ -62,11 +62,12 @@ ${macros.generate('metaAtrributesProp', c)}
   
   void $prop.setter;<% } } %>''')
 
-      template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable) { %>
-
+      template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable) {%>
+  @Override
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
-  }<% } } %>''')
+  }
+<% } } %>''')
 
       template('defaultConstructor', body:'''
   public $className() {
@@ -113,8 +114,7 @@ ${macros.generate('ifcMethods', c)}
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${c.item.jpaConstants} 
-  ${macros.generate('propsMember', c)}
+  ${c.item.jpaConstants} ${macros.generate('propsMember', c)}
   ${macros.generate('baseConstructor', c)}
   ${macros.generate('propsGetter', c)}
   ${macros.generate('propsSetter', c)}

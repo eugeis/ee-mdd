@@ -23,4 +23,6 @@ package ee.mdd.model.component
  */
 class Entity extends DataType {
   Prop idProp
+  boolean manualId = false
+  String idGeneratorName
 }

@@ -15,10 +15,6 @@
  */
 package ee.mdd.templates.java
 
-import javafx.beans.binding.*
-import javafx.beans.property.*
-import javafx.collections.*
-import javafx.scene.control.*
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.Context
 import ee.mdd.model.Element
@@ -38,6 +34,8 @@ import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
+
+
 
 /**
  *
@@ -384,30 +382,46 @@ class EnhancerForJava {
         properties[key]
       }
 
-      metasForProp << { Context c ->
-        def key = System.identityHashCode(delegate) + 'metasForProp'
-        if(!properties.containsKey(key)) {
-          ModelBuilder builder = c.item.component.builder
-          def metasForProp = []
-          if(delegate.primaryKey == true) {
-            def column = builder.meta(type: 'Column', value: [:])
-            column.value['name'] = "\"${delegate.underscored}\""
-            metasForProp << column
-            metasForProp << builder.meta(type: 'Id')
-          }
-          properties[key] = metasForProp
-        }
-        properties[key]
-      }
+      //      metasForProp << { Context c ->
+      //        def key = System.identityHashCode(delegate) + 'metasForProp'
+      //        if(!properties.containsKey(key)) {
+      //          ModelBuilder builder = c.item.component.builder
+      //          def metasForProp = []
+      //          c.propMeta = true
+      //          if(delegate.primaryKey == true) {
+      //            def column = builder.meta(type: 'Column', value: [:])
+      //            column.value['name'] = "\"${delegate.underscored}\""
+      //            metasForProp << column
+      //            metasForProp << builder.meta(type: 'Id')
+      //          }
+      //          properties[key] = metasForProp
+      //        }
+      //        properties[key]
+      //      }
 
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
         if(!properties.containsKey(key)) {
+          ModelBuilder builder = c.item.component.builder
+          def prop = delegate
           def propMapping = []
-          if(delegate.type instanceof Entity) {
-            propMapping = delegate.entityPropMapping(c)
+          c.propMeta = true
+          if(!c.item.virtual && delegate.primaryKey) {
+            propMapping << builder.meta(type: 'Column', value: ['name':"\"$prop.sqlName\""])
+            propMapping << builder.meta(type: 'Id')
+            if(!c.item.manualId) {
+              def generator = c.item.idGeneratorName
+              if(!generator) {
+                //TODO module key name
+                generator = "${c.item.module.key}_${c.item.sqlName}_SEQ"
+              }
+              propMapping << builder.meta(type: 'GeneratedValue', value: ['strategy':"${c.name('GenerationType')}"+'.TABLE', 'generator':"\"$generator\""])
+              propMapping << builder.meta(type: 'TableGenerator', value: ['name':"\"$generator\"", 'table':"\"SEQUENCER\""])
+            }
+          } else if(delegate.type instanceof Entity) {
+            propMapping.addAll(delegate.entityPropMapping(c))
           } else {
-            propMapping = delegate.jpaPropMapping(c)
+            propMapping.addAll(delegate.jpaPropMapping(c))
           }
           properties[key] = propMapping
         }
@@ -644,7 +658,12 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'annotation'
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
-          def ret = "@${c.name(delegate.type)}"
+          def ret = ''
+          if(c.propMeta) {
+            ret = "  @${c.name(delegate.type)}"
+          } else {
+            ret = "@${c.name(delegate.type)}"
+          }
           if(delegate.multi && delegate.value) {
             ret += '({'
             ret += delegate.value.collect { '\n    '+it.annotation(c) }.join(', ')
