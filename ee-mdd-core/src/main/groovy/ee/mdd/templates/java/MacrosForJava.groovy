@@ -113,11 +113,8 @@ ${macros.generate('ifcMethods', c)}
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
-  private static final long serialVersionUID = 1L;<% } %>
-  ${c.item.jpaConstants} ${macros.generate('propsMember', c)}
-  ${macros.generate('baseConstructor', c)}
-  ${macros.generate('propsGetter', c)}
-  ${macros.generate('propsSetter', c)}
+  private static final long serialVersionUID = 1L;<% } %><% if(!c.virtual) {  %>
+  ${c.item.jpaConstants} <% } %>${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
       template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}

@@ -98,16 +98,15 @@ class EnhancerForJava {
             namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
           }
           metasForEntity << namedQueries
-
-          def table = builder.meta(type: 'Table', value: [:])
-          table.value['name'] = c.className+'.TABLE'
-          def indexes = entity.indexesForMeta(c)
-          if(indexes != null) {
-            table.value['indexes'] = indexes
+          if(!delegate.virtual) {
+            def table = builder.meta(type: 'Table', value: [:])
+            table.value['name'] = c.className+'.TABLE'
+            def indexes = entity.indexesForMeta(c)
+            if(indexes != null) {
+              table.value['indexes'] = indexes
+            }
+            metasForEntity << table
           }
-
-          metasForEntity << table
-
           properties[key] = metasForEntity
         }
         properties[key]
