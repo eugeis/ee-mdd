@@ -382,23 +382,6 @@ class EnhancerForJava {
         properties[key]
       }
 
-      //      metasForProp << { Context c ->
-      //        def key = System.identityHashCode(delegate) + 'metasForProp'
-      //        if(!properties.containsKey(key)) {
-      //          ModelBuilder builder = c.item.component.builder
-      //          def metasForProp = []
-      //          c.propMeta = true
-      //          if(delegate.primaryKey == true) {
-      //            def column = builder.meta(type: 'Column', value: [:])
-      //            column.value['name'] = "\"${delegate.underscored}\""
-      //            metasForProp << column
-      //            metasForProp << builder.meta(type: 'Id')
-      //          }
-      //          properties[key] = metasForProp
-      //        }
-      //        properties[key]
-      //      }
-
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
         if(!properties.containsKey(key)) {
@@ -412,8 +395,7 @@ class EnhancerForJava {
             if(!c.item.manualId) {
               def generator = c.item.idGeneratorName
               if(!generator) {
-                //TODO module key name
-                generator = "${c.item.module.key}_${c.item.sqlName}_SEQ"
+                generator = "${c.item.model.key.toUpperCase()}_${c.item.sqlName}_SEQ"
               }
               propMapping << builder.meta(type: 'GeneratedValue', value: ['strategy':"${c.name('GenerationType')}"+'.TABLE', 'generator':"\"$generator\""])
               propMapping << builder.meta(type: 'TableGenerator', value: ['name':"\"$generator\"", 'table':"\"SEQUENCER\""])
