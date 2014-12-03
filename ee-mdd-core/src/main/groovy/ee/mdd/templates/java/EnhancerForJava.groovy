@@ -37,6 +37,7 @@ import ee.mdd.model.component.Prop
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -84,21 +85,24 @@ class EnhancerForJava {
           Entity entity = delegate
           ModelBuilder builder = entity.component.builder
           def metasForEntity = []
-          metasForEntity << builder.meta(type: 'Entity')
           if(entity.metas) {
             metasForEntity.addAll(entity.metas)
           }
-
-          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
-
-          if(entity.manager && entity.manager.operations) {
-            namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+          if(entity.base || entity.virtual) {
+            metasForEntity << builder.meta(type: 'MappedSuperclass')
+          } else {
+            metasForEntity << builder.meta(type: 'Entity')
           }
-          metasForEntity << namedQueries
-          if(!delegate.virtual) {
+          if(!entity.virtual) {
+            def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
+
+            if(entity.manager && entity.manager.operations) {
+              namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
+              namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
+              namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
+              namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+            }
+            metasForEntity << namedQueries
             def table = builder.meta(type: 'Table', value: [:])
             table.value['name'] = c.className+'.TABLE'
             def indexes = entity.indexesForMeta(c)
@@ -153,8 +157,7 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getJpaConstants << {
-        ->
+      jpaConstants << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaConstants'
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
@@ -165,7 +168,7 @@ class EnhancerForJava {
           }
           ret += newLine
           delegate.props.each { prop ->
-            if(!delegate.virtual || (delegate.virtual && !prop.multi)) {
+            if(!delegate.virtual || !prop.multi) {
               ret += "  public static final String COLUMN_${prop.underscored} = \"${prop.sqlName}\";"+newLine
             }
           }
@@ -455,20 +458,20 @@ class EnhancerForJava {
                 association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL']
               }
               def joinTable = builder.meta(type: 'JoinTable', value: [:])
-              joinTable.value['name'] =  "${currentParent.sqlName}_${prop.sqlName}"
+              joinTable.value['name'] =  "\"${currentParent.sqlName}_${prop.sqlName}\""
               if(prop.type) {
                 def invJoinColumn = builder.meta(type: 'JoinColumn')
-                invJoinColumn.value = ['name' : "${prop.type.sqlName}_ID"]
+                invJoinColumn.value = ['name' : "\"${prop.type.sqlName}_ID\""]
                 joinTable.value['inverseJoinColumns'] = invJoinColumn.annotation(c)
               }
               def joinColumn = builder.meta(type: 'JoinColumn')
-              joinColumn.value = ['name' : "${currentParent.sqlName}_ID"]
-              joinTable.value['joinColums'] = joinColumn.annotation(c)
+              joinColumn.value = ['name' : "\"${currentParent.sqlName}_ID\""]
+              joinTable.value['joinColumns'] = joinColumn.annotation(c)
               metas << joinTable
             } else {
               association = builder.meta(type: 'ManyToOne')
               def joinColumn = builder.meta(type: 'JoinColumn')
-              joinColumn.value = ['name' : 'COLUMN_${prop.underscored}']
+              joinColumn.value = ['name' : "\"COLUMN_${prop.underscored}\""]
               metas << joinColumn
             }
             metas << association
@@ -512,7 +515,7 @@ class EnhancerForJava {
             def joinColum = builder.meta(type: 'JoinColumn', value: ['name' : "\"${currentParent.sqlName}_ID\""])
             metas << builder.meta(type: 'CollectionTable', value: ['name' : "\"${currentParent.sqlName}_${prop.sqlName}\"", 'joinColumns' : "${joinColum.annotation(c)}"])
           } else if (!(prop.type instanceof BasicType)) {
-            metas << builder.meta(type:'Column', value: ['name' : "COLUMN_${prop.underscored}"])
+            metas << builder.meta(type:'Column', value: ['name' : "\"COLUMN_${prop.underscored}\""])
           }
           properties[key] = metas
         }

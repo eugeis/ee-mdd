@@ -88,7 +88,7 @@ class ModelBuilderExample {
                     param(prop: 'closed')
                   }
 
-                  op('hello', ret: 'String') {
+                  op('hello', body: '#testBody') {
                     param('Test', type: 'String')
                     param('counter', type: 'int')
                   }

@@ -34,6 +34,6 @@ class Jpa extends Facet {
       'Embedded' : 'javax.persistence', 'Lob' : 'javax.persistence', 'ElementCollection' : 'javax.persistence',
       'CollectionTable' : 'javax.persistence', 'CascadeType' : 'javax.persistence', 'FetchType' : 'javax.persistence',
       'TemporalType' : 'javax.persistence', 'GenerationType' : 'javax.persistence', 'TableGenerator' : 'javax.persistence',
-      'GeneratedValue' : 'javax.persistence']
+      'GeneratedValue' : 'javax.persistence', 'MappedSuperclass' : 'javax.persistence']
   }
 }

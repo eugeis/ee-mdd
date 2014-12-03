@@ -41,8 +41,8 @@ class MacrosForJava {
 
   ${c.name(prop.type)} $prop.getter;<% } } %>''')
 
-      template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%>
-  @Override
+      template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%><% if(!c.enumType) { %>
+  @Override<% } %>
   public ${c.name(prop.type)} $prop.getter {
     return $prop.uncap; 
   }
@@ -88,41 +88,46 @@ class MacrosForJava {
 
       template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
 
-private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
-      this.$it.prop.uncap = $it.value;<% } else { %>
-      this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
-    }<% } %>''')
+  private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
+    this.$it.prop.uncap = $it.value;<% } else { %>
+    this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
+  }<% } %>
+''')
 
-      template('methods', body: '''<% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
-  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}) {
+      template('methods', body: '''
+  @Override
+  <% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
+  public ${op.ret.cap}<% } else { %>public void <% } %>$op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}) {
   ${op.resolveBody(c)}
-  }<% } } %> ''')
+  }<% } %> ''')
 
-      template('ifcMethods', body: '''<% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
-  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}); 
-<% } } %>''')
+      template('ifcMethods', body: '''
+  
+  <% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
+  public ${op.ret.cap}<% } else { %>public void <% } %>$op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}); 
+<% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
 }''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
-public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
-${macros.generate('ifcMethods', c)}
+public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> { <% if (item.superUnit) { %>
+${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
 }''')
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
-  private static final long serialVersionUID = 1L;<% } %><% if(!c.virtual) {  %>
-  ${c.item.jpaConstants} <% } %>${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
+  private static final long serialVersionUID = 1L;<% } %>
+  ${c.item.jpaConstants(c)}${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+      template('implExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${c.item.jpaConstants}
+  ${c.item.jpaConstants(c)}
   ${macros.generate('superConstructor', c)}
-  
+  ${macros.generate('methods', c)}
 }''')
 
       template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -172,7 +177,6 @@ public class $c.className {
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
   $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
-  
   public boolean $lit.is {
     return this == $lit.underscored; 
   }<% } %>
@@ -186,12 +190,11 @@ $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
-      template('testBody', body: '''int count = 10;
-  while (count!=0) {
-    System.out.println(count+"...");
-    count--;
+      template('testBody', body: '''while (counter!=0) {
+    System.out.println(counter+"...");
+    counter--;
   }
-  System.out.println("BOOM");''')
+  System.out.println(test);''')
     }
   }
 }
