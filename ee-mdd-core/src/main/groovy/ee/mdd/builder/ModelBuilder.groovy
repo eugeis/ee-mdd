@@ -78,7 +78,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
   def facet = new CompositeFactory(beanClass: Facet, childFactories: ['extType'])
   def su = new CompositeFactory(beanClass: StructureUnit, childFactories: ['facet', 'extType', 'namespace'])
-  def commands = new CompositeFactory(beanClass: Command, childFactories: ['create', 'delete'], parent: controller)
+  def commands = new CompositeFactory(beanClass: Command, childFactories: ['create', 'delete', 'update'], parent: controller)
   def component = new CompositeFactory(beanClass: Component, childFactories: ['module'], parent: su)
   def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   def config = new CompositeFactory(beanClass: Config, parent: dataType)

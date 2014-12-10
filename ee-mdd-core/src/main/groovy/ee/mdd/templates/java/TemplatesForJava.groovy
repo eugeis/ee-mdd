@@ -24,6 +24,7 @@ import ee.mdd.model.component.Service
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -74,6 +75,12 @@ class TemplatesForJava {
         template('testEnumExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
       }
 
+      //      items('basicType',
+      //      query: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
+      //      before: { c -> def basicType = c-item; c.putAll( [component: basicType.component, module: basicType.module, basicType: basicType] ) } ) {
+      //
+      //        template('basicType', body: '''<% c.className = item.n.cap %>''')
+      //      }
 
       //logic
       items ('logicApi',
