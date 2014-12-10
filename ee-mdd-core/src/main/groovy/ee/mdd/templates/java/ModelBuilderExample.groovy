@@ -20,6 +20,7 @@ import ee.mdd.model.component.Model
 
 
 
+
 class ModelBuilderExample {
 
   void testComponentChildren() {
@@ -56,13 +57,28 @@ class ModelBuilderExample {
                   lit('Closed', body: '2')
                 }
 
+                enumType('AreaLocation',
+                description: '''Definition where an area is located see chapter 347''') {
+                  lit('BothSides')
+                  lit('LeftSide')
+                  lit('OnTrack')
+                  lit('RightSide')
+                }
+
+
+                basicType('Coordinate',
+                description: '''The coordinates of the item in the internal planning tool for the topography''') {
+                  prop('x', type: 'Long', description: '''The xvalue of this location''')
+                  prop('y', type: 'Long', description: '''The yvalue of this location ''')
+                }
+
                 entity('UmEntity', virtual: true, meta: [
                   'ApplicationScoped'
                 ]) {
 
                 }
 
-                entity('Element', virtual: true,
+                entity('Element',
                 description: '''An element can be any general topological item which can be identified by a a topological Id and a name An Element can be assigned a ControlArea''') {
                   prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true)
                   //                  prop('controlArea', description: '''The assigned ControlArea for this Element''')
@@ -73,14 +89,16 @@ class ModelBuilderExample {
                   //
                   //                  //                  cache {}
                   //
-                  manager {
+                  commands {
                     delete { param(prop: 'topologyId') }
+                  }
+
+                  finder {
                     exist {  param(prop: 'shortName')  }
                     exist {  param(prop: 'topologyId')  }
                     //                    //                    findBy(unique: true) {  param(prop: 'longName')  }
                     findBy {  param(prop: 'shortName')  }
                     findBy {  param(prop: 'topologyId') }
-                    //                    //                    findBy {  param(prop: 'topologyId', multi: true)  }
                   }
                 }
 
@@ -89,6 +107,10 @@ class ModelBuilderExample {
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)
                   prop('dateOfCreation', type: 'Date')
+
+                  commands {
+                    delete { param(prop: 'dateOfCreation') }
+                  }
                 }
 
                 entity('Task', attributeChangeFlag: true) {
@@ -121,15 +143,17 @@ class ModelBuilderExample {
                     'created'
                   ])
 
-                  manager {
+                  finder {
                     findBy { param(prop: 'comment' ) }
                     count { param(prop: 'created') }
                     exist {
                       param(prop: 'created')
                       param(prop: 'closed')
                     }
-                    delete { param(prop: 'closed') }
+                  }
 
+                  commands {
+                    delete { param(prop: 'closed') }
                   }
                 }
               }

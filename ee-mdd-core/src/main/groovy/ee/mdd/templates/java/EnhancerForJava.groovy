@@ -21,6 +21,7 @@ import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.Command
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
@@ -28,12 +29,13 @@ import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Exist
 import ee.mdd.model.component.Find
+import ee.mdd.model.component.Finder
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
-import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
+
 
 
 
@@ -96,12 +98,15 @@ class EnhancerForJava {
           if(!entity.virtual) {
             def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
 
-            if(entity.manager && entity.manager.operations) {
-              namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
-              namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
-              namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
-              namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+            if(entity.finders) {
+              namedQueries.value.addAll(entity.finders.finderNamedQuery(c))
+              namedQueries.value.addAll(entity.finders.counterNamedQuery(c))
+              namedQueries.value.addAll(entity.finders.existerNamedQuery(c))
             }
+            if(entity.deleters) {
+              namedQueries.value.addAll(entity.commands.deleterNamedQuery(c))
+            }
+            //            }
             metasForEntity << namedQueries
             def table = builder.meta(type: 'Table', value: [:])
             table.value['name'] = c.className+'.TABLE'
@@ -162,7 +167,9 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
           def ret = newLine
-          def manager = delegate.manager
+          def finder = delegate.finders
+          def commands = delegate.commands
+
           if(!delegate.virtual) {
             ret = "public static final String TABLE = \"${delegate.sqlName}\";"+newLine
           }
@@ -173,27 +180,29 @@ class EnhancerForJava {
             }
           }
           ret += newLine
-          if(manager && !delegate.virtual) {
-            if(manager.finders != null) {
-              manager.finders.each {
+          if(finder && !delegate.virtual) {
+            if(finder.finders != null) {
+              finder.finders.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
             }
-            if(manager.counters != null) {
-              manager.counters.each {
+            if(finder.counters != null) {
+              finder.counters.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
             }
-            if(manager.exists != null) {
-              manager.exists.each {
+            if(finder.exists != null) {
+              finder.exists.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
             }
-            if(manager.deleters != null) {
-              manager.deleters.each {
+          }
+          if(commands && !delegate.virtual) {
+            if(commands.deleters != null) {
+              commands.deleters.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
@@ -224,7 +233,25 @@ class EnhancerForJava {
       }
     }
 
-    Manager.metaClass {
+    Command.metaClass {
+
+      deleterNamedQuery << { Context c ->
+        if(delegate.deleters != null) {
+          def deleterQueries = []
+          ModelBuilder builder = c.item.component.builder
+          delegate.deleters.each { deleter ->
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.className+'.'+deleter.operationName
+            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
+            deleterQueries << namedQuery
+          }
+          deleterQueries
+        }
+      }
+
+    }
+
+    Finder.metaClass {
 
       finderNamedQuery << { Context c ->
         if(delegate.finders != null) {
@@ -268,19 +295,6 @@ class EnhancerForJava {
         }
       }
 
-      deleterNamedQuery << { Context c ->
-        if(delegate.deleters != null) {
-          def deleterQueries = []
-          ModelBuilder builder = c.item.component.builder
-          delegate.deleters.each { deleter ->
-            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.className+'.'+deleter.operationName
-            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
-            deleterQueries << namedQuery
-          }
-          deleterQueries
-        }
-      }
     }
 
     DataTypeOperation.metaClass {

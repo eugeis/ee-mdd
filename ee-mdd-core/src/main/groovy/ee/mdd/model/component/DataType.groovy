@@ -22,11 +22,16 @@ package ee.mdd.model.component
  * @author Niklas Cappelmann
  */
 class DataType extends CompilationUnit {
-  Manager manager
+  Finder finders
+  Command commands
   List<Index> indexes
 
-  def add(Manager item) {
-    manager = super.add(item)
+  def add(Finder item) {
+    finders = super.add(item)
+  }
+
+  def add(Command item) {
+    commands = super.add(item)
   }
 
   def add(Index item) {
