@@ -174,8 +174,8 @@ public class $c.className {
  ''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
-  $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } %>
+public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
+  $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
   public boolean $lit.is {
     return this == $lit.underscored; 

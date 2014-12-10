@@ -55,7 +55,7 @@ class EnhancerForJava {
     ExpandoMetaClass.enableGlobally()
 
     def properties = Collections.synchronizedMap([:])
-    Map<String, String> typeToTestValue = [String: '\"TestString\"', Long: 'Long.value(1)', long: '1L',
+    Map<String, String> typeToTestValue = [String: '\"TestString\"', Long: 'Long.valueOf(1)', long: '1L',
       Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
