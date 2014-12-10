@@ -95,16 +95,16 @@ class MacrosForJava {
 ''')
 
       template('methods', body: '''
+  <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) { %>
   @Override
-  <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
-  public ${op.ret.cap}<%} else {%>  public void<% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
+  public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
   ${op.resolveBody(c)}
   }<% } %> ''')
 
       template('ifcMethods', body: '''
   
   <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
-  public ${op.ret.cap}<%} else {%>  public void<% } %>$op.cap(<% op.params.each { ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}); 
+  public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}); 
 <% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -118,16 +118,16 @@ ${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}<%
 
       template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
-  private static final long serialVersionUID = 1L;<% } %>
+  private static final long serialVersionUID = 1L;<% } %><%if(c.item.attributeChangeFlag) { %>
+  @${c.name('Transient')}
+  private transient boolean attributesChanged = false;<% } %>
   ${c.item.jpaConstants(c)}${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
 }''')
 
       template('implExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${c.item.jpaConstants(c)}
-  ${macros.generate('superConstructor', c)}
-  ${macros.generate('methods', c)}
+  ${c.item.jpaConstants(c)}${macros.generate('superConstructor', c)}${macros.generate('methods', c)}
 }''')
 
       template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -161,14 +161,14 @@ public class $c.className {
   
   @${c.name('Test')}
   public void testVal() { <% item.literals.each { lit -> lastLit = lit.cap %><% item.props.each { prop -> %>
-      ${c.name('assertNotNull')}(TaskStatus.${lit.underscored}.get${prop.cap}());    <% } } %>
+      ${c.name('assertNotNull')}($c.item.cap.${lit.underscored}.get${prop.cap}());    <% } } %>
   }
 
   @${c.name('Test')}
   public void testIsLiteral() { <% item.literals.eachWithIndex { lit, i -> %>
-    ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
-    ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
-    ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
+    ${c.name('assertTrue')}($c.item.cap.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
+    ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
+    ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }
  ''')

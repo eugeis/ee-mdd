@@ -91,7 +91,7 @@ class ModelBuilderExample {
                   prop('dateOfCreation', type: 'Date')
                 }
 
-                entity('Task') {
+                entity('Task', attributeChangeFlag: true) {
                   prop('id', type: 'Long', unique: true, primaryKey: true)
                   prop('comment', type: 'Comment', opposite: 'testTask')
                   prop('created', type: 'Date', unique: true)

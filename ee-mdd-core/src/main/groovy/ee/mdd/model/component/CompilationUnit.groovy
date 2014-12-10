@@ -25,6 +25,7 @@ class CompilationUnit extends Type {
   boolean virtual = false
   boolean base = false
   boolean singleton = false
+  boolean attributeChangeFlag = false
   CompilationUnit superUnit
   List<Prop> props
   List<Constructor> constructors
