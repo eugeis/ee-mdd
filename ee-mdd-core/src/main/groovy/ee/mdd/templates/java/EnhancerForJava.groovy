@@ -146,16 +146,16 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getSqlName << {
-        ->
-        def key = System.identityHashCode(delegate) + 'sqlName'
-        if(!properties.containsKey(key)) {
-          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-          ret = ret.replaceAll(/(\w)\1+/, '$1')
-          properties[key] = ret
-        }
-        properties[key]
-      }
+      //      getSqlName << {
+      //        ->
+      //        def key = System.identityHashCode(delegate) + 'sqlName'
+      //        if(!properties.containsKey(key)) {
+      //          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+      //          ret = ret.replaceAll(/(\w)\1+/, '$1')
+      //          properties[key] = ret
+      //        }
+      //        properties[key]
+      //      }
 
       jpaConstants << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaConstants'
@@ -373,16 +373,16 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getSqlName << {
-        ->
-        def key = System.identityHashCode(delegate) + 'sqlName'
-        if(!properties.containsKey(key)) {
-          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-          ret = ret.replaceAll(/(\w)\1+/, '$1')
-          properties[key] = ret
-        }
-        properties[key]
-      }
+      //      getSqlName << {
+      //        ->
+      //        def key = System.identityHashCode(delegate) + 'sqlName'
+      //        if(!properties.containsKey(key)) {
+      //          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+      //          ret = ret.replaceAll(/(\w)\1+/, '$1')
+      //          properties[key] = ret
+      //        }
+      //        properties[key]
+      //      }
 
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'

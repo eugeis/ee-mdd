@@ -62,6 +62,29 @@ class ModelBuilderExample {
 
                 }
 
+                entity('Element', virtual: true,
+                description: '''An element can be any general topological item which can be identified by a a topological Id and a name An Element can be assigned a ControlArea''') {
+                  prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true)
+                  //                  prop('controlArea', description: '''The assigned ControlArea for this Element''')
+                  prop('longName', type: "String", index: true, description: '''Long name of the element''')
+                  prop('shortName', type: "String", hashCode: true, index: true, description: '''Short name of the element''')
+                  prop('topologyId', type: "int", sqlName: 'T_ID', hashCode: true, index: true, description: '''Unique Id assigned by engineering''')
+                  prop('type', type: 'Element', description: '''The type classification of the Element''')
+                  //
+                  //                  //                  cache {}
+                  //
+                  manager {
+                    delete { param(prop: 'topologyId') }
+                    exist {  param(prop: 'shortName')  }
+                    exist {  param(prop: 'topologyId')  }
+                    //                    //                    findBy(unique: true) {  param(prop: 'longName')  }
+                    findBy {  param(prop: 'shortName')  }
+                    findBy {  param(prop: 'topologyId') }
+                    //                    //                    findBy {  param(prop: 'topologyId', multi: true)  }
+                  }
+                }
+
+
                 entity('Comment', superUnit: 'UmEntity') {
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)

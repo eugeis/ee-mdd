@@ -22,11 +22,13 @@ import java.beans.Introspector
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Element {
   String name, desc
   Element parent
-  String uncap, cap, underscored
+  String uncap, cap, underscored, sqlName, description
+  boolean xml = true;
 
   def init() {
     this
@@ -78,6 +80,13 @@ class Element {
     if(underscored == null) {
       underscored = getName().replaceAll(/(\B[A-Z])/,'_$1').toUpperCase()
     }; underscored
+  }
+
+  String getSqlName() {
+    if(sqlName == null) {
+      sqlName = getUnderscored().replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+      sqlName = sqlName.replaceAll(/(\w)\1+/, '$1')
+    }; sqlName
   }
 
   String getReference() {

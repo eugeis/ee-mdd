@@ -96,15 +96,15 @@ class MacrosForJava {
 
       template('methods', body: '''
   @Override
-  <% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
-  public ${op.ret.cap}<% } else { %>public void <% } %>$op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}) {
+  <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
+  public ${op.ret.cap}<%} else {%>  public void<% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
   ${op.resolveBody(c)}
   }<% } %> ''')
 
       template('ifcMethods', body: '''
   
-  <% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
-  public ${op.ret.cap}<% } else { %>public void <% } %>$op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}); 
+  <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
+  public ${op.ret.cap}<%} else {%>  public void<% } %>$op.cap(<% op.params.each { ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}); 
 <% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
