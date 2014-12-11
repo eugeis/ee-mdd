@@ -81,6 +81,34 @@ class EnhancerForJava {
 
     Entity.metaClass {
 
+      jpaMetasForEntity << { Context c ->
+        def key = System.identityHashCode(delegate) + 'metasForEntity'
+        if(!properties.containsKey(key)) {
+          Entity entity = delegate
+          ModelBuilder builder = entity.component.builder
+          def jpaMetasForEntity = []
+          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
+          if(entity.finders) {
+            namedQueries.value.addAll(entity.finders.finderNamedQuery(c))
+            namedQueries.value.addAll(entity.finders.counterNamedQuery(c))
+            namedQueries.value.addAll(entity.finders.existerNamedQuery(c))
+          }
+          if(entity.deleters) {
+            namedQueries.value.addAll(entity.commands.deleterNamedQuery(c))
+          }
+          jpaMetasForEntity << namedQueries
+          def table = builder.meta(type: 'Table', value: [:])
+          table.value['name'] = c.className+'.TABLE'
+          def indexes = entity.indexesForMeta(c)
+          if(indexes != null) {
+            table.value['indexes'] = indexes
+          }
+          jpaMetasForEntity << table
+          properties[key] = jpaMetasForEntity
+        }
+        properties[key]
+      }
+
       metasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'metasForEntity'
         if(!properties.containsKey(key)) {
@@ -94,27 +122,6 @@ class EnhancerForJava {
             metasForEntity << builder.meta(type: 'MappedSuperclass')
           } else {
             metasForEntity << builder.meta(type: 'Entity')
-          }
-          if(!entity.virtual) {
-            def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
-
-            if(entity.finders) {
-              namedQueries.value.addAll(entity.finders.finderNamedQuery(c))
-              namedQueries.value.addAll(entity.finders.counterNamedQuery(c))
-              namedQueries.value.addAll(entity.finders.existerNamedQuery(c))
-            }
-            if(entity.deleters) {
-              namedQueries.value.addAll(entity.commands.deleterNamedQuery(c))
-            }
-            //            }
-            metasForEntity << namedQueries
-            def table = builder.meta(type: 'Table', value: [:])
-            table.value['name'] = c.className+'.TABLE'
-            def indexes = entity.indexesForMeta(c)
-            if(indexes != null) {
-              table.value['indexes'] = indexes
-            }
-            metasForEntity << table
           }
           properties[key] = metasForEntity
         }
@@ -416,9 +423,9 @@ class EnhancerForJava {
               propMapping << builder.meta(type: 'GeneratedValue', value: ['strategy':"${c.name('GenerationType')}"+'.TABLE', 'generator':"\"$generator\""])
               propMapping << builder.meta(type: 'TableGenerator', value: ['name':"\"$generator\"", 'table':"\"SEQUENCER\""])
             }
-          } else if(delegate.type instanceof Entity) {
+          } else if(c.jpa && delegate.type instanceof Entity) {
             propMapping.addAll(delegate.entityPropMapping(c))
-          } else {
+          } else if(c.jpa) {
             propMapping.addAll(delegate.jpaPropMapping(c))
           }
           properties[key] = propMapping
