@@ -72,7 +72,7 @@ class ModelBuilderExample {
                   prop('y', type: 'Long', description: '''The yvalue of this location ''')
                 }
 
-                entity('UmEntity', virtual: true, meta: [
+                entity('Um', virtual: true, meta: [
                   'ApplicationScoped'
                 ]) {
 
@@ -103,7 +103,8 @@ class ModelBuilderExample {
                 }
 
 
-                entity('Comment', superUnit: 'UmEntity') {
+                entity('Comment', superUnit: 'Um') {
+                  prop('id', type: 'Long',  unique: true, primaryKey: true)
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)
                   prop('dateOfCreation', type: 'Date')
@@ -114,7 +115,7 @@ class ModelBuilderExample {
                 }
 
                 entity('Task', attributeChangeFlag: true) {
-                  prop('id', type: 'Long', unique: true, primaryKey: true)
+                  prop('id', type: 'Long', primaryKey: true, unique: true)
                   prop('comment', type: 'Comment', opposite: 'testTask')
                   prop('created', type: 'Date', unique: true)
                   prop('closed', type: 'Date', index: true)

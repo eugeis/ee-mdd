@@ -77,12 +77,21 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      //      getMultiSuperProps << {
+      //        ->
+      //        def key = System.identityHashCode(delegate) + 'idProp'
+      //        if(!properties.containsKey(key)) {
+      //          def ret = delegate.superUnit ?
+      //        }
+      //      }
+
     }
 
     Entity.metaClass {
 
       jpaMetasForEntity << { Context c ->
-        def key = System.identityHashCode(delegate) + 'metasForEntity'
+        def key = System.identityHashCode(delegate) + 'jpaMetasforEntity'
         if(!properties.containsKey(key)) {
           Entity entity = delegate
           ModelBuilder builder = entity.component.builder
@@ -157,17 +166,6 @@ class EnhancerForJava {
         }
         properties[key]
       }
-
-      //      getSqlName << {
-      //        ->
-      //        def key = System.identityHashCode(delegate) + 'sqlName'
-      //        if(!properties.containsKey(key)) {
-      //          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-      //          ret = ret.replaceAll(/(\w)\1+/, '$1')
-      //          properties[key] = ret
-      //        }
-      //        properties[key]
-      //      }
 
       jpaConstants << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaConstants'
@@ -255,7 +253,6 @@ class EnhancerForJava {
           deleterQueries
         }
       }
-
     }
 
     Finder.metaClass {
@@ -301,7 +298,6 @@ class EnhancerForJava {
           existsQueries
         }
       }
-
     }
 
     DataTypeOperation.metaClass {
@@ -394,17 +390,6 @@ class EnhancerForJava {
         properties[key]
       }
 
-      //      getSqlName << {
-      //        ->
-      //        def key = System.identityHashCode(delegate) + 'sqlName'
-      //        if(!properties.containsKey(key)) {
-      //          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-      //          ret = ret.replaceAll(/(\w)\1+/, '$1')
-      //          properties[key] = ret
-      //        }
-      //        properties[key]
-      //      }
-
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
         if(!properties.containsKey(key)) {
@@ -423,9 +408,9 @@ class EnhancerForJava {
               propMapping << builder.meta(type: 'GeneratedValue', value: ['strategy':"${c.name('GenerationType')}"+'.TABLE', 'generator':"\"$generator\""])
               propMapping << builder.meta(type: 'TableGenerator', value: ['name':"\"$generator\"", 'table':"\"SEQUENCER\""])
             }
-          } else if(c.jpa && delegate.type instanceof Entity) {
+          } else if(c.subPkg == 'ejb' && delegate.type instanceof Entity) {
             propMapping.addAll(delegate.entityPropMapping(c))
-          } else if(c.jpa) {
+          } else if(c.subPkg == 'ejb') {
             propMapping.addAll(delegate.jpaPropMapping(c))
           }
           properties[key] = propMapping
@@ -503,7 +488,7 @@ class EnhancerForJava {
       }
 
       jpaPropMapping << { Context c ->
-        def key = System.identityHashCode(delegate) + 'entityPropMapping'
+        def key = System.identityHashCode(delegate) + 'jpaPropMapping'
         if(!properties.containsKey(key)) {
           ModelBuilder builder = c.item.component.builder
           String newLine = System.properties['line.separator']

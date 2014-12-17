@@ -61,13 +61,13 @@ class TemplatesForJava {
       //
       //      }
 
-      //      items('modelEjbEntity',
-      //      query: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
-      //
-      //        template('ejbEntity', body: '''<% c.base = true; c.className = item.n.cap.baseBean %>${macros.generate('ejbEntity' c)}''')
-      //        template('ejbEntityExtends', body: '''<% c.className = item.n.cap.bean %>${macros.generate('ejbEntityExtends', c)}''')
-      //    }
+      items('modelEjbEntity',
+      query: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+
+        template('ejbEntity', body: '''<% c.base = true; c.className = item.n.cap.entity %>${macros.generate('ejbEntity', c)}''')
+        //        template('ejbEntityExtends', body: '''<% c.className = item.n.cap.bean %>${macros.generate('ejbEntityExtends', c)}''')
+      }
 
       //      items('modelEjbBasicType',
       //      query: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },

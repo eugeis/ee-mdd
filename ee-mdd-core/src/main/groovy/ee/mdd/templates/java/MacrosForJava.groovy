@@ -35,7 +35,7 @@ class MacrosForJava {
   protected ${c.name(prop.type)} $prop.uncap;<% } %>
 ''')
 
-      template('jpaPropsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %><%if(c.jpa){%>${macros.generate('metaAtrributesProp', c)}<%}%>
+      template('jpaPropsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %>${macros.generate('metaAtrributesProp', c)}
   protected ${c.name(prop.type)} $prop.uncap;<% } %>
 ''')
 
@@ -129,9 +129,15 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-      //      template('ejbEntity', body: '''<% if(!c.className) { c.className = item.cap } %>
-      //
-      //''')
+      template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
+public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.item.cap} {
+  private static final long serialVersionUID = 1L;
+  <% if(c.item.attributeChangeFlag) {%>@Transient
+  private transient boolean attributesChanged = false;<% } %>
+  ${c.item.jpaConstants(c)}${macros.generate('jpaPropsMember', c)} 
+}''')
+
+
       //
       //      template('ejbEntityExtends', body: '''<% if(!c.className) { c.className = item.n.cap.bean
       //public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
@@ -199,6 +205,9 @@ public class $c.className {
 
       template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
+
+      template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+${ret-newLine}''')
 
       template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
