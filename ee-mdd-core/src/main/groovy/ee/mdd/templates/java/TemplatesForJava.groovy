@@ -108,7 +108,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
         template('ifc', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
+        template('ifcExtends', body: '''<% c.className = item.cap %> ${macros.generate('ifcExtends', c)}''')
       }
     }
   }

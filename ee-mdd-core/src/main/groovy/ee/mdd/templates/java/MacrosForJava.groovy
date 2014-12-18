@@ -68,8 +68,7 @@ class MacrosForJava {
   @Override
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
-  }
-<% } } %>''')
+  }<% } } %>''')
 
       template('defaultConstructor', body:'''
   public $className() {
@@ -96,38 +95,44 @@ class MacrosForJava {
   }<% } %>
 ''')
 
-      template('methods', body: '''
-  <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) { %>
+      template('methods', body: '''<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) { %>
+  
   @Override
-  public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
+  public ${op.ret.cap}<%} else {%>
+  @Override 
+  public void <% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
   ${op.resolveBody(c)}
   }<% } %> ''')
 
       template('ifcMethods', body: '''
   
-  <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
-  public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}); 
+<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
+public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+"${c.name(it.type)}"+' '+it.uncap}%>${ret-separator}); 
 <% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
-}''')
+}
+//ifc''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> { <% if (item.superUnit) { %>
 ${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
-}''')
+}
+//ifcExtends''')
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}
-}''')
+  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
+}
+//implEntity''')
 
       template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
 public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-}''')
+}
+//implEntityExtends''')
 
       template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.item.cap} {
@@ -135,7 +140,8 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
   ${c.item.jpaConstants(c)}${macros.generate('jpaPropsMember', c)} 
-}''')
+}
+//ejbEntity''')
 
 
       //
@@ -214,11 +220,12 @@ $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
-      template('testBody', body: '''while (counter!=0) {
-    System.out.println(counter+"...");
-    counter--;
-  }
-  System.out.println(test);''')
+      template('testBody', body: '''  int counter = countdown;
+    while (counter!=0) {
+      System.out.println(counter+"...");
+      counter--;
+    }
+    System.out.println(test);''')
     }
   }
 }

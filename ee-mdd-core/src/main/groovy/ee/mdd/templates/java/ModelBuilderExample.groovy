@@ -136,7 +136,7 @@ class ModelBuilderExample {
 
                   op('hello', body: '#testBody') {
                     param('Test', type: 'String')
-                    param('counter', type: 'int')
+                    param('countdown', type: 'int')
                   }
 
                   index( props: [
