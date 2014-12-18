@@ -15,9 +15,7 @@
  */
 package ee.mdd.model.component.java
 
-import java.util.Map;
-
-import ee.mdd.model.component.Facet;
+import ee.mdd.model.component.Facet
 
 /**
  *
@@ -25,26 +23,26 @@ import ee.mdd.model.component.Facet;
  */
 class CommonJava extends Facet {
 
-	def primitiveTypes = [
-		'int',
-		'long',
-		'float',
-		'double',
-		'boolean',
-		'Integer',
-		'Long',
-		'Float',
-		'Double',
-		'Boolean',
-		'String'
-	]
+  def primitiveTypes = [
+    'int',
+    'long',
+    'float',
+    'double',
+    'boolean',
+    'Integer',
+    'Long',
+    'Float',
+    'Double',
+    'Boolean',
+    'String'
+  ]
 
-	def init() {
-		primitiveTypes.each { n -> builder.extType(name: n) }
-		super.init();
-	}
+  def init() {
+    primitiveTypes.each { n -> builder.extType(name: n) }
+    super.init();
+  }
 
-	protected Map nameToNamespace() {
-		['Date': 'java.util', 'List' : 'java.util.List', 'Map' : 'java.util.Map', 'Set' : 'java.util.Set', 'Serializable': 'java.io']
-	}
+  protected Map nameToNamespace() {
+    ['Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util.Map', 'Set' : 'java.util.Set', 'Serializable': 'java.io']
+  }
 }

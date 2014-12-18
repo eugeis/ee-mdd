@@ -73,9 +73,8 @@ class ModelBuilderExample {
                 }
 
                 entity('Um', virtual: true, meta: [
-                  'ApplicationScoped'
                 ]) {
-
+                  prop('testMultiProp', type: 'Element', multi: true)
                 }
 
                 entity('Element',

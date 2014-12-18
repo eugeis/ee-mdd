@@ -40,6 +40,7 @@ import ee.mdd.model.component.Prop
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -78,14 +79,14 @@ class EnhancerForJava {
         properties[key]
       }
 
-      //      getMultiSuperProps << {
-      //        ->
-      //        def key = System.identityHashCode(delegate) + 'idProp'
-      //        if(!properties.containsKey(key)) {
-      //          def ret = delegate.superUnit ?
-      //        }
-      //      }
-
+      getMultiSuperProps << {
+        ->
+        def key = System.identityHashCode(delegate) + 'multiSuperProps'
+        if(!properties.containsKey(key)) {
+          def superUnit = delegate.superUnit
+          def ret = superUnit ? superUnit.props.findAll{ it.multi } : []
+        }
+      }
     }
 
     Entity.metaClass {
@@ -553,6 +554,20 @@ class EnhancerForJava {
         }
         index
       }
+
+      isEjbProp << { Context c ->
+        def key = System.identityHashCode(delegate) + 'isEjbProp'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          if(Entity.isInstance(prop.type) || BasicType.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
     }
 
     LogicUnit.metaClass {

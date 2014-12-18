@@ -39,6 +39,10 @@ class MacrosForJava {
   protected ${c.name(prop.type)} $prop.uncap;<% } %>
 ''')
 
+      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
+  protected<% if(prop.isEjbProp(c)) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } %>
+''')
+
       template('propsGetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
 
   ${c.name(prop.type)} $prop.getter;<% } } %>''')
@@ -135,11 +139,11 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
 //implEntityExtends''')
 
       template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
-public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.item.cap} {
+public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
-  ${c.item.jpaConstants(c)}${macros.generate('jpaPropsMember', c)} 
+  ${c.item.jpaConstants(c)}${macros.generate('jpaPropsMember', c)}${macros.generate('multiSuperProps', c)}
 }
 //ejbEntity''')
 
