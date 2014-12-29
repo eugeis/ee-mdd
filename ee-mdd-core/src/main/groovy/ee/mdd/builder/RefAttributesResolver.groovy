@@ -22,87 +22,101 @@ import ee.mdd.model.Element
  * @author Eugen Eisler
  */
 class RefAttributesResolver {
-  Set<String> duplicateReferences = [] as Set
-  Set<Class> globalTypes = [] as Set
-  Map<String, Element> refToResolved = [:]
-  Map<String, RefResolveHandler> refHolders = [:]
+	Set<String> duplicateReferences = [] as Set
+	Set<Class> globalTypes = [] as Set
+	Map<String, Element> refToResolved = [:]
+	Map<String, RefResolveHandler> refHolders = [:]
 
-  RefResolveHandler addGlobalResolver(String name, Class type, Closure converter = null, boolean multi = false) {
-    refHolders[name] = new RefGlobalResolveHandler( refToResolved: refToResolved, name: name, type: type, setter: setter(name, converter, multi))
-  }
+	RefResolveHandler addGlobalResolver(String name, Class type, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+		addResolver(new RefGlobalResolveHandler(refToResolved: refToResolved, name: name, type: type,
+		setter: setter(name, converter, multi, afterSetter)))
+	}
 
-  RefResolveHandler addParentResolver(String name, Class type, int depth = 0, Closure converter = null, boolean multi = false) {
-    refHolders[name] = new RefParentResolveHandler(name: name, type: type, depth: depth, setter: setter(name, converter, multi))
-  }
+	RefResolveHandler addParentResolver(String name, Class type, int depth = 0, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+		addResolver(new RefParentResolveHandler(name: name, type: type, depth: depth,
+		setter: setter(name, converter, multi, afterSetter)))
+	}
 
-  Closure setter(String name, Closure converter, boolean multi) {
-    def setter = multi ? { node, resolved -> node.add(converter ? converter(resolved) : resolved) } : { node, resolved -> node[name] = converter ? converter(resolved) : resolved }
-  }
+	Closure setter(String name, Closure converter, boolean multi, Closure afterSetter) {
+		def setter = multi ? { node, resolved ->
+			node.add(converter ? converter(resolved) : resolved); if(afterSetter) {
+				afterSetter(node, resolved)
+			}
+		} : { node, resolved ->
+			node[name] = converter ? converter(resolved) : resolved; if(afterSetter) {
+				afterSetter(node, resolved)
+			}
+		}
+	}
 
-  RefResolveHandler get(String name) {
-    refHolders.get(name)
-  }
+	RefResolveHandler addResolver(RefResolveHandler resolver) {
+		refHolders[resolver.name] = resolver
+	}
 
-  boolean addGlobalType(Class item) {
-    globalTypes.add(item)
-  }
+	RefResolveHandler get(String name) {
+		refHolders.get(name)
+	}
 
-  boolean addGlobalTypes(Collection<? extends Class> items) {
-    globalTypes.addAll(items)
-  }
+	boolean addGlobalType(Class item) {
+		globalTypes.add(item)
+	}
 
-  def attributteDelegate = { FactoryBuilderSupport builder, node, Map attributes ->
-    refHolders.each { name, RefResolveHandler ref ->
-      if (attributes.containsKey(name)) {
-        def parent = builder.parent
-        def refName = attributes[name]
-        if (isCollectionOrArray(refName)) {
-          refName.each {
-            ref.addResolveRequest(it, parent, node)
-          }
-        } else {
-          ref.addResolveRequest(refName, parent, node)
-        }
-      }
-    }
+	boolean addGlobalTypes(Collection<? extends Class> items) {
+		globalTypes.addAll(items)
+	}
 
-    refHolders.each { name, RefResolveHandler ref ->
-      attributes.remove(name)
-    }
-  }
+	def attributteDelegate = { FactoryBuilderSupport builder, node, Map attributes ->
+		refHolders.each { name, RefResolveHandler ref ->
+			if (attributes.containsKey(name)) {
+				def parent = builder.parent
+				def refName = attributes[name]
+				if (isCollectionOrArray(refName)) {
+					refName.each {
+						ref.addResolveRequest(it, parent, node)
+					}
+				} else {
+					ref.addResolveRequest(refName, parent, node)
+				}
+			}
+		}
 
-  boolean isCollectionOrArray(object) {
-    [Collection, Object[]].any { it.isAssignableFrom(object.getClass()) }
-  }
+		refHolders.each { name, RefResolveHandler ref ->
+			attributes.remove(name)
+		}
+	}
 
-  def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
-  }
+	boolean isCollectionOrArray(object) {
+		[Collection, Object[]].any { it.isAssignableFrom(object.getClass()) }
+	}
 
-  def postNodeCompletionDelegate = { FactoryBuilderSupport builder, Object parent, Object node ->
-    if (node instanceof Element) {
+	void printNotResolved() {
+		refHolders.each { name, RefResolveHandler handler ->
+			if(!handler.resolved) {
+				handler.printNotResolved()
+			}
+		}
+	}
 
-      def ref = node.reference
-      Class globalType = globalTypes.find { Class clazz -> clazz.isInstance(node) }
-      if(globalType && !duplicateReferences.contains(ref)) {
-        def old = refToResolved.put(ref, node)
-        if(old) {
-          refToResolved.remove(ref)
-          println "Duplicate global reference '$ref' first='$old' and second='$node', remove and ignore this reference."
-          duplicateReferences << ref
-        }
-      }
+	def postInstantiateDelegate = { FactoryBuilderSupport builder, Map attributes, Object node ->
+	}
 
-      refHolders.each { name, RefResolveHandler handler ->
-        handler.onElement(node)
-      }
-    }
+	def postNodeCompletionDelegate = { FactoryBuilderSupport builder, Object parent, Object node ->
+		if (node instanceof Element) {
 
-    if (parent == null) {
-      refHolders.each { name, RefResolveHandler handler ->
-        if(!handler.resolved) {
-          handler.printNotResolved()
-        }
-      }
-    }
-  }
+			def ref = node.reference
+			Class globalType = globalTypes.find { Class clazz -> clazz.isInstance(node) }
+			if(globalType && !duplicateReferences.contains(ref)) {
+				def old = refToResolved.put(ref, node)
+				if(old) {
+					refToResolved.remove(ref)
+					println "Duplicate global reference '$ref' first='$old' and second='$node', remove and ignore this reference."
+					duplicateReferences << ref
+				}
+			}
+
+			refHolders.each { name, RefResolveHandler handler ->
+				handler.onElement(node)
+			}
+		}
+	}
 }

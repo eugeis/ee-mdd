@@ -26,36 +26,43 @@ import ee.mdd.model.Composite
  * @author Eugen Eisler
  */
 class StructureUnit extends Composite implements BuilderAware {
-  ModelBuilder builder
-  String key
-  Namespace namespace
-  Names n
-  Map<String, Facet> facets = [:]
+	ModelBuilder builder
+	String key
+	Namespace namespace
+	Names n
+	Map<String, Facet> facets = [:]
 
-  def add(Facet child) {
-    facets[child.name] = super.add(child); child
-  }
+	def init() {
+		super.init()
+		if(namespace) {
+			namespace.init()
+		}
+	}
 
-  StructureUnit getSu() {
-    this
-  }
+	def add(Facet child) {
+		facets[child.name] = super.add(child); child
+	}
 
-  Namespace getNs() {
-    namespace ? namespace : parent.ns
-  }
+	StructureUnit getSu() {
+		this
+	}
 
-  Names getN() {
-    if (!n) {
-      n = new Names(key)
-    }
-    n
-  }
+	Namespace getNs() {
+		namespace ? namespace : parent.ns
+	}
 
-  Model getModel() {
-    parent ? parent.model : null
-  }
+	Names getN() {
+		if (!n) {
+			n = new Names(key)
+		}
+		n
+	}
 
-  def add(Namespace item) {
-    namespace = item
-  }
+	Model getModel() {
+		parent ? parent.model : null
+	}
+
+	def add(Namespace item) {
+		namespace = item
+	}
 }

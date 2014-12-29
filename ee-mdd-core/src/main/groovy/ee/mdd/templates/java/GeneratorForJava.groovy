@@ -48,6 +48,8 @@ class GeneratorForJava {
       d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
 
     //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
+	
+	builder.refAttrResolver.printNotResolved()
 
     def generator = TemplatesForJavaCg.build()
     def commonProcessorFactory = new CommonProcessorFactory()

@@ -31,22 +31,28 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop%>
-${macros.generate('metaAtrributesProp', c)}
-  protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
+      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %>
+  protected ${c.name(prop.type)} $prop.uncap;<% } %>
+''')
 
-      template('propsMemberJpa', body: '''<% item.props.each { prop -> %>
-  protected ${c.name(prop.type)} $prop.uncap;<% } %>''')
+      template('jpaPropsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %>${macros.generate('metaAtrributesProp', c)}
+  protected ${c.name(prop.type)} $prop.uncap;<% } %>
+''')
+
+      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
+  protected<% if(prop.isEjbProp(c)) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } %>
+''')
 
       template('propsGetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
 
   ${c.name(prop.type)} $prop.getter;<% } } %>''')
 
-      template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%>
-  
+      template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%><% if(!c.enumType) { %>
+  @Override<% } %>
   public ${c.name(prop.type)} $prop.getter {
     return $prop.uncap; 
-  }<% } } %>''')
+  }
+<% } } %>''')
 
       template('testProperties', body: '''
   @${c.name('Test')}
@@ -62,8 +68,8 @@ ${macros.generate('metaAtrributesProp', c)}
   
   void $prop.setter;<% } } %>''')
 
-      template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable) { %>
-
+      template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable) {%>
+  @Override
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
   }<% } } %>''')
@@ -88,40 +94,80 @@ ${macros.generate('metaAtrributesProp', c)}
       template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
 
   private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
-      this.$it.prop.uncap = $it.value;<% } else { %>
-      this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
-    }<% } %>''')
+    this.$it.prop.uncap = $it.value;<% } else { %>
+    this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
+  }<% } %>
+''')
 
-      template('methods', body: '''<% def seperator = ', '; String ret = ''; c.item.operations.each { op -> if (op.ret) { %>
-  public ${op.ret.cap} $op.uncap(<% op.params.each {ret += seperator+it.type.name+' '+it.uncap}%>${ret-seperator}) {
+      template('methods', body: '''<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) { %>
+  
+  @Override
+  public ${op.ret.cap}<%} else {%>
+  @Override 
+  public void <% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
   ${op.resolveBody(c)}
-  }<% } } %> ''')
+  }<% } %> ''')
+
+      template('ifcMethods', body: '''
+  
+<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
+public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+"${c.name(it.type)}"+' '+it.uncap}%>${ret-separator}); 
+<% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
-}''')
+}
+//ifc''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
-public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> {
-${macros.generate('methods', c)}
-}''')
+public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> { <% if (item.superUnit) { %>
+${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
+}
+//ifcExtends''')
 
-      template('impl', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
-public ${c.virtual ? 'abstract ' : ''}class $c.className implements ${c.name(c.item)} {<% if (c.serializable) { %>
+      template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${c.item.jpaConstants} 
-  ${macros.generate('propsMember', c)}
-  ${macros.generate('baseConstructor', c)}
-  ${macros.generate('propsGetter', c)}
-  ${macros.generate('propsSetter', c)}
-}''')
+  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
+}
+//implEntity''')
 
-      template('implExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
-public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+      template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
+public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${c.item.jpaConstants}
-  ${macros.generate('superConstructor', c)}
-  
+}
+//implEntityExtends''')
+
+      template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
+public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.name(c.item.cap)} {
+  private static final long serialVersionUID = 1L;
+  <% if(c.item.attributeChangeFlag) {%>@Transient
+  private transient boolean attributesChanged = false;<% } %>
+  ${c.item.jpaConstants(c)}${macros.generate('jpaPropsMember', c)}${macros.generate('multiSuperProps', c)}
+}
+//ejbEntity''')
+
+
+      //
+      //      template('ejbEntityExtends', body: '''<% if(!c.className) { c.className = item.n.cap.bean
+      //public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
+      //''')
+      //
+      //      template('implBasicType', body: '''
+      //''')
+      //
+      //      template('implBasicTypeExtends', body: '''
+      //''')
+
+
+
+      template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
+  $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
+  ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
+  public boolean $lit.is {
+    return this == $lit.underscored; 
+  }<% } %>
 }''')
 
       template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -155,42 +201,35 @@ public class $c.className {
   
   @${c.name('Test')}
   public void testVal() { <% item.literals.each { lit -> lastLit = lit.cap %><% item.props.each { prop -> %>
-      ${c.name('assertNotNull')}(TaskStatus.${lit.underscored}.get${prop.cap}());    <% } } %>
+      ${c.name('assertNotNull')}($c.item.cap.${lit.underscored}.get${prop.cap}());    <% } } %>
   }
 
   @${c.name('Test')}
   public void testIsLiteral() { <% item.literals.eachWithIndex { lit, i -> %>
-    ${c.name('assertTrue')}(TaskStatus.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
-    ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
-    ${c.name('assertFalse')}(TaskStatus.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
+    ${c.name('assertTrue')}($c.item.cap.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
+    ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
+    ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }
  ''')
 
-      template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %>
-  $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
-  
-  public boolean $lit.is {
-    return this == $lit.underscored; 
-  }<% } %>
-}''')
-
       template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
+
+      template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+${ret-newLine}''')
 
       template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
-      template('testBody', body: '''int count = 10;
-  while (count!=0) {
-    System.out.println(count+"...");
-    count--;
-  }
-  System.out.println("BOOM");''')
+      template('testBody', body: '''  int counter = countdown;
+    while (counter!=0) {
+      System.out.println(counter+"...");
+      counter--;
+    }
+    System.out.println(test);''')
     }
   }
 }

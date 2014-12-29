@@ -27,6 +27,11 @@ class LogicUnit extends Body {
   String paramsLogicName
 
   String deriveParamsLogicName() {
+    paramsLogicName = ''
+    params.each {
+      paramsLogicName += 'And'+it.cap
+    }
+    paramsLogicName -= 'And'
   }
 
   def add(Param child) {

@@ -1,0 +1,614 @@
+
+macros.header ='''/*
+ * Controlguide
+ * Copyright (c) Siemens AG 2013, All Rights Reserved, Confidential
+ */'''
+macros.guidoModulePrefix = '_guido'
+macros.guidWidgets = [:]
+macros.guidWidgets.Button = 'PushButton'
+macros.guidWidgets.ComboBox = 'TSRAStyleComboBox'
+macros.guidWidgets.CheckBox = 'CheckBox'
+macros.guidWidgets.DateField = 'TSRAStyleCalendarDatePickerWidget'
+macros.guidWidgets.Label = 'Label'
+macros.guidWidgets.Spinner = 'SpinBox'
+macros.guidWidgets.Table = 'TSRAStyleTable'
+macros.guidWidgets.TextField = 'TSRAStyleLineEdit'
+macros.guidWidgets.TimeField = 'TSRAStyleTimeEdit'
+macros.guidWidgets.GroupBoxHeader = 'TSRAStyleGroupBoxHeader'
+macros.guidoEvents = [:]
+macros.guidoEvents.Button = ['OnAction':'Clicked']
+macros.guidoEvents.ComboBox = ['OnSelect':'ActivatedIndex']
+macros.guidoEvents.CheckBox = ['OnToggle':'StateChanged']
+macros.guidoEvents.DateField = ['OnChange':'DateChanged']
+macros.guidoEvents.Spinner = ['OnChange':'ValueChanged']
+macros.guidoEvents.Table = ['OnSelect':'SelectionChanged']
+macros.guidoEvents.TextField = ['OnChange':'TextChanged']
+macros.guidoEvents.TimeField = ['OnChange':'TimeChanged']
+
+//applyable
+macros.importRefs = '''$item.imports<% item.refs.logicUnits.each { ref-> %>
+import ${ref.module().namespace}.${ref.namespace}.${ref.name};<% } %>
+import ${component.shared.namespaces.integ}.${component.names.qualifier};'''
+
+macros.propMembers = '''<% item.props.each { prop-> %>
+  protected $prop.computedType $prop.name<% if(prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if(prop.type == 'Long' || prop.type == 'long') { %>L<% } %><% } %>;<% } %>'''
+
+macros.propMethods = '''<% item.props.each { prop-> %>
+  <% if(prop.description) { %>
+  /*** $prop.description */<% } %><% if(override) { %>
+  @Override<% } %>
+  public $prop.computedType $prop.getter {
+    return $prop.name;
+  }
+  <% if(override) { %>
+  @Override<% } %>
+  public void set${prop.capName}($prop.computedType $prop.name) {
+    this.$prop.name = $prop.name;
+  }<% } %>'''
+
+macros.propsUpdate = '''<% if(override) { %>
+  @Override<% } %>
+  public void update($item.names.clazz $item.names.instance) {<% item.props.each { prop-> %>
+    $prop.setterMethodName($item.names.instance.$prop.getter);<% } %>
+  }'''
+
+  
+macros.implOperationsAndDelegates = '''<% item.operations.each { op -> if(op.body) { %>
+  <% if(override) { %>
+  @Override<% } %><% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $op.returnTypeExternal ${op.name}($op.signature) {
+    $op.body
+  }<% } } %><% item.refs.delegates.each { opRef -> def op = opRef.reference()?.op; if(op) { %>
+  <% if(override) { %>
+  @Override<% } %><% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $opRef.returnTypeExternal ${opRef.nameExternal}($opRef.signature) {<% if(op.void) { %>
+    ${op.parent.uncapName}.${op.name}($op.signatureNames);<% }else { %>
+    $opRef.returnTypeExternal ret = ${op.parent.uncapName}.${op.name}($op.signatureNames);
+    return ret;<% } %>
+  }<% } } %>'''
+
+macros.implOperations = '''<% item.operationsNotManager.each { op-> if(!op.body && !op.provided) { %>
+  @Override<% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $op.returnTypeExternal ${op.name}($op.signature) {
+    //TODO to implement<% if(op.typeBoolean) { %>
+    return false;<% } else if(!op.void) { %>
+    return null;<% } %>
+  }<% } } %>'''
+  
+macros.refsMembers = '''<% item.refs.logicUnits.each { ref-> %>
+  protected $ref.names.clazz $ref.names.instance;<% } %><% item.refs.containers.each { ref -> %>
+  protected $ref.names.clazz $ref.names.instance;<% } %>'''
+
+macros.implInjects = '''<% item.refs.logicUnits.each { ref-> def uncapName = ref.name.uncapitalize() %>
+
+  @Inject
+  public void set${ref.name}($ref.name $uncapName) {
+    this.$uncapName = $uncapName;
+  }<% } %><% item.refs.containers.each { ref -> %>
+
+  @Inject
+  public void set${ref.names.clazz}(@$component.names.qualifier $ref.names.clazz $ref.names.instance) {
+    this.$ref.names.instance = $ref.names.instance;
+  }<% } %>'''
+
+macros.interfaceBody = '''<% item.operations.each { op -> if(!op.override) { %>
+  ${op.description?"   /** $op.description */":''}<% if(op.transactional) { %>
+  @Transactional<% } %>
+  $op.returnTypeExternal ${op.name}($op.signature);<% } %><% } %><% item.refs.delegates.each { opRef-> def op = opRef.reference()?.op; if(op) { %>
+  ${opRef.description?"   /** $opRef.description */":''}<% if(op.transactional) { %>
+  @Transactional<% } %>
+  $opRef.returnTypeExternal ${opRef.nameExternal}($opRef.signature);<% } } %>'''
+
+macros.interfaceBodyExternal = '''<% item.operations.each { op -> %>
+    ${op.description?"   /** $op.description */":''}
+    $op.returnTypeExternal ${op.nameExternal}($op.signature);<% } %><% item.refs.delegates.each { opRef-> def op = opRef.reference()?.op; if(op) { %>
+    ${opRef.description?"   /** $opRef.description */":''}
+    $opRef.returnTypeExternal ${opRef.nameExternal}($opRef.signatureExternal);<% } %><% } %>'''
+  
+macros.cacheBaseImpl='''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.cache.impl;<% def superUnit = item.superUnit; def idProp = item.idProp; def manager = item.manager; def type = item.virtual?'E':item.names.clazz; def cacheSuper;
+if(!override) { 
+  if(superUnit) { cacheSuper = "$superUnit.cache.names.impl<$type>" } else if(idProp.typeRef.typeLong) { cacheSuper = "LongEntityCache<$type>" } else if(idProp.typeRef.typeInteger) { cacheSuper = "IntegerEntityCache<$type>" } else if(idProp.typeRef.typeString) { cacheSuper = "StringEntityCache<$type>" } else { cacheSuper = "CacheImpl<$idProp.type, $type>" }
+} else {
+  if(superUnit) { cacheSuper = "$superUnit.cache.names.override<$type>" } else if(idProp.typeRef.typeLong) { cacheSuper = "LongCacheOverride<$type>" } else if(idProp.typeRef.typeInteger) { cacheSuper = "IntegerCacheOverride<$type>" } else if(idProp.typeRef.typeString) { cacheSuper = "StringCacheOverride<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" }
+}
+%>
+import static com.siemens.ra.cg.pl.common.base.util.ComparisonUtils.*;
+$item.imports
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import com.siemens.ra.cg.pl.common.base.cache.Cache;<% if(!override) { %> 
+import com.siemens.ra.cg.pl.common.base.cache.CacheImpl;
+import com.siemens.ra.cg.pl.common.base.cache.IntegerEntityCache;
+import com.siemens.ra.cg.pl.common.base.cache.LongEntityCache;
+import com.siemens.ra.cg.pl.common.base.cache.StringEntityCache;<% } else { %>
+import com.siemens.ra.cg.pl.common.base.cache.CacheOverride;
+import com.siemens.ra.cg.pl.common.base.cache.IntegerCacheOverride;
+import com.siemens.ra.cg.pl.common.base.cache.LongCacheOverride;
+import com.siemens.ra.cg.pl.common.base.cache.StringCacheOverride;
+import com.siemens.ra.cg.pl.common.base.exception.IllegalAttributeException;<% } %>
+import ${destModule.namespace}.${item.namespace}.cache.$item.cache.names.clazz;
+import com.siemens.ra.cg.pl.common.base.ResolverSerializable;
+import ${destModule.namespace}.${item.namespace}.*;
+
+public abstract <% if(item.virtual) { %>class $className<E extends $item.names.clazz> extends $cacheSuper implements $item.cache.names.clazz<E><% } else { %>class $className extends $cacheSuper implements $item.cache.names.clazz<% } %> {
+  private static final long serialVersionUID = 1L;
+
+  public $className() {
+    super();
+  }<% if(manager) { manager.finders.each { op-> if(!op.originalParent) { %>
+
+  @Override
+  public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {
+    ${op.unique?"$type ret = null":"ArrayList<$type> ret = new ArrayList<>()"};<% if(!override) { %>
+    for (Map.Entry<$idProp.type, $type> entry : data.entrySet()) {<% } else { %>
+    for (Map.Entry<$idProp.type, $type> entry : merged().entrySet()) {<% } %>
+      $type entity = entry.getValue();
+      if (${op.propCompare}) {<% if(op.unique) { %>
+        ret = entity;
+        break;<% } else { %>
+        ret.add(entity);<% } %>
+      }
+    }
+    return ret;
+  }<% } } } %><% item.props.each { prop-> if(prop.typeEl && prop.manyToOne) { def relationIdProp = prop.typeEl.idProp %>
+  
+  @Override
+  public List<$type> findBy${prop.capName}${relationIdProp.capName}($relationIdProp.computedType ${prop.uncapName}${relationIdProp.capName}) {
+    ArrayList<$type> ret = new ArrayList<>();<% if(!override) { %>
+    for (Map.Entry<$idProp.type, $type> entry : data.entrySet()) {<% } else { %>
+    for (Map.Entry<$idProp.type, $type> entry : merged().entrySet()) {<% } %>
+      $type entity = entry.getValue();
+      if (areEquals(entity.get${prop.capName}${relationIdProp.capName}(), ${prop.uncapName}${relationIdProp.capName})) {
+        ret.add(entity);
+      }
+    }<% if(item.ordered) { %>
+    sort${item.capName}sByOrder(ret);<% } %>
+    return ret;
+  }
+
+  @Override
+  public List<$type> findBy${prop.capName}${relationIdProp.capName}s(List<$relationIdProp.computedType> ${prop.uncapName}${relationIdProp.capName}s) {
+    ArrayList<$type> ret = new ArrayList<>();
+    for($relationIdProp.computedType relationId : ${prop.uncapName}${relationIdProp.capName}s) {
+      ret.addAll(findBy${prop.capName}${relationIdProp.capName}(relationId));
+    }
+    return ret;
+  }<% } else if(prop.typeEl && prop.oneToOne) { def relationIdProp = prop.typeEl.idProp %>
+  
+  @Override
+  public $type findBy${prop.capName}${relationIdProp.capName}($relationIdProp.computedType ${prop.uncapName}${relationIdProp.capName}) {
+    $type ret = null;<% if(!override) { %>
+    for (Map.Entry<$idProp.type, $type> entry : data.entrySet()) {<% } else { %>
+    for (Map.Entry<$idProp.type, $type> entry : merged().entrySet()) {<% } %>
+      $type entity = entry.getValue();
+      if (areEquals(entity.get${prop.capName}${relationIdProp.capName}(), ${prop.uncapName}${relationIdProp.capName})) {
+        ret = entity;
+        break;
+      }
+    }
+    return ret;
+  }<% } } %><% if(!superUnit) { %>
+  
+  @Override
+  public List<$type> findNew() {
+    ArrayList<$type> ret = new ArrayList<>();<% if(!override) { %>
+    for (Map.Entry<$idProp.type, $type> entry : data.entrySet()) {<% } else { %>
+    for (Map.Entry<$idProp.type, $type> entry : merged().entrySet()) {<% } %>
+      $type entity = entry.getValue();
+      if (entity.$idProp.getter == null) {
+        ret.add(entity);
+      }
+    }
+    return ret;
+  }<% } %><% item.cache.operations.each { op-> if(op.body) { %>
+  
+  @Override<% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $op.returnType ${op.name}($op.signature) {
+    $op.body
+  }<% } %><% } %><% if(override && !item.virtual) { %>
+  
+  @Override
+  public $item.cache.names.clazz getParent() {
+    return ($item.cache.names.clazz) parent;
+  }
+
+  @Override
+  public void setParent(Cache<$idProp.type, $type> parent) {
+    if(parent != null) {
+      if(parent instanceof $item.cache.names.clazz) {
+        this.parent = parent;
+      } else {
+        throw new IllegalAttributeException("parent", "instance of '$item.cache.names.clazz'", parent.getClass().toString());
+      }
+    }
+  }<% } %><% if(item.ordered){ %>
+  
+  protected void sort${item.capName}sByOrder(List<$item.names.clazz> items) {
+    Collections.sort(items, new Comparator<$item.names.clazz>() {
+      @Override
+      public int compare($item.names.clazz o1, $item.names.clazz o2) {
+        return o1.getOrder().compareTo(o2.getOrder());
+      }
+    });
+  }<% } %> 
+}'''
+
+macros.cacheImpl = '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.cache.impl;
+$item.imports
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import com.siemens.ra.cg.pl.common.base.ResolverSerializable;
+import ${destModule.namespace}.${item.namespace}.*;
+
+/** Cache implementation for for {@link $item.name} */<% if(!override) { %>
+public <% if(item.virtual) { %>abstract class $className<E extends $item.names.clazz> extends ${item.cache.names.baseImpl}<E><% } else { %>class $className extends ${item.cache.names.baseImpl}<% } } else { %>
+public <% if(item.virtual) { %>abstract class $className<E extends $item.names.clazz> extends ${item.cache.names.overrideBase}<E><% } else { %>class $className extends ${item.cache.names.overrideBase}<% } } %> { 
+  private static final long serialVersionUID = 1L;
+
+  public $className() {
+    super();
+  }
+  ${macros.apply(name: 'implOperations', item: item.cache)}
+}'''
+
+macros.cacheTest = '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.cache.impl;
+
+import org.junit.Test;
+
+$item.imports
+import ${destModule.namespace}.${item.namespace}.*;
+<% if(override) { %>
+public <% if(item.virtual) { %>abstract class $className<E extends $item.names.clazz> extends ${item.cache.names.overrideTestBase}<E><% } else { %>class $className extends ${item.cache.names.overrideTestBase}<% } %> {
+<% } else { %>  
+public <% if(item.virtual) { %>abstract class $className<E extends $item.names.clazz> extends ${item.cache.names.testBase}<E><% } else { %>class $className extends ${item.cache.names.testBase}<% } %> {
+<% } %><% item.cache.operations.each { op -> %>
+  @Test
+  @Override
+  public void test${op.capName}() {
+  }<% } %>
+}'''
+
+macros.cacheTestBase =  '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.cache.impl;<% def superUnit = item.superUnit; def idProp = item.idProp; def idConverter; 
+  if (idProp.typeRef.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeRef.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' };
+  def manager = item.manager; def type = item.virtual?'E':item.names.clazz; def cacheSuper; 
+  if(!override) {  
+    if(item.virtual) {
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.test<$type>" } else { cacheSuper = "CacheTestBase<$idProp.type, $type>" }
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.test<$type>" } else if(idProp.typeRef.typeLong) { cacheSuper = "CacheTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeInteger) { cacheSuper = "CacheTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeString) { cacheSuper = "CacheTestBase<$idProp.type, $type>" } else { cacheSuper = "CacheTestBase<$idProp.type, $type>" }
+    } else {
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.test<$type>" } else { cacheSuper = "CacheTestBase<$idProp.type, $type>" }
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.test<$type>" } else if(idProp.typeRef.typeLong) { cacheSuper = "CacheTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeInteger) { cacheSuper = "CacheTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeString) { cacheSuper = "CacheTestBase<$idProp.type, $type>" } else { cacheSuper = "CacheTestBase<$idProp.type, $type>" }
+    }
+  } else {
+    if(item.virtual) {
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.overrideTest<$type>" } else { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" }
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.overrideTest<$type>" } else if(idProp.typeRef.typeLong) { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeInteger) { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeString) { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" } else { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" }
+    } else {
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.overrideTest<$type>" } else { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" }
+      if(superUnit) { cacheSuper = "$superUnit.cache.names.overrideTest<$type>" } else if(idProp.typeRef.typeLong) { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeInteger) { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" } else if(idProp.typeRef.typeString) { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" } else { cacheSuper = "CacheOverrideTestBase<$idProp.type, $type>" }
+    }
+  }
+%>
+
+import static com.siemens.ra.cg.pl.common.base.util.ComparisonUtils.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+$item.imports
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import ${destModule.namespace}.${item.namespace}.cache.impl.$item.cache.names.impl;
+import com.siemens.ra.cg.pl.common.base.cache.Cache;
+import com.siemens.ra.cg.pl.common.base.cache.CacheTestBase;
+import com.siemens.ra.cg.pl.common.base.cache.CacheOverrideTestBase;
+import ${destModule.namespaces.model}.${destModule.names.dataFactory}Base;
+import ${destModule.namespace}.${item.namespace}.*;<% if(module.facet('entityImpl')) { %>
+import ${destModule.namespaces.model}.impl.${destModule.names.dataFactory}Impl;
+import ${destModule.namespaces.model}.impl.${destModule.names.modelFactory}Impl;<% } else if(module.facet('jpa')) { %>
+import ${destModule.namespaces.model}.ejb.${destModule.names.dataFactory}Ejb;
+import ${destModule.namespaces.model}.ejb.${destModule.names.modelFactory}Ejb;<% } %>
+
+public abstract class <% if(item.virtual) { %>$className<E extends $item.names.clazz> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if(!item.virtual) { %>
+  protected static ${module.names.dataFactory}Base dataFactory;
+
+  @BeforeClass
+  public static void before$className() {
+    preparedCache = new $item.cache.names.impl();<% if(module.facet('entityImpl')) { %> 
+    dataFactory = new ${module.names.dataFactory}Impl(new ${module.names.modelFactory}Impl());<% } else if(module.facet('jpa')) { %>
+    dataFactory = new ${module.names.dataFactory}Ejb(new ${module.names.modelFactory}Ejb());<% } %>
+  }<% } %><% if(manager) { manager.finders.each { op-> if(!op.originalParent) { %>
+
+  @Test
+  public void test${op.capName}() {
+  }<% } } } %><% item.props.each { prop-> if(prop.typeEl && prop.manyToOne) { def relationIdProp = prop.typeEl.idProp %>
+  
+  @Test
+  public void testFindBy${prop.capName}${relationIdProp.capName}() {
+  }<% } else if(prop.typeEl && prop.oneToOne) { def relationIdProp = prop.typeEl.idProp %>
+  
+  @Test
+  public void testFindBy${prop.capName}${relationIdProp.capName}() {
+  }<% } } %><% if(!superUnit) { %>
+  
+  @Test
+  public void testFindNew() {
+  }<% } %><% if(!item.virtual) { %>
+
+  @Override
+  protected ${item.idProp.type} sampleEntityId(int entityNumber) {
+    return $idConverter;
+  }
+
+  @Override
+  protected $item.names.clazz entityForCreation(int entityNumber) {
+    ${item.names.clazz} ret = dataFactory.new${item.capName}(entityNumber);
+    return ret;
+  }<% } %><% item.cache.operations.each { op -> %>
+  
+  public abstract void test${op.capName}();<% } %>
+}'''
+
+macros.factory = '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.builder;
+
+import com.siemens.ra.cg.pl.common.base.Factory;
+import ${item.nameFull()};
+
+public interface $className extends Factory<$item.names.clazz> {
+}'''
+
+macros.factoryBase = '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.builder;
+
+import javax.enterprise.inject.Alternative;
+import com.siemens.ra.cg.pl.common.base.AbstractFactory;
+
+import ${item.nameFull()};
+
+@Alternative
+public abstract class $className extends AbstractFactory<$item.names.clazz> implements $item.names.factory {
+  
+  protected $className() {
+  }
+
+  protected $className(Class<? extends $item.names.clazz> type) {
+    super(type);
+  }
+
+  @Override
+  public $item.names.clazz copy($item.names.clazz from, $item.names.clazz to) {<% item.propsRecursive.each { prop-> if ((!prop.multi || prop.typeRef.typeBasicType) && !prop.typeRef.typeEntity) { %>
+    to.set${prop.capName}(from.${prop.getter});<% } else if(prop.typeRef.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.typeEl.idProp %>
+    to.set${prop.capName}${relationIdProp.capName}(from.get${prop.capName}${relationIdProp.capName}());<% } } %>
+    return to;
+  }
+}'''
+
+macros.factoryBean = '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.ejb.builder;
+
+import static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*;
+import static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*;
+
+import javax.enterprise.context.ApplicationScoped;
+
+import com.siemens.ra.cg.pl.common.base.cdi.env.Environment;
+import com.siemens.ra.cg.pl.common.base.cdi.env.SupportsEnvironments;
+
+import ${item.nameFull()};
+import ${item.nameFull('bean')};
+import ${destModule.namespace}.${item.namespace}.builder.${item.names.factory}Base;
+
+@ApplicationScoped
+@SupportsEnvironments({
+    @Environment(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends ${item.names.factory}Base {
+
+  public $className() {
+    super(${item.names.bean}.class);
+  }
+
+  @Override
+  public $item.names.clazz newInstance() {
+    return new ${item.names.bean}();
+  }
+}'''
+
+macros.factoryImpl = '''
+$macros.header
+package ${destModule.namespace}.${item.namespace}.impl.builder;
+
+import static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*;
+import static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*;
+
+import javax.enterprise.context.ApplicationScoped;
+
+import com.siemens.ra.cg.pl.common.base.cdi.env.Environment;
+import com.siemens.ra.cg.pl.common.base.cdi.env.SupportsEnvironments;
+
+import ${item.nameFull()};
+import ${item.nameFull('impl')};
+import ${destModule.namespace}.${item.namespace}.builder.${item.names.factory}Base;
+
+@ApplicationScoped
+@SupportsEnvironments({
+    @Environment(executions = { PRODUCTIVE }, runtimes = { CLIENT }) })
+public class $className extends ${item.names.factory}Base {
+
+  public $className() {
+    super(${item.names.impl}.class);
+  }
+
+  @Override
+  public $item.names.clazz newInstance() {
+    return new ${item.names.impl}();
+  }
+}'''
+
+macros.hashCodeAndEquals = '''<% if(item.propsForHashCode) { %>
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();<% item.propsForHashCode.each { prop-> %>
+    result = prime * result + <% if(prop.typeRef.primitive) { %>$prop.name;<% } else { %>(($prop.name == null) ? 0 : ${prop.name}.hashCode());<% } } %>
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;<% if(item.virtual) { %>
+    if (!super.equals(obj))
+      return false;<% } %>
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.propsForHashCode.each { prop-> if(!prop.typeRef.primitive) { %>
+    if (${prop.name} == null) {
+      if (other.${prop.name} != null)
+        return false;
+    } else if (!${prop.name}.equals(other.${prop.name}))
+      return false;<% } else { %>
+    if (${prop.name} != other.${prop.name})
+      return false;<% } %>
+    <% } %>
+    return true;
+  }<% } %>'''
+
+macros.hashCodeAndEqualsEntity = '''<% if(item.propsForHashCode) { %>
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();<% item.propsForHashCode.each { prop-> def propAccess = prop.primaryKey ? 'getId()' : prop.name;  %>
+    result = prime * result + (($propAccess == null) ? 0 : ${propAccess}.hashCode());<% } %>
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;<% if(item.virtual) { %>
+    if (!super.equals(obj))
+      return false;<% } %>
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.propsForHashCode.each { prop-> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    if (${propAccess} == null) {
+      if (other.${propAccess} != null)
+        return false;
+    } else if (!${propAccess}.equals(other.${propAccess}))
+      return false;<% } %>
+    return true;
+  }<% } %>'''
+
+macros.persistenceXmlBeans = '''<% module.shared.dependModules.each { depModule -> if(depModule.type.backend && depModule.entities) { %>
+  
+    <% depModule.each { basicType-> %>
+      <class>${basicType.nameFull('bean')}</class><% } %>
+  
+    <% depModule.entities.each { entity-> %>
+      <class>${entity.nameFull('bean')}</class><% } %><% } } %>
+  
+      <exclude-unlisted-classes>true</exclude-unlisted-classes>'''
+
+/* Makros von Sebastian */
+macros.managerBaseReturnType = '''$op.returnType ${op.name}($op.signature);<% } %><% manager.item.each { op-> %>
+  ${op.description?"   /** $op.description */":''}'''
+
+macros.constructorsEnum = '''<% item.constructors.each { op -> %>
+
+  private $className($op.signature) {<% op.propAttrs.each { def propAttr-> def prop = propAttr.prop; if(propAttr.defaultValue) { %>
+    this.$prop.uncapName = $propAttr.defaultValue;<% } else { %>
+    this.$prop.uncapName = $prop.name;<% } } %>
+  }<% } %>'''
+
+macros.constructors = '''<% item.constructors.each { op -> %>
+
+  public $className($op.signature) {<% op.propAttrs.each { def propAttr-> def prop = propAttr.prop; if(propAttr.defaultValue) { %>
+    this.$prop.uncapName = $propAttr.defaultValue;<% } else { %>
+    this.$prop.uncapName = $prop.name;<% } } %>
+  }<% } %>'''
+
+macros.constructorsSuper = '''<% item.constructors.each { op -> %>
+
+  public $className($op.signature) {
+    super($op.signatureNames);
+  }<% } %>'''
+
+macros.entitySqlTableConstant = '''<% if(!item.virtual) { %>
+  public static final String TABLE = "$item.sqlName";<% } %>'''
+
+macros.propsSqlConstants = '''<% item.props.each { prop-> if(!item.virtual || (item.virtual && !prop.multi)) { %>
+  public static final String COLUMN_$prop.underscoredName = "$prop.sqlName";<% } } %>'''
+
+macros.fillToString = '''
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);<% item.props.each { prop-> if(!prop.multi && prop.type.matches('(String|Boolean|Long|Integer)')) { %>
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
+  }'''
+
+macros.event = '''<% if(item.event) { def className = item.names.event; def aal = module.facet('aal')?.enabled && item.aal %>
+$macros.header
+package ${destModule.namespace}.${item.namespace}.event;
+
+import java.util.List;
+import java.util.Map;
+
+import com.siemens.ra.cg.pl.common.base.messaging.impl.EventImpl;
+import com.siemens.ra.cg.pl.common.base.model.ActionType;
+import ${item.nameFull()};
+
+/** Event object for @$item.name */
+public class $className extends EventImpl<${item.name}> {
+  private static final long serialVersionUID = 1L;
+
+  public $item.names.event(${item.name} object, ActionType type, String source) {
+    super(object, type, source, ${item.name}.class);<% if(aal) { %>
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %>
+  }
+
+  public $item.names.event(ActionType type, String source) {
+    super(type, source, ${item.name}.class);<% if(aal) { %>
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %>
+  }
+
+  public $item.names.event(List<${item.name}> objectList, ActionType type, String source) {
+    super(objectList, type, source, ${item.name}.class);<% if(aal) { %>
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %>
+  }
+}
+<% ret.path = "${shared.javaSrcGen}/${destModule.namespace.dotsAsPath()}/${item.namespace.dotsAsPath()}/event/${className}.java" %><% } %>'''

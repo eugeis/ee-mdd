@@ -24,6 +24,8 @@ import ee.mdd.model.component.Service
 
 
 
+
+
 /**
  *
  * @author Eugen Eisler
@@ -41,14 +43,39 @@ class TemplatesForJava {
         template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
       }
 
-      items ('modelImpl',
+      items ('modelImplEntity',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('impl', body: '''<% c.virtual = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('impl', c)}''')
-        template('implExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implExtends', c)}''')
+        template('implEntity', body: '''<% c.virtual = c.item.virtual; c.base = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('implEntity', c)}''')
+        template('implEntityExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}''')
 
       }
+
+      //      items ('modelImplBasicType',
+      //      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+      //
+      //        template('implBasicType', body: '''<% c.virtual = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('', c)}''')
+      //        template('implBasicTypeExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('', c)}''')
+      //
+      //      }
+
+      items('modelEjbEntity',
+      query: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+
+        template('ejbEntity', body: '''<% c.base = true; c.className = item.n.cap.entity %>${macros.generate('ejbEntity', c)}''')
+        //        template('ejbEntityExtends', body: '''<% c.className = item.n.cap.bean %>${macros.generate('ejbEntityExtends', c)}''')
+      }
+
+      //      items('modelEjbBasicType',
+      //      query: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
+      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+      //
+      //        template('ejbBasicType', body: '''''')
+      //        template('ejbBasicTypeExtends', body: '''''')
+      //      }
 
       items ('modelTest',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
@@ -81,7 +108,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
         template('ifc', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
+        template('ifcExtends', body: '''<% c.className = item.cap %> ${macros.generate('ifcExtends', c)}''')
       }
     }
   }

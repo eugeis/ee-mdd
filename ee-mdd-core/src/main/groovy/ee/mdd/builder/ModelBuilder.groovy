@@ -67,80 +67,76 @@ import ee.mdd.model.component.Update
  */
 class ModelBuilder extends AbstractFactoryBuilder {
 
-  def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
-  def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate'], parent: type)
-  def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
-  def basicType = new CompositeFactory(beanClass: BasicType, parent: dataType)
-  def body = new CompositeFactory(beanClass: Body, childFactories: ['type'])
-  def pojo = new CompositeFactory(beanClass: Pojo, parent: cu)
-  def lu = new CompositeFactory(beanClass: LogicUnit, childFactories: ['meta', 'param'], parent: body)
-  def attr = new CompositeFactory(beanClass: Attribute, childFactories: ['meta'])
-  def param = new CompositeFactory(beanClass: Param, parent: attr)
-  def operation = new CompositeFactory(beanClass: Operation, parent: lu)
-  def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
-  def facet = new CompositeFactory(beanClass: Facet, childFactories: ['extType'])
-  def su = new CompositeFactory(beanClass: StructureUnit, childFactories: ['facet', 'extType', 'namespace'])
-  def commands = new CompositeFactory(beanClass: Command, childFactories: ['create', 'delete', 'update'], parent: controller)
-  def component = new CompositeFactory(beanClass: Component, childFactories: ['module'], parent: su)
-  def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
-  def config = new CompositeFactory(beanClass: Config, parent: dataType)
-  def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
-  def container = new CompositeFactory(beanClass: Container, parent: dataType)
-  def controller = new CompositeFactory(beanClass: Controller, parent: cu)
-  def index = new CompositeFactory(beanClass: Index)
-  def initializer = new CompositeFactory(beanClass: Initializer, parent: controller)
-  def counter = new CompositeFactory(beanClass: Count, parent: dataTypeOperation)
-  def create = new CompositeFactory(beanClass: Create, parent: dataTypeOperation)
-  def delete = new CompositeFactory(beanClass: Delete, parent: dataTypeOperation)
-  def entity = new CompositeFactory(beanClass: Entity, parent: dataType)
-  def enumType = new EnumTypeFactory(beanClass: EnumType, childFactories: ['lit'], parent: dataType)
-  def exist = new CompositeFactory(beanClass: Exist, parent: dataTypeOperation)
-  def externalType = new CompositeFactory(beanClass: ExternalType, parent: type)
-  def find = new CompositeFactory(beanClass: Find, parent: dataTypeOperation)
-  def finder = new CompositeFactory(beanClass: Finder, childFactories: ['exist', 'count', 'findBy'], parent: controller)
-  def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
-  def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
-  def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service'], parent: su)
-  def delegateOp = new CompositeFactory(beanClass: DelegateOp, valueProperty: 'ref', parent: operation)
-  def prop = new PropFactory(parent: attr)
-  def literal = new CompositeFactory(beanClass: Literal)
-  def service = new CompositeFactory(beanClass: Service, parent: cu)
-  def update = new CompositeFactory(beanClass: Update, parent: dataTypeOperation)
-
-  ModelBuilder(Closure postInstantiateDelegate = null) {
-    super(postInstantiateDelegate)
+	def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
+	def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate'], parent: type)
+	def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
+	def basicType = new CompositeFactory(beanClass: BasicType, parent: dataType)
+	def body = new CompositeFactory(beanClass: Body, childFactories: ['type'])
+	def pojo = new CompositeFactory(beanClass: Pojo, parent: cu)
+	def lu = new CompositeFactory(beanClass: LogicUnit, childFactories: ['meta', 'param'], parent: body)
+	def attr = new CompositeFactory(beanClass: Attribute, childFactories: ['meta'])
+	def param = new CompositeFactory(beanClass: Param, parent: attr)
+	def operation = new CompositeFactory(beanClass: Operation, parent: lu)
+	def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
+	def facet = new CompositeFactory(beanClass: Facet, childFactories: ['extType'])
+	def su = new CompositeFactory(beanClass: StructureUnit, childFactories: ['facet', 'extType', 'namespace'])
+	def commands = new CompositeFactory(beanClass: Command, childFactories: ['create', 'delete', 'update'], parent: controller)
+	def component = new CompositeFactory(beanClass: Component, childFactories: ['module'], parent: su)
+	def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
+	def config = new CompositeFactory(beanClass: Config, parent: dataType)
+	def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
+	def container = new CompositeFactory(beanClass: Container, parent: dataType)
+	def controller = new CompositeFactory(beanClass: Controller, parent: cu)
+	def index = new CompositeFactory(beanClass: Index)
+	def initializer = new CompositeFactory(beanClass: Initializer, parent: controller)
+	def counter = new CompositeFactory(beanClass: Count, parent: dataTypeOperation)
+	def create = new CompositeFactory(beanClass: Create, parent: dataTypeOperation)
+	def delete = new CompositeFactory(beanClass: Delete, parent: dataTypeOperation)
+	def entity = new CompositeFactory(beanClass: Entity, parent: dataType)
+	def enumType = new EnumTypeFactory(beanClass: EnumType, childFactories: ['lit'], parent: dataType)
+	def exist = new CompositeFactory(beanClass: Exist, parent: dataTypeOperation)
+	def externalType = new CompositeFactory(beanClass: ExternalType, parent: type)
+	def find = new CompositeFactory(beanClass: Find, parent: dataTypeOperation)
+	def finder = new CompositeFactory(beanClass: Finder, childFactories: ['exist', 'count', 'findBy'], parent: controller)
+	def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
+	def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
+	def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service'], parent: su)
+	def delegateOp = new CompositeFactory(beanClass: DelegateOp, valueProperty: 'ref', parent: operation)
+	def prop = new PropFactory(parent: attr)
+	def literal = new CompositeFactory(beanClass: Literal)
+	def service = new CompositeFactory(beanClass: Service, parent: cu)
+	def update = new CompositeFactory(beanClass: Update, parent: dataTypeOperation)
 	def namespace = new MddFactory(beanClass: Namespace)
-	
-	
-    refAttrResolver.addGlobalResolver('type', Type)
-    refAttrResolver.addGlobalResolver('ret', Type)
-    refAttrResolver.addGlobalResolver('ref', Element)
+
+
+	ModelBuilder(Closure postInstantiateDelegate = null) {
+		super(postInstantiateDelegate)
 
 		OppositeResolveHandler oppositeResolver = refAttrResolver.addResolver(new OppositeResolveHandler(name: 'opposite'))
-		
-		refAttrResolver.addGlobalResolver('type', Type, null, false, { node, resolved ->
-			if(DataTypeProp.isInstance(node) && DataType.isInstance(resolved) && !node.opposite) {
-				node.opposite = resolved.props.find { it == node }
-				if(!node.opposite) {
-					oppositeResolver.addResolveRequest(null, node.parent, node)
-				}
+		refAttrResolver.addResolver(oppositeResolver)
+
+		refAttrResolver.addGlobalResolver('type', Type, null, false, { prop, resolved ->
+			if(DataTypeProp.isInstance(prop) && DataType.isInstance(resolved) && !prop.opposite) {
+				oppositeResolver.onDataTypeProp(prop)
 			}
 		})
 		refAttrResolver.addGlobalResolver('ret', Type)
 		refAttrResolver.addGlobalResolver('ref', Element)
 
-    MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
-    refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
-    refAttrResolver.addParentResolver('props', Prop, 2, null, true)
+		refAttrResolver.addParentResolver('prop', Prop, 2)
+		refAttrResolver.addGlobalResolver('module', Module)
+		refAttrResolver.addGlobalResolver('superUnit', CompilationUnit)
 
-    refAttrResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
+		MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
+		refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
+		refAttrResolver.addParentResolver('props', Prop, 2, null, true)
 
 		refAttrResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
 
 		reg()
 	}
 
-  void reg() {
+	void reg() {
 
 		registerFactory 'basicType', basicType
 		registerFactory 'body', body
@@ -164,7 +160,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
 		registerFactory 'findBy', find
 		registerFactory 'meta', metaAttribute
 		registerFactory 'model', model
-		registerFactory 'manager', manager
+		registerFactory 'finder', finder
+		registerFactory 'commands', commands
 		registerFactory 'module', module
 		registerFactory 'op', operation
 		registerFactory 'param', param
@@ -176,17 +173,17 @@ class ModelBuilder extends AbstractFactoryBuilder {
 		registerFactory 'namespace', namespace
 	}
 
-  void registerFacet(Class beanClass, String name = beanClass.simpleName) {
-    registerFacet Introspector.decapitalize(name), beanClass
-  }
+	void registerFacet(Class beanClass, String name = beanClass.simpleName) {
+		registerFacet Introspector.decapitalize(name), beanClass
+	}
 
-  void registerFacet(String name, Class beanClass) {
-    def newFacet = new CompositeFactory(beanClass: beanClass, parent: facet)
-    CompositeFactory model = model
-    model.childFactories << name
-    CompositeFactory module = module
-    module.childFactories << name
-    registerFactory name, newFacet
-  }
+	void registerFacet(String name, Class beanClass) {
+		def newFacet = new CompositeFactory(beanClass: beanClass, parent: facet)
+		CompositeFactory model = model
+		model.childFactories << name
+		CompositeFactory module = module
+		module.childFactories << name
+		registerFactory name, newFacet
+	}
 }
 

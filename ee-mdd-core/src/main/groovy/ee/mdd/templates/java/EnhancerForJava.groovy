@@ -15,16 +15,13 @@
  */
 package ee.mdd.templates.java
 
-import javafx.beans.binding.*
-import javafx.beans.property.*
-import javafx.collections.*
-import javafx.scene.control.*
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.Command
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
@@ -32,12 +29,17 @@ import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Exist
 import ee.mdd.model.component.Find
+import ee.mdd.model.component.Finder
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
-import ee.mdd.model.component.Manager
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
+
+
+
+
+
 
 /**
  *
@@ -56,7 +58,7 @@ class EnhancerForJava {
     ExpandoMetaClass.enableGlobally()
 
     def properties = Collections.synchronizedMap([:])
-    Map<String, String> typeToTestValue = [String: '\"TestString\"', Long: 'Long.value(1)', long: '1L',
+    Map<String, String> typeToTestValue = [String: '\"TestString\"', Long: 'Long.valueOf(1)', long: '1L',
       Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
@@ -76,9 +78,46 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      getMultiSuperProps << {
+        ->
+        def key = System.identityHashCode(delegate) + 'multiSuperProps'
+        if(!properties.containsKey(key)) {
+          def superUnit = delegate.superUnit
+          def ret = superUnit ? superUnit.props.findAll{ it.multi } : []
+        }
+      }
     }
 
     Entity.metaClass {
+
+      jpaMetasForEntity << { Context c ->
+        def key = System.identityHashCode(delegate) + 'jpaMetasforEntity'
+        if(!properties.containsKey(key)) {
+          Entity entity = delegate
+          ModelBuilder builder = entity.component.builder
+          def jpaMetasForEntity = []
+          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
+          if(entity.finders) {
+            namedQueries.value.addAll(entity.finders.finderNamedQuery(c))
+            namedQueries.value.addAll(entity.finders.counterNamedQuery(c))
+            namedQueries.value.addAll(entity.finders.existerNamedQuery(c))
+          }
+          if(entity.deleters) {
+            namedQueries.value.addAll(entity.commands.deleterNamedQuery(c))
+          }
+          jpaMetasForEntity << namedQueries
+          def table = builder.meta(type: 'Table', value: [:])
+          table.value['name'] = c.className+'.TABLE'
+          def indexes = entity.indexesForMeta(c)
+          if(indexes != null) {
+            table.value['indexes'] = indexes
+          }
+          jpaMetasForEntity << table
+          properties[key] = jpaMetasForEntity
+        }
+        properties[key]
+      }
 
       metasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'metasForEntity'
@@ -86,30 +125,14 @@ class EnhancerForJava {
           Entity entity = delegate
           ModelBuilder builder = entity.component.builder
           def metasForEntity = []
-          metasForEntity << builder.meta(type: 'Entity')
           if(entity.metas) {
             metasForEntity.addAll(entity.metas)
           }
-
-          def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
-
-          if(entity.manager && entity.manager.operations) {
-            namedQueries.value.addAll(entity.manager.finderNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.counterNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.existerNamedQuery(c))
-            namedQueries.value.addAll(entity.manager.deleterNamedQuery(c))
+          if(entity.base || entity.virtual) {
+            metasForEntity << builder.meta(type: 'MappedSuperclass')
+          } else {
+            metasForEntity << builder.meta(type: 'Entity')
           }
-          metasForEntity << namedQueries
-
-          def table = builder.meta(type: 'Table', value: [:])
-          table.value['name'] = entity.name+'.TABLE'
-          def indexes = entity.indexesForMeta(c)
-          if(indexes != null) {
-            table.value['indexes'] = indexes
-          }
-
-          metasForEntity << table
-
           properties[key] = metasForEntity
         }
         properties[key]
@@ -145,55 +168,47 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getSqlName << {
-        ->
-        def key = System.identityHashCode(delegate) + 'sqlName'
-        if(!properties.containsKey(key)) {
-          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-          ret = ret.replaceAll(/(\w)\1+/, '$1')
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
-      getJpaConstants << {
-        ->
+      jpaConstants << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaConstants'
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
           def ret = newLine
-          def manager = delegate.manager
+          def finder = delegate.finders
+          def commands = delegate.commands
+
           if(!delegate.virtual) {
             ret = "public static final String TABLE = \"${delegate.sqlName}\";"+newLine
           }
           ret += newLine
           delegate.props.each { prop ->
-            if(!delegate.virtual || (delegate.virtual && !prop.multi)) {
+            if(!delegate.virtual || !prop.multi) {
               ret += "  public static final String COLUMN_${prop.underscored} = \"${prop.sqlName}\";"+newLine
             }
           }
           ret += newLine
-          if(manager && !delegate.virtual) {
-            if(manager.finders != null) {
-              manager.finders.each {
+          if(finder && !delegate.virtual) {
+            if(finder.finders != null) {
+              finder.finders.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
             }
-            if(manager.counters != null) {
-              manager.counters.each {
+            if(finder.counters != null) {
+              finder.counters.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
             }
-            if(manager.exists != null) {
-              manager.exists.each {
+            if(finder.exists != null) {
+              finder.exists.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
             }
-            if(manager.deleters != null) {
-              manager.deleters.each {
+          }
+          if(commands && !delegate.virtual) {
+            if(commands.deleters != null) {
+              commands.deleters.each {
                 def opName = it.operationName
                 ret += "  public static final String $opName = \"${delegate.sqlName}.$opName\";"+newLine
               }
@@ -213,8 +228,10 @@ class EnhancerForJava {
         def metaIndex = builder.meta(type: 'Index', value: [:])
         def sqlNames = []
         index.props.each { sqlNames << it.sqlName }
-        metaIndex.value['name'] = index.props.collect { it.sqlName }.join('_')
-        metaIndex.value['columnList'] = sqlNames.join(', ')
+        def columns = sqlNames.join(', ')
+        def indexName =  index.props.collect { it.sqlName }.join('_')
+        metaIndex.value['name'] = "\"$indexName\""
+        metaIndex.value['columnList'] = "\"$columns\""
         if(index.unique) {
           metaIndex['unique'] = true
         }
@@ -222,7 +239,24 @@ class EnhancerForJava {
       }
     }
 
-    Manager.metaClass {
+    Command.metaClass {
+
+      deleterNamedQuery << { Context c ->
+        if(delegate.deleters != null) {
+          def deleterQueries = []
+          ModelBuilder builder = c.item.component.builder
+          delegate.deleters.each { deleter ->
+            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
+            namedQuery.value['name'] = c.className+'.'+deleter.operationName
+            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
+            deleterQueries << namedQuery
+          }
+          deleterQueries
+        }
+      }
+    }
+
+    Finder.metaClass {
 
       finderNamedQuery << { Context c ->
         if(delegate.finders != null) {
@@ -230,7 +264,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.finders.each { finder ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+finder.operationName
+            namedQuery.value['name'] = c.className+'.'+finder.operationName
             namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
             finderQueries << namedQuery
           }
@@ -244,7 +278,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.counters.each { counter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+counter.operationName
+            namedQuery.value['name'] = c.className+'.'+counter.operationName
             namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
             counterQueries << namedQuery
           }
@@ -258,25 +292,11 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           delegate.exists.each { exist ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+exist.operationName
+            namedQuery.value['name'] = c.className+'.'+exist.operationName
             namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
             existsQueries << namedQuery
           }
           existsQueries
-        }
-      }
-
-      deleterNamedQuery << { Context c ->
-        if(delegate.deleters != null) {
-          def deleterQueries = []
-          ModelBuilder builder = c.item.component.builder
-          delegate.deleters.each { deleter ->
-            def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-            namedQuery.value['name'] = c.item.name+'.'+deleter.operationName
-            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
-            deleterQueries << namedQuery
-          }
-          deleterQueries
         }
       }
     }
@@ -371,41 +391,28 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getSqlName << {
-        ->
-        def key = System.identityHashCode(delegate) + 'sqlName'
-        if(!properties.containsKey(key)) {
-          def ret = delegate.underscored.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-          ret = ret.replaceAll(/(\w)\1+/, '$1')
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
-      metasForProp << { Context c ->
-        def key = System.identityHashCode(delegate) + 'metasForProp'
-        if(!properties.containsKey(key)) {
-          ModelBuilder builder = c.item.component.builder
-          def metasForProp = []
-          if(delegate.primaryKey == true) {
-            def column = builder.meta(type: 'Column', value: [:])
-            column.value['name'] = "\"${delegate.underscored}\""
-            metasForProp << column
-            metasForProp << builder.meta(type: 'Id')
-          }
-          properties[key] = metasForProp
-        }
-        properties[key]
-      }
-
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
         if(!properties.containsKey(key)) {
+          ModelBuilder builder = c.item.component.builder
+          def prop = delegate
           def propMapping = []
-          if(delegate.type instanceof Entity) {
-            propMapping = delegate.entityPropMapping(c)
-          } else {
-            propMapping = delegate.jpaPropMapping(c)
+          c.propMeta = true
+          if(!c.item.virtual && delegate.primaryKey) {
+            propMapping << builder.meta(type: 'Column', value: ['name':"\"$prop.sqlName\""])
+            propMapping << builder.meta(type: 'Id')
+            if(!c.item.manualId) {
+              def generator = c.item.idGeneratorName
+              if(!generator) {
+                generator = "${c.item.model.key.toUpperCase()}_${c.item.sqlName}_SEQ"
+              }
+              propMapping << builder.meta(type: 'GeneratedValue', value: ['strategy':"${c.name('GenerationType')}"+'.TABLE', 'generator':"\"$generator\""])
+              propMapping << builder.meta(type: 'TableGenerator', value: ['name':"\"$generator\"", 'table':"\"SEQUENCER\""])
+            }
+          } else if(c.subPkg == 'ejb' && delegate.type instanceof Entity) {
+            propMapping.addAll(delegate.entityPropMapping(c))
+          } else if(c.subPkg == 'ejb') {
+            propMapping.addAll(delegate.jpaPropMapping(c))
           }
           properties[key] = propMapping
         }
@@ -418,7 +425,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           String newLine = System.properties['line.separator']
           def prop = delegate
-          def opposite = prop.opposite(c)
+          def opposite = prop.opposite
           def currentParent = prop.parent
           def metas = []
           def association
@@ -429,17 +436,17 @@ class EnhancerForJava {
                 association.value = ['mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : 'CascadeType.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
               }
             } else {
               if(opposite.multi) {
                 association = builder.meta(type: 'ManyToOne')
               } else if(prop.owner) {
                 association = builder.meta(type: 'OneToOne')
-                association.value = ['cascade' : 'CascadeType.PERSIST', 'mappedBy' : "\"$prop.opposite\""]
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.PERSIST', 'mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToOne')
-                association.value = ['fetch' : 'FetchType.LAZY']
+                association.value = ['fetch' : "${c.name('FetchType')}"+'.LAZY']
               }
               metas << association
               if (opposite.multi || !prop.owner) {
@@ -452,26 +459,26 @@ class EnhancerForJava {
             if(prop.multi) {
               if(prop.mm) {
                 association = builder.meta(type: 'ManyToMany')
-                association.value = ['cascade' : 'CascadeType.ALL']
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL']
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : 'CascadeType.ALL']
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL']
               }
               def joinTable = builder.meta(type: 'JoinTable', value: [:])
-              joinTable.value['name'] =  "${currentParent.sqlName}_${prop.sqlName}"
+              joinTable.value['name'] =  "\"${currentParent.sqlName}_${prop.sqlName}\""
               if(prop.type) {
                 def invJoinColumn = builder.meta(type: 'JoinColumn')
-                invJoinColumn.value = ['name' : "${prop.type.sqlName}_ID"]
+                invJoinColumn.value = ['name' : "\"${prop.type.sqlName}_ID\""]
                 joinTable.value['inverseJoinColumns'] = invJoinColumn.annotation(c)
               }
               def joinColumn = builder.meta(type: 'JoinColumn')
-              joinColumn.value = ['name' : "${currentParent.sqlName}_ID"]
-              joinTable.value['joinColums'] = joinColumn.annotation(c)
+              joinColumn.value = ['name' : "\"${currentParent.sqlName}_ID\""]
+              joinTable.value['joinColumns'] = joinColumn.annotation(c)
               metas << joinTable
             } else {
               association = builder.meta(type: 'ManyToOne')
               def joinColumn = builder.meta(type: 'JoinColumn')
-              joinColumn.value = ['name' : 'COLUMN_${prop.underscored}']
+              joinColumn.value = ['name' : "\"COLUMN_${prop.underscored}\""]
               metas << joinColumn
             }
             metas << association
@@ -482,7 +489,7 @@ class EnhancerForJava {
       }
 
       jpaPropMapping << { Context c ->
-        def key = System.identityHashCode(delegate) + 'entityPropMapping'
+        def key = System.identityHashCode(delegate) + 'jpaPropMapping'
         if(!properties.containsKey(key)) {
           ModelBuilder builder = c.item.component.builder
           String newLine = System.properties['line.separator']
@@ -490,9 +497,9 @@ class EnhancerForJava {
           def currentParent = prop.parent
           def metas = []
           if(prop.type.name.equals('Date')) {
-            metas << builder.meta(type: 'Temporal', value: 'TemporalType.TIMESTAMP')
+            metas << builder.meta(type: 'Temporal', value: "${c.name('TemporalType')}"+'.TIMESTAMP')
           } else if(prop.type instanceof Enum) {
-            metas << builder.meta(type: 'Enumerated', value: 'EnumType.STRING')
+            metas << builder.meta(type: 'Enumerated', value: "${c.name('EnumType')}"+'.STRING')
           } else if(prop.type instanceof BasicType) {
             if(!prop.multi) {
               metas << builder.meta(type: 'Embedded')
@@ -511,23 +518,15 @@ class EnhancerForJava {
           }
 
           if(prop.multi) {
-            metas << builder.meta(type: 'ElementCollection', value: ['fetch' : 'FetchType.EAGER'])
+            metas << builder.meta(type: 'ElementCollection', value: ['fetch' : "${c.name('FetchType')}"+'.EAGER'])
             def joinColum = builder.meta(type: 'JoinColumn', value: ['name' : "\"${currentParent.sqlName}_ID\""])
             metas << builder.meta(type: 'CollectionTable', value: ['name' : "\"${currentParent.sqlName}_${prop.sqlName}\"", 'joinColumns' : "${joinColum.annotation(c)}"])
           } else if (!(prop.type instanceof BasicType)) {
-            metas << builder.meta(type:'Column', value: ['name' : "COLUMN_${prop.underscored}"])
+            metas << builder.meta(type:'Column', value: ['name' : "\"COLUMN_${prop.underscored}\""])
           }
           properties[key] = metas
         }
         properties[key]
-      }
-
-      opposite << { Context c ->
-        def module = c.item.module
-        //def entity = module.entities.find { it.name == delegate.type.name }
-        def entity = delegate.type
-        def ret = entity.props.find { it.name == delegate.opposite }
-        ret
       }
 
       propIndex << { Context c ->
@@ -539,14 +538,28 @@ class EnhancerForJava {
           manyToOne = true
         if(!prop.primaryKey && (prop.index || prop.unique || manyToOne)) {
           index =  builder.meta(type: 'Index', value: [:])
-          index.value['name'] = c.item.sqlName+'_'+prop.sqlName
+          index.value['name'] = "\"${c.item.sqlName}_$prop.sqlName\""
           if(prop.unique) {
             index.value['unique'] = true
           }
-          index.value['columnList'] = prop.sqlName
+          index.value['columnList'] = "\"$prop.sqlName\""
         }
         index
       }
+
+      isEjbProp << { Context c ->
+        def key = System.identityHashCode(delegate) + 'isEjbProp'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          if(Entity.isInstance(prop.type) || BasicType.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
     }
 
     LogicUnit.metaClass {
@@ -642,7 +655,12 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'annotation'
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
-          def ret = "@${c.name(delegate.type)}"
+          def ret = ''
+          if(c.propMeta) {
+            ret = "  @${c.name(delegate.type)}"
+          } else {
+            ret = "@${c.name(delegate.type)}"
+          }
           if(delegate.multi && delegate.value) {
             ret += '({'
             ret += delegate.value.collect { '\n    '+it.annotation(c) }.join(', ')
