@@ -38,9 +38,9 @@ class GeneratorForJava {
     println args
     EnhancerForJava.enhanceClasses()
 
-	def builder = new ModelBuilder()
-	registerFacets(builder)
-	
+    def builder = new ModelBuilder()
+    registerFacets(builder)
+
     Model model =  ModelBuilderExample.build (builder)
 
     //create props for delegates
@@ -60,17 +60,17 @@ class GeneratorForJava {
     generator.generate(model)
   }
 
-	private static registerFacets(ModelBuilder builder) {
-		builder.registerFacet(CommonJava)
-		builder.registerFacet(Jpa)
-		builder.registerFacet(Cdi)
-		builder.registerFacet(Test)
+  private static registerFacets(ModelBuilder builder) {
+    builder.registerFacet(CommonJava)
+    builder.registerFacet(Jpa)
+    builder.registerFacet(Cdi)
+    builder.registerFacet(Test)
 
-		def factets = builder.model('facets') {
-			commonJava()
-			cdi()
-			jpa()
-			test()
-		}
-	}
+    //		def factets = builder.model('facets') {
+    //			commonJava()
+    //			cdi()
+    //			jpa()
+    //			test()
+    //		}
+  }
 }
