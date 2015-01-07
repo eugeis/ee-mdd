@@ -1,0 +1,3257 @@
+import java.util.List;
+
+import groovy.io.PlatformLineWriter
+import groovy.text.GStringTemplateEngine
+import groovy.time.TimeCategory;
+import groovy.transform.AutoClone
+
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+//dependencies
+//buildscript {
+//add ee classLoader for EeNode reference
+//classLoader.addURLs(ext.ee.getClass().classLoader.getURLs() as List)
+
+//repositories.identity(ext.repositories)
+//dependencies { classpath ext.lib('jackson_databind') }
+//}
+
+apply plugin: MddPlugin
+
+class MddPlugin implements Plugin<Project> {
+  private String groupName = 'Model Driven Development (MDD)'
+
+  void apply(Project p) {
+    def ee=p.ee
+    def mdd = new MddUtils(ee)
+    ee.api.mdd = mdd
+    applyTasks(p,ee,mdd)
+  }
+
+  void applyTasks(p, ee, MddUtils mdd) {
+    p.task('loadTemplates', {
+      group groupName
+      description 'Loads all template files or load the templates defined by parameter. -Ptemplates = \'name\''
+      doLast { mdd.loadTemplates(ee.props.templates) }
+    })
+
+    p.task('loadModel', {
+      group groupName
+      description 'Loads model file. -Pmodel="<path>"'
+      onlyIf { ee.props.assertProps('model') }
+      doLast { mdd.loadModel(ee.file(ee.props.model)) }
+    })
+
+    p.task('displayModel', {
+      group groupName
+      description 'Displays DSL model'
+      dependsOn 'loadModel'
+      onlyIf { mdd.model }
+      doLast { mdd.model.display() }
+    })
+
+    p.task('displayTemplates', {
+      group groupName
+      description 'Displays Templates'
+      dependsOn 'loadTemplates'
+      onlyIf { mdd.templates }
+      doLast { mdd.templates.display() }
+    })
+
+    p.task('splitTemplates', {
+      group groupName
+      description 'Split Templates. -Ptarget="<path>"'
+      dependsOn 'loadTemplates'
+      onlyIf { mdd.templates && ee.props.assertProps('target')}
+      doLast { mdd.splitTemplatesToFiles(ee.file(ee.props.target)) }
+    })
+
+    p.task('joinTemplates', {
+      group groupName
+      description 'Join templates to one file. -Ptarget="<path>"'
+      dependsOn 'loadTemplates'
+      onlyIf { mdd.templates && ee.props.assertProps('target')}
+      doLast { mdd.joinTemplatesToFile(ee.file(ee.props.target)) }
+    })
+
+    p.task('generateSources', {
+      group groupName
+      description 'Generates files. -Ptarget="<path>"\n' +
+          'Example: -Pmodel="D:/CG/src/cg-ats_disp/cg-ats_disp-rm-root/src/main/mdd/model.gradle" -Ptarget="D:/CG/src/cg-ats_disp"'
+      dependsOn 'loadModel', 'loadTemplates'
+      onlyIf { ee.props.assertProps('target') }
+      doLast { mdd.generate(ee.file(ee.props.target)) }
+    })
+
+    p.task('deleteSrcGen', {
+      group groupName
+      description 'Delete all src-gen fodlers. -Pmodel="<path>" -Ptarget="<path>"\n' +
+          'Example: -Pmodel="D:/CG/src/cg-ats_disp/cg-ats_disp-rm-root/src/main/mdd/model.gradle" -Ptarget="D:/CG/src/cg-ats_disp"'
+      dependsOn 'loadModel'
+      onlyIf { ee.props.assertProps('target') }
+      doLast { mdd.deleteSrcGen(ee.file(ee.props.target)) }
+    })
+    
+    p.task('deleteSrc', {
+      group groupName
+      description 'Delete all src-gen fodlers. -Pmodel="<path>" -Ptarget="<path>"\n' +
+          'Example: -Pmodel="D:/CG/src/cg-ats_disp/cg-ats_disp-rm-root/src/main/mdd/model.gradle" -Ptarget="D:/CG/src/cg-ats_disp"'
+      dependsOn 'loadModel'
+      onlyIf { ee.props.assertProps('target') }
+      doLast { mdd.deleteSrc(ee.file(ee.props.target)) }
+    })
+  }
+}
+
+class MddUtils {
+  def ee
+  Component model
+  Templates templates
+  File templateHome
+  Generator generator
+
+  MddUtils(ee) {
+    this.ee = ee
+    templateHome = ee.file("${ee.home}/plugins/mdd/templates")
+  }
+
+  def loadTemplates(def templatesName = null) {
+    templates = new Templates()
+    loadTemplateFile(ee.file(templateHome, "_macros.gradle"))
+    if(templatesName) {
+      def templateFile = ee.file(templateHome, "${templatesName}.gradle")
+      assert templateFile.exists(), "Templates '$templateFile.path' not available. Generation not possible."
+      loadTemplateFile(templateFile)
+    } else {
+      ee.file(templateHome).eachFile {
+        if (it.isFile() && !it.name.startsWith('_')) {
+          loadTemplateFile(it)
+        }
+      }
+    }
+    templates
+  }
+
+  def loadTemplateFile(def templateFile) {
+    ee.log.quiet "Load templates from '$templateFile.path"
+    ee.apply(from: templateFile, to: templates)
+  }
+
+  def splitTemplatesToFiles(def target) {
+    templates.splitToFiles(target)
+  }
+
+  def joinTemplatesToFile(def target) {
+    templates.joinToFile(target)
+  }
+
+  def loadModel(File file) {
+    def builder = new ComponentModelBuilder(ee:ee)
+    if (file.exists()) {
+      ee.apply(from:file, to:builder)
+    } else {
+      ee.error("Cannot find model file: $file")
+    }
+    model = builder.root
+    model.build()
+    model
+  }
+
+  def deleteSrcGen(File target) {
+    model.findByType(Module.class).each { module ->
+      File folder = ee.file(target, module.srcGen)
+      if(folder.exists()) {
+        ee.log.quiet "Delete folder '$folder'."
+        folder.deleteDir()
+      } else {
+        ee.log.quiet "Folder '$folder' not exists."
+      }
+    }
+  }
+  
+  def deleteSrc(File target) {
+    model.findByType(Module.class).each { module ->
+      File folder = ee.file(target, module.src)
+      if(folder.exists()) {
+        ee.log.quiet "Delete folder '$folder'."
+        folder.deleteDir()
+      } else {
+        ee.log.quiet "Folder '$folder' not exists."
+      }
+    }
+  }
+
+  def generate(File target) {
+    if (target.exists()) { target.mkdirs() }
+    generator = new Generator(ee:ee, component: model, target: target, templates:templates)
+    generator.generate()
+  }
+}
+
+class TemplateStructureUnits {
+  def component = [module: [:]]
+  def all = [ module: [:], enums: [:], config: [:], pojo: [:], controller: [:] ]
+  def shared = [ module: [:], controller: [:] ]
+  def client = [ module: [:], controller: [:] ]
+  def backend = [ module: [:], basicType: [:], config: [:], container: [:], controller: [:], entity: [:], service: [:], profile: [:] ]
+  def stateMachine = [ module: [:], action: [:], event: [:], state: [:], condition: [:] ]
+  def ui = [ module: [:], view: [:] ]
+}
+
+class Templates {
+  def macros = [:]
+
+  //facets
+  def common = new TemplateStructureUnits()
+  def jpa = new TemplateStructureUnits()
+  def entityImpl = new TemplateStructureUnits()
+  def memory = new TemplateStructureUnits()
+  def guido = new TemplateStructureUnits()
+  def fx = new TemplateStructureUnits()
+  def aal = new TemplateStructureUnits()
+  def xml = new TemplateStructureUnits()
+
+  def facets = ['common': common, 'jpa': jpa, 'entityImpl': entityImpl, 'memory': memory, 'guido': guido, 'fx': fx, 'aal': aal, 'xml': xml]
+
+  def types = [
+    'component',
+    'all',
+    'shared',
+    'client',
+    'backend',
+    'stateMachine',
+    'ui'
+  ]
+
+  def display() {
+    def printer = { facet, templates ->
+      types.each { type ->
+        println " $facet: $type"
+        def map = templates."${type}"
+        map.each { k, v -> if(v) { println "\t$k: ${v.keySet()}" } }
+      }
+    }
+
+    println "Templates "
+    facets.each { facet, templates -> printer facet, templates }
+  }
+
+  def joinToFile(File target) {
+    if(!target.exists()) { target.mkdirs() }
+    def ln = System.getProperty('line.separator')
+    StringWriter stringWriter = new StringWriter()
+    facets.each { facet, templates ->
+      types.each { type ->
+        def map = templates."${type}"
+        map.each { group, v ->
+          if(v) {
+            //converto to platform line delimeters
+            def platformWriter = new PlatformLineWriter(stringWriter)
+            def names = v.keySet().sort()
+            names.each { n ->
+              def text = v[n]
+              platformWriter.write("$ln${facet}.${type}.${group}.$n = '''")
+              platformWriter.write(text)
+              platformWriter.write("'''$ln")
+            }
+            platformWriter.flush()
+          }
+        }
+      }
+    }
+
+    def file = new File(target, "all.gradle")
+    println "Join templates to file '$file.path'"
+    file.write(stringWriter.toString())
+  }
+
+  def splitToFiles(File target, perFacet = true) {
+    if(!target.exists()) { target.mkdirs() }
+    def ln = System.getProperty('line.separator')
+    def splitter = { facet, templates ->
+      def file
+      if(perFacet) {
+        file = new File(target, "${facet}.gradle")
+        file.delete()
+        println "Write file $file.path"
+      }
+      types.each { type ->
+        def map = templates."${type}"
+        map.each { group, v ->
+          if(v) {
+            //converto to platform line delimeters
+            StringWriter stringWriter = new StringWriter()
+            def platformWriter = new PlatformLineWriter(stringWriter)
+            def names = v.keySet().sort()
+            names.each { n ->
+              def text = v[n]
+              platformWriter.write("$ln${facet}.${type}.${group}.$n = '''")
+              platformWriter.write(text)
+              platformWriter.write("'''$ln")
+            }
+            platformWriter.flush()
+            if(!perFacet) {
+              file = new File(target, "${facet}-${type}-${group}.gradle")
+              println "Write file $file.path"
+              file.write(stringWriter.toString())
+            } else {
+              file.append(stringWriter.toString())
+            }
+          }
+        }
+      }
+    }
+    println "Split templates to files in $target.path"
+    facets.each { facet, templates -> splitter facet, templates }
+  }
+}
+
+class MacrosGenerator {
+  def macros
+  def engine
+  def binding
+
+  def apply(args) {
+    //    println args
+    def currentBinding = binding
+    def name
+
+    if(args instanceof Map) {
+      name = args.name
+      if(args.size() > 1) {
+        currentBinding = binding.clone()
+        currentBinding.putAll(args)
+      }
+    } else {
+      name = args
+    }
+
+    def macro = macros[name]
+    assert macro, "Macro '$macroName' not found"
+    def generated = engine.createTemplate(macro).make(currentBinding)
+
+    //converto to platform line delimeters
+    StringWriter stringWriter = new StringWriter()
+    def platformWriter = new PlatformLineWriter(stringWriter)
+    generated.writeTo(platformWriter)
+    platformWriter.flush()
+
+    stringWriter.toString()
+  }
+
+  def propertyMissing(String name) { macros[name] }
+}
+
+class Generator {
+  def ee
+  Component component
+  Templates templates
+  File target
+  def binding
+
+  def engine = new GStringTemplateEngine()
+
+  def generate() {
+    if (!target.exists()) { target.mkdirs() }
+    ee.log.quiet "Generate artifacts for the component '$component.name' into '$target.path'"
+
+    def macros = new MacrosGenerator(macros: templates.macros, engine: engine)
+    binding = [ ee:ee, component: component, ret: [:], macros: macros ]
+    macros.binding = binding
+
+    def category, type, moduleTemplates
+
+    templates.facets.each { facet, facetTemplates ->
+
+      type = 'component'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      binding.facet = component.facet(facet)
+      if(binding.facet && moduleTemplates.module) {
+        binding.destModule = binding.module = component.facetModule(facet)
+        binding.shared = binding.destModule.shared
+        println "${facet}.${type}, destModule=$binding.destModule for facet '$facet'"
+        moduleTemplates.module.each { String k,v-> generate("${facet}.${type}.module", k,v) }
+      }
+
+      type = 'all'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      component.findByType(Module.class).each { def module ->
+        binding.module = module; binding.facet = module.facet(facet)
+
+        if(binding.facet) {
+
+          binding.destModule = module.facetModule(facet)
+          binding.shared = binding.destModule.shared
+          println "-'$module.name', destModule=$binding.destModule for facet '$facet'"
+
+          if(moduleTemplates.module) {
+            category = 'module'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.module.size()}, 1]"
+            moduleTemplates.module.each { String k,v -> generate("${facet}.${type}.${category}", k, v) }
+          }
+
+          if(moduleTemplates.enums && module.enums) {
+            category = 'enum'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.enums.size()}, ${module.enums.size()}]"
+            moduleTemplates.enums.each { String k,v->
+              module.enums.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.config && module.configs) {
+            category = 'config'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.config.size()}, ${module.configs.size()}]"
+            moduleTemplates.config.each { String k,v->
+              module.configs.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          
+          if(moduleTemplates.controller && module.controllers) {
+            category = 'controller'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.controller.size()}, ${module.controllers.size()}]"
+            moduleTemplates.controller.each { String k,v->
+              module.controllers.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.pojo && module.pojos) {
+            category = 'pojo'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.pojo.size()}, ${module.pojos.size()}]"
+            moduleTemplates.pojo.each { String k,v->
+              module.pojos.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+        }
+      }
+
+      type = 'shared'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      component.findByType(Shared.class).each { def module ->
+        binding.module = module; binding.facet = module.facet(facet)
+
+        if(binding.facet) {
+
+          binding.destModule = module.facetModule(facet)
+          binding.shared = binding.destModule.shared
+          println "-'$module.name', destModule=$binding.destModule for facet '$facet'"
+
+          if(moduleTemplates.module) {
+            category = 'module'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.module.size()}, 1]"
+            moduleTemplates.module.each { String k,v -> generate("${facet}.${type}.${category}", k, v) }
+          }
+
+          if(moduleTemplates.enums && module.enums) {
+            category = 'enum'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.enums.size()}, ${module.enums.size()}]"
+            moduleTemplates.enums.each { String k,v->
+              module.enums.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.config && module.configs) {
+            category = 'config'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.config.size()}, ${module.configs.size()}]"
+            moduleTemplates.config.each { String k,v->
+              module.configs.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.controller && module.controllers) {
+            category = 'controller'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.controller.size()}, ${module.controllers.size()}]"
+            moduleTemplates.controller.each { String k,v->
+              module.controllers.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+                    
+          if(moduleTemplates.pojo && module.pojos) {
+            category = 'pojo'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.pojo.size()}, ${module.pojos.size()}]"
+            moduleTemplates.pojo.each { String k,v->
+              module.pojos.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+        }
+      }
+
+      type = 'client'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      component.findByType(Client.class).each { def module ->
+        binding.module = module; binding.facet = module.facet(facet)
+
+        if(binding.facet) {
+
+          binding.destModule = module.facetModule(facet)
+          binding.shared = binding.destModule.shared
+          println "-'$module.name', destModule=$binding.destModule for facet '$facet'"
+
+          if(moduleTemplates.module) {
+            category = 'module'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.module.size()}, 1]"
+            moduleTemplates.module.each { String k,v -> generate("${facet}.${type}.${category}", k, v) }
+          }
+
+          if(moduleTemplates.enums && module.enums) {
+            category = 'enum'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.enums.size()}, ${module.enums.size()}]"
+            moduleTemplates.enums.each { String k,v->
+              module.enums.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.config && module.configs) {
+            category = 'config'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.config.size()}, ${module.configs.size()}]"
+            moduleTemplates.config.each { String k,v->
+              module.configs.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.controller && module.controllers) {
+            category = 'controller'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.controller.size()}, ${module.controllers.size()}]"
+            moduleTemplates.controller.each { String k,v->
+              module.controllers.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+                    
+          if(moduleTemplates.pojo && module.pojos) {
+            category = 'pojo'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.pojo.size()}, ${module.pojos.size()}]"
+            moduleTemplates.pojo.each { String k,v->
+              module.pojos.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+        }
+      }
+
+      type = 'backend'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      component.findByType(Backend.class).each { def module ->
+        binding.module = module; binding.facet = module.facet(facet)
+
+        if(binding.facet) {
+          binding.destModule = module.facetModule(facet)
+          binding.shared = binding.destModule.shared
+          println "-'$module.name', destModule=$binding.destModule for facet '$facet'"
+
+          if(moduleTemplates.module) {
+            category = 'module'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.module.size()}, 1]"
+            moduleTemplates.module.each { String k,v -> generate("${facet}.${type}.${category}", k, v) }
+          }
+
+          if(moduleTemplates.enums && module.enums) {
+            category = 'enum'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.enums.size()}, ${module.enums.size()}]"
+            moduleTemplates.enums.each { String k,v->
+              module.enums.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.config && module.configs) {
+            category = 'configs'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.config.size()}, ${module.configs.size()}]"
+            moduleTemplates.config.each { String k,v->
+              module.configs.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.pojo && module.pojos) {
+            category = 'pojos'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.pojo.size()}, ${module.pojos.size()}]"
+            moduleTemplates.pojo.each { String k,v->
+              module.pojos.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.basicType && module.basicTypes) {
+            category = 'basicType'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.basicType.size()}, ${module.basicTypes.size()}]"
+            moduleTemplates.basicType.each { String k,v->
+              module.basicTypes.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.entity && module.entities) {
+            category = 'entity'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.entity.size()}, ${module.entities.size()}]"
+            moduleTemplates.entity.each { String k,v->
+              module.entities.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.container && module.containers) {
+            category = 'container'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.container.size()}, ${module.containers.size()}]"
+            moduleTemplates.container.each { String k,v->
+              module.containers.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.controller && module.controllers) {
+            category = 'controller'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.controller.size()}, ${module.controllers.size()}]"
+            moduleTemplates.controller.each { String k,v->
+              module.controllers.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+          
+          if(moduleTemplates.service && module.services) {
+            category = 'service'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.service.size()}, ${module.services.size()}]"
+            moduleTemplates.service.each { String k,v->
+              module.services.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+        }
+      }
+
+      //state machine
+      type = 'stateMachine'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      component.stateMachines.each { def module ->
+        binding.module = module; binding.facet = module.facet(facet)
+
+        if(binding.facet) {
+          binding.destModule = module.facetModule(facet)
+          binding.shared = binding.destModule.shared
+          println "-'$module.name', destModule=$binding.destModule for facet '$facet'"
+
+          if(moduleTemplates.module) {
+            category = 'module'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.module.size()}, 1]"
+            moduleTemplates.module.each { String k,v -> generate("${facet}.${type}.${category}", k, v) }
+          }
+
+          if(moduleTemplates.event && module.events) {
+            category = 'event'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.event.size()}, ${module.events.size()}]"
+            moduleTemplates.event.each { String k,v->
+              module.events.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.action && module.actions) {
+            category = 'action'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.action.size()}, ${module.actions.size()}]"
+            moduleTemplates.action.each { String k,v->
+              module.actions.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.condition && module.conditions) {
+            category = 'condition'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.condition.size()}, ${module.conditions.size()}]"
+            moduleTemplates.condition.each { String k,v->
+              module.conditions.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+
+          if(moduleTemplates.state && module.states) {
+            category = 'state'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.state.size()}, ${module.states.size()}]"
+            moduleTemplates.state.each { String k,v->
+              module.states.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+        }
+      }
+
+      //uis
+      type = 'ui'
+      println "${facet}.${type}"
+      moduleTemplates = facetTemplates[type]
+      component.uis.each { def module ->
+        binding.module = module; binding.facet = module.facet(facet)
+        if(binding.facet) {
+          binding.destModule = module.facetModule(facet)
+          binding.shared = binding.destModule.shared
+          println "-'$module.name', destModule=$binding.destModule for facet '$facet'"
+
+          if(moduleTemplates.module) {
+            category = 'module'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.module.size()}, 1]"
+            moduleTemplates.module.each { String k,v -> generate("${facet}.${type}.${category}", k, v) }
+          }
+
+          if(moduleTemplates.view && module.views) {
+            category = 'view'
+            println "${facet}.${module.name}(${type}).${category}[${moduleTemplates.view.size()}, ${module.views.size()}]"
+            moduleTemplates.view.each { String k,v->
+              module.views.each { generate("${facet}.${type}.${category}", k, v, it) }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void generate(String templatePrefix, String templateName, String template, def item = null) {
+    try {
+
+      //generate only if the facet is enabled for item
+      if(!item || item[binding.facet.name] ) {
+
+        binding.item = item
+        binding.ret = [:]
+        binding.ret.overwrite = true
+
+        def generated = engine.createTemplate(template).make(binding)
+
+        //converto to platform line delimeters
+        StringWriter stringWriter = new StringWriter()
+        def platformWriter = new PlatformLineWriter(stringWriter)
+        generated.writeTo(platformWriter)
+        platformWriter.flush()
+
+        if(binding.ret.path) {
+          //ee.quiet "Generating $binding.ret.path from template=$templateName for item=${item?.name}"
+          assert (binding.ret.path && !binding.ret.path.contains('null')), "Invalid path of to generated file '$binding.ret.path'"
+          def file = ee.file(target, binding.ret.path)
+          if(!file.exists() || binding.ret.overwrite) {
+            if (!file.parentFile.exists()) { file.parentFile.mkdirs() }
+            if(binding.ret.path.endsWith('.java')) {
+              file.write("$stringWriter//${templatePrefix}.$templateName")
+            } else {
+              file.write(stringWriter.toString())
+            }
+          } else {
+            //ee.quiet ("Skip: $binding.ret.path exists from template=$templateName for item=${item?.name} and overwrite=false")
+          }
+        } else {
+          //ee.debug ("Skip: path=null for template=$templateName, item=${item?.name}")
+        }
+      } else {
+        //ee.quiet ("Skip: Facet not enabled, template=$templateName for item=${item?.name}")
+      }
+    }catch(Throwable e) {
+      ee.error("Exception during generation for template='${templatePrefix}.$templateName' for item=${item?.name}, e='$e'")
+      e.printStackTrace()
+      //throw e
+    }
+  }
+}
+
+//model
+
+class Link {
+  def from, to
+}
+
+@AutoClone
+class Element {
+  String id
+  Element originalParent
+  Element parent
+  String name, namespace, subNamespace, description, nameXml
+  boolean xml = true
+
+  //calculated values
+  String capName, uncapName, underscoredName, uri
+  String target
+
+  def children
+
+  def _names
+  def nameResolvers
+  def nameResolversPrioOrder
+
+  void init() { //println "init of $this"
+  }
+
+  void addNameResolverPrioOder(name) {
+    if(nameResolversPrioOrder == null) { nameResolversPrioOrder = []}
+    nameResolversPrioOrder << name
+  }
+
+  void addNameBuilder(prefix, nameSuffixMap) {
+    if(nameResolvers == null) { nameResolvers = new TreeMap() }
+    nameSuffixMap.each { name, suffix ->  nameResolvers.put( name,  new Link(from: prefix, to: suffix) ) }
+  }
+
+  String getName() { if(name == null) { name = deriveName() }; name }
+  String getNameXml() { if(nameXml == null) { nameXml = getName() }; nameXml }
+  String deriveName() { parent ? "${parent.name}${getClass().simpleName}" : getClass().simpleName }
+  String nameFullSub(String namesPart) {
+    def ret
+    if('bean' == namesPart) { ret = '.ejb'
+    } else if('impl' == namesPart) { ret = '.impl'
+    } else { ret = '' }
+    ret
+  }
+  String nameFull(String namesPart = 'clazz') {
+    assert names, "names is null in '$this'"
+    "${module().namespace}.${namespace}${nameFullSub(namesPart)}.${names[namesPart]}"
+  }
+  String sharedNameFull(String namesPart = 'clazz') { "${module().shared.namespace}.${namespace}.${names[namesPart]}" }
+
+  def resolve(ref, type = null, assertNotNull = false) {
+    //println "Resolve $ref in '$this, type=$type, assertNotNull=$assertNotNull"
+    def ret = null
+    if(ref) {
+      def tempRet, relRef
+      if(ref.startsWith('//')) {
+        relRef = ref.substring(2)
+        ret = component()
+      } else if(ref.startsWith('/')) {
+        relRef = ref.substring(1)
+        ret = module()
+      } else {
+        relRef = ref
+        ret = this
+      }
+      //println "Resolve $relRef in '$ret"
+      def parts = relRef.split('\\.')
+      def i = 0
+
+      def chain = [] as Set
+      def isTypeOk = { parts.length != i || ( type == null ? true : type.isInstance(it) ) }
+      parts.each { String partRef ->
+        //println "\nTry to resolve '$partRef' in $ret"
+        i++
+        if(ret) {
+          assert !chain.contains(ret), "Recursion detected at resolving of ref='$ref' in this=$this"
+          chain << ret
+
+          tempRet = null
+          try {
+            tempRet = ret."${partRef}"
+            if(!isTypeOk(tempRet)) { tempRet = null }
+          } catch(e) {}
+
+          if(!tempRet) {
+            //check children
+            if(ret.children) { ret = ret.children.find { partRef.equalsIgnoreCase(it.getName()) && isTypeOk(it) }
+            } else { ret = null }
+            if(assertNotNull) { assert ret != null, "Ref='$ref' can't be resolved in this='$this', partRef='$partRef', ret='$ref'" }
+          } else {
+            ret = tempRet
+          }
+        }
+      }
+    }
+    if(assertNotNull) { assert ret != null, "Ref='$ref' can't be resolved in this=$this" }
+    //println "Resolved $ref to '$ret' in '$this, type=$type, assertNotNull=$assertNotNull"
+    ret
+  }
+
+  def getNames() {
+    if(_names == null && nameResolvers) { buildNames() }
+    _names
+  }
+
+  void buildNames() {
+    //build names
+    _names = [:]
+
+    def resolvedPrefixes = [:]
+
+    def resolver = { name, prefixRefSuffixLink ->
+      def prefix = resolvedPrefixes[prefixRefSuffixLink.from]
+      if(prefix == null) {
+        prefix = (prefixRefSuffixLink.from instanceof Closure) ? prefixRefSuffixLink.from() : prefixRefSuffixLink.from
+        resolvedPrefixes[prefixRefSuffixLink.from] = prefix
+      }
+      _names[name] = "$prefix$prefixRefSuffixLink.to"
+    }
+
+    if(nameResolversPrioOrder) {
+      nameResolversPrioOrder.each { resolver(it, nameResolvers.remove(it) ) }
+    }
+
+    nameResolvers.each resolver
+
+    nameResolversPrioOrder = null
+    nameResolvers = null
+  }
+
+  void add(Element child, boolean notForGeneration = false) {  //println "${this}.add($child($child.id))";
+    if(children == null) { children = []}
+    child.parent = this; children<<child
+    child.init()
+  }
+
+  Component component() { (this instanceof Component) ? this : parent.component() }
+
+  def findByType(def type) { children.findAll { type.isInstance(it) } }
+
+  def findChild(Closure closure) { children.find(closure) }
+
+  StructureUnit module() { (this instanceof StructureUnit) ? this : parent.module() }
+
+  void build() {
+    buildMe()
+    buildChildren()
+  }
+
+  String getCapName() { if(capName == null) { capName = getName().capitalize() }; capName }
+  String getUncapName() { if(uncapName == null) { uncapName = getName().uncapitalize() }; uncapName }
+  String getUnderscoredName() { if(underscoredName == null) { underscoredName = getName().replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() }; underscoredName }
+  String getUri() { if(!uri) { uri = "${module().uri}.${getUncapName()}" }; uri }
+  
+  void buildMe() {
+    if(namespace == null) {
+      //before module all elements has relative path
+      if(parent instanceof Module) {
+        namespace = subNamespace? subNamespace : ''
+      } else {
+        namespace = subNamespace ? "$parent.namespace.$subNamespace" : parent.namespace
+      }
+      //println "namespace = $namespace, subNamespace = $subNamespace for '$this'"
+    }
+  }
+
+  void buildChildren() { if(children) { children.clone().each { it.buildMe(); it.buildChildren() } } }
+
+  void cloneSetParent(Element item) {
+    Element ret = item.clone()
+    ret.originalParent = item.parent
+
+    add(ret)
+    //println "cloned $ret.nameExternal from parent $ret.originalParent to parent $ret.parent"
+  }
+
+  String getPath() { parent ? "${parent.path}.${getClass().simpleName}($name)" : "${getClass().simpleName}($name)" }
+
+  String toString() { "${getName()}(${getClass().simpleName})[children.size=${children?.size()}]" }
+
+  def display() {
+    println "$this names=$names"
+    children.each { it.display() }
+  }
+  
+  String sqlName(String sqlNameToShort) {
+    def ret = sqlNameToShort.replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+    ret = ret.replaceAll(/(\w)\1+/, '$1')
+    ret
+  }
+}
+
+class Reference {
+  def rest
+  Container container
+  InternalLogicUnit logicUnit
+  Operation op
+  Element el
+  def chain
+
+  def build(base, reference, assertNotNull = false, caller = null) {
+    chain = []; rest = []; el = base
+    //println "Resolve Reference '$reference' on '$base'"
+    reference.split('\\.').each {
+      if(op && el instanceof Operation) {
+        el = el.returnTypeRef
+        assert !assertNotNull || el, "Return type of '$op' can not be resolved, ref='$reference' can't be resolved in this='$this' for caller='${caller ? caller.path : base.path }'"
+        //println "resolve return type ${el.returnTypeExternal} $el"
+        if(el) { chain << el }
+      };
+      el = el?.resolve(it, null, assertNotNull)
+      if(el) {
+        chain<<el
+        if(!op && el instanceof Operation) { op = el
+          //println "Resolved operation of $reference to $op.name(${op.signature})";
+        }
+        if(!logicUnit && el instanceof InternalLogicUnit ) { logicUnit = el }
+        if(!container && el instanceof Container && (!reference.contains('.controller') && !reference.contains('.xmlController')) ) { //println "Set container for '$reference'"
+          container = el }
+      } else { rest << it }
+    }
+    assert !assertNotNull || !rest, "Ref='$reference' can't be resolved in this='$this' for caller='${caller ? caller.path : base.path }'"
+    if(!rest) { rest = null }
+    this
+  }
+
+  boolean isResultExpression() { (op && el instanceof Prop ) }
+
+  String getSignature() { op.signature }
+  String getSignatureExternal() { op.signatureExternal }
+  String getSignatureNames() { op.signatureNames }
+  String getSignatureNamesExternal() { op.signatureNamesExternal }
+  String getSignatureTestValues() { op.signatureTestValues }
+  String getSignatureTestValuesExternal() { op.signatureTestValuesExternal }
+  String getReturnType() { resultExpression?(el.computedType):(op.returnType) }
+  String getReturnTypeExternal() { resultExpression?(el.computedType):(op.returnTypeExternal) }
+  String getReturnTypeRaw() { resultExpression?(el.computedType):(op.returnTypeRaw) }
+  boolean isRawType() { op.rawType }
+  boolean isElementEjb() { (el instanceof Entity || el instanceof BasicType) }  
+  boolean isReturnTypeEjb() { resultExpression ? elementEjb : op.returnTypeEjb }
+
+  String getName() { resultExpression?(op.name("${el.capName}")):(op.name) }
+  String getNameExternal() { resultExpression ? ( op.nameExternal("${el.capName}Of") ) : ( op.nameExternal ) }
+  String getNameTest() { resultExpression ?( op.nameTest("${el.capName}Of") ) : op.nameTest }
+
+  String toString() { el ? "Reference[el:$el, chain:${chain*.name}]" : "Reference[chain:${chain*.name}, rest:$rest]" }
+}
+
+class References {
+  def base
+  List<Delegate> delegates = []
+  private def _keys = []
+  private List<Reference> _refs
+  private List<InternalLogicUnit> _logicUnits
+  private List<Container> _containers
+  private List<Entity> _entities
+
+  void build() {
+    if(!_refs) {
+      //println "Resolve in '$base' '$_keys'"
+      Element element = (base instanceof Element) ? base : base()
+      _refs = _keys.collect { new Reference().build(element, it, true, element) }
+      delegates.each { if(it.reference()) { _refs.add(it.reference()) } }
+    }
+    this
+  }
+
+  def getLogicUnits() {
+    if(!_logicUnits) {
+      build()
+      _logicUnits = _refs.findAll { it.logicUnit }.collect { Reference ref-> ref.logicUnit }.unique().sort { it.name }
+    }
+    _logicUnits
+  }
+
+  def getContainers() {
+    if(!_containers) {
+      build()
+      _containers = _refs.findAll { it.container }.collect { Reference ref-> ref.container }.unique().sort { it.name }
+    }
+    _containers
+  }
+
+  def getEntities() {
+    if(!_entities) {
+      build()
+      _entities = _refs.findAll { it.el instanceof Entity }.collect { it.el }.sort { it.name }
+    }
+    _entities
+  }
+
+  void add(Delegate item) { delegates<<item }
+  void add(String item) { _keys<<item }
+}
+
+enum ModuleType {
+  SHARED, BACKEND, CLIENT, UI, STATE_MACHINE;
+  boolean isShared() { this == SHARED }
+  boolean isClientOnly() { this == CLIENT || this == UI }
+  boolean isClient() { this == CLIENT }
+  boolean isBackendOnly() { this == BACKEND }
+  boolean isBackend() { this == BACKEND || this == STATE_MACHINE }
+  boolean isUi() { this == UI }
+  boolean isStateMachine() { this == STATE_MACHINE }
+}
+
+class Facet {
+  def name
+  def enabled = true
+  def moduleRef
+  def module
+  def props
+  def propertyMissing(String name) { if(props) { props[name] } }
+
+  String toString() { "Facet($name,$enabled)" }
+}
+
+class StructureUnit extends Element {
+  static final sameNamespaceModules = [
+    'shared',
+    'client',
+    'backend',
+    'ejb',
+    'facade',
+    'cfg'] as Set
+
+  String key, artifact, superKey
+
+  //calculated vaulues
+  String capShortName, uncapShortName, underscoredShortName, uri
+  def namespaces = [:]
+  Map<String, Facet> facets
+
+  String sharedRef
+  Shared shared
+
+  void init() {
+    super.init()
+
+    if(!artifact) { artifact = key ? "${component().artifact}-${superKey ? superKey + '_' : ''}$key" : "${component().artifact}-${superKey ? superKey +'_' : ''}$name" }
+    if(subNamespace == null) {
+      if(key) {
+        subNamespace = superKey ? "${superKey}.${key.uncapitalize()}" : key.uncapitalize()
+      } else if(!sameNamespaceModules.contains(name)) {
+        subNamespace = superKey ? "${superKey}.${name.uncapitalize()}" : name.uncapitalize()
+      }
+    }
+    println "artifact = $artifact, subNamespace = $subNamespace in $this"
+    if(!key) {
+      if(!sameNamespaceModules.contains(name)) {
+        key = name.uncapitalize()
+      }else {
+        key = component().key
+      }
+    }
+    assert key, "'Key' attribute is not defined in $this, $name"
+    if(!capShortName) { capShortName = underscoreToCamelCase(key).capitalize() }
+    if(!uncapShortName) { uncapShortName = key.uncapitalize() }
+    if(!underscoredShortName) { underscoredShortName = key.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() }
+
+    if(this instanceof Component) {
+      addNameBuilder({ "${capShortName}" }, [ classPrefix: '' ])
+      if(!uri) { uri = uncapShortName }
+    } else if(key != component().key){
+      addNameBuilder({ "${component().capShortName}$capShortName" }, [ classPrefix: '' ])
+      if(!uri) { uri = "${component().uri}.$uncapShortName" }
+    } else {
+      addNameBuilder({ "${component().capShortName}${name.capitalize()}" }, [ classPrefix: '' ])
+      if(!uri) { uri = "${component().uri}" }
+    }
+
+    addNameBuilder( { names.classPrefix }, [initializer: 'Initializer'] )
+    addNameBuilder( { underscoredShortName }, [ mlKeyConstant: '' ])
+    addNameBuilder({ underscoredShortName.toLowerCase() }, [mlKey: ''] )
+  }
+  
+  /**
+   * Converts a underscore-containing string to camel case (e.g. "under_score_string" becomes "underScoreString")
+   */
+  private String underscoreToCamelCase(String underscoreStr){
+    if(!underscoreStr || underscoreStr.isAllWhitespace()){
+      return ''
+    }
+    return underscoreStr.replaceAll(/_\w/){ it[1].toUpperCase() }
+  }
+
+  void buildMe() {
+
+
+    //println "capShortName = $capShortName in $this"
+
+    super.buildMe()
+
+    //build namespaces
+    component().subPackages.each { k, v -> namespaces[k] = v ? "${namespace}.$v" : namespace }
+
+    facets?.each { name, facet -> if(facet.moduleRef) { facet.module = component().resolve(facet.moduleRef, Module.class, true) } }
+    shared = sharedRef ? component().resolve(sharedRef, Shared.class, true) : component().shared
+    if(shared != this && this instanceof Module) {
+      shared.dependModules << this
+      //println "Add $this as dependency to $shared"
+    }
+  }
+
+  void add(Facet facet) { if(facets == null) { facets = [:]}
+    this.facets.put facet.name, facet
+    def facetFile = ee.file("${ee.home}/plugins/mdd/facets/${facet.name}.gradle")
+    if(facetFile.exists()) {
+      println "Assign facet '$facet' to '$this' from '$facetFile'"
+      ee.apply(from: facetFile, to: new FacetBinder(element: this, metaClasses: [element: Element.metaClass]) )
+    } else {
+      println "Assign facet '$facet' to '$this'"
+      Element.metaClass[facet.name] = facet.enabled
+    }
+  }
+
+  def facet(String facetName) {
+    def ret = facets?.get(facetName)
+    if(!ret && !(this instanceof Component)) { ret = component().facet(facetName) }
+    ret
+  }
+}
+
+class FacetBinder {
+  def element
+  def metaClasses
+}
+
+class Module extends StructureUnit {
+  String src, srcGen, srcMain, srcGenMain, srcTest, srcGenTest, javaSrc, javaSrcGen, javaTestSrc, javaTestSrcGen, resSrc, resSrcGen, resTestSrc, resTestSrcGen, srcGenSite
+
+  def facetModuleFor = [:]
+
+  ModuleType type
+  List<EnumType> enums = []
+  List<Pojo> pojos = []
+  List<Config> configs = []
+  List<CustomController> controllers = []
+
+  void buildMe() {
+    super.buildMe()
+
+    src = "$artifact/${component().src}"
+    srcGen = "$artifact/${component().srcGen}"
+
+    srcMain = "$src/main"
+    srcGenMain = "$srcGen/main"
+    srcTest = "$src/test"
+    srcGenTest = "$srcGen/test"
+
+    javaSrc = "$srcMain/java"
+    javaSrcGen = "$srcGenMain/java"
+    javaTestSrc = "$srcTest/java"
+    javaTestSrcGen = "$srcGenTest/java"
+
+    resSrc = "$srcMain/resources"
+    resSrcGen = "$srcGenMain/resources"
+    resTestSrc = "$srcTest/resources"
+    resTestSrcGen = "$srcGenTest/resources"
+    
+    srcGenSite = "$srcGen/site"
+  }
+
+  def add(EnumType item) { super.add(item); enums << item }
+  def add(Config item) { super.add(item); configs << item }
+  def add(Pojo item) { super.add(item); pojos << item }
+  def add(CustomController item) { super.add(item); controllers << item }
+
+  def addFacetModuleFor(facet, Module module) {
+    facetModuleFor[module]= facet
+    this
+  }
+
+  //return target module for facet, else this
+  def facetModule(String facetName) {
+    def ret = facet(facetName)?.module
+    if(!ret) { ret = this }
+    //check and inform the the target module that i tis facet module for the module
+    if(!ret.facetModuleFor[this]) { ret.facetModuleFor[this] = facetName }
+    ret
+  }
+}
+
+class Shared extends Module {
+  def dependModules = [] as Set
+
+  void init() {
+    super.init()
+    type = ModuleType.SHARED
+    addNameBuilder( {capShortName}, [constants: 'Constants', ml: 'Ml'])
+  }
+}
+
+class Client extends Module {
+  def dependModules = [] as Set
+
+  void init() {
+    super.init()
+    type = ModuleType.CLIENT
+    addNameBuilder( {capShortName}, [constants: 'Constants', ml: 'Ml'])
+  }
+}
+
+class Backend extends Module {
+  List<BasicType> basicTypes = []
+  List<Entity> entities = []
+  List<Container> containers = []
+  List<Service> services = []
+
+  Entity firstEntity
+
+  void init() {
+    super.init()
+    type = ModuleType.BACKEND
+    //TODO: Move xml names to 'xml' facet
+    addNameBuilder( {capShortName}, [dataFactory: 'DataFactory', builderFactory: 'BuilderFactory', modelFactory: 'ModelFactory',
+      converter: 'Converter', managerFactory: 'ManagerFactory', xml: 'Xml', eventToCdi: 'EventToCdi', cdiToJms: 'CdiToJms', jmsToCdi: 'JmsToCdi',
+      cache: 'Cache', cacheBase: 'CacheBase'] )
+    addNameBuilder({names.xml}, [xmlConverter: 'Converter'] )
+  }
+
+  void buildMe() {
+    super.buildMe()
+    firstEntity = entities.find { !it.virtual }
+  }
+
+  def add(Service item) { super.add(item); services << item }
+  def add(BasicType item) { super.add(item); basicTypes << item }
+  def add(Entity item) { super.add(item); entities << item }
+  def add(Container item) { super.add(item); containers << item }
+}
+
+class Component extends StructureUnit {
+  def ee
+  String group
+  String src = 'src'
+  String srcGen = 'src-gen'
+
+  //default backend
+  Backend backend
+  
+  //default realm
+  Realm realm
+
+  //defaults
+  def subPackages = [
+    model: 'model',
+    core: 'core',
+    integ: 'integ',
+    facade: 'facade',
+    view: 'view'
+  ]
+
+  //modules
+  List<Shared> shareds = []
+  List<Backend> backends = []
+  List<StateMachine> stateMachines = []
+  List<Realm> realms = []
+  List<Ui> uis = []
+
+  ComponentProfile componentProfile
+  UserProfile userProfile
+  def cachedResolvedTypes = [:]
+  def cachedResolvedTypeRefs = [:]
+
+  void init() {
+    super.init()
+    ['boolean', 'double', 'int', 'long'].each { String type -> cachedResolvedTypeRefs[type] = new TypeRef(name: type, primitive: true).init() }
+    ['String', 'Date', 'Boolean', 'Double', 'Integer', 'Long'].each { String type -> cachedResolvedTypeRefs[type] = new TypeRef(name: type).init() }
+    addNameBuilder( {capShortName}, [ constants: 'Constants', ml: 'Ml', qualifier: '', realm: 'RealmConstants', notificationPlugin: 'NotificationPlugin' ])
+  }
+
+  Entity getFirstEntity() { entities.find { !it.virtual } }
+
+  def add(Shared item) { super.add(item); shareds << item; ; if(!shared) { shared = item } }
+  def add(Backend item) { super.add(item); backends << item; if(!backend) { backend = item } }
+  def add(StateMachine item) { super.add(item); stateMachines << item; if(!backend) { backend = item } }
+  def add(Realm item) { super.add(item); realms << item; if(!realm) { realm = item } }
+  def add(Ui item) { super.add(item); uis << item }
+  def add(Test item) { super.add(item); tests << item }
+
+  def add(ComponentProfile item) { super.add(item); componentProfile = item }
+  def add(UserProfile item) { super.add(item); userProfile = item }
+
+  boolean hasProfiles() { userProfile || componentProfile }
+
+  void buildMe() {
+    super.buildMe()
+
+    //add defaults
+    def mlKey = new BasicType(name: 'MLKey', namespace: 'com.siemens.ra.cg.pl.common.base.ml', parent:this)
+    mlKey.add(new JpaProp(name: 'base'))
+    mlKey.add(new JpaProp(name: 'key'))
+    mlKey.add(new JpaProp(name: 'parameters', type: 'Object[]'))
+
+    add(mlKey, true)
+
+    assert shared, "Shared folder is not defined"
+  }
+
+  def resolveType(String type) {
+    if(!cachedResolvedTypes.containsKey(type)) {
+      cachedResolvedTypes[type] = findByType(Backend.class).findResult { module ->
+        def el = module.entities.find { it.name == type || it.names.bean == type   }
+        if(!el) { el = module.basicTypes.find { it.name == type || it.names.bean == type } }
+        if(!el) { el = module.enums.find { it.name == type } }
+        el
+      }
+      if(!cachedResolvedTypes[type]) {
+        cachedResolvedTypes[type] = findByType(Module.class).findResult { module ->
+          def el = module.enums.find { it.name == type }
+        }
+      }
+    }
+    cachedResolvedTypes[type]
+  }
+  
+  def resolveTypeRef(type) {
+    //println "resolveType of $type"
+    if(!cachedResolvedTypeRefs.containsKey(type)) {
+      cachedResolvedTypeRefs[type] = new TypeRef(name: type, el: resolveType(type)).init()
+    }
+    cachedResolvedTypeRefs[type]
+  }
+
+  //return target module for facet, else this
+  def facetModule(String facetName) {
+    def ret = facet(facetName)?.module
+    if(!ret) {
+      ret = backend ? backend : shared
+    }
+  }
+}
+
+class CompilationUnit extends Element {
+  String superRef, basePrefix
+  boolean base = false
+  boolean virtual = false
+  protected String _imports
+  Set types = []
+  List<Prop> props = []
+  List<Constructor> constructors = []
+  List<Operation> operations = []
+  References refs = new References(base: { module() } )
+  CompilationUnit _superUnit
+
+  void init() {
+    super.init()
+
+    addNameResolverPrioOder 'clazz'
+
+    basePrefix = base ? 'Base' : ''
+    addNameBuilder({capName}, [clazz: ''] )
+    addNameBuilder({uncapName}, [instance: ''] )
+    addNameBuilder({names.clazz}, [factory: 'Factory', impl: 'Impl', bean: 'Bean', mem: 'Mem', base: basePrefix, dataFactory: 'DataFactory', builderFactory: 'BuilderFactory', modelFactory: 'ModelFactory', converter: 'Converter', testBase: 'TestBase'] )
+    addNameBuilder({ virtual ? "${names.clazz}TestAbstract" : "${names.clazz}Test" }, [test: ''] )
+    addNameBuilder({names.base}, [baseImpl: 'Impl', baseBean: 'Bean', baseMem: 'Mem'] )
+    addNameBuilder({ (names.instance[-1] == 'y') ? "${names.instance[0..-2]}ies" : "${names.instance}s" }, [instances: '' ] )
+    addNameBuilder({ names.instances.capitalize() }, [instancesCap: '' ] )
+  }
+
+  void buildMe() {
+    super.buildMe()
+    refs.base = module()
+
+    refs.build()
+  }
+  String getSignatureFullConstr() { props.collect {  Prop prop->"$prop.computedType ${prop.name}" }.join(', ') }
+  String getSignatureNamesFullConstr() { props.collect {  Prop prop->"${prop.name}" }.join(', ') }
+  List<Prop> getPropsForHashCode() { props.findAll { it.hashCode } }
+  List<Prop> getPropsRecursive() { findPropsRecursive { true } }
+
+  boolean isSuperHierarchyComplete() { !superRef || (superUnit && superUnit.superHierarchyComplete) }
+
+  List<Operation> getOperationsNotManager() { operations.findAll { !(it instanceof ManagerCommand) } }
+
+  void add(Prop item) { super.add(item); props<<item }
+  void add(Constructor item) { super.add(item); constructors<<item }
+  void add(Operation item) { super.add(item); operations<<item }
+  void add(Delegate item) { super.add(item); refs.add(item) }
+
+  def resolve(ref, type = null, assertNotNull = false) {
+    def ret = super.resolve(ref, type, false)
+    if(!(ret instanceof Element) && superUnit) { ret = superUnit.resolve(ref, type, assertNotNull) }
+    ret
+  }
+
+  Prop resolveProp(String propName) {
+    Prop ret = props.find { it.name == propName }
+    if(!ret && superUnit) { ret = superUnit.resolveProp(propName) }
+    if(!ret) { println "Prop '$propName' can't be resolved in $name" }
+    ret
+  }
+
+  Prop findProp(Closure findPropClosure) {
+    def ret = props.find(findPropClosure)
+    if(!ret && superUnit) {
+      ret = superUnit.findProp(findPropClosure)
+    }
+    ret
+  }
+
+  List<Prop> findPropsRecursive(Closure findPropsClosure) {
+    def ret = []
+    if(superUnit) {
+      ret.addAll( superUnit.findPropsRecursive(findPropsClosure) )
+    }
+    ret.addAll( props.findAll(findPropsClosure) )
+
+    ret
+  }
+
+  List<Prop> getMultiSuperProps() {
+    return superUnit ? superUnit.findPropsRecursive { it.multi } : []
+  }
+
+  public String getImports() {
+    if(_imports == null) {
+      StringBuffer b = new StringBuffer()
+      List<String> sorted = types.toList().sort()
+      props.each { if(it.typeEl) { sorted << "${it.typeEl.nameFull()}" } }
+
+      if(sorted) {
+        def order = [
+          'java.',
+          'javax',
+          'org.',
+          'com.'
+        ]
+        def other = []
+        def ordered = [:]; order.each { ordered[it] = []}
+        sorted.each { def m = ordered[it.substring(0,5)]; if(m==null) { m = other }; m << "import $it;" }
+        order.each { def m = ordered[it]; if(m) { b.append('\n'); b.append(m.join('\n')); } }
+        if(other) { b.append('\n'); b.append(other.join('\n')); b.append('\n'); }
+      }
+      _imports = b.toString()
+    }
+    _imports
+  }
+
+  def getSuperUnit() { if(superRef && !_superUnit) { _superUnit = parent.resolve(superRef, CompilationUnit.class, true)
+      //if(_superUnit) { println "SuperUnit '$_superUnit' assigned to '$this'" }
+    }; _superUnit }
+}
+
+@AutoClone
+class Logic extends Element {
+  String body
+}
+
+@AutoClone
+class Operation extends Logic {
+  List<Param> params = []
+  String nameExternal
+  String returnType = 'void'
+  String returnTypeExternal
+  String returnTypeRaw
+  def _returnTypeRef
+  String signature = ''
+  String signatureNames = ''
+  String signatureTestValues = ''
+  String signatureTestValuesExternal = ''
+  String signatureExternal
+  String signatureNamesExternal
+  boolean transactional = false
+  boolean rawType = false
+  boolean override = false
+  /** implemented/provided in supr classes */
+  boolean provided = false
+  boolean command = false
+
+  boolean isVoid() { getReturnType() == 'void' }
+  boolean isTypeBoolean() { getReturnType() == 'boolean' }
+  def getReturnTypeRef() { if(!_returnTypeRef) { _returnTypeRef = component().resolveType(getReturnType()) }; _returnTypeRef }
+  boolean isReturnTypeEjb() { returnTypeRef && (_returnTypeRef instanceof Entity || _returnTypeRef instanceof BasicType) }
+  String getReturnTypeExternal() { if(!returnTypeExternal) { returnTypeExternal = getReturnType() }; returnTypeExternal }
+  String getReturnTypeRaw() { returnTypeRaw ? returnTypeRaw : getReturnTypeExternal() }
+  String getNameExternal() { nameExternal ? nameExternal : name }
+  String getNameTest() { getNameExternal() }
+  String getSignatureExternal() { if(!signatureExternal) { signatureExternal = getSignature() }; signatureExternal }
+  String getSignatureNamesExternal() { if(!signatureNamesExternal) { signatureNamesExternal = getSignatureNames() }; signatureNamesExternal }
+  String getSignatureTestValuesExternal() { if(!signatureTestValuesExternal) { signatureTestValuesExternal = getSignatureTestValues() }; signatureTestValuesExternal }
+
+  String name(String defaultValue) { super.name ? super.name : defaultValue }
+  String nameExternal(String defaultValue) { nameExternal ? nameExternal : defaultValue }
+  String nameTest(String defaultValue) { defaultValue }
+
+  void add(Param item) { super.add(item); params<<item }
+
+  void buildMe() {
+    super.buildMe()
+    if(params ) {
+      signature = params.collect { it.signature }.join(', ')
+      signatureNames = params.collect { it.name }.join(', ')
+      //new Date() creates different object, what causes problems in current delegate test templates
+      signatureTestValues = params.collect { (it.type == 'Date') ? null : it.testValue }.join(', ')
+      //println "signature=$signature, signatureNames=$signatureNames, signatureTestValues=$signatureTestValues in $this"
+    }
+  }
+}
+
+class Delegate extends Operation {
+  String ref
+  Reference reference
+
+  Reference reference() {
+    //try to resolve
+    if(!reference) {  reference = new Reference().build(module(), ref, true, this) }
+    reference
+  }
+
+  void buildMe() {
+    super.buildMe()
+    reference()
+  }
+
+  String deriveName() { null }
+  String getName() { name( reference().nameExternal ) }
+  String getNameTest() { reference().nameTest }
+
+  boolean isResultExpression() { reference().resultExpression }
+  String getSignature() { reference().signature }
+  String getSignatureExternal() { reference().signatureExternal }
+  String getSignatureNames() { reference().signatureNames }
+  String getSignatureNamesExternal() { reference().signatureNamesExternal }
+  String getSignatureTestValues() { reference().signatureTestValues }
+  String getSignatureTestValuesExternal() { reference().signatureTestValuesExternal }
+  String getReturnType() { reference().returnType }
+  String getReturnTypeExternal() { reference().returnTypeExternal }
+  String getReturnTypeRaw() { reference().returnTypeRaw }
+  boolean isReturnTypeEjb() { reference().returnTypeEjb }
+  boolean isRawType() { super.rawType || reference().rawType }
+  boolean isElementEjb() { reference().elementEjb }
+}
+
+class Constructor extends Operation {
+  List<PropAttr> propAttrs = []
+  List<PropAttr> getPropAttrsWithoutDefaults() { propAttrs.findAll { !it.defaultValue && it.prop } }
+  List<Prop> getProps() { propAttrsWithoutDefaults.collect { it.prop } }
+
+  String getSignature() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"List<$propAttr.prop.computedType> ${propAttr.paramName}s": "$propAttr.prop.computedType ${propAttr.paramName}" }.join(', ') }
+  String getSignatureExternal() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"List<$propAttr.prop.type> ${propAttr.paramName}s": "$propAttr.prop.type ${propAttr.paramName}" }.join(', ') }
+  String getSignatureNames() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"${propAttr.paramName}s": "${propAttr.paramName}" }.join(', ') }
+  String getSignatureTestValues() { propAttrs.collect {  PropAttr propAttr-> (propAttr.prop.type == 'Date') ? null : propAttr.testValue }.join(', ') }
+  String getSignatureTestValuesExternal() { propAttrsWithoutDefaults.collect {  PropAttr propAttr -> (propAttr.prop.type == 'Date') ? null : propAttr.testValue }.join(', ') }
+  String getPropNames(String separator='And') { if(!_propNames) { _propNames =  propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+        propAttr.multi?"${propAttr.prop.capName}s": "${propAttr.prop.capName}" }.join(separator) }; _propNames }
+
+  void add(PropAttr propAttr) { propAttrs << propAttr }
+
+  void buildMe() {
+    super.buildMe()
+    propAttrs.each { 
+      it.prop = parent.resolveProp(it.name)
+      it.buildMe()
+    }
+  }
+}
+
+class TypeUnit extends CompilationUnit {
+  boolean event = false
+  boolean xmlBinding = false
+  boolean toShared = false
+  List<FinderTypeUnit> finders = []
+  
+  void init() {
+    super.init()
+    addNameBuilder({names.clazz}, [event: 'Event'] )
+  }
+  
+  void add(FinderTypeUnit item) { super.add(item); finders<<item }
+}
+
+class EnumType extends TypeUnit {
+  String naturalKeyBody = 'return name();'
+  List<Literal> literals = []
+
+  void init() {
+    super.init()
+    addNameBuilder({names.clazz}, [bean: ''])
+  }
+
+  void add(Literal item) { super.add(item); literals<<item }
+}
+
+class Pojo extends TypeUnit {
+}
+
+class Realm extends Element {
+  List<RealmUser> users = []
+  List<RealmGroup> groups = []
+  List<RealmRole> roles = []
+  
+  void add(RealmUser item) { super.add(item); users<<item; }
+  void add(RealmGroup item) { super.add(item); groups<<item; }
+  void add(RealmRole item) { super.add(item); roles<<item; }
+  
+  boolean isEmpty() { users.empty && groups.empty && roles.empty }
+}
+
+class RealmMember extends Element {
+  List<RealmGroup> _groups
+  
+  List<String> groupRefs
+  
+  List<RealmGroup> getGroups() { if(!_groups) { _groups = groupRefs.collect { module().resolve(it, RealmGroup.class, true) }}; _groups }
+  
+  String getQuotedGroupNames() {
+    def groups = ''
+    groupRefs.each{name ->
+      groups += "'" + name + "',"
+    }
+    groups = groups.length()>0?groups[0..-2]:groups
+    return groups
+  }
+}
+
+class RealmUser extends RealmMember {
+  String pass
+  
+  String getUserDescription() { description?description:name }
+  String getPass() { if (!pass) { pass = "${name}1${name}" }; pass }
+}
+
+class RealmGroup extends Element {
+  String getGroupDescription() { description?description:name }
+}
+
+class RealmRole extends RealmMember {
+  String getRoleDescription() { description?description:'Role for ' + name }
+}
+
+class Literal extends Element {
+  String definition, body, xmlValue
+
+  void init() {
+    super.init()
+    addNameBuilder({ "${parent.names.clazz}.${underscoredName}" }, [valueReference: ''])
+    definition = body ? "$underscoredName($body)" : underscoredName
+    if(!xmlValue) { xmlValue = uncapName }
+  }
+}
+
+class Entity extends TypeUnit {
+  String sqlName
+  boolean manualId = false
+  boolean  ordered = false
+  String labelBody
+  Manager manager
+  Cache cache
+  List<Index> indexes = []
+  void add(Manager item) { super.add(item); manager = item }
+  void add(Cache item) { 
+    if(virtual) { item.virtual = true } 
+    super.add(item); cache = item 
+  }
+  void add(Index item) { super.add(item); indexes << item }
+  
+  Prop idProp
+
+  void init() {
+    super.init()
+    addNameBuilder({names.clazz}, [bean: 'Entity', builder: 'Builder', beanBuilder: 'EntityBuilder', implBuilder: 'ImplBuilder', returnTypeExternal: '' ])
+    addNameBuilder({names.base}, [baseBean: 'Entity'] )
+    addNameBuilder({names.bean}, [returnType: ''] )
+    addNameBuilder( { underscoredName }, [ mlKeyConstant: '' ])
+    addNameBuilder({ underscoredName.toLowerCase() }, [mlKey: ''] )
+    if(!sqlName) { sqlName = sqlName(underscoredName) }
+  }
+
+  String getMapping() {
+    def indexProps = findPropsRecursive { (it.index || it.unique) && !(it.primaryKey) }
+    def count = 1
+    if(indexes || indexProps) {
+      def indexMappings = indexProps.collect { def prop -> def indexName = "${sqlName}_${prop.sqlName}"; if(indexName.length()>30) { indexName = "${indexName.take(28)}${count++}" }
+        "@Index(name = \"$indexName\", ${prop.unique ? 'unique = true, ' : ''}columnList = \"${prop.typeRef.typeBasicType ? prop.typeEl.props.collect { "${prop.sqlName}_${it.sqlName}" }.join(', ') : prop.sqlName}\")" }
+      indexMappings.addAll( indexes.collect { def index -> def sqlNames = []; def indexName = "${sqlName}_${index.props.collect {it.sqlName}.join('_')}"; if(indexName.length()>30) { indexName = "${indexName.take(28)}${count++}" }
+        index.props.each { def prop -> if(prop.typeRef.typeBasicType) {  sqlNames.addAll(prop.typeEl.props.collect { "${prop.sqlName}_${it.sqlName}" }) } else { sqlNames<<prop.sqlName } }; 
+        "@Index(name = \"${sqlName}_${count++}\", ${index.unique ? 'unique = true, ' : ''}columnList = \"${sqlNames.join(', ')}\")" } )
+      def indexMappingsAsString = indexMappings.join(',\n    ') 
+      "@Table(name = ${names.bean}.TABLE, indexes = { \n    $indexMappingsAsString })"
+    } else {
+      "@Table(name = ${names.bean}.TABLE)"
+    }
+  }
+
+  def buildIdProp() {
+    idProp = props.find { it.primaryKey }
+    if(!idProp && superUnit) { idProp = superUnit.buildIdProp() }
+    idProp
+  }
+
+  void buildMe() {
+    super.buildMe()
+    if(cache == null) { add( new Cache(namespace: "${namespace}.cache", base:true) ) }
+    if(ordered) { add( new EntityProp(name: 'order', type: 'Long', xml: false) ) }
+
+    buildIdProp()
+    assert idProp, "Primary key not found in '$path'"
+  }
+}
+
+
+class Config extends TypeUnit {
+  ConfigController controller
+
+  void init() {
+    super.init()
+    addNameBuilder({underscoredName}, [mlKeyConstant: ''] )
+    addNameBuilder({ underscoredName.toLowerCase() }, [mlKey: ''] )
+  }
+
+  void add(ConfigController item) { super.add(item); controller = item }
+}
+
+class ConfigController extends Controller {
+
+  void buildMe() {
+    super.buildMe()
+    def op = new Operation(name: 'update', nameExternal: "update${parent.capName}", returnType: parent.names.clazz)
+    op.add(new Param(name: parent.names.instance, type: parent.names.clazz))
+    add(op, true)
+
+    op = new Operation(name: 'load', nameExternal: "load${parent.capName}", returnType: parent.names.clazz)
+    op.add(new Param(name: 'container', type: parent.names.clazz))
+    add(op, true)
+  }
+}
+
+@AutoClone
+class TypeRef {
+  final static def notResolvingTypes = ['MLKey', 'List', 'Map']
+  
+  String name
+  Element el
+  boolean primitive
+  def testValue
+  
+  boolean isTypeBasicType() { el instanceof BasicType }
+  boolean isTypeEjb() { typeEntity || typeBasicType  }
+  boolean isTypeEntity() { el instanceof Entity }
+  boolean isTypeEnum() { el instanceof EnumType }
+  boolean isTypeString() { name == 'String' }
+  boolean isTypeDate() { name == 'Date' }
+  
+  boolean isTypeLong() { name == 'Long' }
+  boolean isTypeBoolean() { name == 'Boolean' }
+  boolean isTypeDouble() { name == 'Double' }
+  boolean isTypeInteger() { name == 'Integer' }
+  
+  boolean isTypeLongP() { name == 'long' }
+  boolean isTypeBooleanP() { name == 'boolean' }
+  boolean isTypeDoubleP() { name == 'double' }
+  boolean isTypeIntegerP() { name == 'int' }
+  
+  def init() {
+    testValue = buildTestValue()
+    //println "$name = $testValue"
+    this
+  }
+  
+  String buildTestValue() {
+    if (typeBooleanP) { 'true' 
+    } else if (typeDoubleP || typeIntegerP || typeLongP) { 42
+    } else if (typeEnum) { el.literals[0].names.valueReference 
+    } else if (typeString) { "\"${name}_1\"" 
+    } else if (typeDate) { "new Date()" 
+    } else if (typeBoolean) { "Boolean.TRUE" 
+    } else if (typeDouble) { "Double.valueOf(42)" 
+    } else if (typeInteger) { 42 
+    } else if (typeLong) { "Long.valueOf(42)" }
+  }
+}
+
+@AutoClone
+class ReturnType extends TypeRef {
+  boolean multi=false
+  String getComputed() { multi ? "List<${name}>" : name }
+}
+
+@AutoClone
+class Param extends Element {
+  final static def compareMethods = ['=' : 'areEquals', '<=' : 'lessOrEqual', '<' : 'less', '>=' : 'greaterOrEqual', '>' : 'greater']
+  String operator = '='
+  String _compareMethod
+  TypeRef typeRef
+  def typeEl   
+  String type = 'String'
+  Object defaultValue
+  Object defaultValueConstant
+  boolean multi=false
+  boolean notNull = false
+  def testValue
+
+  String getComputedType() { multi ? "List<${type}>" : type }
+  String getDefaultLiteral() { defaultValue != null ? (typeRef.string ? "\"$defaultValue\"" : defaultValue) : '' }
+  String getDefaultNotation() { defaultValueConstant ? " = $defaultValueConstant" : (defaultValue?" = $defaultLiteral":'') }
+  String getSignature() { "$computedType $name" }
+  String getCompareMethod() {
+    if(!_compareMethod) {
+      _compareMethod = compareMethods[operator]
+      if(!_compareMethod) {
+        _compareMethod = compareMethods['=']
+      }
+    }
+    _compareMethod
+  }
+
+  void buildMe() {
+    super.buildMe()
+    typeRef = component().resolveTypeRef(type)
+    typeEl = typeRef.el
+    if(!testValue) { if (multi) { testValue = "new ArrayList<>()" } else { testValue = typeRef.testValue } }
+  }
+}
+
+@AutoClone
+class Prop extends Param {
+  boolean hashCode = false
+  boolean lob = false
+
+  String getUncapFullname() { "${parent.uncapName}$capName" }
+  String getCapFullname() { "${parent.capName}$capName" }
+  String getGetter() { "${type.equalsIgnoreCase('Boolean')?'is':'get'}$capName()" }
+  String getSetter() { "set$capName($type $uncapName)" }
+  String getSetterCall() { "set$capName($uncapName)" }
+  String getSetterMethodName() { "set$capName" }
+  String getDefaultLiteral() { defaultValue != null ? (type=="String" ? "\"$defaultValue\"" : defaultValue) : '' }
+  String getDefaultNotation() { defaultValueConstant ? " = $defaultValueConstant" : (defaultValue?" = $defaultLiteral":'') }
+
+  String buildTestValue() {
+    if (multi) { "new ArrayList<>()" }
+    else { super.buildTestValue() }
+  }
+}
+
+class JpaProp extends Prop {
+  boolean index=false, unique=false
+  String sqlName, mapping, typeMapping
+
+  String getComputedTypeEjb() { multi ? "List<${relTypeEjb}>" : relTypeEjb }
+  String getComputedTypeEjbMember() { multi ? "List<${typeEjbMember}>" : typeEjbMember }
+  String getTypeEjbMember() { typeRef.typeEjb ? typeEl.names.bean : type }
+  String getRelTypeEjb() { typeRef.typeEntity ? typeEl.names.bean : type }
+  boolean isElementCollection() { !typeRef.typeEntity && multi }
+  String attrOverride(prefix) { "@AttributeOverride(name = \"$name\", column = @Column(name = \"${prefix.replaceAll(/(?<!^)(?<!_)[AEIOU]/, '')}_${sqlName}\"))" }
+
+  void init() {
+    super.init()
+    if(!sqlName) { sqlName = sqlName(underscoredName) }
+  }
+  
+  String buildMapping(currentParent = parent) {
+    String ret = null
+    if(typeMapping) {
+      ret = typeMapping
+    } else {
+      if(type.equals('Date')) { ret = '@Temporal(TemporalType.TIMESTAMP)'
+      } else if(typeRef.typeEnum) { ret = '@Enumerated(EnumType.STRING)'
+      } else if(typeRef.typeBasicType) { ret = '@Embedded'
+        if(!multi) {  ret = ret ? ret+'\n  ':''; ret += typeEl.attrOverrides(underscoredName) }
+      } else if(lob) { ret = '@Lob' }
+    }
+    if(multi) {
+      ret = ret ? ret+'\n  ':''
+      ret += '@ElementCollection(fetch = FetchType.EAGER)'
+      ret += "\n  @CollectionTable(name=\"${currentParent.sqlName}_$sqlName\", joinColumns = @JoinColumn(name=\"${currentParent.sqlName}_ID\"))"
+    } else if(!typeRef.typeBasicType){
+      ret = ret ? ret+'\n  ':''
+      ret += "@Column(name = COLUMN_$underscoredName)"
+    }
+    ret
+  }
+
+  void buildMe() {
+    super.buildMe()
+    if(!mapping) { mapping = buildMapping() }
+  }
+}
+
+class EntityProp extends JpaProp {
+  def owner
+  def mm
+  String opposite
+  def primaryKey
+  def externalTypeEntity
+
+  Prop getOppositeProp() { def ret=(opposite && typeRef.typeEjb) ? typeEl.resolve(opposite, Prop.class, true) : null; //println "OppositeProp of $name with opposite=$opposite is ${ret?.name}"
+    ret
+  }
+  def getRelation() { externalTypeEntity || typeRef.typeEntity }
+  def getManyToMany() { def jpaMapping = mapping; jpaMapping && jpaMapping.contains('ManyToMany') }
+  def getManyToOne() { def jpaMapping = mapping; jpaMapping && jpaMapping.contains('ManyToOne') }
+  def getOneToMany() { def jpaMapping = mapping; jpaMapping && jpaMapping.contains('OneToMany') }
+  def getOneToOne() { def jpaMapping = mapping; jpaMapping && jpaMapping.contains('OneToOne') }
+
+  //TODO: EE rewrite the ManyToMany and opposite to calculate automatic the owner
+  String buildMapping(currentParent = parent) {
+    String ret = null
+    if(typeRef.typeEntity || externalTypeEntity) {
+      assert currentParent.idProp, "Primary key is null in '$currentParent.path'"
+      def idPropSqlName = currentParent.idProp.sqlName
+      if(oppositeProp) {
+        if(multi) {
+          ret = oppositeProp.multi ? "@ManyToMany(mappedBy = \"$opposite\")" : "@OneToMany(cascade = CascadeType.ALL, mappedBy = \"$opposite\", orphanRemoval = true)"
+        } else {
+          ret = oppositeProp.multi ? "@ManyToOne" : (owner ? "@OneToOne(cascade = CascadeType.PERSIST, mappedBy = \"$opposite\")" : "@OneToOne(fetch = FetchType.LAZY)")
+          if (oppositeProp.multi || !owner) {
+            ret += "\n  @JoinColumn(name = COLUMN_$underscoredName)"
+          }
+        }
+      } else {
+        if(multi) {
+          ret = mm ? '@ManyToMany(cascade = CascadeType.ALL)' : '@OneToMany(cascade = CascadeType.ALL)'
+          ret += "\n  @JoinTable(name=\"${currentParent.sqlName}_$sqlName\","
+          if (typeEl) {
+            ret += "\n    inverseJoinColumns = @JoinColumn(name=\"${typeEl.sqlName}_ID\"),"
+          }
+          ret += "\n    joinColumns = @JoinColumn(name=\"${currentParent.sqlName}_ID\"))"
+          //          ret += "\n  @JoinTable(name=\"${currentParent.sqlName}_$sqlName\","
+          //          if (typeEl) {
+          //            ret += "\n    inverseJoinColumns = @JoinColumn(name=\"${typeEl.sqlName}_ID\"),"
+          //          }
+          //          ret += "\n    joinColumns = @JoinColumn(name=\"${currentParent.sqlName}_${idPropSqlName}\"))"
+        } else if(oneToOne) {
+          //ret = "@OneToOne(cascade = CascadeType.ALL)"
+          //ret += "\n  @JoinColumn(name = COLUMN_$underscoredName)"
+        } else {
+          ret = "@ManyToOne"
+          ret += "\n  @JoinColumn(name = COLUMN_$underscoredName)"
+        }
+      }
+    } else {
+      ret = super.buildMapping(currentParent)
+    }
+    ret
+  }
+}
+
+
+class BasicType extends TypeUnit {
+  String sqlName
+  boolean ordered = false
+
+  void init() {
+    super.init()
+    addNameBuilder({names.clazz}, [bean: 'Embeddable', impl: 'Embeddable'] )
+    addNameBuilder({names.base}, [baseBean: 'Embeddable'] )
+    if(!sqlName) { sqlName = sqlName(underscoredName) }
+  }
+
+  String attrOverrides(prefix) { '@AttributeOverrides({\n    ' + props.collect { prop -> prop.attrOverride(prefix) }.join(',\n    ') + '})' }
+  
+  String nameFullSub(String namesPart) {
+    def ret
+    if('bean' == namesPart) { ret = '.ejb'
+    } else if('impl' == namesPart) { ret = '.ejb'
+    } else { ret = '' }
+    ret
+  }
+
+}
+
+class Profile extends Element {
+  List<Prop> props = []
+
+  void add(Prop item) { super.add(item); props<<item }
+}
+
+class ComponentProfile extends Profile {
+
+  String getBaseName() { "${parent.capShortName}ComponentProfile" }
+  String getCfgFile() { "${parent.uncapShortName}ComponentProfile.json" }
+}
+
+class UserProfile extends Profile {
+
+  String getBaseName() { "${parent.capShortName}UserProfile" }
+  String getCfgFile() { "${parent.uncapShortName}DefaultUserProfile.json" }
+}
+
+
+class Container extends TypeUnit {
+  References entityRefs = new References(base: { module() } )
+  ContainerController controller
+  XmlContainerController xmlController
+
+  void init() {
+    super.init()
+    addNameBuilder( { names.clazz }, [xmlConverter: 'XmlConverter', importMdb: 'ImportMdb', importDataMdb: 'ImportDataMdb', info: 'Info', modifier: 'Modifier', removes: 'Removes', removesBase: 'RemovesBase'] )
+    addNameBuilder( { names.info }, [infoImpl: 'Impl', infoBase: basePrefix] )
+    addNameBuilder( { names.infoBase }, [infoBaseImpl: 'Impl'] )
+    addNameBuilder( { names.modifier }, [modifierBase: basePrefix] )
+    addNameBuilder( { names.modifierBase }, [modifierBaseImpl: 'Impl'] )
+    addNameBuilder( { "${names.clazz.minus('Container')}" }, [containerType: ''] )
+    addNameBuilder( { underscoredName }, [ mlKeyConstant: '' ])
+    addNameBuilder( { underscoredName.toLowerCase() }, [ mlKey: '' ])
+  }
+
+  void buildMe() {
+    super.buildMe()
+  }
+
+  def getEntities() { entityRefs.entities }
+  void addEntityRef(String ref) { entityRefs.add(ref) }
+  void add(ContainerController item) { super.add(item); controller = item }
+  void add(XmlContainerController item) { super.add(item); xmlController = item }
+}
+
+class LogicUnit extends CompilationUnit {
+  void addInject(String ref) { refs.add(ref) }
+}
+
+class InternalLogicUnit extends LogicUnit {
+}
+
+class Service extends LogicUnit {
+  boolean useConverter = false
+  void init() {
+    super.init()
+    addNameBuilder({capName}, [ provider: 'Provider' ])
+  }
+  
+  void buildMe() {
+    super.buildMe()
+    useConverter = module().entities || component().findByType(Backend.class).findResult { module -> module.entities } 
+  }
+}
+
+class Converter extends InternalLogicUnit {
+}
+
+class Controller extends InternalLogicUnit {
+  String deriveName() {
+    if(!parent) { getClass().simpleName
+    } else if(parent instanceof StructureUnit) { "${parent.capShortName}Controller"
+    } else { "${parent.capName}Controller" }
+  }
+}
+
+class CustomController extends Controller {
+}
+
+class ContainerController extends Controller {
+  boolean deleteBeforeImport = true
+  boolean cache = false
+  boolean asyncImport = false
+
+  void buildMe() {
+
+    add( new Operation(name: 'loadAll', nameExternal: "load${parent.capName}", returnType: parent.names.clazz, parent:this), true )
+    add( new Operation(name: 'loadInfoAll', nameExternal: "load${parent.capName}Info", returnType: parent.names.info, parent:this), true )
+    add( new Operation(name: 'deleteAll', nameExternal: "delete${parent.capName}", transactional:true, parent:this), true )
+
+    def op = new Operation(name: 'importContainer', nameExternal: "import${parent.capName}", transactional:true, parent:this)
+    op.add(new Param(name: 'container', type: parent.names.clazz))
+    add( op, true )
+
+    def myModule = module()
+    def refPref
+    parent.entities.each { entity ->
+      if(entity.manager) {
+        refPref = (myModule == entity.module()) ? '/' : "//${entity.module().name}"
+        addInject("$refPref${entity.name}.manager") }
+    }
+  }
+}
+
+class StringContainerController extends Controller {
+  boolean asyncImport = false
+
+  void buildMe() {
+    super.buildMe()
+
+    def op = new Operation(name: 'importData', nameExternal: "import${parent.capName}Data", transactional:true, parent:this)
+    op.add(new Param(name: 'content'))
+    add(op, true )
+
+    op = new Operation(name: 'importDataFromPath', nameExternal: "import${parent.capName}DataFromPath", transactional:true, parent:this)
+    op.add(new Param(name: 'fileInClassPath'))
+    add( op, true )
+  }
+}
+
+class XmlContainerController extends StringContainerController {
+  String deriveName() {
+    if(!parent) { getClass().simpleName
+    } else if(parent instanceof StructureUnit) { "${parent.capShortName}XmlController"
+    } else { "${parent.capName}XmlController" }
+  }
+  StructureUnit module() { super.module().facetModule('xml') }
+}
+
+class Manager extends InternalLogicUnit {
+  List<Finder> finders = []
+  List<Counter> counters = []
+  List<Creator> creators = []
+  List<Exists> existers = []
+  List<Deleter> deleters = []
+  List<Updater> updators = []
+
+  List<ManagerCommand> commands() { [
+      finders,
+      counters,
+      existers,
+      deleters
+    ].flatten() }
+
+  Entity getEntity() { parent }
+  String toNamedQueries() { '@NamedQueries({\n    ' + commands().collect { def command-> command.toNamedQuery() }.join(',\n    ') + '})' }
+
+  void add(Counter item) { super.add(item); counters<<item }
+  void add(Creator item) { item.transactional = true; super.add(item); creators<<item }
+  void add(Deleter item) { item.transactional = true; super.add(item); deleters<<item }
+  void add(Updater item) { item.transactional = true; super.add(item); updators<<item }
+  void add(Exists item) { super.add(item); existers<<item }
+  void add(Finder item) { super.add(item); finders<<item }
+
+  public String getImports() {
+    if(_imports == null) {
+      StringBuffer b = new StringBuffer()
+      b.append(super.imports)
+
+      def ret =  [] as Set
+      finders.each { it.fillPropTypeRefs(ret) }
+      counters.each { it.fillPropTypeRefs(ret) }
+      creators.each { it.fillPropTypeRefs(ret) }
+      existers.each { it.fillPropTypeRefs(ret) }
+      deleters.each { it.fillPropTypeRefs(ret) }
+      updators.each { it.fillPropTypeRefs(ret) }
+
+      b.append('\n')
+      ret.each { b.append('import ').append(it.nameFull()).append(';\n') }
+      _imports = b.toString()
+    }
+    _imports
+  }
+
+  boolean isSuperHierarchyComplete() { !superRef ||
+    (entity.superUnit && (!entity.superUnit.manager || entity.superUnit.manager.superHierarchyComplete)) }
+
+  Manager getSuperManager() { entity.superUnit?.manager }
+
+  void buildMe() {
+    super.buildMe()
+
+    if(entity.superHierarchyComplete) {
+      add( new Counter(by:'', _propNames: 'All', parent:this), true )
+      add( new CreatorByEntity(transactional:true, parent:this), true )
+      add( new Deleter(by:'', _propNames: 'All', transactional:true, parent:this), true )
+      add( new Finder(by:'', _propNames: 'All', parent:this), true )
+
+      add( new UpdaterByEntity(parent:this), true )
+      add( new DeleterByEntity(transactional:true, parent:this), true )
+
+      if(!entity.virtual && entity.idProp) {
+        def ret = new Finder(_propNames: 'Id', unique: true, parent:this)
+        ret.add(new PropAttr( name: entity.idProp.name, prop: entity.resolveProp(entity.idProp.name)))
+        add(ret, true)
+
+        ret = new Finder(_propNames: 'Ids', parent:this)
+        ret.add(new PropAttr( name:entity.idProp.name , multi:true, prop: entity.resolveProp(entity.idProp.name) ) )
+        add(ret, true)
+      }
+
+      def supMan = superManager
+      if(superManager) {
+        println "extend managers of $entity.name from $supMan.entity.name"
+
+        supMan.finders.each { cloneSetParent(it) }
+        supMan.counters.each { cloneSetParent(it) }
+        supMan.creators.each { cloneSetParent(it) }
+        supMan.existers.each { cloneSetParent(it) }
+        supMan.deleters.each { cloneSetParent(it) }
+        supMan.updators.each { cloneSetParent(it) }
+      }
+    }
+  }
+}
+
+class Index extends Element {
+    boolean unique = false
+    List<String> propNames
+    List<Prop> props = []
+    
+    void buildChildren() {
+      super.buildChildren()
+      propNames?.each { def prop = parent.resolveProp(it); if(prop) { props << prop } }
+    }
+}
+
+class PropRef {
+  String name
+  Prop prop
+  
+  void buildMe() {
+  }
+}
+
+class PropAttr extends PropRef {
+  final static def compareMethods = ['=' : 'areEquals', '<=' : 'lessOrEqual', '<' : 'less', '>=' : 'greaterOrEqual', '>' : 'greater']
+  Object defaultValue
+  boolean multi = false
+  String operator = '='
+  String _compareMethod
+  String paramName
+  
+  void buildMe() {
+    super.buildMe()
+    if(!paramName) { paramName = prop.name }
+  }
+  
+  String getCompareMethod() {
+    if(!_compareMethod) {
+      _compareMethod = compareMethods[operator]
+      if(!_compareMethod) {
+        _compareMethod = compareMethods['=']
+      }
+    }
+    _compareMethod
+  }
+
+  String getTestValue() {
+    if (multi) { "new ArrayList<$prop.type>()" }
+    else { prop.testValue }
+  }
+}
+
+class Cache extends CompilationUnit {
+  String body
+
+  void init() {
+    super.init()
+    addNameBuilder({names.clazz}, [override: 'Override'] )
+    addNameBuilder({names.override}, [overrideBase: 'Base', overrideTestBase: 'TestBase'] )
+    addNameBuilder({ virtual ? "${names.override}TestAbstract" : "${names.override}Test" }, [overrideTest: ''] )
+  }
+  String deriveName() { parent ? "${parent.capName}Cache" : getClass().simpleName }
+}
+
+@AutoClone
+class ManagerCommand extends Operation {
+  List<PropAttr> propAttrs = []
+  List<PropAttr> getPropAttrsWithoutDefaults() { propAttrs.findAll { !it.defaultValue && it.prop } }
+  List<Prop> getProps() { propAttrsWithoutDefaults.collect { it.prop } }
+  Entity getEntity() { parent.entity }
+  Prop getIdProp() { entity.idProp }
+  String by = 'By'
+  String _propNames
+  boolean fireEventProp = false
+
+  void init() {
+    super.init()
+    addNameBuilder( { "${entity.name}_$name".replaceAll(/(\B[A-Z])/,'_$1').toLowerCase() }, [ mlKey: '' ])
+    addNameBuilder( { names.mlKey.toUpperCase() }, [ mlKeyConstant: '' ])
+  }
+
+  def fillPropTypeRefs(typeElsToFill) {
+    props.each { if(it.typeEl) { typeElsToFill << it.typeEl } }
+  }
+
+  String getSignature() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"List<$propAttr.prop.computedType> ${propAttr.paramName}s": "$propAttr.prop.computedType ${propAttr.paramName}" }.join(', ') }
+  String getSignatureExternal() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"List<$propAttr.prop.type> ${propAttr.paramName}s": "$propAttr.prop.type ${propAttr.paramName}" }.join(', ') }
+  String getSignatureNames() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"${propAttr.paramName}s": "${propAttr.paramName}" }.join(', ') }
+  String getSignatureTestValues() { propAttrs.collect {  PropAttr propAttr-> (propAttr.prop.type == 'Date') ? null : propAttr.testValue }.join(', ') }
+  String getSignatureTestValuesExternal() { propAttrsWithoutDefaults.collect {  PropAttr propAttr -> (propAttr.prop.type == 'Date') ? null : propAttr.testValue }.join(', ') }
+  String getPropNames(String separator='And') { if(!_propNames) { _propNames =  propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+        propAttr.multi?"${propAttr.prop.capName}s": "${propAttr.prop.capName}" }.join(separator) }; _propNames }
+  String getPropLinks() { propAttrs.collect {  PropAttr propAttr->
+      propAttr.multi?"new StringLink<List<${propAttr.prop.computedType}>>(\"${propAttr.paramName}s\", ${propAttr.paramName}s)": "new StringLink<${propAttr.prop.computedType}>(\"$propAttr.paramName\", $propAttr.paramName)" }.join(', ') }
+  String getPropWhere(String e='e', String separator=" AND ") { 'WHERE ( ' +
+    propAttrs.collect {  PropAttr propAttr-> Prop prop = propAttr.prop; propAttr.multi?"${e}.$prop.name IN :${propAttr.paramName}s": "${e}.$prop.name $propAttr.operator :$propAttr.paramName" }.join(separator) + ' )'}
+  String getPropCompare(String entity='entity', String separator=" && ") {
+    propAttrsWithoutDefaults.collect { PropAttr propAttr-> Prop prop = propAttr.prop; propAttr.multi?"${propAttr.paramName}s.contains(${entity}.$prop.getter)": "$propAttr.compareMethod(${entity}.$prop.getter, $propAttr.paramName)" }.join(separator) }
+  String getPropGetters(String entity='entity', String separator=", ") {
+    propAttrsWithoutDefaults.collect { PropAttr propAttr-> Prop prop = propAttr.prop; propAttr.multi?"CollectionUtils.asList(${entity}.$prop.getter)": "${entity}.$prop.getter" }.join(separator) }
+
+  void add(PropAttr propAttr) { propAttrs << propAttr }
+
+  void buildMe() {
+    super.buildMe()
+    propAttrs.each {
+      it.prop = entity.resolveProp(it.name)
+      it.buildMe() 
+    }
+  }
+}
+
+@AutoClone
+class Counter extends ManagerCommand {
+  Counter() { returnType = 'long' }
+  String getName() { name("count$by${propNames}") }
+  String getNameExternal() { nameExternal("count${entity.capName}$by$propNames") }
+  String toNamedQuery() { "@NamedQuery(name = ${entity.names.bean}.$underscoredName,\n                query = \"SELECT COUNT(e) FROM ${entity.names.bean} e $propWhere\")" }
+}
+
+@AutoClone
+class Creator extends ManagerCommand {
+  String deriveName() { "create$by${propNames}" }
+  String getNameExternal() { nameExternal("create${entity.capName}$by$propNames") }
+  String getReturnType() { "$entity.names.bean" }
+  String getReturnTypeExternal() { "$entity.names.clazz" }
+  String getReturnTypeRaw() { "$entity.names.clazz" }
+}
+
+@AutoClone
+class Updater extends ManagerCommand {
+  String deriveName() { "update${propNames}" }
+  String getNameExternal() { nameExternal("update${entity.capName}$propNames") }
+  String getReturnType() { "$entity.names.bean" }
+  String getReturnTypeExternal() { "$entity.names.clazz" }
+  String getReturnTypeRaw() { "$entity.names.clazz" }
+}
+
+class CreatorByEntity extends ManagerCommand {
+  String deriveName() { "create" }
+  String getNameExternal() { nameExternal("create${entity.capName}") }
+  String getSignature() { "$entity.names.clazz $entity.names.instance" }
+  String getSignatureExternal() { "$entity.names.clazz $entity.names.instance" }
+  //TODO provide generic solution, converter etc.
+  String getSignatureNames() { "$entity.names.instance" }
+  String getSignatureNamesExternal() { "$entity.names.instance" }
+  String getSignatureTestValues() { 'null' }
+  String getSignatureTestValuesExternal() { 'null' }
+  String getReturnType() { "$entity.names.bean" }
+  String getReturnTypeExternal() { "$entity.names.clazz" }
+  String getReturnTypeRaw() { "$entity.names.clazz" }
+}
+
+class UpdaterByEntity extends ManagerCommand {
+  String deriveName() { "update" }
+  String getNameExternal() { nameExternal("update${entity.capName}") }
+  String getSignature() { "$entity.names.clazz $entity.names.instance" }
+  String getSignatureExternal() { "$entity.names.clazz $entity.names.instance" }
+  //TODO provide generic solution, converter etc.
+  String getSignatureNames() { "$entity.names.instance" }
+  String getSignatureNamesExternal() { "$entity.names.instance" }
+  String getSignatureTestValues() { 'null' }
+  String getSignatureTestValuesExternal() { 'null' }
+  String getReturnType() { "$entity.names.bean" }
+  String getReturnTypeExternal() { "$entity.names.clazz" }
+  String getReturnTypeRaw() { "$entity.names.clazz" }
+}
+
+class DeleterByEntity extends ManagerCommand {
+  String deriveName() { "delete" }
+  String getNameExternal() { nameExternal("delete${entity.capName}") }
+  String getSignature() { "${entity.idProp.type} ${entity.names.instance}Id" }
+  String getSignatureExternal() { signature }
+  //TODO provide generic solution, converter etc.
+  String getSignatureNames() { "${entity.names.instance}Id" }
+  String getSignatureNamesExternal() { signatureNames }
+  String getSignatureTestValues() { 'null' }
+  String getSignatureTestValuesExternal() { 'null' }
+  String getReturnType() { "$entity.names.bean" }
+  String getReturnTypeExternal() { "$entity.names.clazz" }
+  String getReturnTypeRaw() { "$entity.names.clazz" }
+}
+
+@AutoClone
+class Deleter extends ManagerCommand {
+  String deriveName() { "delete$by${propNames}" }
+  String getNameExternal() { nameExternal("delete${entity.capName}$by$propNames") }
+  String toNamedQuery() { "@NamedQuery(name = ${entity.names.bean}.$underscoredName,\n                query = \"DELETE FROM ${entity.names.bean} e $propWhere\")" }
+}
+
+@AutoClone
+class Exists extends ManagerCommand {
+  void init() {
+    super.init()
+    returnType = 'boolean'
+  }
+  String deriveName() { "exists$by${propNames}" }
+  String getNameExternal() { nameExternal("exists${entity.capName}$by$propNames") }
+  String toNamedQuery() { "@NamedQuery(name = ${entity.names.bean}.$underscoredName,\n                query = \"SELECT COUNT(e) FROM ${entity.names.bean} e $propWhere\")" }
+}
+
+@AutoClone
+class Finder extends ManagerCommand {
+  boolean unique = false
+  String of = ''
+
+  String deriveName() { null }
+  String name(String of = of) { super.name("find$of$by$propNames") }
+  String nameExternal(String of = of) { super.nameExternal(unique?"find$of${entity.capName}$by$propNames":(propNames == 'All')?"find$of${entity.capName}s": "find$of${entity.capName}s$by$propNames") }
+  String nameTest(String of = of) { unique?"find$of${entity.capName}$by$propNames":(propNames == 'All')?"find$of${entity.capName}s": "find$of${entity.capName}s$by$propNames" }
+  String getName() { name(of) }
+  String getNameExternal() { nameExternal(of) }
+  String getReturnType() { unique ? "$entity.names.bean" : "List<$entity.names.bean>" }
+  String getReturnTypeExternal() { unique?"$entity.names.clazz": "List<$entity.names.clazz>" }
+  String getReturnTypeRaw() { unique ? "$entity.names.clazz": "List" }
+  boolean isRawType() { !unique }
+  String toNamedQuery() { "@NamedQuery(name = ${entity.names.bean}.$underscoredName,\n                query = \"SELECT e FROM ${entity.names.bean} e $propWhere\")" }
+}
+
+
+class TypeUnitCommand extends Operation {
+  List<PropAttr> propAttrs = []
+  List<PropAttr> getPropAttrsWithoutDefaults() { propAttrs.findAll { !it.defaultValue && it.prop } }
+  List<Prop> getProps() { propAttrsWithoutDefaults.collect { it.prop } }
+  TypeUnit typeUnit
+  String by = 'By'
+  String _propNames
+  boolean fireEventProp = false
+
+  void init() {
+    super.init()
+    if(!typeUnit) { typeUnit = parent }
+    addNameBuilder( { "${typeUnit.name}_$name".replaceAll(/(\B[A-Z])/,'_$1').toLowerCase() }, [ mlKey: '' ])
+    addNameBuilder( { underscoredName }, [ mlKeyConstant: '' ])
+  }
+
+  def fillPropTypeRefs(typeElsToFill) {
+    props.each { if(it.typeEl) { typeElsToFill << it.typeEl } }
+  }
+  
+  String getSignature() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"List<$propAttr.prop.computedType> ${propAttr.paramName}s": "$propAttr.prop.computedType ${propAttr.paramName}" }.join(', ') }
+  String getSignatureExternal() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"List<$propAttr.prop.type> ${propAttr.paramName}s": "$propAttr.prop.type ${propAttr.paramName}" }.join(', ') }
+  String getSignatureNames() { propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+      propAttr.multi?"${propAttr.paramName}s": "${propAttr.paramName}" }.join(', ') }
+  String getSignatureTestValues() { propAttrs.collect {  PropAttr propAttr-> (propAttr.prop.type == 'Date') ? null : propAttr.testValue }.join(', ') }
+  String getSignatureTestValuesExternal() { propAttrsWithoutDefaults.collect {  PropAttr propAttr -> (propAttr.prop.type == 'Date') ? null : propAttr.testValue }.join(', ') }
+  String getPropNames(String separator='And') { if(!_propNames) { _propNames =  propAttrsWithoutDefaults.collect {  PropAttr propAttr->
+        propAttr.multi?"${propAttr.prop.capName}s": "${propAttr.prop.capName}" }.join(separator) }; _propNames }
+  String getPropCompare(String typeUnit='typeUnit', String separator=" && ") {
+    propAttrsWithoutDefaults.collect { PropAttr propAttr-> Prop prop = propAttr.prop; propAttr.multi?"${propAttr.paramName}s.contains(${typeUnit}.$prop.getter)": "$propAttr.compareMethod(${typeUnit}.$prop.getter, $propAttr.paramName)" }.join(separator) }
+  String getPropGetters(String typeUnit='typeUnit', String separator=", ") {
+    propAttrsWithoutDefaults.collect { PropAttr propAttr-> Prop prop = propAttr.prop; propAttr.multi?"CollectionUtils.asList(${typeUnit}.$prop.getter)": "${typeUnit}.$prop.getter" }.join(separator) }
+
+  void add(PropAttr propAttr) { propAttrs << propAttr }
+
+  void buildMe() {
+    super.buildMe()
+    propAttrs.each { 
+      it.prop = typeUnit.resolveProp(it.name)
+      it.buildMe()
+    }
+  }
+}
+
+class FinderTypeUnit extends TypeUnitCommand {
+  boolean unique = false
+  boolean mustFind = false
+  String of = ''
+  String defaultValue
+  
+  String deriveName() { null }
+  String name(String of = of) { super.name("find$of$by$propNames") }
+  String nameExternal(String of = of) { super.nameExternal(unique?"find$of${typeUnit.capName}$by$propNames":(propNames == 'All')?"find$of${typeUnit.capName}s": "find$of${typeUnit.capName}s$by$propNames") }
+  String nameTest(String of = of) { unique?"find$of${typeUnit.capName}$by$propNames":(propNames == 'All')?"find$of${typeUnit.capName}s": "find$of${typeUnit.capName}s$by$propNames" }
+  String getName() { name(of) }
+  String getNameExternal() { nameExternal(of) }
+  String getReturnType() { unique?"$typeUnit.names.bean": "List<$typeUnit.names.bean>" }
+  String getReturnTypeExternal() { unique?"$typeUnit.names.clazz": "List<$typeUnit.names.clazz>" }
+  String getReturnTypeRaw() { unique?"$typeUnit.names.clazz": "List" }
+  boolean isRawType() { !unique }
+}
+
+//state machine
+class StateMachine extends Backend {
+  Boolean generatePermissionsForEvents = false;
+  String statePropRef, entityRef, stateTimeoutPropRef, conditionEntityRef
+  Integer timeoutCheckIntervalInMillis
+  Entity _entity, _conditionEntity
+  Context context
+  Prop _stateProp, _histProp, _stateTimeoutProp
+  List<String> notifiables = []
+
+  List<Event> events = []
+  List<Action> actions = []
+  List<Condition> conditions = []
+  List<State> states = []
+  History history
+  StateMachineController controller
+  Config timeouts
+
+  void init() {
+    super.init()
+    type = ModuleType.STATE_MACHINE
+    addNameBuilder( {capShortName}, [action: 'StateAction', actionType: 'StateActionType', event: 'StateEvent', eventType: 'StateEventType', eventFactory: 'EventFactory',
+      actionExecutor: 'ActionExecutor', metaState: 'MetaState', metaModel: 'StateMetaModel', stateEventProcessor: 'StateEventProcessor', stateTimeoutHandler: 'StateTimeoutHandler',
+      transitionExecutionResult: 'TransitionExecutionResult', verifier: 'ConditionVerifier'] )
+    addNameBuilder({names.stateTimeoutHandler}, [stateTimeoutHandlerImpl: 'Impl', stateTimeoutHandlerBean: 'Bean', stateTimeoutHandlerMem: 'Mem'] )
+    addNameBuilder({names.stateEventProcessor}, [stateEventProcessorImpl: 'Impl'] )
+    addNameBuilder({names.eventFactory}, [eventFactoryImpl: 'Impl'] )
+    addNameBuilder({underscoredName}, [failMl: '_FAIL'] )
+    addNameBuilder({uncapShortName}, [stateTimeoutHandlerInstance: 'StateTimeoutHandler'] )
+  }
+
+  void add(StateMachineController item) { super.add(item); controller = item }
+
+  Entity getEntity() { if(!_entity) { _entity = module().resolve(entityRef, Entity.class, true) }; _entity }
+  Entity getConditionEntity() { if (!conditionEntityRef) { conditionEntityRef = entityRef };
+    if(!_conditionEntity) { _conditionEntity = module().resolve(conditionEntityRef, Entity.class, true) }; _conditionEntity }
+  Prop getStateProp() { if(!_stateProp) { _stateProp = entity.resolve(statePropRef, Prop.class, true);
+      assert _stateProp.typeEl, "typeEl of the state property '$_stateProp.type' can not be resolved."
+    }; _stateProp }
+  Prop getHistProp() { if(!_histProp) { _histProp = findHistProp(); assert _histProp, "histProp is null in '$this'" }; _histProp }
+  Prop getStateTimeoutProp() { if(!_stateTimeoutProp) { _stateTimeoutProp = entity.resolve(stateTimeoutPropRef, Prop.class, true) }; _stateTimeoutProp }
+
+  def add(State item) { super.add(item); states << item }
+  def add(Action item) { super.add(item); actions << item }
+  def add(Event item) { super.add(item); events << item }
+  def add(Context item) { super.add(item); context = item }
+  def add(Condition item) { super.add(item); conditions << item }
+  def add(History item) { println "Enabling history tracking for entity $item.entityRef"; super.add(item); history = item }
+
+  void setTimeoutCheckInterval(String timeoutCheckInterval) {
+    timeoutCheckIntervalInMillis = timeoutCheckInterval.duration()
+  }
+
+  protected Prop findHistProp() { if (history) { entity.props.find { prop ->
+        //println "$prop.type, $prop.typeEl == $history.entity";
+        prop.typeEl == history.entity } } }
+
+  void buildMe() {
+    super.buildMe()
+    
+    conditions.each { con ->
+        context.add(new Prop(name: con.name, type: 'Boolean'))
+    }
+    
+    if(isTimeoutEnabled()) {
+      createStatesTimeoutConfig()
+      addTimeoutEvent()
+    }
+  }
+    
+  // Returns the groups associated with each event.
+  // The groups are listed in a comma separated qoted strig lists. ('gr1','gr2')
+  Map getEventGroupsMap(){
+    def eventGroupsMap = new HashMap()
+    states.transitions.flatten().each{ transition->
+      if (eventGroupsMap.containsKey(transition.event.name)) {
+        eventGroupsMap[transition.event.name].addAll(transition.groups as Set)
+      } else {
+        eventGroupsMap.put(transition.event.name, transition.groups as Set)
+      }
+    }
+    eventGroupsMap.each{key, value ->
+      def groups = ''
+      value.each{ groups += "'" + it + "'," }
+      groups = groups.length()>0?groups[0..-2]:groups
+      eventGroupsMap.put(key, groups)
+    } 
+    
+    return eventGroupsMap
+  }
+  
+  void addTimeoutEvent() {
+    add(new Event(name: 'timeout', alternative: true))
+  }
+
+  void createStatesTimeoutConfig() {
+    def description = "Stores the defined state timeouts (milliseconds) of the $name state machine"
+    timeouts = new Config(name: "${capShortName}Timeouts", description: description, namespace: component().subPackages.model, event: true)
+    add(timeouts)
+
+    Prop prop = new Prop(name: "timeoutCheckInterval", type: 'int', defaultValue: timeoutCheckIntervalInMillis)
+    timeouts.add(prop)
+    //create prop entry for each state that has a timeout
+    states.each { State item ->
+      if(item.timeoutEnabled){
+        prop = new Prop(name: "${item.uncapName}Timeout", type: 'int', defaultValue: item.timeoutInMillis)
+        timeouts.add(prop)
+      }
+    }
+    timeouts.add( new ConfigController(namespace: component().subPackages.core, base:true) )
+  }
+
+  boolean isTimeoutEnabled() { timeoutCheckIntervalInMillis }
+}
+
+class Context extends Pojo {
+    String deriveName() { "${module().capShortName}Context" }
+}
+
+class StateMachineController extends Controller {
+  StateMachine getStateMachine() { parent }
+  Entity getEntity() { stateMachine.entity }
+
+  void buildMe() {
+    super.buildMe()
+    def op = new Operation(name: 'process', nameExternal: "process${stateMachine.capShortName}StateEvent", returnType: entity.names.bean, returnTypeExternal: entity.names.clazz, parent:this)
+    op.add(new Param(name: 'event', type: stateMachine.names.event))
+    add(op, true)
+    add(new Operation(name: 'findStateMetaModel', nameExternal: "find${stateMachine.capShortName}StateMetaModel", returnType: stateMachine.names.metaModel, parent:this), true)
+
+  }
+}
+
+class State extends InternalLogicUnit {
+  List<String> toBeNotified = []
+  List<Transition> transitions = []
+  List<String> entryActions = []
+  List<String> exitActions = []
+  Integer timeoutInMillis = null
+
+  void init() {
+    super.init()
+    addNameBuilder({ "${stateMachine.capShortName}$capName" }, [clazz: ''] )
+    addNameBuilder({names.clazz}, [metaState: 'MetaState', eventProcessor: 'EventProcessor'] )
+    addNameBuilder({names.metaState}, [metaStateImpl: 'Impl'] )
+    addNameBuilder({names.eventProcessor}, [eventProcessorImpl: 'Impl'] )
+
+    entryActionObjs = entryActions.collect { stateMachine.resolve(it, Action.class, true) }.findAll{ it }
+    exitActionObjs = exitActions.collect { stateMachine.resolve(it, Action.class, true) }.findAll{ it }
+  }
+
+  StateMachine getStateMachine() { parent }
+  List<Condition> getConditions() { eventTransitions.collect { it.transition.conditionObjs }.flatten().unique() }
+
+  List<EventTransitions> eventTransitions
+  List<Action> actions
+  List<Action> entryActionObjs
+  List<Action> exitActionObjs
+
+  def add(Transition item) { super.add(item); transitions << item }
+
+  void buildMe() {
+    super.buildMe()
+  }
+
+  void buildChildren() {
+    super.buildChildren()
+
+    eventTransitions = transitions.groupBy { it.event }.collect { event, trs->
+      if(!event) { println "Event is null for transition $trs.name" }
+      new EventTransitions(event:event, transitions:trs) }
+
+    //do not add entry actions in the all action lists, because they are needed in the prev. state processor only
+    //but add entry action of all next states instead
+    actions = transitions.collectMany { it.actionObjs }
+    actions.addAll(exitActionObjs)
+    actions.addAll(transitions.findAll { it.state.entryActionObjs }.collectMany { it.state.entryActionObjs })
+    actions = actions.toSet() as List
+    actions = actions.sort(false) { it.name }
+  }
+
+  void setTimeout(String timeout) {
+    timeoutInMillis = timeout.duration()
+  }
+
+  boolean isTimeoutEnabled() { stateMachine.timeoutEnabled && timeoutInMillis != null }
+}
+
+class EventTransitions {
+  Event event
+  List<Transition> transitions
+  Transition getTransition() { transitions[0] }
+
+  /** do we need if,.., else switch for transition(s) of the event? */
+  boolean isActionEvent() { transitions && (transitions.size()>1 || transition.actionObjs) }
+}
+
+class Transition extends Element {
+  String to
+  List<String> actions = []
+  List<String> conditions = []
+  List<String> groups = []
+  State state
+  Event event
+  List<Action> actionObjs
+  List<Action> allActions
+  List<Condition> conditionObjs
+  List<RealmGroup> groupObjs
+  boolean fireEvent = true;
+
+  State getFromState() { parent }
+  StateMachine getStateMachine() { parent.parent }
+  Component getComponent() { parent.parent.parent }
+
+  void buildMe() {
+    super.buildMe()
+    event = stateMachine.resolve(name, Event.class, true)
+    state = stateMachine.resolve(to, State.class, true)
+    conditionObjs = conditions.collect { stateMachine.resolve(it, Condition.class, true) }.findAll { it }
+    actionObjs = actions.collect { stateMachine.resolve(it, Action.class, true) }.findAll{ it }
+    groupObjs = groups.collect { component.realm.resolve(it, RealmGroup.class, false) }.findAll{ it }
+
+    allActions = []
+    allActions.addAll(fromState.exitActionObjs);
+    for(action in actionObjs) { if(!allActions.contains(action)) { allActions << action } }
+    for(action in state.entryActionObjs) { if(!allActions.contains(action)) { allActions << action } }
+  }
+}
+
+class Event extends CompilationUnit {
+  boolean alternative = false
+
+  void init() {
+    super.init()
+    addNameBuilder({capName}, [clazz: 'Event'] )
+    addNameBuilder( { alternative ? "$underscoredName(ALTERNATIVE)" : "$underscoredName(NORMAL)" }, [literalInit: ''] )
+  }
+}
+
+class Action extends CompilationUnit {
+  String body
+  boolean async = false
+
+  void init() {
+    super.init()
+    addNameBuilder({capName}, [clazz: 'Executor', event: 'Event'] )
+    addNameBuilder({underscoredName}, [literalInit: ''] )
+  }
+
+  StateMachine getStateMachine() { parent }
+}
+
+class Condition extends CompilationUnit {
+  String body
+
+  void init() {
+    super.init()
+    addNameBuilder({capName}, [clazz: 'Verifier', event: 'Event'] )
+    addNameBuilder({ "${underscoredName}_FAIL" }, [failMl: ''] )
+  }
+}
+
+class History extends InternalLogicUnit {
+  String entityRef, oldStateProp, newStateProp, actorProp, actionProp, dateProp, reasonProp, stateMachineEntityHistoryEntriesProp
+  Entity _entity
+  Prop _oldState, _newState, _actor, _action, _dateOfOccurrence, _reason, _stateMachineEntityHistoryEntriesProp
+
+  String deriveName() { "${parent.capName}Manager" }
+
+  StateMachine getStateMachine() { parent }
+  Entity getEntity() { if(!_entity) { assert entityRef, "entityRef is not defined in '$this'"
+      _entity = module().resolve(entityRef, Entity.class, true) }; _entity }
+  Manager getManager() { entity.manager }
+  Prop getOldState() { _oldState = findProp(oldStateProp, _oldState) }
+  Prop getNewState() { _newState = findProp(newStateProp, _newState) }
+  Prop getActor() { _actor = findProp(actorProp, _actor) }
+  Prop getAction() { _action = findProp(actionProp, _action) }
+  Prop getDateOfOccurrence() { _dateOfOccurrence = findProp(dateProp, _dateOfOccurrence) }
+  Prop getReason() { _reason = findProp(reasonProp, _reason) }
+  Prop getStateMachineEntityHistoryEntries() { if(!_stateMachineEntityHistoryEntriesProp) { _stateMachineEntityHistoryEntriesProp = stateMachine.entity.resolve(stateMachineEntityHistoryEntriesProp) }; _stateMachineEntityHistoryEntriesProp  }
+
+  protected Prop findProp(String propKey, Prop prop) {
+    if (prop) { return prop }
+    if (!propKey) { return null }
+    entity.resolveProp(propKey)
+  }
+}
+
+
+//UI DSL
+class Ui extends Client {
+  List<View> views = []
+
+  void init() {
+    super.init()
+    type = ModuleType.UI
+  }
+
+  void add(View item) { super.add(item); views << item }
+}
+
+class View extends Widget {
+  String domainName
+  boolean dialog = false;
+  Presenter presenter
+  List<Control> controls = []
+
+  void init() {
+    super.init()
+    addNameBuilder({ names.clazz }, [ driver: 'Driver', driverBase: "Driver$basePrefix" ])
+  }
+  
+  String deriveName() { "${domainName}View" }
+
+  void add(Control item) { super.add(item); controls << item }
+  void add(Presenter item) { super.add(item); presenter = item }
+}
+
+class Presenter extends InternalLogicUnit {
+  String deriveName() { "${view.domainName}Presenter" }
+  View getView() { parent }
+  
+  void buildMe() {
+    if(namespace == null) { namespace = "$subNamespace" }
+    super.buildMe()
+  }
+}
+
+class EntityView extends View {
+  String entityRef
+  Entity _entity
+  String details = false
+  def excludeProps = []
+
+  Entity getEntity() { if(!_entity) { _entity = module().resolve(entityRef, Entity.class, true) }; _entity }
+
+  String deriveName() { details? "${entityRef}View" : "${entityRef}sView" }
+
+  void buildMe() {
+
+    super.buildMe()
+
+    excludeProps = excludeProps as Set
+
+    //create controls for entity
+    if(details) {
+      entity.props.each { EntityProp prop ->
+        if (excludeProps.contains(prop.name)) {
+          this.add(new PropTextField(prop: prop))
+        }
+      }
+    } else {
+      Table table = new EntityTable(entity: entity)
+      entity.props.each { EntityProp prop ->
+        if (excludeProps.contains(prop.name)) {
+          table.add(new PropColumn(prop: prop))
+        }
+      }
+    }
+  }
+}
+
+class Widget extends InternalLogicUnit {
+  boolean ml = false;
+  boolean _static = false;
+
+  void init() {
+    super.init()
+    addNameBuilder({ "${parent.underscoredName}_${underscoredName}_${widgetTypeShort}".toLowerCase() }, [ mlKey: '' ])
+    addNameBuilder({ underscoredName }, [ mlKeyConstant: '' ])
+  }
+
+  String getFieldName() { "$uncapName$widgetTypeShort" }
+  String getGetter() { "get$capName$widgetTypeShort()" }
+  View getView() { this instanceof View ? this : parent.view }
+  String getWidgetInterface() { getClass().getSimpleName() }
+  String getWidgetType() { getClass().getSimpleName() }
+  String getWidgetTypeShort() { widgetType }
+  boolean isStatic() { _static }
+}
+
+class Control extends Widget {
+}
+
+class Button extends Control {
+  OnAction onAction
+
+  void init() {
+    super.init()
+    ml = true
+  }
+
+  def add(OnAction item) { super.add(item); onAction = item }
+}
+
+class ComboBox extends Control {
+  OnSelect onSelect
+  void add(OnSelect item) { super.add(item); onSelect = item }
+}
+
+class CheckBox extends Control {
+  OnToggle onToggle
+  void add(OnToggle item) { onToggle = item; super.add(item) }
+}
+
+class Label extends Control {
+
+  void init() {
+    super.init()
+    ml = true
+    _static = true;
+  }
+}
+
+class GroupBoxHeader extends Control {
+
+  void init() {
+    super.init()
+    ml = true
+    _static = true;
+  }
+}
+
+class PropTextField extends TextField {
+  EntityProp prop
+
+  String deriveName() { prop.name }
+}
+
+class Spinner extends Control {
+  OnChange onChange
+  String getWidgetInterface() { 'NumberInput' }
+  String getWidgetTypeShort() { 'Field' }
+  def add(OnChange item) { onChange = item; onChange.valueType = 'Integer'; super.add(item) }
+}
+
+class TextField extends Control {
+  OnChange onChange
+  String getWidgetInterface() { 'TextInput' }
+  String getWidgetTypeShort() { 'Field' }
+  def add(OnChange item) { onChange = item; onChange.valueType = 'String'; super.add(item) }
+}
+
+class TimeField extends Control {
+  OnChange onChange
+  String getWidgetInterface() { 'TimeInput' }
+  String getWidgetTypeShort() { 'Field' }
+  def add(OnChange item) { onChange = item; onChange.valueType = 'Date'; super.add(item)}
+}
+
+class DateField extends Control {
+  OnChange onChange
+  String getWidgetInterface() { 'DateInput' }
+  String getWidgetTypeShort() { "Field" }
+  def add(OnChange item) { onChange = item; onChange.valueType = 'Date'; super.add(item) }
+}
+
+class Table extends Control {
+  List<Column> columns = []
+  OnSelect onSelect
+  void add(Column item) { super.add(item); columns << item }
+  void add(OnSelect item) { super.add(item); onSelect = item }
+}
+
+class EntityTable extends Table {
+  Entity entity
+  String deriveName() { "${entity.name}s" }
+}
+
+class Column extends Widget {
+}
+
+class PropColumn extends Column {
+  EntityProp prop
+  String deriveName() { prop.name }
+}
+
+class OnAction extends Listener {
+
+  void init() {
+    super.init()
+    nameExternal = "on${parent.capName}"
+    eventType = "ActionEvent"
+  }
+}
+
+class OnChange extends Listener {
+  String valueType = "Object"
+  
+  void init() {
+    super.init()
+    nameExternal = "on${parent.capName}Changed"
+    eventTypeRawType = "ChangeEvent"
+    eventType = "$eventTypeRawType<$valueType>"
+  }
+}
+
+class OnSelect extends Listener {
+  void init() {
+    super.init()
+    nameExternal = "on${parent.capName}Selected"
+    eventType = "SelectionEvent"
+  }
+}
+
+class OnToggle extends Listener {
+  void init() {
+    super.init()
+    nameExternal = "on${parent.capName}Selected"
+    eventType = "ToggleEvent"
+  }
+}
+
+class Listener extends Operation {
+  String eventType
+  String eventTypeRawType
+  
+  String deriveName() { getClass().simpleName }
+  
+  void buildMe() {
+    super.buildMe()
+    signatureExternal = "$eventType event"
+    if(!eventTypeRawType) { eventTypeRawType = eventType }
+  }
+}
+
+//model classes
+class ComponentModelBuilder extends BuilderSupport {
+  static def elements=[
+    'component',
+    'shared',
+    'backend',
+    'client',
+    'facet',
+    'entity',
+    'manager',
+    'cache',
+    'constructor',
+    'controller',
+    'stateMachineController',
+    'xmlController',
+    'service',
+    'pojo',
+    'prop',
+    'param',
+    'findBy',
+    'existsBy',
+    'countBy',
+    'createBy',
+    'deleteBy',
+    'update',
+    'propAttr',
+    'inject',
+    'index',
+    'op',
+    'first',
+    'last',
+    'delegate',
+    'enumType',
+    'lit',
+    'basicType',
+    'componentProfile',
+    'userProfile',
+    'stateMachine',
+    'context',
+    'event',
+    'action',
+    'condition',
+    'state',
+    'on',
+    'history',
+    'container',
+    'entityRef',
+    'config',
+    'realm',
+    'user',
+    'group',
+    'role',
+    'ui',
+    'view',
+    'presenter',
+    'button',
+    'comboBox',
+    'checkBox',
+    'spinner',
+    'textField',
+    'timeField',
+    'dateField',
+    'label',
+	'groupBoxHeader',
+    'onAction',
+    'onChange',
+    'onSelect',
+    'onToggle',
+    'table',
+    'column' ] as Set
+  def ee
+  Component root
+  def subPackages
+
+  protected void setParent(Object parent, Object child) {
+    if(child && parent instanceof Element ) { parent.add(child) }
+  }
+
+  Map injectValue(Object value, Map attributes, Map<String,Object> defaults=null, String name='name', boolean valueAsCollection=false) {
+    def ret = (attributes != null ? attributes: [:])
+    if(value!=null) { if(!valueAsCollection) { ret."$name" = value } else { ret."$name" = [value]} }
+    if(defaults) { defaults.each {k,v-> if(!ret.containsKey(k)) { ret[k] = v } } }
+    ret
+  }
+
+  boolean isElement(name) {
+    if(elements.contains(name)) { true
+    } else { ee.error("'$name' is unknown element and is ignored."); false }
+  }
+
+  protected Object createNode(Object name) {
+    try{ //println "name=$name"
+      if(isElement(name)) {"${newElement(name)}"() }
+    } catch(e) { ee.error("'$name' can not be created, $e"); //e.printStackTrace()
+    }
+  }
+
+  protected Object createNode(Object name, Object value) {
+    try{ //println "name=$name, value=$value"
+      if(isElement(name)) { "${newElement(name)}"(value) }
+    } catch(e) { ee.error("'$name' can not be created, $e"); //e.printStackTrace()
+    }
+  }
+
+  protected Object createNode(Object name, Map attributes) {
+    try{ //println "name=$name, attr=$attributes"
+      if(isElement(name)) { "${newElement(name)}"(null, attributes) }
+    } catch(e) { ee.error("'$name' can not be created, $e"); //e.printStackTrace()
+    }
+  }
+
+  protected Object createNode(Object name, Map attributes, Object value) {
+    try{ //println "name=$name, attr=$attributes, value=$value"
+      if(isElement(name)) { "${newElement(name)}"(value, attributes) }
+    } catch(e) { ee.error("'$name' can not be created, $e"); //e.printStackTrace()
+    }
+  }
+
+  protected void nodeCompleted(Object parent, Object node) {
+  }
+
+  String newElement(String name) { "new${name.capitalize()}" }
+  BasicType newBasicType(Object value=null, Map attributes=null) { new BasicType(injectValue(value, attributes, [namespace: subPackages.model])) }
+  Component newComponent(Object value=null, Map attributes=null) { root = new Component(injectValue(value, attributes, [ee:ee])); root.init(); subPackages = root.subPackages; root}
+  Shared newShared(Object value=null, Map attributes=null) { new Shared(injectValue(value, attributes, [name: 'shared'])) }
+  Client newClient(Object value=null, Map attributes=null) { new Client(injectValue(value, attributes, [name: 'client'])) }
+  Facet newFacet(Object value=null, Map attributes=null) { new Facet(injectValue(value, attributes)) }
+  Backend newBackend(Object value=null, Map attributes=null) { new Backend(injectValue(value, attributes, [name: 'backend'])) }
+  Entity newEntity(Object value=null, Map attributes=null) { new Entity(injectValue(value, attributes, [namespace: subPackages.model, event: true])) }
+  Index newIndex(Object value=null, Map attributes=null) { new Index(injectValue(value, attributes)) }
+  Cache newCache(Object value=null, Map attributes=null) { new Cache(injectValue(value, attributes, [namespace: "${subPackages.model}.cache", base:true])) }
+  Manager newManager(Object value=null, Map attributes=null) { new Manager(injectValue(value, attributes, [namespace: subPackages.core])) }
+  Container newContainer(Object value=null, Map attributes=null) { new Container(injectValue(value, attributes, [namespace: subPackages.model, base:true, event: true])) }
+  Constructor newConstructor(Object value=null, Map attributes=null) { new Constructor(injectValue(value, attributes)) }
+  StateMachineController newStateMachineController(Object value=null, Map attributes=null) { //println "Current $current"
+    new StateMachineController(injectValue(value, attributes, [subNamespace: subPackages.core, base:true]))
+  }
+  Controller newController(Object value=null, Map attributes=null) { //println "Current $current"
+    if(current instanceof Container) { new ContainerController(injectValue(value, attributes, [namespace: subPackages.core, base:true]))
+    } else if(current instanceof Config) { new ConfigController(injectValue(value, attributes, [namespace: subPackages.core, base:true]))
+    } else {  new CustomController(injectValue(value, attributes, [namespace: subPackages.core, base:true])) }
+  }
+  XmlContainerController newXmlController(Object value=null, Map attributes=null) { new XmlContainerController(injectValue(value, attributes, [namespace: subPackages.core, base:true])) }
+  Service newService(Object value=null, Map attributes=null) { new Service(injectValue(value, attributes, [namespace: subPackages.facade, base:true])) }
+  Prop newProp(Object value=null, Map attributes=null) {
+    if(current instanceof Entity) { new EntityProp(injectValue(value, attributes))
+    } else if( current instanceof BasicType) { new JpaProp(injectValue(value, attributes))
+    } else { new Prop(injectValue(value, attributes)) }
+  }
+  Param newParam(Object value=null, Map attributes=null) { new Param(injectValue(value, attributes)) }
+  EnumType newEnumType(Object value=null, Map attributes=null) { new EnumType(injectValue(value, attributes, [namespace: subPackages.model])) }
+  Pojo newPojo(Object value=null, Map attributes=null) { new Pojo(injectValue(value, attributes, [namespace: subPackages.model])) }
+  Context newContext(Object value=null, Map attributes=null) { new Context(injectValue(value, attributes, [namespace: subPackages.model, toShared: true])) }
+  Config newConfig(Object value=null, Map attributes=null) { new Config(injectValue(value, attributes, [namespace: subPackages.model, event: true])) }
+  Literal newLit(Object value=null, Map attributes=null) { new Literal(injectValue(value, attributes)) }
+  Operation newOp(Object value=null, Map attributes=null) { new Operation(injectValue(value, attributes)) }
+  Delegate newDelegate(Object value=null, Map attributes=null) { new Delegate(injectValue(value, attributes, null, 'ref')) }
+  Operation newFindBy(Object value=null, Map attributes=null) { if(current instanceof Manager) { new Finder(injectValue(value, attributes))
+    } else { new FinderTypeUnit(injectValue(value, attributes)) }
+  }
+  Creator newCreateBy(Object value=null, Map attributes=null) { new Creator(injectValue(value, attributes)) }
+  Updater newUpdate(Object value=null, Map attributes=null) { new Updater(injectValue(value, attributes)) }
+  Counter newCountBy(Object value=null, Map attributes=null) { new Counter(injectValue(value, attributes)) }
+  Exists newExistsBy(Object value=null, Map attributes=null) { new Exists(injectValue(value, attributes)) }
+  Deleter newDeleteBy(Object value=null, Map attributes=null) { new Deleter(injectValue(value, attributes)) }
+  PropAttr newPropAttr(Object value=null, Map attributes=null) { new PropAttr(injectValue(value, attributes)) }
+  String newInject(Object value=null, Map attributes=null) { current.addInject("$value") }
+  String newEntityRef(Object value=null, Map attributes=null) { current.addEntityRef("$value") }
+  ComponentProfile newComponentProfile(Object value=null, Map attributes=null) { new ComponentProfile(injectValue(value, attributes)) }
+  Realm newRealm(Object value=null, Map attributes=null) { new Realm(injectValue(value, attributes)) }
+  RealmUser newUser(Object value=null, Map attributes=null) { new RealmUser(injectValue(value, attributes)) }
+  RealmGroup newGroup(Object value=null, Map attributes=null) { new RealmGroup(injectValue(value, attributes)) }
+  RealmRole newRole(Object value=null, Map attributes=null) { new RealmRole(injectValue(value, attributes)) }
+  UserProfile newUserProfile(Object value=null, Map attributes=null) { new UserProfile(injectValue(value, attributes)) }
+
+  //state machine
+  StateMachine newStateMachine(Object value=null, Map attributes=null) { new StateMachine(injectValue(value, attributes)) }
+  State newState(Object value=null, Map attributes=null) { new State(injectValue(value, attributes)) }
+  Event newEvent(Object value=null, Map attributes=null) { new Event(injectValue(value, attributes)) }
+  Condition newCondition(Object value=null, Map attributes=null) { new Condition(injectValue(value, attributes)) }
+  Action newAction(Object value=null, Map attributes=null) { new Action(injectValue(value, attributes)) }
+  History newHistory(Object value=null, Map attributes=null) { new History(injectValue(value, attributes, null, 'entityRef')) }
+  Transition newOn(Object value=null, Map attributes=null) { new Transition(injectValue(value, attributes)) }
+
+  //ui
+  Ui newUi(Object value=null, Map attributes=null) { new Ui(injectValue(value, attributes, [name: 'ui'])) }
+  View newView(Object value=null, Map attributes=null) {
+    if(attributes?.entityRef) {
+      new EntityView(injectValue(value, attributes, [namespace: subPackages.view, base: true], 'domainName'))
+    } else {
+      new View(injectValue(value, attributes, [namespace:subPackages.view, base: true], 'domainName'))
+    }
+  }
+  Button newButton(Object value=null, Map attributes=null) { new Button(injectValue(value, attributes)) }
+  ComboBox newComboBox(Object value=null, Map attributes=null) { new ComboBox(injectValue(value, attributes)) }
+  CheckBox newCheckBox(Object value=null, Map attributes=null) { new CheckBox(injectValue(value, attributes)) }
+  Label newLabel(Object value=null, Map attributes=null) { new Label(injectValue(value, attributes)) }
+  Spinner newSpinner(Object value=null, Map attributes=null) { new Spinner(injectValue(value, attributes)) }
+  TextField newTextField(Object value=null, Map attributes=null) { new TextField(injectValue(value, attributes)) }
+  GroupBoxHeader newGroupBoxHeader(Object value=null, Map attributes=null) { new GroupBoxHeader(injectValue(value, attributes)) }
+  TimeField newTimeField(Object value=null, Map attributes=null) { new TimeField(injectValue(value, attributes)) }
+  DateField newDateField(Object value=null, Map attributes=null) { new DateField(injectValue(value, attributes)) }
+  Presenter newPresenter(Object value=null, Map attributes=null) {
+    new Presenter(injectValue(value, attributes, [subNamespace: 'presenter', base: true]))
+  }
+  Table newTable(Object value=null, Map attributes=null) {
+    if(attributes?.entityRef) {
+      new EntityTable(injectValue(value, attributes))
+    } else {
+      new Table(injectValue(value, attributes))
+    }
+  }
+  Column newColumn(Object value=null, Map attributes=null) { new Column(injectValue(value, attributes)) }
+  OnAction newOnAction(Object value=null, Map attributes=null) { new OnAction(injectValue(value, attributes)) }
+  OnChange newOnChange(Object value=null, Map attributes=null) { new OnChange(injectValue(value, attributes)) }
+  OnSelect newOnSelect(Object value=null, Map attributes=null) { new OnSelect(injectValue(value, attributes)) }
+  OnToggle newOnToggle(Object value=null, Map attributes=null) { new OnToggle(injectValue(value, attributes)) }
+}

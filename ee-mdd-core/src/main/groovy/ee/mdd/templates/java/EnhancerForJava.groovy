@@ -425,7 +425,7 @@ class EnhancerForJava {
           ModelBuilder builder = c.item.component.builder
           String newLine = System.properties['line.separator']
           def prop = delegate
-          def opposite = prop.opposite(c)
+          def opposite = prop.opposite
           def currentParent = prop.parent
           def metas = []
           def association
@@ -527,14 +527,6 @@ class EnhancerForJava {
           properties[key] = metas
         }
         properties[key]
-      }
-
-      opposite << { Context c ->
-        def module = c.item.module
-        //def entity = module.entities.find { it.name == delegate.type.name }
-        def entity = delegate.type
-        def ret = entity.props.find { it.name == delegate.opposite }
-        ret
       }
 
       propIndex << { Context c ->

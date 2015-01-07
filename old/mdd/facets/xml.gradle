@@ -1,0 +1,10 @@
+//metaClasses.element.xml = true
+//metaClasses.element.nameXml = null
+//metaClasses.element.getProperty = { String nameXml ->
+//  println "############# $delegate $nameXml"
+//  //metaClasses.element.getMetaProperty(nameXml)
+//}
+
+//def metaProperty = Person.metaClass.getMetaProperty(nameXml)
+//def ret = metaProperty.getProperty(delegate)
+//ret ? ret : delegate.name

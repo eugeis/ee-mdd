@@ -23,13 +23,4 @@ import ee.mdd.model.Element;
  * @author Eugen Eisler
  */
 class CompositeFactory extends MddFactory {
-
-	@Override
-	void setChild(FactoryBuilderSupport builder, Object parent, Object child) {
-		if (child instanceof Element) {
-			((Composite)parent).add(child)
-		} else {
-			super.setChild(builder, parent, child);
-		}
-	}
 }

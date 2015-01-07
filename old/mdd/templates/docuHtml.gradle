@@ -1,0 +1,205 @@
+common.backend.module.docu = '''<% 
+
+  if(module.entities) {
+
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title></title>
+	<style type="text/css">
+	<!--
+		@page { size: 21.59cm 27.94cm; margin: 2.54cm }
+		p { margin-bottom: 0.21cm; direction: ltr; color: #000000; line-height: 120%; page-break-inside: avoid; widows: 2; orphans: 2 }
+		p.western { font-family: "Arial", sans-serif; font-size: 11pt; so-language: de-DE }
+		p.cjk { font-family: "Arial", serif; font-size: 11pt }
+		p.ctl { font-family: "Arial", serif; font-size: 10pt; so-language: ar-SA }
+		h2 { margin-bottom: 0cm; direction: ltr; color: #4f81bd; line-height: 120%; page-break-inside: avoid; widows: 2; orphans: 2 }
+		h2.western { font-family: "Arial", serif; font-size: 13pt; so-language: de-DE }
+		h2.cjk { font-family: "Arial", serif; font-size: 13pt }
+		h2.ctl { font-family: "Arial", serif; font-size: 13pt; so-language: ar-SA }
+		h3 { margin-top: 0.21cm; margin-bottom: 0.42cm; direction: ltr; color: #000000; line-height: 120%; page-break-inside: avoid; widows: 2; orphans: 2 }
+		h3.western { font-family: "Arial", sans-serif; font-size: 11pt; so-language: en-US }
+		h3.cjk { font-family: "Arial", serif; font-size: 11pt }
+		h3.ctl { font-family: "Arial", serif; font-size: 10pt; so-language: ar-SA; font-weight: normal }
+	-->
+	</style>
+</head>
+<body lang="en-US" text="#000000" dir="ltr">
+<h1 lang="en-US" class="western">Enumerations</h1><%
+
+  module.enums.each { enumi ->
+%>
+
+<h2 lang="en-US" class="western">$enumi.name</h2>
+<p class="western" style="margin-bottom: 0.42cm">$enumi.description</p>
+<p class="western" style="margin-bottom: 0.42cm"><b>Values</b></p>
+<table width="624" cellpadding="7" cellspacing="0">
+	<col width="124">
+	<col width="500">
+	<tr valign="top">
+		<td width="109" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+			<p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Name</b></font></p>
+		</td>
+		<td width="307" bgcolor="#ffff99" style="border: 1px solid #000000; padding: 0cm 0.19cm">
+			<p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Notes</b></font></p>
+		</td>
+	</tr><%
+
+    enumi.literals.each { lit ->
+%>
+	<tr valign="top">
+		<td width="109" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+			<p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$lit.name</font></p>
+		</td>
+		<td width="307" bgcolor="#ffffff" style="border: 1px solid #000000; padding: 0cm 0.19cm">
+			<p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$lit.description</font></p>
+		</td>
+	</tr><%
+
+	  }
+%>
+</table>
+<p class="western" style="margin-bottom: 0.42cm"><br><br>
+</p><%
+
+  }
+
+%>
+<h1 lang="en-US" class="western">Basic Types</h1><%
+
+  module.basicTypes.each { entity ->
+%>
+
+<h2 lang="en-US" class="western">$entity.name</h2>
+<p class="western" style="margin-bottom: 0.42cm">$entity.description</p>
+<p class="western" style="margin-bottom: 0.42cm"><b>Attributes</b></p>
+<table width="624" cellpadding="7" cellspacing="0">
+  <col width="109">
+  <col width="88">
+  <col width="62">
+  <col width="307">
+  <tr valign="top">
+    <td width="109" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Name</b></font></p>
+    </td>
+    <td width="88" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Type</b></font></p>
+    </td>
+    <td width="62" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Multiplicity</b></font></p>
+    </td>
+    <td width="307" bgcolor="#ffff99" style="border: 1px solid #000000; padding: 0cm 0.19cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Notes</b></font></p>
+    </td>
+  </tr><%
+
+    entity.props.each { prop ->
+      boolean notNull = prop.notNull;
+      if (prop.unique) {
+        notNull = true;
+      }
+      String multi;
+      if (!prop.multi) {
+        if (notNull) multi = "1";
+        else         multi = "0..1"; 
+      } else {
+        if (notNull) multi = "1..*";
+        else         multi = "*"; 
+      }
+%>
+  <tr valign="top">
+    <td width="109" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$prop.name</font></p>
+    </td>
+    <td width="88" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$prop.type</font></p>
+    </td>
+    <td width="62" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$multi</font></p>
+    </td>
+    <td width="307" bgcolor="#ffffff" style="border: 1px solid #000000; padding: 0cm 0.19cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$prop.description</font></p>
+    </td>
+  </tr><%
+
+    }
+%>
+</table>
+<p class="western" style="margin-bottom: 0.42cm"><br><br>
+</p><%
+
+  }
+
+%>
+<h1 lang="en-US" class="western">Entities</h1><%
+
+  module.entities.each { entity ->
+    String desc = entity.description?.replaceAll(/\n/, '</p><p class="western" style="margin-bottom: 0.42cm">')
+%>
+
+<h2 lang="en-US" class="western">$entity.name</h2>
+<p class="western" style="margin-bottom: 0.42cm">$desc</p>
+<p class="western" style="margin-bottom: 0.42cm"><b>Attributes</b></p>
+<table width="724" cellpadding="7" cellspacing="0">
+  <col width="109">
+  <col width="88">
+  <col width="62">
+  <col width="407">
+  <tr valign="top">
+    <td width="109" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Name</b></font></p>
+    </td>
+    <td width="88" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Type</b></font></p>
+    </td>
+    <td width="62" bgcolor="#ffff99" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Multiplicity</b></font></p>
+    </td>
+    <td width="407" bgcolor="#ffff99" style="border: 1px solid #000000; padding: 0cm 0.19cm">
+      <p lang="en-US" align="center" style="margin-top: 0.11cm"><font size="1" style="font-size: 8pt"><b>Notes</b></font></p>
+    </td>
+  </tr><%
+
+    entity.props.each { prop ->
+      boolean notNull = prop.notNull;
+      if (prop.unique) {
+        notNull = true;
+      }
+      String multi;
+      if (!prop.multi) {
+        if (notNull) multi = "1";
+        else         multi = "0..1"; 
+      } else {
+        if (notNull) multi = "1..*";
+        else         multi = "*"; 
+      }
+%>
+  <tr valign="top">
+    <td width="109" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$prop.name</font></p>
+    </td>
+    <td width="88" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$prop.type</font></p>
+    </td>
+    <td width="62" bgcolor="#ffffff" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.19cm; padding-right: 0cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$multi</font></p>
+    </td>
+    <td width="307" bgcolor="#ffffff" style="border: 1px solid #000000; padding: 0cm 0.19cm">
+      <p lang="en-US" style="margin-top: 0.11cm"><font size="2" style="font-size: 10pt">$prop.description</font></p>
+    </td>
+  </tr><%
+
+    }
+%>
+</table>
+<p class="western" style="margin-bottom: 0.42cm"><br><br>
+</p><%
+
+  }
+%>
+</body>
+</html><%
+
+ret.path = "${destModule.shared.srcGenSite}/${component.name}_Docu.html" %><% } %>'''
