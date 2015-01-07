@@ -364,6 +364,24 @@ class EnhancerForJava {
         properties[key]
       }
 
+      getComputedTypeEjb << {
+        ->
+        def key = System.identityHashCode(delegate) + 'computedTypeEjb'
+        if(!properties.containsKey(key)) {
+          def idProp = delegate
+          def ret = "${idProp.type.name}"
+          if(Entity.isInstance(idProp.type)) {
+            if(idProp.multi) {
+              ret = "List<${idProp.type.n.cap.Entity}>"
+            } else {
+              ret = "${idProp.type.n.cap.Entity}"
+            }
+          } else if (idProp.multi) {
+            ret = "List<${idProp.type.name}>"
+          }
+        }
+      }
+
       getCall << {
         ->
         def key = System.identityHashCode(delegate) + 'call'
@@ -516,13 +534,12 @@ class EnhancerForJava {
           } else if (prop.lob) {
             metas << builder.meta(type: 'Lob')
           }
-
           if(prop.multi) {
             metas << builder.meta(type: 'ElementCollection', value: ['fetch' : "${c.name('FetchType')}"+'.EAGER'])
             def joinColum = builder.meta(type: 'JoinColumn', value: ['name' : "\"${currentParent.sqlName}_ID\""])
             metas << builder.meta(type: 'CollectionTable', value: ['name' : "\"${currentParent.sqlName}_${prop.sqlName}\"", 'joinColumns' : "${joinColum.annotation(c)}"])
           } else if (!(prop.type instanceof BasicType)) {
-            metas << builder.meta(type:'Column', value: ['name' : "\"COLUMN_${prop.underscored}\""])
+            metas << builder.meta(type:'Column', value: ['name' : "COLUMN_${prop.underscored}"])
           }
           properties[key] = metas
         }
@@ -560,6 +577,31 @@ class EnhancerForJava {
         properties[key]
       }
 
+      isEntityProp << { Context c ->
+        def key = System.identityHashCode(delegate) +'isEntityProp'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          if(Entity.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isBasicTypeProp << { Context c ->
+        def key = System.identityHashCode(delegate) +'isEntityProp'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          if(BasicType.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     LogicUnit.metaClass {
@@ -667,8 +709,10 @@ class EnhancerForJava {
             ret += '})'
           } else if(delegate.value) {
             if(Map.isInstance(delegate.value)) {
-              if(delegate.type.cap == 'NamedQuery' || delegate.type.cap == 'JoinTable') {
+              if(delegate.type.cap == 'NamedQuery') {
                 ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine+'                ') + ')'
+              } else if (delegate.type.cap == 'JoinTable') {
+                ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', '+newLine+'             ') + ')'
               } else {
                 ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
               }

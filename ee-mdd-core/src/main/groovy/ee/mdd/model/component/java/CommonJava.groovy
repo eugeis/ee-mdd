@@ -43,6 +43,6 @@ class CommonJava extends Facet {
   }
 
   protected Map nameToNamespace() {
-    ['Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util.Map', 'Set' : 'java.util.Set', 'Serializable': 'java.io']
+    ['Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util', 'Serializable': 'java.io']
   }
 }

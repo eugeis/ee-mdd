@@ -31,12 +31,25 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %>
+      template('propsMember', body: '''<% item.props.each { prop -> c.prop = prop %>
   protected ${c.name(prop.type)} $prop.uncap;<% } %>
 ''')
 
-      template('jpaPropsMember', body: '''<% String newLine = System.properties['line.separator']; item.props.each { prop -> c.prop = prop %>${macros.generate('metaAtrributesProp', c)}
-  protected ${c.name(prop.type)} $prop.uncap;<% } %>
+      template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}<% if(prop.isEntityProp(c)) { if(prop.multi) { %>
+  protected ${c.name('List')}<${prop.type.n.cap.Entity}> $prop.uncap;
+  <% } else { %>
+  protected ${prop.type.n.cap.Entity} $prop.uncap;
+  <%} } else if(prop.isBasicTypeProp(c)) { if(prop.multi) { %>
+  protected ${c.name('List')}<${prop.type.n.cap.Embeddable}> $prop.uncap;
+  <% } else { %>
+  protected ${prop.type.n.cap.Embeddable} $prop.uncap;
+  <% } } else { %>
+  protected ${c.name(prop.type)} $prop.uncap;
+  <% } } } %>
+''')
+
+      template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAtrributesProp', c)}
+  protected $idProp.computedTypeEjb $idProp.uncap;<% } %>
 ''')
 
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
@@ -53,6 +66,8 @@ class MacrosForJava {
     return $prop.uncap; 
   }
 <% } } %>''')
+
+      template('idPropGetter')
 
       template('testProperties', body: '''
   @${c.name('Test')}
@@ -73,6 +88,12 @@ class MacrosForJava {
   public void $prop.setter {
     this.$prop.uncap = $prop.uncap; 
   }<% } } %>''')
+
+      template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
+  //@Override
+  public void set${idProp.cap}($idProp.computedTypeEjb $idProp.uncap) {
+    this.$idProp.uncap = $idProp.uncap;
+  }<% } %>''')
 
       template('defaultConstructor', body:'''
   public $className() {
@@ -143,7 +164,8 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
-  ${c.item.jpaConstants(c)}${macros.generate('jpaPropsMember', c)}${macros.generate('multiSuperProps', c)}
+  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('idPropSetter', c)}
+  
 }
 //ejbEntity''')
 
@@ -220,7 +242,7 @@ $ret''')
 ${ret-newLine}''')
 
       template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
-$ret''')
+${ret-newLine}''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 

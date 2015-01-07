@@ -72,14 +72,13 @@ class ModelBuilderExample {
                   prop('y', type: 'Long', description: '''The yvalue of this location ''')
                 }
 
-                entity('Um', virtual: true, meta: [
-                ]) {
+                entity('Um', virtual: true, meta: []) {
                   prop('testMultiProp', type: 'Element', multi: true)
                 }
 
                 entity('Element',
                 description: '''An element can be any general topological item which can be identified by a a topological Id and a name An Element can be assigned a ControlArea''') {
-                  prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true)
+                  prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true, multi: true)
                   //                  prop('controlArea', description: '''The assigned ControlArea for this Element''')
                   prop('longName', type: "String", index: true, description: '''Long name of the element''')
                   prop('shortName', type: "String", hashCode: true, index: true, description: '''Short name of the element''')
@@ -103,10 +102,12 @@ class ModelBuilderExample {
 
 
                 entity('Comment', superUnit: 'Um') {
-                  prop('id', type: 'Long',  unique: true, primaryKey: true)
+                  prop('id', type: 'Task',  unique: true, primaryKey: true, multi: true)
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)
                   prop('dateOfCreation', type: 'Date')
+
+                  constr {}
 
                   commands {
                     delete { param(prop: 'dateOfCreation') }
