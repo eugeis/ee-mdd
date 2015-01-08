@@ -64,6 +64,8 @@ class EnhancerForJava {
     Element.metaClass {
     }
 
+
+
     CompilationUnit.metaClass {
 
       getIdProp << {
@@ -88,6 +90,8 @@ class EnhancerForJava {
         }
       }
     }
+
+
 
     Entity.metaClass {
 
@@ -220,6 +224,8 @@ class EnhancerForJava {
       }
     }
 
+
+
     Index.metaClass {
 
       metaIndex << { Context c ->
@@ -239,6 +245,8 @@ class EnhancerForJava {
       }
     }
 
+
+
     Command.metaClass {
 
       deleterNamedQuery << { Context c ->
@@ -255,6 +263,8 @@ class EnhancerForJava {
         }
       }
     }
+
+
 
     Finder.metaClass {
 
@@ -301,6 +311,8 @@ class EnhancerForJava {
       }
     }
 
+
+
     DataTypeOperation.metaClass {
 
       getPropWhere << {
@@ -332,6 +344,8 @@ class EnhancerForJava {
       }
     }
 
+
+
     Literal.metaClass {
 
       getIs << {
@@ -343,6 +357,8 @@ class EnhancerForJava {
         properties[key]
       }
     }
+
+
 
     Prop.metaClass {
 
@@ -364,22 +380,46 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getComputedTypeEjb << {
-        ->
+      computedTypeEjb << { Context c ->
         def key = System.identityHashCode(delegate) + 'computedTypeEjb'
         if(!properties.containsKey(key)) {
           def idProp = delegate
           def ret = "${idProp.type.name}"
           if(Entity.isInstance(idProp.type)) {
             if(idProp.multi) {
-              ret = "List<${idProp.type.n.cap.Entity}>"
+              ret = "${c.name('List')}<${idProp.type.n.cap.Entity}>"
             } else {
               ret = "${idProp.type.n.cap.Entity}"
             }
           } else if (idProp.multi) {
-            ret = "List<${idProp.type.name}>"
+            ret = "${c.name('List')}<${idProp.type.name}>"
           }
+          properties[key] = ret
         }
+        properties[key]
+      }
+
+      computedTypeEjbMember << { Context c ->
+        def key = System.identityHashCode(delegate) + 'computedTypeEjbMember'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = "${c.name(prop.type)}"
+          if(Entity.isInstance(prop.type)) {
+            if(prop.multi) {
+              ret = "${c.name('List')}<${prop.type.n.cap.Entity}>"
+            } else {
+              ret = "${prop.type.n.cap.Entity}"
+            }
+          } else if(BasicType.isInstance(prop.type)) {
+            if(prop.multi) {
+              ret =  "${c.name('List')}<${prop.type.n.cap.Embeddable}>"
+            } else {
+              ret = "${prop.type.n.cap.Embeddable}"
+            }
+          }
+          properties[key] = ret
+        }
+        properties[key]
       }
 
       getCall << {
@@ -604,6 +644,8 @@ class EnhancerForJava {
       }
     }
 
+
+
     LogicUnit.metaClass {
 
       getCall << {
@@ -640,6 +682,8 @@ class EnhancerForJava {
       }
     }
 
+
+
     Attribute.metaClass {
 
       getSignature << {
@@ -674,6 +718,8 @@ class EnhancerForJava {
 
     }
 
+
+
     Body.metaClass {
 
       resolveBody << { Context c ->
@@ -690,6 +736,8 @@ class EnhancerForJava {
         }
       }
     }
+
+
 
     MetaAttribute.metaClass {
 
@@ -726,8 +774,10 @@ class EnhancerForJava {
         }
         properties[key]
       }
-
     }
+
+
+
   }
 }
 

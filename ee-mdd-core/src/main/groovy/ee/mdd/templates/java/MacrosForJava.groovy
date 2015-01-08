@@ -35,21 +35,13 @@ class MacrosForJava {
   protected ${c.name(prop.type)} $prop.uncap;<% } %>
 ''')
 
-      template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}<% if(prop.isEntityProp(c)) { if(prop.multi) { %>
-  protected ${c.name('List')}<${prop.type.n.cap.Entity}> $prop.uncap;
-  <% } else { %>
-  protected ${prop.type.n.cap.Entity} $prop.uncap;
-  <%} } else if(prop.isBasicTypeProp(c)) { if(prop.multi) { %>
-  protected ${c.name('List')}<${prop.type.n.cap.Embeddable}> $prop.uncap;
-  <% } else { %>
-  protected ${prop.type.n.cap.Embeddable} $prop.uncap;
-  <% } } else { %>
-  protected ${c.name(prop.type)} $prop.uncap;
-  <% } } } %>
+      template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}
+  protected ${prop.computedTypeEjbMember(c)} $prop.uncap;
+  <% } } %>
 ''')
 
       template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAtrributesProp', c)}
-  protected $idProp.computedTypeEjb $idProp.uncap;<% } %>
+  protected ${idProp.computedTypeEjb(c)} $idProp.uncap;<% } %>
 ''')
 
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
@@ -91,7 +83,7 @@ class MacrosForJava {
 
       template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
   //@Override
-  public void set${idProp.cap}($idProp.computedTypeEjb $idProp.uncap) {
+  public void set${idProp.cap}(${idProp.computedTypeEjb(c)} $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
   }<% } %>''')
 
