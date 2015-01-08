@@ -32,16 +32,16 @@ class MacrosForJava {
       template('header', body: '''/* EE Software */''')
 
       template('propsMember', body: '''<% item.props.each { prop -> c.prop = prop %>
-  protected ${prop.computedType(c)} $prop.uncap;<% } %>
+  protected ${prop.computedType} $prop.uncap;<% } %>
 ''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}
-  protected ${prop.computedTypeEjbMember(c)} $prop.uncap;
+  protected ${prop.computedTypeEjbMember} $prop.uncap;
   <% } } %>
 ''')
 
       template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAtrributesProp', c)}
-  protected ${idProp.computedTypeEjb(c)} $idProp.uncap;<% } %>
+  protected ${idProp.computedTypeEjb} $idProp.uncap;<% } %>
 ''')
 
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
@@ -54,7 +54,7 @@ class MacrosForJava {
 
 
       template('propGetters', body: '''<% item.props.each { prop -> %>
-  public ${prop.computedType(c)} $prop.getter {
+  public ${prop.computedType} $prop.getter {
     return $prop.uncap;
   }<% } %>
  ''')
@@ -62,7 +62,7 @@ class MacrosForJava {
       template('jpaPropGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.primaryKey) {%><% if(!c.enumType) { %>
   @Override<% } %><% if(prop.multi && prop.isBasicTypeProp(c)) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${prop.computedTypeEjb(c)} $prop.getter { <% if(prop.multi) { %>
+  public ${prop.computedTypeEjb} $prop.getter { <% if(prop.multi) { %>
     if($prop.name == null) {
       $prop.name = new ArrayList<>();
     }<% } else if (prop.type.name.startsWith('Map<')) { %>
@@ -77,7 +77,7 @@ class MacrosForJava {
       template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable) { if(!c.enumType) { %>
   @Override<% } %><% if(prop.isBasicTypeProp(c)) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${prop.computedTypeEjb(c)} $prop.getter {
+  public ${prop.computedTypeEjb} $prop.getter {
     if($prop.name == null) {
       $prop.name = new ArrayList<>();
     }
@@ -87,7 +87,7 @@ class MacrosForJava {
 
       template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp) { %>
   //@Override
-  public ${idProp.computedTypeEjb(c)} $idProp.getter {
+  public ${idProp.computedTypeEjb} $idProp.getter {
     return $idProp.uncap;
   }<% } %>
 ''')
@@ -102,9 +102,14 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap; 
   }<% } } %>''')
 
+      //      template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable) { if(prop.opposite) { %>
+      //  @Override
+      //
+      //''')
+
       template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
   //@Override
-  public void set${idProp.cap}(${idProp.computedTypeEjb(c)} $idProp.uncap) {
+  public void set${idProp.cap}(${idProp.computedTypeEjb} $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
   }<% } %>
 ''')

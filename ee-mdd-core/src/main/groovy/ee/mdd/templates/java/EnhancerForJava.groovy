@@ -375,57 +375,60 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'setter'
         if(!properties.containsKey(key)) {
-          properties[key] = "set$delegate.cap($delegate.type.name $delegate.uncap)"
+          properties[key] = "set$delegate.cap($delegate.computedType $delegate.uncap)"
         }
         properties[key]
       }
 
-      computedType << { Context c ->
+      getComputedType << {
+        ->
         def key = System.identityHashCode(delegate) + 'computedType'
         if(!properties.containsKey(key)) {
           def prop = delegate
-          def ret = "${c.name(prop.type)}"
+          def ret = "${prop.type.name}"
           if(prop.multi) {
-            ret = "${c.name('List')}<${prop.type.name}>"
+            ret = "List<${prop.type.name}>"
           }
           properties[key] = ret
         }
         properties[key]
       }
 
-      computedTypeEjb << { Context c ->
+      getComputedTypeEjb << {
+        ->
         def key = System.identityHashCode(delegate) + 'computedTypeEjb'
         if(!properties.containsKey(key)) {
           def idProp = delegate
           def ret = "${idProp.type.name}"
           if(Entity.isInstance(idProp.type)) {
             if(idProp.multi) {
-              ret = "${c.name('List')}<${idProp.type.n.cap.Entity}>"
+              ret = "List<${idProp.type.n.cap.Entity}>"
             } else {
               ret = "${idProp.type.n.cap.Entity}"
             }
           } else if (idProp.multi) {
-            ret = "${c.name('List')}<${idProp.type.name}>"
+            ret = "List<${idProp.type.name}>"
           }
           properties[key] = ret
         }
         properties[key]
       }
 
-      computedTypeEjbMember << { Context c ->
+      getComputedTypeEjbMember << {
+        ->
         def key = System.identityHashCode(delegate) + 'computedTypeEjbMember'
         if(!properties.containsKey(key)) {
           def prop = delegate
-          def ret = "${c.name(prop.type)}"
+          def ret = "${prop.type.name}"
           if(Entity.isInstance(prop.type)) {
             if(prop.multi) {
-              ret = "${c.name('List')}<${prop.type.n.cap.Entity}>"
+              ret = "List<${prop.type.n.cap.Entity}>"
             } else {
               ret = "${prop.type.n.cap.Entity}"
             }
           } else if(BasicType.isInstance(prop.type)) {
             if(prop.multi) {
-              ret =  "${c.name('List')}<${prop.type.n.cap.Embeddable}>"
+              ret =  "List<${prop.type.n.cap.Embeddable}>"
             } else {
               ret = "${prop.type.n.cap.Embeddable}"
             }
