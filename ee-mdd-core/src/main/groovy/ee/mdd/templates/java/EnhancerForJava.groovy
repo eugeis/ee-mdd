@@ -380,6 +380,19 @@ class EnhancerForJava {
         properties[key]
       }
 
+      computedType << { Context c ->
+        def key = System.identityHashCode(delegate) + 'computedType'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = "${c.name(prop.type)}"
+          if(prop.multi) {
+            ret = "${c.name('List')}<${prop.type.name}>"
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       computedTypeEjb << { Context c ->
         def key = System.identityHashCode(delegate) + 'computedTypeEjb'
         if(!properties.containsKey(key)) {

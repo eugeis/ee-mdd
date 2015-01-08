@@ -32,7 +32,7 @@ class MacrosForJava {
       template('header', body: '''/* EE Software */''')
 
       template('propsMember', body: '''<% item.props.each { prop -> c.prop = prop %>
-  protected ${c.name(prop.type)} $prop.uncap;<% } %>
+  protected ${prop.computedType(c)} $prop.uncap;<% } %>
 ''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}
@@ -48,28 +48,49 @@ class MacrosForJava {
   protected<% if(prop.isEjbProp(c)) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } %>
 ''')
 
-      template('propsGetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
+      template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
 
   ${c.name(prop.type)} $prop.getter;<% } } %>''')
 
-      template('propsGetter', body: '''<% item.props.each { prop -> if (prop.readable) {%><% if(!c.enumType) { %>
-  @Override<% } %>
-  public ${c.name(prop.type)} $prop.getter {
-    return $prop.uncap; 
+
+      template('propGetters', body: '''<% item.props.each { prop -> %>
+  public ${prop.computedType(c)} $prop.getter {
+    return $prop.uncap;
+  }<% } %>
+ ''')
+
+      template('jpaPropGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.primaryKey) {%><% if(!c.enumType) { %>
+  @Override<% } %><% if(prop.multi && prop.isBasicTypeProp(c)) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${prop.computedTypeEjb(c)} $prop.getter { <% if(prop.multi) { %>
+    if($prop.name == null) {
+      $prop.name = new ArrayList<>();
+    }<% } else if (prop.type.name.startsWith('Map<')) { %>
+    if ($prop.name == null) {
+      $prop.name = new HashMap<>();
+    }
+    <% } %>
+    return <% if(prop.multi && prop.isBasicTypeProp(c)) {%>(List)<% } %>$prop.uncap; 
   }
 <% } } %>''')
 
-      template('idPropGetter')
+      template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable) { if(!c.enumType) { %>
+  @Override<% } %><% if(prop.isBasicTypeProp(c)) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${prop.computedTypeEjb(c)} $prop.getter {
+    if($prop.name == null) {
+      $prop.name = new ArrayList<>();
+    }
+    return <% if(prop.isBasicTypeProp(c)) {%>(List)<% } %>$prop.uncap;
+  }
+<% } } %>''')
 
-      template('testProperties', body: '''
-  @${c.name('Test')}
-  public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
-    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
-    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
-    item.$prop.call;<% } %>
-    <% item.props.each { prop -> %>
-    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
-  }''')
+      template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp) { %>
+  //@Override
+  public ${idProp.computedTypeEjb(c)} $idProp.getter {
+    return $idProp.uncap;
+  }<% } %>
+''')
 
       template('propsSetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
   
@@ -85,7 +106,8 @@ class MacrosForJava {
   //@Override
   public void set${idProp.cap}(${idProp.computedTypeEjb(c)} $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
-  }<% } %>''')
+  }<% } %>
+''')
 
       template('defaultConstructor', body:'''
   public $className() {
@@ -128,20 +150,20 @@ public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each 
 <% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}
+public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}
 }
 //ifc''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> { <% if (item.superUnit) { %>
-${macros.generate('propsGetterIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
+${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
 }
 //ifcExtends''')
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('propsGetter', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
+  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('jpaPropGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
 }
 //implEntity''')
 
@@ -156,7 +178,7 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
-  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('idPropSetter', c)}
+  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('idPropGetter', c)}${macros.generate('idPropSetter', c)}${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaPropGetters', c)}
   
 }
 //ejbEntity''')
@@ -178,11 +200,21 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
   $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
-  ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propsGetter', c)}<% item.literals.each { lit -> %>
+  ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
   public boolean $lit.is {
     return this == $lit.underscored; 
   }<% } %>
 }''')
+
+      template('testProperties', body: '''
+  @${c.name('Test')}
+  public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
+    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
+    item.$prop.call;<% } %>
+    <% item.props.each { prop -> %>
+    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
+  }''')
 
       template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
