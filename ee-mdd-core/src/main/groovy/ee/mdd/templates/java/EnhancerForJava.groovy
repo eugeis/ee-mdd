@@ -27,6 +27,7 @@ import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
+import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Exist
 import ee.mdd.model.component.Find
 import ee.mdd.model.component.Finder
@@ -35,6 +36,7 @@ import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Prop
+
 
 
 
@@ -88,6 +90,22 @@ class EnhancerForJava {
           def superUnit = delegate.superUnit
           def ret = superUnit ? superUnit.props.findAll{ it.multi } : []
         }
+      }
+
+      getBeanName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'beanName'
+        if(!properties.containsKey(key)) {
+          if(Entity.isInstance(delegate)) {
+            def ret = "${delegate.n.cap.entity}"
+          } else if (BasicType.isInstance(delegate)) {
+            def ret = "${delegate.n.cap.embeddable}"
+          } else if (EnumType.isInstance(delegate)) {
+            def ret = "${delegate.cap}"
+          }
+          properties[key] = ret
+        }
+        properties[key]
       }
     }
 
@@ -366,7 +384,7 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'getter'
         if(!properties.containsKey(key)) {
-          properties[key] = "get$delegate.cap()"
+          properties[key] = "${delegate.type.name.equalsIgnoreCase('Boolean')?'is':'get'}$delegate.cap()"
         }
         properties[key]
       }
@@ -376,6 +394,36 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'setter'
         if(!properties.containsKey(key)) {
           properties[key] = "set$delegate.cap($delegate.computedType $delegate.uncap)"
+        }
+        properties[key]
+      }
+
+      getRelTypeEjb << {
+        ->
+        def key = System.identityHashCode(delegate) + 'relTypeEjb'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = "${prop.type.name}"
+          if(Entity.isInstance(delegate.type)) {
+            ret = "${prop.type.n.cap.Entity}"
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      getTypeEjbMember << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeEjbMember'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = "${prop.type.name}"
+          if(Entity.isInstance(prop.type)) {
+            ret = "${prop.type.n.cap.Entity}"
+          } else if (BasicType.isInstance(prop.type)) {
+            ret = "${prop.type.n.cap.Embeddable}"
+          }
+          properties[key] = ret
         }
         properties[key]
       }
@@ -398,16 +446,12 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'computedTypeEjb'
         if(!properties.containsKey(key)) {
-          def idProp = delegate
-          def ret = "${idProp.type.name}"
-          if(Entity.isInstance(idProp.type)) {
-            if(idProp.multi) {
-              ret = "List<${idProp.type.n.cap.Entity}>"
-            } else {
-              ret = "${idProp.type.n.cap.Entity}"
-            }
-          } else if (idProp.multi) {
-            ret = "List<${idProp.type.name}>"
+          def prop = delegate
+          def ret
+          if(prop.multi) {
+            ret = "List<${prop.relTypeEjb}>"
+          } else {
+            ret = "${prop.relTypeEjb}"
           }
           properties[key] = ret
         }
@@ -419,19 +463,11 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'computedTypeEjbMember'
         if(!properties.containsKey(key)) {
           def prop = delegate
-          def ret = "${prop.type.name}"
-          if(Entity.isInstance(prop.type)) {
-            if(prop.multi) {
-              ret = "List<${prop.type.n.cap.Entity}>"
-            } else {
-              ret = "${prop.type.n.cap.Entity}"
-            }
-          } else if(BasicType.isInstance(prop.type)) {
-            if(prop.multi) {
-              ret =  "List<${prop.type.n.cap.Embeddable}>"
-            } else {
-              ret = "${prop.type.n.cap.Embeddable}"
-            }
+          def ret
+          if(prop.multi) {
+            ret = "List<${prop.typeEjbMember}>"
+          } else {
+            ret = "${prop.typeEjbMember}"
           }
           properties[key] = ret
         }
@@ -620,11 +656,24 @@ class EnhancerForJava {
         index
       }
 
+      isTypeEl << { Context c ->
+        def key = System.identityHashCode(delegate) + 'isEjbProp'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Entity.isInstance(prop.type) || BasicType.isInstance(prop.type) || EnumType.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       isEjbProp << { Context c ->
         def key = System.identityHashCode(delegate) + 'isEjbProp'
         if(!properties.containsKey(key)) {
-          def ret = false
           def prop = delegate
+          def ret = false
           if(Entity.isInstance(prop.type) || BasicType.isInstance(prop.type)) {
             ret = true
           }
@@ -636,8 +685,8 @@ class EnhancerForJava {
       isEntityProp << { Context c ->
         def key = System.identityHashCode(delegate) +'isEntityProp'
         if(!properties.containsKey(key)) {
-          def ret = false
           def prop = delegate
+          def ret = false
           if(Entity.isInstance(prop.type)) {
             ret = true
           }
@@ -649,9 +698,22 @@ class EnhancerForJava {
       isBasicTypeProp << { Context c ->
         def key = System.identityHashCode(delegate) +'isEntityProp'
         if(!properties.containsKey(key)) {
-          def ret = false
           def prop = delegate
+          def ret = false
           if(BasicType.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isElementCollection << { Context c ->
+        def key = System.identityHashCode(delegate) +'isElementCollection'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Entity.isInstance(prop.type) && prop.multi) {
             ret = true
           }
           properties[key] = ret

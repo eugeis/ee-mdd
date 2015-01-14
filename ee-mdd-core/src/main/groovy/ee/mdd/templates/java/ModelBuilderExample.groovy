@@ -21,6 +21,7 @@ import ee.mdd.model.component.Model
 
 
 
+
 class ModelBuilderExample {
 
   void testComponentChildren() {
@@ -74,6 +75,7 @@ class ModelBuilderExample {
 
                 entity('Um', virtual: true, meta: []) {
                   prop('testMultiProp', type: 'Element', multi: true)
+                  prop('zweitesMulti', type: 'Task', opposite: 'multiTest',  multi: true)
                 }
 
                 entity('Element',
@@ -106,6 +108,7 @@ class ModelBuilderExample {
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)
                   prop('dateOfCreation', type: 'Date')
+                  prop('newTask', type: 'Task')
 
                   constr {}
 
@@ -114,12 +117,13 @@ class ModelBuilderExample {
                   }
                 }
 
-                entity('Task', attributeChangeFlag: true) {
+                entity('Task', attributeChangeFlag: true, ordered: true) {
                   prop('id', type: 'Long', primaryKey: true, unique: true)
                   prop('comment', type: 'Comment', opposite: 'testTask')
                   prop('created', type: 'Date', unique: true)
                   prop('closed', type: 'Date', index: true)
-
+                  prop('size', type: 'int')
+                  prop('multiTest', type:'Um', opposite: 'zweitesMulti', multi: true)
 
                   constr {}
 
