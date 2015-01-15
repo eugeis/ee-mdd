@@ -36,8 +36,7 @@ class MacrosForJava {
 ''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}
-  protected ${prop.computedTypeEjbMember} $prop.uncap;
-  <% } } %>
+  protected ${prop.computedTypeEjbMember} $prop.uncap;<% } } %>
 ''')
 
       template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAtrributesProp', c)}
@@ -46,6 +45,30 @@ class MacrosForJava {
 
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>
+''')
+
+      template('defaultConstructor', body:'''
+  public $className() {
+  }''')
+
+      template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
+  public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
+    ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
+    this.$param.prop.uncap = $param.prop.uncap;<% } }%>
+  }<% } %>''')
+
+      template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
+
+  public $className(${constr.signature(c)}) {
+    super($constr.call);
+  }<% } %>''')
+
+      template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
+
+  private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
+    this.$it.prop.uncap = $it.value;<% } else { %>
+    this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
+  }<% } %>
 ''')
 
       template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
@@ -69,11 +92,11 @@ class MacrosForJava {
     }<% } else if (prop.type.name.startsWith('Map<')) { %>
     if ($prop.name == null) {
       $prop.name = new HashMap<>();
-    }
-    <% } %>
+    }<% } %>
     return <% if(prop.multi && prop.typeBasicType) {%>(List)<% } %>$prop.uncap; 
   }
-<% } } } }%>''')
+  <% } } } }%>
+''')
 
       template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
   @Override<% } %><% if(prop.typeBasicType) { %>
@@ -110,8 +133,7 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap; 
   }<% } } %>''')
 
-      template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %>
-<% if(item.virtual && prop.multi) { %>
+      template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
   public abstract void set${prop.cap}($prop.computedTypeEjb $prop.uncap);<% } else if (!prop.multi) { %>
   ${!prop.typeEntity?'@Override':''}
   public void set${prop.cap}($prop.computedTypeEjb $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
@@ -157,7 +179,8 @@ class MacrosForJava {
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public void set$prop.cap($prop.computedTypeEjb $prop.uncap) {
     this.$prop.uncap = <%if(prop.typeBasicType) { %>(List)<% } %> $prop.uncap; 
-  }<% } else { %>
+  }
+  <% } else { %>
   @Override
   public void set$prop.cap($prop.computedTypeEjb $prop.uncap) {
     this.$prop.uncap = $prop.uncap;
@@ -166,15 +189,13 @@ class MacrosForJava {
         child.set$prop.opposite.cap(${c.item.base ? "($item.n.cap.entity)" : ''}this);
       }
     }
-  }<% } } } %>
-''')
+  }<% } } } %>''')
 
       template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
   //@Override
   public void set${idProp.cap}(${idProp.computedTypeEjb} $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
-  }<% } %>
-''')
+  }<% } %>''')
 
       template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
   @Override
@@ -183,34 +204,19 @@ class MacrosForJava {
   }<% } } %>
 ''')
 
-      template('defaultConstructor', body:'''
-  public $className() {
-  }''')
-
-      template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
-  
-  public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
-    ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
-    this.$param.prop.uncap = $param.prop.uncap;<% } }%>
-  }<% } %>''')
-
-      template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
-
-  public $className(${constr.signature(c)}) {
-    super($constr.call);
-  }<% } %>''')
-
-      template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
-
-  private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
-    this.$it.prop.uncap = $it.value;<% } else { %>
-    this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
-  }<% } %>
-''')
       template('labelBody', body: '''<% if(item.labelBody) { %>
   @Override
   public String naturalKey() {
     return $item.labelBody;
+  }<% } %>
+''')
+      template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
+  public boolean attributesChanged() {
+    return this.attributesChanged;
+  }
+
+  public void clearAttributesChanged() {
+    this.attributesChanged = false;
   }<% } %>
 ''')
 
@@ -259,15 +265,11 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
   ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
-  ${macros.generate('idPropGetter', c)}
-  ${macros.generate('idPropSetter', c)}
-  ${macros.generate('jpaMultiSuperPropGetters', c)}
-  ${macros.generate('jpaMultiSuperPropSetters', c)}
-  ${macros.generate('jpaPropGetters', c)}
-  ${macros.generate('jpaPropSetters', c)}
-  ${macros.generate('relationIdPropGetter', c)}
-  ${macros.generate('relationIdPropSetter', c)}
-  ${macros.generate('labelBody',c)}
+  ${macros.generate('idPropGetter', c)}${macros.generate('idPropSetter', c)}
+  ${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaMultiSuperPropSetters', c)}
+  ${macros.generate('jpaPropGetters', c)}${macros.generate('jpaPropSetters', c)}
+  ${macros.generate('relationIdPropGetter', c)}${macros.generate('relationIdPropSetter', c)}
+  ${macros.generate('labelBody',c)}${macros.generate('attributesChanged', c)}
   
 }
 //ejbEntity''')

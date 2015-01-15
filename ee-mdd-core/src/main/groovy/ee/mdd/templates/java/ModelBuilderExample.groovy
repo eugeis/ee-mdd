@@ -120,7 +120,7 @@ class ModelBuilderExample {
                 }
 
 
-                entity('Comment', superUnit: 'Um') {
+                entity('Comment', superUnit: 'Um', attributeChangeFlag: true) {
                   prop('id', type: 'Task',  unique: true, primaryKey: true, multi: true)
                   prop('testTask', type: 'Task', opposite: 'comment')
                   prop('testProp', type: 'Task', multi: true)
