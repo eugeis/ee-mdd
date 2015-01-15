@@ -30,6 +30,7 @@ class CompilationUnit extends Type {
   List<Prop> props
   List<Constructor> constructors
   List<Operation> operations
+  List<String> generics
 
   Module getModule() {
     parent.module
@@ -62,5 +63,11 @@ class CompilationUnit extends Type {
     if(!operations) {
       operations = []
     }; operations << super.add(item)
+  }
+
+  def add(String item) {
+    if(!generics) {
+      generics = []
+    }; generics << super.add(item)
   }
 }

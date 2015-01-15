@@ -19,9 +19,12 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Operation extends LogicUnit {
   Type ret
+  boolean rawType = false
+
   String getNameExternal() {
     name
   }

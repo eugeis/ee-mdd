@@ -109,6 +109,42 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      getGenericsName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'genericsName'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.beanName
+          if(delegate.generic) {
+            def suffix = "<${delegate.generics.join(', ')}>"
+            ret += suffix
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      getPropsForHashCode << {
+        ->
+        def key = System.identityHashCode(delegate) + 'propsForHashCode'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.props.findAll{it.hashCode}
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isGeneric << {
+        ->
+        def key = System.identityHashCode(delegate) + 'generic'
+        if(!properties.containsKey(key)) {
+          def ret
+          if(delegate.generics)
+            ret = !delegate.generics.empty ? true : false
+          properties[key]
+        }
+        properties[key] = ret
+      }
     }
 
 

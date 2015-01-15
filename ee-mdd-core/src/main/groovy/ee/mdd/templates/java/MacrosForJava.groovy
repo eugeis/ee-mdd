@@ -204,30 +204,13 @@ class MacrosForJava {
   }<% } } %>
 ''')
 
-      template('labelBody', body: '''<% if(item.labelBody) { %>
+      template('methods', body: '''<% item.operations.each { op -> String ret = ''; if (op.body) { %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   @Override
-  public String naturalKey() {
-    return $item.labelBody;
-  }<% } %>
-''')
-      template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
-  public boolean attributesChanged() {
-    return this.attributesChanged;
-  }
-
-  public void clearAttributesChanged() {
-    this.attributesChanged = false;
-  }<% } %>
-''')
-
-      template('methods', body: '''<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) { %>
-  
-  @Override
-  public ${op.ret.cap}<%} else {%>
-  @Override 
-  public void <% } %>$op.cap(<% op.params.each {ret += separator+it.type.name+' '+it.uncap}%>${ret-separator}) {
+  public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
   ${op.resolveBody(c)}
-  }<% } %> ''')
+  }<% } } %>
+''')
 
       template('ifcMethods', body: '''
   
@@ -270,6 +253,8 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   ${macros.generate('jpaPropGetters', c)}${macros.generate('jpaPropSetters', c)}
   ${macros.generate('relationIdPropGetter', c)}${macros.generate('relationIdPropSetter', c)}
   ${macros.generate('labelBody',c)}${macros.generate('attributesChanged', c)}
+  ${macros.generate('methods', c)}${macros.generate('propsToString', c)}
+  ${macros.generate('hashCodeAndEqualsEntity', c)}
   
 }
 //ejbEntity''')
@@ -359,6 +344,62 @@ ${ret-newLine}''')
       template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')
 
+      template('labelBody', body: '''<% if(item.labelBody) { %>
+  @Override
+  public String naturalKey() {
+    return $item.labelBody;
+  }<% } %>
+''')
+      template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
+  public boolean attributesChanged() {
+    return this.attributesChanged;
+  }
+
+  public void clearAttributesChanged() {
+    this.attributesChanged = false;
+  }<% } %>
+''')
+
+      template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{!it.primaryKey}; %>
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);<% if (!item.virtual) { %>
+    b.append("$idProp.name=").append($idProp.name).append(SEPARATOR);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
+    b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
+  }
+''')
+
+      template('hashCodeAndEqualsEntity', body: '''<% def className = item.genericsName; if(item.propsForHashCode) { %>
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    result = prime * result + (($propAccess == null) ? 0 : ${propAccess}.hashCode());<% } %>
+  }
+
+  @Override<% if (item.generic) { %>
+  @SuppressWarnings("unchecked")<% } %>
+  public boolean equals(Object obj) {
+    if(obj == null)
+      return false;
+    if(this == obj)
+      return true;<% if(item.virtual) { %>
+    if(!super.equals(obj))
+      return false;<% } %>
+    if(getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    if (${propAccess} == null) {
+      if (other.${propAccess} != null)
+        return false;
+      } else if (!${propAccess}.equals(other.${propAccess}))
+        return false;<% } %>
+      return true;
+  }<% } %>
+''')
+
+
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
       template('testBody', body: '''  int counter = countdown;
@@ -367,6 +408,8 @@ ${ret-newLine}''')
       counter--;
     }
     System.out.println(test);''')
+
+
     }
   }
 }
