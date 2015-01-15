@@ -44,20 +44,6 @@ class MacrosForJava {
   protected ${idProp.computedTypeEjb} $idProp.uncap;<% } %>
 ''')
 
-      template('relationIdPropGetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
-  @Override
-  public $relationIdProp.computedType get${prop.cap}${relationIdProp.cap}() {
-    return ${prop.uncap} != null ? ${prop.uncap}.get${relationIdProp.cap}() : null;
-  }<% } } %>
- ''')
-
-      template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
-  @Override
-  public void set${prop.cap}${relationIdProp.cap}(${relationIdProp.computedTypeEjb} ${prop.uncap}${relationIdProp.cap}) {
-    //nothing, because object based;
-  }<% } } %>
- ''')
-
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>
 ''')
@@ -106,6 +92,13 @@ class MacrosForJava {
     return $idProp.uncap;
   }<% } %>
 ''')
+
+      template('relationIdPropGetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  @Override
+  public $relationIdProp.computedType get${prop.cap}${relationIdProp.cap}() {
+    return ${prop.uncap} != null ? ${prop.uncap}.get${relationIdProp.cap}() : null;
+  }<% } } %>
+ ''')
 
       template('propsSetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
   
@@ -183,6 +176,13 @@ class MacrosForJava {
   }<% } %>
 ''')
 
+      template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  @Override
+  public void set${prop.cap}${relationIdProp.cap}(${relationIdProp.computedTypeEjb} ${prop.uncap}${relationIdProp.cap}) {
+    //nothing, because object based;
+  }<% } } %>
+''')
+
       template('defaultConstructor', body:'''
   public $className() {
   }''')
@@ -205,6 +205,12 @@ class MacrosForJava {
   private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
     this.$it.prop.uncap = $it.value;<% } else { %>
     this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
+  }<% } %>
+''')
+      template('labelBody', body: '''<% if(item.labelBody) { %>
+  @Override
+  public String naturalKey() {
+    return $item.labelBody;
   }<% } %>
 ''')
 
@@ -261,6 +267,7 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   ${macros.generate('jpaPropSetters', c)}
   ${macros.generate('relationIdPropGetter', c)}
   ${macros.generate('relationIdPropSetter', c)}
+  ${macros.generate('labelBody',c)}
   
 }
 //ejbEntity''')

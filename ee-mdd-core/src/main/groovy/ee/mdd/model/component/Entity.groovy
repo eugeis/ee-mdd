@@ -25,4 +25,5 @@ class Entity extends DataType {
   boolean manualId = false
   boolean ordered = false
   String idGeneratorName
+  String labelBody
 }
