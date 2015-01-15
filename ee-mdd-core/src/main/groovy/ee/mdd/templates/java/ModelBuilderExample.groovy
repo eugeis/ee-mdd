@@ -103,6 +103,23 @@ class ModelBuilderExample {
                 }
 
 
+                entity('AllowedConnection',
+                description: '''Describes an allowed connection by type which can be attached in the timetable to this location''') {
+                  prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true)
+                  prop('direction', type: 'int', hashCode: true, index: true, description: '''The direction in which the connection is allowed''')
+                  prop('stationTrack', type: 'StationTrack', opposite: 'allowedConnections')
+                  prop('type', type: 'String', description: '''The type of the connection''')
+                }
+
+                entity('StationTrack', superUnit: 'Element',
+                description: '''A station track is a track belonging to a station The name of the station track is often shown in passenger timetables<br/><br/>A station track without platform track can only be used for technical stops ''') {
+                  prop('allowedConnections', type: 'AllowedConnection', multi: true, opposite: 'stationTrack', description: '''The list of allowed connections''')
+                  prop('isVirtual', type: 'Boolean', description: '''Marks this station track as virtual<br/><br/>Such a station track can be used to express relations from routes to stations on this route''')
+                  prop('position', type: 'Integer', description: '''The position of this station track''')
+                  prop('tgmtNumber', type: 'Integer', description: '''The platform number used in TGMT''')
+                }
+
+
                 entity('Comment', superUnit: 'Um') {
                   prop('id', type: 'Task',  unique: true, primaryKey: true, multi: true)
                   prop('testTask', type: 'Task', opposite: 'comment')

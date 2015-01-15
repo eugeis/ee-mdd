@@ -44,8 +44,22 @@ class MacrosForJava {
   protected ${idProp.computedTypeEjb} $idProp.uncap;<% } %>
 ''')
 
-      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
-  protected<% if(prop.isEjbProp(c)) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } %>
+      template('relationIdPropGetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  @Override
+  public $relationIdProp.computedType get${prop.cap}${relationIdProp.cap}() {
+    return ${prop.uncap} != null ? ${prop.uncap}.get${relationIdProp.cap}() : null;
+  }<% } } %>
+ ''')
+
+      template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  @Override
+  public void set${prop.cap}${relationIdProp.cap}(${relationIdProp.computedTypeEjb} ${prop.uncap}${relationIdProp.cap}) {
+    //nothing, because object based;
+  }<% } } %>
+ ''')
+
+      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
+  protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>
 ''')
 
       template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
@@ -59,8 +73,8 @@ class MacrosForJava {
   }<% } %>
  ''')
 
-      template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.isElementCollection(c))) { if (prop.readable && !prop.primaryKey) {%>
-  ${!prop.isEntityProp(c)?'@Override':''}<% if(prop.multi && prop.isBasicTypeProp(c)) { %>
+      template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
+  ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
   public abstract $prop.computedTypeEjb $prop.getter;<% } else { %> 
   public ${prop.computedTypeEjb} $prop.getter { <% if(prop.multi) { %>
@@ -71,18 +85,18 @@ class MacrosForJava {
       $prop.name = new HashMap<>();
     }
     <% } %>
-    return <% if(prop.multi && prop.isBasicTypeProp(c)) {%>(List)<% } %>$prop.uncap; 
+    return <% if(prop.multi && prop.typeBasicType) {%>(List)<% } %>$prop.uncap; 
   }
 <% } } } }%>''')
 
-      template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable) { if(!c.enumType) { %>
-  @Override<% } %><% if(prop.isBasicTypeProp(c)) { %>
+      template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
+  @Override<% } %><% if(prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${prop.computedTypeEjb} $prop.getter {
     if($prop.name == null) {
       $prop.name = new ArrayList<>();
     }
-    return <% if(prop.isBasicTypeProp(c)) {%>(List)<% } %>$prop.uncap;
+    return <% if(prop.typeBasicType) {%>(List)<% } %>$prop.uncap;
   }
 <% } } %>''')
 
@@ -103,22 +117,22 @@ class MacrosForJava {
     this.$prop.uncap = $prop.uncap; 
   }<% } } %>''')
 
-      template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.isElementCollection(c))) { if (prop.writable && !prop.primaryKey) {  %>
+      template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %>
 <% if(item.virtual && prop.multi) { %>
   public abstract void set${prop.cap}($prop.computedTypeEjb $prop.uncap);<% } else if (!prop.multi) { %>
-  ${!prop.isEntityProp(c)?'@Override':''}
+  ${!prop.typeEntity?'@Override':''}
   public void set${prop.cap}($prop.computedTypeEjb $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
     if (ComparisonUtils.areNotEquals(this.$prop.uncap, $prop.uncap)) {
-      this.$prop.name = <% if (prop.isBasicTypeProp(c)) { %>($prop.computedTypeEjbMember)<% } %>$prop.name;
+      this.$prop.name = <% if (prop.typeBasicType) { %>($prop.computedTypeEjbMember)<% } %>$prop.name;
       this.attributesChanged = true;
     }<% } else { %>
-  this.$prop.uncap = <% if (prop.isBasicTypeProp(c)) { %>($prop.computedTypeEjbMember)<% } %>$prop.uncap;<% } %>
+  this.$prop.uncap = <% if (prop.typeBasicType) { %>($prop.computedTypeEjbMember)<% } %>$prop.uncap;<% } %>
   }<% } else { %>
-  <% if (prop.isBasicTypeProp(c)) { %>
+  <% if (prop.typeBasicType) { %>
   @Override<% if (prop.multi) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } } %>
   public void set${prop.cap}($prop.computedTypeEjb $prop.uncap) {
-    this.$prop.uncap = <% if (prop.multi && prop.isBasicTypeProp(c)) { %>(List)<% } else if (prop.isBasicTypeProp(c)) { %>($prop.computedTypeEjbMember)<% } %>$prop.uncap;<% if (prop.isTypeEl(c) && prop.type.ordered || (prop.opposite && !prop.opposite.multi)) { %>
+    this.$prop.uncap = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>($prop.computedTypeEjbMember)<% } %>$prop.uncap;<% if (prop.typeEl && prop.type.ordered || (prop.opposite && !prop.opposite.multi)) { %>
     if ($prop.name != null) {<% if (prop.type.ordered) { %>
       long order = 1;
       for ($prop.relTypeEjb child : $prop.name) {
@@ -126,25 +140,30 @@ class MacrosForJava {
         child.set$prop.opposite.cap(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } %>
       }<% } else if (prop.opposite && !prop.opposite.multi) { %>
       for ($prop.relTypeEjb child : $prop.name) {
-        child.set${prop.opposite.capName}(${item.base ? "($item.n.cap.Entity)" : ''}this);
+        child.set${prop.opposite.cap}(${item.base ? "($item.n.cap.Entity)" : ''}this);
       }<% } %>
     }<% } %>
-  }<% } %><% if (prop.isTypeEl(c) && prop.multi) { %>
+  }<% } %><% if (prop.typeEl && prop.multi) { %>
 
   public boolean addTo${prop.cap}($prop.relTypeEjb child) {<% if (prop.opposite) { if (!prop.opposite.multi) { %>
-    child.set$prop.opposite.cap(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } else { %>
-    child.get${prop.opposite.cap}.add(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %><% if (prop.isTypeEl(c) && prop.type.ordered) { %>
+    child.set${prop.opposite.cap}(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } else { %>
+    child.get${prop.opposite.cap}.add(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %><% if (prop.typeEl && prop.type.ordered) { %>
     child.setOrder(Long.valueOf(${prop.getter}.size() + 1));<% } %>
     return ${prop.getter}.add(child);
  }
-<% } } } } %>
+
+  public boolean removeFrom${prop.cap}($prop.relTypeEjb child) {<% if(prop.opposite) { if(!prop.opposite.multi) { %>
+    child.set${prop.opposite.cap}(null);<% } else { %>
+    child.get${prop.opposite.cap}.remove(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %>
+    return ${prop.getter}.remove(child);
+  }<% } } } } %>
 ''')
 
-      template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable) { if(!prop.opposite) { %>
-  @Override<% if(prop.isBasicTypeProp(c)) { %>
+      template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable && !prop.primaryKey) { if(!prop.opposite) { %>
+  @Override<% if(prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public void set$prop.cap($prop.computedTypeEjb $prop.uncap) {
-    this.$prop.uncap = <%if(prop.isBasicTypeProp(c)) { %>(List)<% } %> $prop.uncap; 
+    this.$prop.uncap = <%if(prop.typeBasicType) { %>(List)<% } %> $prop.uncap; 
   }<% } else { %>
   @Override
   public void set$prop.cap($prop.computedTypeEjb $prop.uncap) {
@@ -240,6 +259,8 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   ${macros.generate('jpaMultiSuperPropSetters', c)}
   ${macros.generate('jpaPropGetters', c)}
   ${macros.generate('jpaPropSetters', c)}
+  ${macros.generate('relationIdPropGetter', c)}
+  ${macros.generate('relationIdPropSetter', c)}
   
 }
 //ejbEntity''')

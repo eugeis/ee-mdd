@@ -43,6 +43,8 @@ import ee.mdd.model.component.Prop
 
 
 
+
+
 /**
  *
  * @author Eugen Eisler
@@ -501,6 +503,72 @@ class EnhancerForJava {
         properties[key]
       }
 
+      getManyToMany << {
+        ->
+        def key = System.identityHashCode(delegate) + 'manyToMany'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          def opposite = prop.opposite
+          if(opposite && prop.multi && opposite.multi) {
+            ret = true
+          } else if(!opposite && prop.multi && prop.mm) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      getOneToMany << {
+        ->
+        def key = System.identityHashCode(delegate) + 'oneToMany'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          def opposite = prop.opposite
+          if(opposite && prop.multi && !opposite.multi) {
+            ret = true
+          } else if (!opposite && prop.multi && !prop.mm) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      getManyToOne << {
+        ->
+        def key = System.identityHashCode(delegate) + 'manyToOne'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          def opposite = prop.opposite
+          if(opposite && opposite.multi && !prop.multi) {
+            ret = true
+          } else if (!opposite && !prop.multi) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      getOneToOne << {
+        ->
+        def key = System.identityHashCode(delegate) + 'oneToOne'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def prop = delegate
+          def opposite = prop.opposite
+          if(opposite && !opposite.multi && !prop.multi) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
         if(!properties.containsKey(key)) {
@@ -656,8 +724,9 @@ class EnhancerForJava {
         index
       }
 
-      isTypeEl << { Context c ->
-        def key = System.identityHashCode(delegate) + 'isEjbProp'
+      isTypeEl << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeEl'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -669,8 +738,9 @@ class EnhancerForJava {
         properties[key]
       }
 
-      isEjbProp << { Context c ->
-        def key = System.identityHashCode(delegate) + 'isEjbProp'
+      isTypeEjb << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeEjb'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -682,8 +752,9 @@ class EnhancerForJava {
         properties[key]
       }
 
-      isEntityProp << { Context c ->
-        def key = System.identityHashCode(delegate) +'isEntityProp'
+      isTypeEntity << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeEntity'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -695,8 +766,9 @@ class EnhancerForJava {
         properties[key]
       }
 
-      isBasicTypeProp << { Context c ->
-        def key = System.identityHashCode(delegate) +'isEntityProp'
+      isTypeBasicType << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeBasicType'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -708,8 +780,23 @@ class EnhancerForJava {
         properties[key]
       }
 
-      isElementCollection << { Context c ->
-        def key = System.identityHashCode(delegate) +'isElementCollection'
+      isTypeEnum << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeEnum'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(EnumType.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isElementCollection << {
+        ->
+        def key = System.identityHashCode(delegate) +'elementCollection'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
