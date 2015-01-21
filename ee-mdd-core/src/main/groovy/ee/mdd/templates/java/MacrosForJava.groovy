@@ -31,9 +31,9 @@ class MacrosForJava {
 
       template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% item.props.each { prop -> c.prop = prop %>
-  protected ${prop.computedType} $prop.uncap;<% } %>
-''')
+      template('propsMember', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %>
+  protected ${prop.computedType} $prop.uncap;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
+  protected $relationIdProp.computedType ${prop.uncap}${relationIdProp.cap};<% } } } %>''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}
   protected ${prop.computedTypeEjbMember} $prop.uncap;<% } } %>
@@ -267,12 +267,13 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
 }
 //ejbEntity''')
 
-      template('ejbEntityExtends', body: '''<% if(item.base) { if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+      template('ejbEntityExtends', body: ''' <% c.src = true %> if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;      
   ${macros.generate('superConstructor', c)}
   ${macros.generate('implOperations', c)}
-}<% } %>''')
+}
+//ejbEntityExtends''')
 
       //            template('implBasicType', body: '''
       //      ''')

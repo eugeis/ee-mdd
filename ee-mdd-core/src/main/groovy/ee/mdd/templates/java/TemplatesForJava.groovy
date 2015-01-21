@@ -66,7 +66,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
         template('ejbEntity', body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('ejbEntity', c)}''')
-        template('ejbEntityExtends', body: '''<% c.className = item.n.cap.entity %>${macros.generate('ejbEntityExtends', c)}''')
+        template('ejbEntityExtends', body: '''<% if(c.item.base) { %><% c.className = item.n.cap.entity %>${macros.generate('ejbEntityExtends', c)}<% } %>''')
       }
 
       //      items('modelEjbBasicType',
