@@ -33,7 +33,8 @@ class MacrosForJava {
 
       template('propsMember', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %>
   protected ${prop.computedType} $prop.uncap;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
-  protected $relationIdProp.computedType ${prop.uncap}${relationIdProp.cap};<% } } } %>''')
+  protected $relationIdProp.computedType ${prop.uncap}${relationIdProp.cap};<% } } } %>
+''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}
   protected ${prop.computedTypeEjbMember} $prop.uncap;<% } } %>
@@ -76,10 +77,15 @@ class MacrosForJava {
   ${c.name(prop.type)} $prop.getter;<% } } %>''')
 
 
-      template('propGetters', body: '''<% item.props.each { prop -> %>
-  public ${prop.computedType} $prop.getter {
+      template('propGetters', body: '''<% item.props.each { prop -> if (!prop.typeEntity) { %>
+  @Override
+  public ${prop.computedTypeEjb} $prop.getter {
     return $prop.uncap;
-  }<% } %>
+  }<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  @Override
+  public $relationIdProp.computedTypeEjb get${prop.cap}${relationIdProp.cap}() {
+    return ${prop.name}${relationIdProp.cap};
+  }<% } } %>
  ''')
 
       template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
@@ -238,10 +244,13 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}<%
 }
 //ifcExtends''')
 
+
+
+
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
 public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('jpaPropGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
+  ${macros.generate('propsMember', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
 }
 //implEntity''')
 
@@ -250,6 +259,9 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
   private static final long serialVersionUID = 1L;<% } %>
 }
 //implEntityExtends''')
+
+
+
 
       template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.name(c.item.cap)} {
@@ -274,6 +286,9 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.b
   ${macros.generate('implOperations', c)}
 }
 //ejbEntityExtends''')
+
+
+
 
       //            template('implBasicType', body: '''
       //      ''')
