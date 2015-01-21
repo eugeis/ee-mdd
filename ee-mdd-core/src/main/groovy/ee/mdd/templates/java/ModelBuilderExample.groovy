@@ -79,6 +79,16 @@ class ModelBuilderExample {
                   prop('zweitesMulti', type: 'Task', opposite: 'multiTest',  multi: true)
                 }
 
+                entity('Signal', base: true) {
+                  prop('id', type: 'Long', primaryKey: true, unique: true)
+                  prop('state', type: 'int')
+                  prop('position', type: 'Long')
+
+                  op('testOperation') {
+                    param('size', type: 'int')
+                  }
+                }
+
                 entity('Element',
                 description: '''An element can be any general topological item which can be identified by a a topological Id and a name An Element can be assigned a ControlArea''') {
                   prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true, multi: true)

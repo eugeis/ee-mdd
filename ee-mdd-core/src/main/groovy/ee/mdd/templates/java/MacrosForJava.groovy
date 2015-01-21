@@ -212,6 +212,15 @@ class MacrosForJava {
   }<% } } %>
 ''')
 
+      template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided) { %>
+  @Override<% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
+    //TODO to implement<% if (op.typeBoolean) { %>
+    return false;<% } else if (op.ret) { %>
+    return null; <% } %>
+  }<% } } %>''')
+
       template('ifcMethods', body: '''
   
 <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
@@ -229,7 +238,7 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}<%
 }
 //ifcExtends''')
 
-      template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+      template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
 public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('baseConstructor', c)}${macros.generate('jpaPropGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}
@@ -255,23 +264,21 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   ${macros.generate('labelBody',c)}${macros.generate('attributesChanged', c)}
   ${macros.generate('methods', c)}${macros.generate('propsToString', c)}
   ${macros.generate('hashCodeAndEqualsEntity', c)}
-  
 }
 //ejbEntity''')
 
+      template('ejbEntityExtends', body: '''<% if(item.base) { if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
+  private static final long serialVersionUID = 1L;      
+  ${macros.generate('superConstructor', c)}
+  ${macros.generate('implOperations', c)}
+}<% } %>''')
 
+      //            template('implBasicType', body: '''
+      //      ''')
       //
-      //      template('ejbEntityExtends', body: '''<% if(!c.className) { c.className = item.n.cap.bean
-      //public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
-      //''')
-      //
-      //      template('implBasicType', body: '''
-      //''')
-      //
-      //      template('implBasicTypeExtends', body: '''
-      //''')
-
-
+      //            template('implBasicTypeExtends', body: '''
+      //      ''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
@@ -363,7 +370,7 @@ ${ret-newLine}''')
       template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{!it.primaryKey}; %>
   @Override
   protected void fillToString(StringBuffer b) {
-    super.fillToString(b);<% if (!item.virtual) { %>
+    super.fillToString(b);<% if (idProp && !item.virtual) { %>
     b.append("$idProp.name=").append($idProp.name).append(SEPARATOR);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
     b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>

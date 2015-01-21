@@ -35,7 +35,12 @@ import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.MetaAttribute
+import ee.mdd.model.component.Operation
 import ee.mdd.model.component.Prop
+
+
+
+
 
 
 
@@ -128,7 +133,7 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'propsForHashCode'
         if(!properties.containsKey(key)) {
-          def ret = delegate.props.findAll{it.hashCode}
+          def ret = delegate.props.findAll{ it.hashCode }
           properties[key] = ret
         }
         properties[key]
@@ -180,22 +185,18 @@ class EnhancerForJava {
       }
 
       metasForEntity << { Context c ->
-        def key = System.identityHashCode(delegate) + 'metasForEntity'
-        if(!properties.containsKey(key)) {
-          Entity entity = delegate
-          ModelBuilder builder = entity.component.builder
-          def metasForEntity = []
-          if(entity.metas) {
-            metasForEntity.addAll(entity.metas)
-          }
-          if(entity.base || entity.virtual) {
-            metasForEntity << builder.meta(type: 'MappedSuperclass')
-          } else {
-            metasForEntity << builder.meta(type: 'Entity')
-          }
-          properties[key] = metasForEntity
+        Entity entity = delegate
+        ModelBuilder builder = entity.component.builder
+        def metasForEntity = []
+        if(entity.metas) {
+          metasForEntity.addAll(entity.metas)
         }
-        properties[key]
+        if(c.className.contains('BaseEntity') && entity.base || entity.virtual) {
+          metasForEntity << builder.meta(type: 'MappedSuperclass')
+        } else {
+          metasForEntity << builder.meta(type: 'Entity')
+        }
+        metasForEntity
       }
 
       indexesForMeta << { Context c ->
@@ -367,7 +368,21 @@ class EnhancerForJava {
       }
     }
 
+    Operation.metaClass {
 
+      isTypeBoolean {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeBoolean'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def op = delegate
+          if (op.ret && op.ret.name == 'boolean')
+            ret = true
+          properties[key] = ret
+        }
+        properties[key]
+      }
+    }
 
     DataTypeOperation.metaClass {
 
