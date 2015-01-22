@@ -50,6 +50,7 @@ import ee.mdd.model.component.Prop
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -103,12 +104,11 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'beanName'
         if(!properties.containsKey(key)) {
+          def ret = "${delegate.cap}"
           if(Entity.isInstance(delegate)) {
-            def ret = "${delegate.n.cap.entity}"
+            ret = "${delegate.n.cap.entity}"
           } else if (BasicType.isInstance(delegate)) {
-            def ret = "${delegate.n.cap.embeddable}"
-          } else if (EnumType.isInstance(delegate)) {
-            def ret = "${delegate.cap}"
+            ret = "${delegate.n.cap.embeddable}"
           }
           properties[key] = ret
         }
@@ -134,6 +134,7 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'propsForHashCode'
         if(!properties.containsKey(key)) {
           def ret = delegate.props.findAll{ it.hashCode }
+          ret << delegate.props.findAll{ it.primaryKey }
           properties[key] = ret
         }
         properties[key]
@@ -145,7 +146,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret
           if(delegate.generics)
-            ret = !delegate.generics.empty ? true : false
+            ret = (!delegate.generics.empty ? true : false)
           properties[key]
         }
         properties[key] = ret
@@ -446,7 +447,11 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'setter'
         if(!properties.containsKey(key)) {
-          properties[key] = "set$delegate.cap($delegate.computedType $delegate.uncap)"
+          if(delegate.multi) {
+            properties[key] = "set$delegate.cap(List<${delegate.uncap}>)"
+          } else {
+            properties[key] = "set$delegate.cap($delegate.type.name $delegate.uncap)"
+          }
         }
         properties[key]
       }
@@ -475,52 +480,6 @@ class EnhancerForJava {
             ret = "${prop.type.n.cap.Entity}"
           } else if (BasicType.isInstance(prop.type)) {
             ret = "${prop.type.n.cap.Embeddable}"
-          }
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
-      getComputedType << {
-        ->
-        def key = System.identityHashCode(delegate) + 'computedType'
-        if(!properties.containsKey(key)) {
-          def prop = delegate
-          def ret = "${prop.type.name}"
-          if(prop.multi) {
-            ret = "List<${prop.type.name}>"
-          }
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
-      getComputedTypeEjb << {
-        ->
-        def key = System.identityHashCode(delegate) + 'computedTypeEjb'
-        if(!properties.containsKey(key)) {
-          def prop = delegate
-          def ret
-          if(prop.multi) {
-            ret = "List<${prop.relTypeEjb}>"
-          } else {
-            ret = "${prop.relTypeEjb}"
-          }
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
-      getComputedTypeEjbMember << {
-        ->
-        def key = System.identityHashCode(delegate) + 'computedTypeEjbMember'
-        if(!properties.containsKey(key)) {
-          def prop = delegate
-          def ret
-          if(prop.multi) {
-            ret = "List<${prop.typeEjbMember}>"
-          } else {
-            ret = "${prop.typeEjbMember}"
           }
           properties[key] = ret
         }

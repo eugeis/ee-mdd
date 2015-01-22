@@ -189,6 +189,16 @@ class ModelBuilderExample {
                     delete { param(prop: 'closed') }
                   }
                 }
+
+                entity('TaskAction', description: '''The entity that represents the action''') {
+                  prop('id', type:'Long', unique:true, primaryKey:true)
+                  prop('task', type:'Task', opposite:'actions', description: '')
+                  prop('name', type:'String')
+                }
+
+
+
+
               }
 
               module('backend') {
