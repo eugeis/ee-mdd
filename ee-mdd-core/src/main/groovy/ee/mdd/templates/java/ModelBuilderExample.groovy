@@ -207,7 +207,8 @@ class ModelBuilderExample {
                     param('test', type: 'String')
                   }
                 }
-                service('CommandService') {   delegate(ref: 'TaskAgregator.hello')   }
+
+                service('CommandService') {    delegate(ref: 'TaskAgregator.hello')    }
               }
 
               module('ui', namespace: 'ui') {

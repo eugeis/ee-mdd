@@ -39,7 +39,7 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% c.serializable = true; c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
+        template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap  } %><% c.serializable = true; c.base = true; c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
         template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
       }
 
@@ -48,7 +48,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
         template('implEntity', body: '''<% c.virtual = c.item.virtual; c.base = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('implEntity', c)}''')
-        template('implEntityExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}''')
+        template('implEntityExtends', body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
 
       }
 

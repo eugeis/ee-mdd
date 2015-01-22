@@ -84,6 +84,10 @@ class MacrosForJava {
   
   void $prop.setter;<% } } %>''')
 
+      template('relationIdPropGetterIfc', body: ''' item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  <% if (relationIdProp.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>$prop.relTypeEjb<% } %> ${prop.name}${relationIdProp.cap};
+''')
+
       template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
   @Override
   public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
@@ -244,17 +248,19 @@ public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each 
 <% } %>''')
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public interface $c.className<% if (c.serializable) { %> extends ${c.name('Serializable')}<% } %> {${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}
+${item.description?"/*** $item.description */":''}
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')}<% } %> 
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final string URI_PREFIX = "$item.uri";
+{${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}
 }
 //ifc''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %><% c.src = true %>{{imports}}
+      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %>{{imports}}
 public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> { <% if (item.superUnit) { %>
 ${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
 }
 //ifcExtends''')
-
-
 
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
@@ -288,7 +294,7 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
 }
 //ejbEntity''')
 
-      template('ejbEntityExtends', body: ''' <% c.src = true %> if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+      template('ejbEntityExtends', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;      
   ${macros.generate('superConstructor', c)}
