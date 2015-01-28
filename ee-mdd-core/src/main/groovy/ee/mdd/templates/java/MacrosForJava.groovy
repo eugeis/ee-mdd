@@ -76,13 +76,23 @@ class MacrosForJava {
   }<% } %>
 ''')
 
-      template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
+      template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable) { %>
+  <% if (prop.description) { %>
+  /** $prop.description */<% } %>
+  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %> 
+''')
+
+      template('propGettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
   <% if (prop.description) { %>
   /** $prop.description */<% } %>
   <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>
 ''')
 
-      template('propsSetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
+      template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
+  void $prop.setter;
+<% } } %>''')
+
+      template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
   void $prop.setter;
 <% } } %>''')
 
@@ -104,7 +114,7 @@ class MacrosForJava {
   public <% if(relationIdProp.multi) { %>${c.name('List')}<relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.name}${relationIdProp.cap};
   }
-<% } } }%>''')
+<% } } } %>''')
 
       template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
   @Override
@@ -266,15 +276,22 @@ ${item.description?"/*** $item.description */":''}
 public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')}<% } %> { 
   /** A unique URI prefix for RESTful services and multi-language support */
   public static final String URI_PREFIX = "${item.getUri()}";
-${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
+${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
 }
 //ifc''')
 
       template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %>{{imports}}
-public interface $c.className extends <% if (item.superUnit) {%>$item.superUnit.cap<% } else { %>${c.className}Base<% } %> { <% if (item.superUnit) { %>
-${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}<% } %>${macros.generate('ifcMethods', c)}
+/** Base interface for {@link $item.n.cap.base} */
+public interface $c.className extends $item.n.cap.base {
 }
 //ifcExtends''')
+
+      template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
+${item.description?"/*** $item.description */":''}
+public interface $className extends <% if (item.superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
+${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
+}
+//ifcBasicType''')
 
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}

@@ -23,6 +23,7 @@ import ee.mdd.model.component.Model
 
 
 
+
 class ModelBuilderExample {
 
   void testComponentChildren() {
@@ -68,7 +69,7 @@ class ModelBuilderExample {
                 }
 
 
-                basicType('Coordinate',
+                basicType('Coordinate', base: true,
                 description: '''The coordinates of the item in the internal planning tool for the topography''') {
                   prop('x', type: 'Long', description: '''The xvalue of this location''')
                   prop('y', type: 'Long', description: '''The yvalue of this location ''')

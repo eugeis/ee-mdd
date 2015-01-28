@@ -17,6 +17,7 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
+import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
@@ -39,8 +40,16 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap  } %><% c.serializable = true; c.base = true; c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', body: '''${macros.generate('ifcExtends', c)}''')
+        template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifc', c)}''')
+        template('ifcExtends', body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
+      }
+
+      items('modelApiBasicType',
+      query: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+
+        template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
+        template('ifcExtends', body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
       }
 
       items ('modelImplEntity',
@@ -108,7 +117,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
         template('ifc', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', body: '''<% c.className = item.cap %> ${macros.generate('ifcExtends', c)}''')
+        template('ifcExtends', body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcExtends', c)}<% } %>''')
       }
     }
   }
