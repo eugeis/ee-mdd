@@ -24,6 +24,7 @@ package ee.mdd.model.component
 class Operation extends LogicUnit {
   Type ret
   boolean rawType = false
+  boolean transactional = false
 
   String getNameExternal() {
     name

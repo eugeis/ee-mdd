@@ -33,7 +33,7 @@ class ModelBuilderExample {
   static Model build(ModelBuilder builder) {
     def ret =  builder.
 
-        model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg') {
+        model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test') {
 
           commonJava()
           cdi()
@@ -150,6 +150,7 @@ class ModelBuilderExample {
                   prop('comment', type: 'Comment', opposite: 'testTask')
                   prop('created', type: 'Date', unique: true)
                   prop('closed', type: 'Date', index: true)
+                  prop('actions', type: 'String' )
                   prop('size', type: 'int')
                   prop('multiTest', type:'Um', opposite: 'zweitesMulti', multi: true)
 

@@ -59,7 +59,7 @@ class MacrosForJava {
       template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
   public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
     ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
-    this.$param.prop.uncap = $param.prop.uncap;<% } }%>
+    this.$param.prop.uncap = $param.prop.uncap;<% } } %>
   }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
@@ -76,16 +76,22 @@ class MacrosForJava {
   }<% } %>
 ''')
 
-      template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable ) { %>
+      template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
+  <% if (prop.description) { %>
+  /** $prop.description */<% } %>
+  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>
+''')
 
-  ${c.name(prop.type)} $prop.getter;<% } } %>''')
+      template('propsSetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
+  void $prop.setter;
+<% } } %>''')
 
-      template('propsSetterIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
-  
-  void $prop.setter;<% } } %>''')
+      template('relationIdPropGetterIfc', body: '''<% item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  <% if (relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.type.name><% } else { %>$relationIdProp.type.name<% } %> get${prop.cap}${relationIdProp.cap}();<% } } %>
+''')
 
-      template('relationIdPropGetterIfc', body: ''' item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
-  <% if (relationIdProp.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>$prop.relTypeEjb<% } %> ${prop.name}${relationIdProp.cap};
+      template('relationIdPropSetterIfc', body: '''<% item.props.each { prop -> if(prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  void set${prop.cap}${relationIdProp.cap}<% if(relationIdProp.multi) { %>(${c.name('List')}<$relationIdProp.type.name><% } else { %>($relationIdProp.type.name<% } %> ${prop.uncap}${relationIdProp.cap});<% } } %>
 ''')
 
       template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
@@ -232,6 +238,14 @@ class MacrosForJava {
   }<% } } %>
 ''')
 
+      template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
+  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>
+  @${c.name('Transactional')}<% } %>
+  ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);
+  <% } } %>''')
+
+
+
       template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided) { %>
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
@@ -249,10 +263,10 @@ public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each 
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')}<% } %> 
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')}<% } %> { 
   /** A unique URI prefix for RESTful services and multi-language support */
-  public static final string URI_PREFIX = "$item.uri";
-{${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}
+  public static final String URI_PREFIX = "${item.getUri()}";
+${macros.generate('propGettersIfc', c)}${macros.generate('propsSetterIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
 }
 //ifc''')
 
@@ -274,8 +288,6 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
   private static final long serialVersionUID = 1L;<% } %>
 }
 //implEntityExtends''')
-
-
 
 
       template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}

@@ -27,7 +27,7 @@ import java.beans.Introspector
 class Element {
   String name, desc
   Element parent
-  String uncap, cap, underscored, sqlName, description
+  String uncap, cap, underscored, sqlName, description, uri
   boolean xml = true;
 
   def init() {
@@ -87,6 +87,12 @@ class Element {
       sqlName = getUnderscored().replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
       sqlName = sqlName.replaceAll(/(\w)\1+/, '$1')
     }; sqlName
+  }
+
+  String getUri() {
+    if(uri == null) {
+      uri = "${parent.getUri()}"
+    }; uri
   }
 
   String getReference() {

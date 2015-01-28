@@ -40,17 +40,6 @@ import ee.mdd.model.component.Prop
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 /**
  *
  * @author Eugen Eisler
@@ -448,7 +437,7 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'setter'
         if(!properties.containsKey(key)) {
           if(delegate.multi) {
-            properties[key] = "set$delegate.cap(List<${delegate.uncap}>)"
+            properties[key] = "set$delegate.cap(List<${delegate.type.name}> $delegate.uncap)"
           } else {
             properties[key] = "set$delegate.cap($delegate.type.name $delegate.uncap)"
           }
