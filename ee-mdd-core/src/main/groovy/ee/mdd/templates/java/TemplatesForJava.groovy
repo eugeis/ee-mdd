@@ -61,30 +61,21 @@ class TemplatesForJava {
 
       }
 
-      //      items ('modelImplBasicType',
-      //      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
-      //
-      //        template('implBasicType', body: '''<% c.virtual = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('', c)}''')
-      //        template('implBasicTypeExtends', body: '''<% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('', c)}''')
-      //
-      //      }
-
       items('modelEjbEntity',
       query: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
         template('ejbEntity', body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('ejbEntity', c)}''')
-        template('ejbEntityExtends', body: '''<% if(c.item.base) { %><% c.className = item.n.cap.entity %>${macros.generate('ejbEntityExtends', c)}<% } %>''')
+        template('ejbEntityExtends', body: '''<% if(c.item.base) { c.className = item.n.cap.entity %>${macros.generate('ejbEntityExtends', c)}<% } %>''')
       }
 
-      //      items('modelEjbBasicType',
-      //      query: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
-      //
-      //        template('ejbBasicType', body: '''''')
-      //        template('ejbBasicTypeExtends', body: '''''')
-      //      }
+      items('modelEjbBasicType',
+      query: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+
+        template('ejbBasicType', body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('ejbBasicType', c)}''')
+        template('ejbBasicTypeExtends', body: '''<% if(c.item.base) { c.className = item.n.cap.embeddable} %>''')
+      }
 
       items ('modelTest',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },

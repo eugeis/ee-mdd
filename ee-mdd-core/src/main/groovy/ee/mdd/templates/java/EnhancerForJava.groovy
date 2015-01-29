@@ -272,6 +272,40 @@ class EnhancerForJava {
     }
 
 
+    BasicType.metaClass {
+
+      metasForBasicType << { Context c ->
+        BasicType basic = delegate
+        ModelBuilder builder = basic.component.builder
+        def metasForBasicType = []
+        if(basic.metas) {
+          metasForBasicType.addAll(basic.metas)
+        }
+        if(c.className.contains('BaseEmbeddable') && basic.base) {
+          metasForBasicType << builder.meta(type: 'MappedSuperclass')
+        } else if(!basic.base && !basic.virtual) {
+          metasForBasicType << builder.meta(type: 'Embeddable')
+        }
+        metasForBasicType
+      }
+
+      jpaConstants << { Context c ->
+        def key = System.identityHashCode(delegate) + 'jpaConstants'
+        if(!properties.containsKey(key)) {
+          ModelBuilder builder = c.item.component.builder
+          String newLine = System.properties['line.separator']
+          def ret = newLine
+          delegate.props.each { prop ->
+            if(!delegate.virtual || !prop.multi) {
+              ret += "  public static final String COLUMN_${prop.underscored} = \"${prop.sqlName}\";"+newLine
+            }
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+    }
+
 
     Index.metaClass {
 
@@ -422,6 +456,7 @@ class EnhancerForJava {
 
 
     Prop.metaClass {
+
 
       getGetter << {
         ->

@@ -128,6 +128,23 @@ class MacrosForJava {
   }
 <% } } } %>''')
 
+      template('propGettersBasicType', body: ''' <% item.props.each { prop -> if (prop.readable) { %>
+  @Override<% if (prop.multi && prop.typeBasicType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public <% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
+    return <% if (prop.multi && prop.typeBasicType) { %>(List)<% } %>$prop.name;
+  }<% } } %>
+
+''')
+
+      template('propSettersBasicType', body: ''' <% item.props.each { prop -> if (prop.writable) { %>
+  @Override <% if (prop.multi && prop.typeBasicType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.type.name><% } else { %>$prop.type.name<% } %> $prop.name) {
+    this.$prop.name = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>($prop.typeEjbMember)<% } %>$prop.name;
+  }<% } } %>''')
+
+
       template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
   ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
@@ -265,6 +282,16 @@ class MacrosForJava {
     return null; <% } %>
   }<% } } %>''')
 
+      template('implOperationsAndDelegates', body: ''' <% item.operations.each { op -> if(op.body) { %> 
+  <% if (c.override) { %>
+  @Override<% } %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $op.ret ${op.name}($op.signature) {
+    $op.body
+  }<% } } %>
+''')
+
+
       template('ifcMethods', body: '''
   
 <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
@@ -331,14 +358,14 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.b
 }
 //ejbEntityExtends''')
 
-
-
-
-      //            template('implBasicType', body: '''
-      //      ''')
-      //
-      //            template('implBasicTypeExtends', body: '''
-      //      ''')
+      template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>
+/** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
+public ${item.base || item.virtual ? 'abstract':''} class $c.className extends <% if (superUnit) { %>superUnit.cap<% } else { %>Base<% } %> implements ${item.name} {
+  private static final long serialVersionUID = 1L;
+  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
+  ${macros.generate('idPropGetter', c)}${macros.generate('propGettersBasicType', c)}${macros.generate('propSettersBasicType', c)}
+  ${macros.generate('implOperationsAndDelegates', c)}${macros.generate('hashCodeAndEqualsBasicType', c)}
+}''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
@@ -405,6 +432,9 @@ public class $c.className {
       template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
+      template('metaAttributesBasicType', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBasicType(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
+
       template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')
 
@@ -466,6 +496,9 @@ ${ret-newLine}''')
   }<% } %>
 ''')
 
+      template('hashCodeAndEqualsBasicType', body: '''
+''')
+
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
@@ -475,8 +508,6 @@ ${ret-newLine}''')
       counter--;
     }
     System.out.println(test);''')
-
-
     }
   }
 }
