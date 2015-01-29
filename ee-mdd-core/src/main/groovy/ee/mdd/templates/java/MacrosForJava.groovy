@@ -365,7 +365,17 @@ public ${item.base || item.virtual ? 'abstract':''} class $c.className extends <
   ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
   ${macros.generate('idPropGetter', c)}${macros.generate('propGettersBasicType', c)}${macros.generate('propSettersBasicType', c)}
   ${macros.generate('implOperationsAndDelegates', c)}${macros.generate('hashCodeAndEqualsBasicType', c)}
-}''')
+}
+//ejbBasicType''')
+
+      template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>
+/** JPA representation of {@link $item.name} */
+@Embeddable
+public class $className extends ${item.n.cap.baseEmbeddable} {
+  private static final long serialVersionUID = 1L;
+  ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
+}
+//ejbBasicTypeExtends''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
@@ -496,8 +506,39 @@ ${ret-newLine}''')
   }<% } %>
 ''')
 
-      template('hashCodeAndEqualsBasicType', body: '''
-''')
+      template('hashCodeAndEqualsBasicType', body: '''<% def className = c.className %>
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.props.each { prop-> %>
+    result = prime * result + <% if (prop.primitive && prop.type.name != 'boolean') { %>$prop.name;
+        <% } else if (prop.type.name == 'boolean') { %>((${prop.name})?1:0); 
+        <% } else { %>(($prop.name == null) ? 0 : ${prop.name}.hashCode());<% } } %>
+    return result;
+  }
+  <% if (item.generic) { %>
+  @SuppressWarnings("unchecked")<% } %>
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;<% if (item.virtual) { %>
+    if (!super.equals(obj))
+      return false;<% } %>
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.props.each { prop-> if (!prop.primitive) { %>
+    if (${prop.name} == null) {
+      if (other.${prop.name} != null)
+        return false;
+    } else if (!${prop.name}.equals(other.${prop.name}))
+      return false;<% } else { %>
+    if (${prop.name} != other.${prop.name})
+      return false;<% } %>
+    <% } %>
+    return true;
+  }''')
 
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')

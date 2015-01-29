@@ -74,7 +74,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
         template('ejbBasicType', body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('ejbBasicType', c)}''')
-        template('ejbBasicTypeExtends', body: '''<% if(c.item.base) { c.className = item.n.cap.embeddable} %>''')
+        template('ejbBasicTypeExtends', body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('ejbBasicTypeExtends', c)} <% } %>''')
       }
 
       items ('modelTest',
@@ -83,7 +83,6 @@ class TemplatesForJava {
 
         template('test', body: '''<% c.virtual = true; c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
         template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
-
       }
 
       items ('enum',

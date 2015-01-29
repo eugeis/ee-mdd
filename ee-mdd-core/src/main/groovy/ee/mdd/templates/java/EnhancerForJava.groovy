@@ -841,6 +841,20 @@ class EnhancerForJava {
         }
         properties[key]
       }
+
+      isPrimitive << {
+        ->
+        def key = System.identityHashCode(delegate) +'primitive'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(prop.type.name.matches("boolean|double|int|long")) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
 
