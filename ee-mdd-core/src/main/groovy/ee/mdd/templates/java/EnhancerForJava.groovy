@@ -37,6 +37,7 @@ import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Operation
 import ee.mdd.model.component.Prop
+import ee.mdd.model.component.Service
 
 
 
@@ -303,6 +304,28 @@ class EnhancerForJava {
           properties[key] = ret
         }
         properties[key]
+      }
+    }
+
+
+    Service.metaClass {
+
+      metasForService << { Context c ->
+        Service service = delegate
+        ModelBuilder builder = service.component.builder
+        def metasForService = []
+        if(service.metas) {
+          metasForService.addAll(service.metas)
+        }
+        if(!c.className.contains('ServiceBase') && !service.base ) {
+          metasForService << builder.meta(type: 'Service')
+          def stateless = builder.meta(type: 'Stateless', value: [:])
+          stateless.value['name'] = "SERVICE_${service.underscored}"
+          stateless.value['mappedName'] = "SERVICE_${service.underscored}"
+          metasForService << stateless
+          //TODO: add missing annotations
+        }
+        metasForEntity
       }
     }
 

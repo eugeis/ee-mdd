@@ -377,6 +377,14 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
 }
 //ejbBasicTypeExtends''')
 
+      template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>
+/** Ejb implementation of {@link $item.name} */
+''')
+
+      template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
+/** Ejb implementation of {@link $item.name} */
+''')
+
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
   $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
@@ -407,7 +415,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
   
   @${c.name('Before')}
   public void before$c.className() {
-    item = $c.itemInit;
+    item = $c.itemInit;fghfg
   }
   ${macros.generate('testProperties', c)}${macros.generate('testConstructors', c)}
 }''')
@@ -443,6 +451,9 @@ public class $c.className {
 $ret''')
 
       template('metaAttributesBasicType', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBasicType(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
+
+      template('metaAttributesService', body: '''def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForService(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
       template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
