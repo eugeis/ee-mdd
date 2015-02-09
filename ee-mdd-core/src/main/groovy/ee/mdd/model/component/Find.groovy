@@ -21,4 +21,5 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  */
 class Find extends DataTypeOperation {
+    String defaultValue
 }
