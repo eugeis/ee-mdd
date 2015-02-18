@@ -40,6 +40,7 @@ class ModelBuilderExample {
           cdi()
           jpa()
           test()
+          cg()
 
           model ('Platform', key: 'pl') {
             //constr
@@ -197,9 +198,6 @@ class ModelBuilderExample {
                   prop('task', type:'Task', opposite:'actions', description: '')
                   prop('name', type:'String')
                 }
-
-
-
 
               }
 

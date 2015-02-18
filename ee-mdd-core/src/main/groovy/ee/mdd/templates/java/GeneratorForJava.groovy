@@ -21,6 +21,7 @@ import ee.mdd.model.component.DelegateOp
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.java.Cdi
+import ee.mdd.model.component.java.Cg
 import ee.mdd.model.component.java.CommonJava
 import ee.mdd.model.component.java.Jpa
 import ee.mdd.model.component.java.Test
@@ -48,8 +49,8 @@ class GeneratorForJava {
       d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
 
     //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
-	
-	builder.refAttrResolver.printNotResolved()
+
+    builder.refAttrResolver.printNotResolved()
 
     def generator = TemplatesForJavaCg.build()
     def commonProcessorFactory = new CommonProcessorFactory()
@@ -67,6 +68,7 @@ class GeneratorForJava {
     builder.registerFacet(Jpa)
     builder.registerFacet(Cdi)
     builder.registerFacet(Test)
+    builder.registerFacet(Cg)
 
     //		def factets = builder.model('facets') {
     //			commonJava()

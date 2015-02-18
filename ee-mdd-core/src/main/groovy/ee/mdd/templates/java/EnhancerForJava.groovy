@@ -41,6 +41,8 @@ import ee.mdd.model.component.Service
 
 
 
+
+
 /**
  *
  * @author Eugen Eisler
@@ -317,15 +319,27 @@ class EnhancerForJava {
         if(service.metas) {
           metasForService.addAll(service.metas)
         }
-        if(!c.className.contains('ServiceBase') && !service.base ) {
+        if(c.className.contains('ServiceBase') && !service.base ) {
           metasForService << builder.meta(type: 'Service')
           def stateless = builder.meta(type: 'Stateless', value: [:])
           stateless.value['name'] = "SERVICE_${service.underscored}"
           stateless.value['mappedName'] = "SERVICE_${service.underscored}"
           metasForService << stateless
-          //TODO: add missing annotations
+          def remote = builder.meta(type: 'Remote', value: "${delegate.name}.class")
+          metasForService << remote
+          def transaction = builder.meta(type: 'TransactionAttribute', value: "TransactionAttributeType.REQUIRES_NEW")
+          metasForService << transaction
+          def supports = builder.meta(type: 'SupportsEnvironment', multi: true, value: [])
+          def environment1 = builder.meta(type: 'Environment', value: [:])
+          def environment2 = builder.meta(type: 'Environment', value: [:])
+          environment1.value['runtimes'] = "{ SERVER }"
+          supports.value.add(environment1)
+          environment2.value['executions'] = "{ CLIENT }"
+          environment2.value['runtimes'] = "{ LOCAL, MEMORY }"
+          supports.value.add(environment2)
+          metasForService << supports
         }
-        metasForEntity
+        metasForService
       }
     }
 

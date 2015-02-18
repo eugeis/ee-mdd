@@ -77,9 +77,9 @@ class TemplatesForJava {
         template('ejbBasicTypeExtends', body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('ejbBasicTypeExtends', c)} <% } %>''')
       }
 
-      items('facadelEjbService',
+      items('facadeEjbService',
       query: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade.ejb' ] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 
         template('ejbService', body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
         template('ejbServiceExtends', body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
