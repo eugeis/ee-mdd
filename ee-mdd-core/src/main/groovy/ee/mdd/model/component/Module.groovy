@@ -23,6 +23,7 @@ package ee.mdd.model.component
 class Module extends StructureUnit {
   String artifact
   boolean startupInitializer = false
+  boolean facade = false
 
   List<EnumType> enumTypes = []
   List<Pojo> pojos = []

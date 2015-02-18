@@ -27,7 +27,7 @@ import java.beans.Introspector
 class Element {
   String name, desc
   Element parent
-  String uncap, cap, underscored, sqlName, description, uri
+  String uncap, cap, underscored, sqlName, xmlValue, description, uri
   boolean xml = true;
 
   def init() {

@@ -26,4 +26,6 @@ class Prop extends Attribute {
   boolean readable = true
   boolean writable = true
   boolean hashCode = false
+  String defaultValue
+  int length
 }

@@ -25,6 +25,7 @@ class DataType extends CompilationUnit {
   Finder finders
   Command commands
   List<Index> indexes
+  boolean xmlBinding = false
 
   def add(Finder item) {
     finders = super.add(item)

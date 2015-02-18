@@ -22,4 +22,6 @@ package ee.mdd.model.component
  */
 class Find extends DataTypeOperation {
     String defaultValue
+	boolean mustFind = false
+	boolean unique = false
 }
