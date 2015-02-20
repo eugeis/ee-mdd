@@ -23,14 +23,18 @@ import ee.mdd.model.Element
  * @author Niklas Cappelmann
  */
 class Attribute extends Element {
-	Type type
-	List<MetaAttribute> metas
-	def value
-	boolean multi = false
+  Type type
+  List<MetaAttribute> metas
+  def value
+  boolean multi = false
 
-	def add(MetaAttribute item) {
-		if(!metas) {
-			metas = []
-		}; metas << super.add(item)
-	}
+  def add(MetaAttribute item) {
+    if(!metas) {
+      metas = []
+    }; metas << super.add(item)
+  }
+
+  String deriveName(Element p = parent ) {
+    p ? "${p.name}${getClass().simpleName}".toLowerCase() : getClass().simpleName.toLowerCase()
+  }
 }

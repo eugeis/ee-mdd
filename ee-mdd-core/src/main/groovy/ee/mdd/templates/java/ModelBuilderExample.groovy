@@ -24,6 +24,7 @@ import ee.mdd.model.component.Model
 
 
 
+
 class ModelBuilderExample {
 
   void testComponentChildren() {
@@ -67,6 +68,11 @@ class ModelBuilderExample {
                   lit('LeftSide')
                   lit('OnTrack')
                   lit('RightSide')
+                }
+
+                container('TaskContainer') {
+                  prop('Signal', type: 'Signal', cache: true)
+                  prop('Um', type: 'Um', cache: true)
                 }
 
 

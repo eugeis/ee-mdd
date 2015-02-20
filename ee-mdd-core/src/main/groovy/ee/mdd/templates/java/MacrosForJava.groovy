@@ -387,6 +387,34 @@ ${macros.generate('metaAttributesService', c)}
 /** Ejb implementation of {@link $item.name} */
 //ejbServiceExtends''')
 
+      template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } %>
+@${c.name('Alternative')}
+public class $className extends Base implements $item.name {
+  private statical final long serialVersionUID = 1L;
+
+  protected ${className}Removes = new ${className}Removes();
+
+  protected String source;
+  protected Date timestamp; <% c.item.props.each { prop -> %>
+  protected $prop.type.cap ${prop.uncap}s;
+ $prop.type <% } %>
+  //TODO: OneToManyNoOppositesProps
+
+  public $className(boolean override, boolean threadSafe) {
+    super();
+    this.timestamp = TimeUtils.now();
+    if(!override) {<% item.props.each { prop -> %>
+      this.${prop.uncap}s = new ${prop.cap}CacheImpl(threadSafe); <% } %>
+    } else {<% item.props.each { prop -> %>
+      this.${prop.uncap}s = new ${prop.cap}CacheOverride(threadSafe); <% } %>
+    }
+  }
+  
+
+}//implContainer
+''')
+
+
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
   $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>

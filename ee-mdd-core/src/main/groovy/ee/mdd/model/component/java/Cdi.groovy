@@ -4,6 +4,6 @@ import ee.mdd.model.component.Facet
 
 class Cdi extends Facet {
   protected Map nameToNamespace() {
-    ['Produces' : 'javax.enterprise.inject.Produces']
+    ['Produces' : 'javax.enterprise.inject.Produces', 'Alternative' : 'javax.enterprise.inject']
   }
 }

@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.Element
+
 
 /**
  *
@@ -26,6 +28,7 @@ class Prop extends Attribute {
   boolean readable = true
   boolean writable = true
   boolean hashCode = false
+  boolean cache = false
   String defaultValue
   int length
 }
