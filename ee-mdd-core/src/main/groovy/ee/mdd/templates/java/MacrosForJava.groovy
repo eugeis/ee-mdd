@@ -273,11 +273,11 @@ class MacrosForJava {
 
 
 
-      template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided) { %>
+      template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
-    //TODO to implement<% if (op.typeBoolean) { %>
+    //TODO to implement <% if (op.typeBoolean) { %>
     return false;<% } else if (op.ret) { %>
     return null; <% } %>
   }<% } } %>''')
@@ -378,16 +378,22 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
 //ejbBasicTypeExtends''')
 
       template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>
-${macros.generate('metaAttributesService', c)}
 /** Ejb implementation of {@link $item.name} */
-
+${macros.generate('metaAttributesService', c)}
 //ejbService''')
 
-      template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>${macros.generate('metaAttributesService', c)}
+      template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
 /** Ejb implementation of {@link $item.name} */
+${macros.generate('metaAttributesService', c)}
+public class $className extends $item.n.cap.baseBean {
+${macros.generate('implOperations', c)}
+}
 //ejbServiceExtends''')
 
-      template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } %>
+      template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
+<% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
+   if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
+   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>
 @${c.name('Alternative')}
 public class $className extends Base implements $item.name {
   private statical final long serialVersionUID = 1L;
@@ -395,10 +401,10 @@ public class $className extends Base implements $item.name {
   protected ${className}Removes = new ${className}Removes();
 
   protected String source;
-  protected Date timestamp; <% c.item.props.each { prop -> %>
-  protected $prop.type.cap ${prop.uncap}s;
- $prop.type <% } %>
-  //TODO: OneToManyNoOppositesProps
+  protected Date timestamp; 
+  <% c.item.props.each { prop -> %>
+  protected $prop.type.cap ${prop.uncap}s; <% } %>
+  //TODO: OneToManyNoOppositesProps verwenden!
 
   public $className(boolean override, boolean threadSafe) {
     super();
@@ -408,6 +414,7 @@ public class $className extends Base implements $item.name {
     } else {<% item.props.each { prop -> %>
       this.${prop.uncap}s = new ${prop.cap}CacheOverride(threadSafe); <% } %>
     }
+    <% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
   }
   
 

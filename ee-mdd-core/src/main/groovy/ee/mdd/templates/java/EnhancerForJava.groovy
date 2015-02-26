@@ -25,6 +25,7 @@ import ee.mdd.model.component.Command
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
+import ee.mdd.model.component.DelegateOp
 import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
@@ -148,6 +149,22 @@ class EnhancerForJava {
 
 
     Entity.metaClass {
+
+      getPropsRecursive << {
+        ->
+        def key = System.identityHashCode(delegate) + 'propsRecursive'
+        if(!properties.containsKey(key)) {
+          def entity = delegate
+          def ret = []
+          if(entity.superUnit) {
+            def superUnit = entity.superUnit
+            ret.addAll(superUnit.propsRecursive)
+          }
+          ret.addAll(entity.props)
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       jpaMetasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaMetasforEntity'
@@ -319,7 +336,7 @@ class EnhancerForJava {
         if(service.metas) {
           metasForService.addAll(service.metas)
         }
-        if(c.className.contains('ServiceBase') && !service.base ) {
+        if(c.className.contains('ServiceBean') ||c.className.contains('ServiceBase') && !service.base ) {
           metasForService << builder.meta(type: 'Service')
           def stateless = builder.meta(type: 'Stateless', value: [:])
           stateless.value['name'] = "SERVICE_${service.underscored}"
@@ -438,6 +455,19 @@ class EnhancerForJava {
           def ret = false
           def op = delegate
           if (op.ret && op.ret.name == 'boolean')
+            ret = true
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isDelegateOp {
+        ->
+        def key = System.identityHashCode(delegate) + 'delegateOp'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def op = delegate
+          if(DelegateOp.isInstance(op))
             ret = true
           properties[key] = ret
         }

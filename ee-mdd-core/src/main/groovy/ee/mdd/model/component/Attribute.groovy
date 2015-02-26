@@ -27,6 +27,7 @@ class Attribute extends Element {
   List<MetaAttribute> metas
   def value
   boolean multi = false
+  boolean generic = false
 
   def add(MetaAttribute item) {
     if(!metas) {
