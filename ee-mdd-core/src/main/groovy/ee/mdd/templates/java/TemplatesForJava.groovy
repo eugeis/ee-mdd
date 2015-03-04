@@ -34,97 +34,106 @@ import ee.mdd.model.component.Service
  */
 class TemplatesForJava {
 
-  static Generator build() {
-    def model = new GeneratorBuilder().generator('javaEe') {
-      //model
-      items ('modelApi',
-      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+	static Generator build() {
+		def model = new GeneratorBuilder().generator('javaEe') {
+			//model
+			items ('modelApi',
+			query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
-      }
+				template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifc', c)}''')
+				template('ifcExtends', body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
+			}
 
-      items('modelApiBasicType',
-      query: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+			items('modelApiBasicType',
+			query: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
-        template('ifcExtends', body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
-      }
+				template('ifc', body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
+				template('ifcExtends', body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
+			}
 
-      items ('modelImplEntity',
-      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+			items ('modelImplEntity',
+			query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('implEntity', body: '''<% c.virtual = c.item.virtual; c.base = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('implEntity', c)}''')
-        template('implEntityExtends', body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
+				template('implEntity', body: '''<% c.virtual = c.item.virtual; c.base = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('implEntity', c)}''')
+				template('implEntityExtends', body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
 
-      }
+			}
 
-      items('modelEjbEntity',
-      query: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+			items('modelEjbEntity',
+			query: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
-        template('ejbEntity', body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('ejbEntity', c)}''')
-        template('ejbEntityExtends', body: '''<% if(c.item.base) { c.className = item.n.cap.entity %>${macros.generate('ejbEntityExtends', c)}<% } %>''')
-      }
+				template('ejbEntity', body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('ejbEntity', c)}''')
+				template('ejbEntityExtends', body: '''<% if(c.item.base) { c.className = item.n.cap.entity %>${macros.generate('ejbEntityExtends', c)}<% } %>''')
+			}
 
-      items('modelEjbBasicType',
-      query: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+			items('modelEjbBasicType',
+			query: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
-        template('ejbBasicType', body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('ejbBasicType', c)}''')
-        template('ejbBasicTypeExtends', body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('ejbBasicTypeExtends', c)} <% } %>''')
-      }
+				template('ejbBasicType', body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('ejbBasicType', c)}''')
+				template('ejbBasicTypeExtends', body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('ejbBasicTypeExtends', c)} <% } %>''')
+			}
 
-      items('facadeEjbService',
-      query: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
+			items('facadeEjbService',
+			query: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 
-        template('ejbService', body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
-        template('ejbServiceExtends', body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
-      }
+				template('ejbService', body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
+				template('ejbServiceExtends', body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
+			}
 
-      items('implContainer',
-      query: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+			items('implContainer',
+			query: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('implContainer', body: '''<% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerBaseImpl } else { c.className = c.item.n.cap.baseImpl } %>${macros.generate('implContainer', c)}''')
-        template('implContainerExtends', body: '''<% if (c.item.base) { %> <% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.cap.impl } %><% } %>''')
-      }
+				template('implContainer', body: '''<% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerBaseImpl } else { c.className = c.item.n.cap.baseImpl } %>${macros.generate('implContainer', c)}''')
+				template('implContainerExtends', body: '''<% if (c.item.base) { %> <% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.cap.impl } %><% } %>''')
+			}
 
-      items ('modelTest',
-      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl', scope: 'test'] ) } ) {
+			items ('modelTest',
+			query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl', scope: 'test'] ) } ) {
 
-        template('test', body: '''<% c.virtual = true; c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
-        template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
-      }
+				template('test', body: '''<% c.virtual = true; c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
+				template('testExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
+			}
 
-      items ('enum',
-      query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
-      before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
+			items ('enum',
+			query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
+			before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
 
-        template('enum', body: '''${macros.generate('enum', c)}''')
-      }
+				template('enum', body: '''${macros.generate('enum', c)}''')
+			}
 
-      items ('enumTest',
-      query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
-      before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType, scope: 'test' ] ) } ) {
+			items ('enumTest',
+			query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
+			before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType, scope: 'test' ] ) } ) {
 
-        template('testEnum', body: '''<% c.className = "${item.n.cap.test}Base" %>${macros.generate('testEnum', c)}''')
-        template('testEnumExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
-      }
+				template('testEnum', body: '''<% c.className = "${item.n.cap.test}Base" %>${macros.generate('testEnum', c)}''')
+				template('testEnumExtends', body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
+			}
 
-      //logic
-      items ('logicApi',
-      query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+			//logic
+			items ('logicApi',
+			query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcExtends', c)}<% } %>''')
-      }
-    }
-  }
+				template('ifc', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
+				template('ifcExtends', body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcExtends', c)}<% } %>''')
+			}
+
+			items ('container',
+			query: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+			before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+
+				template('ifcContainer', body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifcContainer', c)}''')
+				template('ifcContainerExtends', body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
+			}
+
+		}
+	}
 }

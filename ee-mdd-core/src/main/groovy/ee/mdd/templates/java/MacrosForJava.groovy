@@ -320,6 +320,20 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 }
 //ifcBasicType''')
 
+			template('ifcContainerExtends', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+/**
+* The container is used to transfer bundled data between server and client.
+* <p>
+* ${item.description?item.description:''}
+* </p>
+*/
+public interface $c.className extends $item.n.cap.base {
+}
+//ifcContainerExtends''')
+
+
+
+
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
 public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
