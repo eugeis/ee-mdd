@@ -320,7 +320,7 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 }
 //ifcBasicType''')
 
-			template('ifcContainerExtends', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+      template('ifcContainerExtends', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 /**
 * The container is used to transfer bundled data between server and client.
 * <p>
@@ -330,9 +330,6 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 public interface $c.className extends $item.n.cap.base {
 }
 //ifcContainerExtends''')
-
-
-
 
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
@@ -417,20 +414,71 @@ public class $className extends Base implements $item.name {
   protected String source;
   protected Date timestamp; 
   <% c.item.props.each { prop -> %>
-  protected $prop.type.cap ${prop.uncap}s; <% } %>
-  //TODO: OneToManyNoOppositesProps verwenden!
+  protected $prop.type.name ${prop.type.instancesName}; <% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+  protected ${c.name('LinkedObjectCache')}< <% if (entity.idProp.multi) {%>List<entity.idProp.type><% } else {%>entity.idProp.type<% } %>, <% if (relationIdProp.multi) {%>List<relationIdProp.type><% } else {%>relationIdProp.type<% } %>, prop.type.cap> ${entity.uncap}${prop.cap};<% } } %>
 
   public $className(boolean override, boolean threadSafe) {
     super();
     this.timestamp = TimeUtils.now();
     if(!override) {<% item.props.each { prop -> %>
-      this.${prop.uncap}s = new ${prop.cap}CacheImpl(threadSafe); <% } %>
+      this.${prop.type.instancesName} = new ${prop.cap}CacheImpl(threadSafe); <% } %>
     } else {<% item.props.each { prop -> %>
-      this.${prop.uncap}s = new ${prop.cap}CacheOverride(threadSafe); <% } %>
+      this.${prop.type.instancesName} = new ${prop.cap}CacheOverride(threadSafe); <% } %>
     }
     <% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
-    <% } } %>
+    this.${entity.uncap}${prop.cap} = new ${c.name('LinkedObjectCache')}<>($prop.type.name);<% } } %>
   }
+
+  public $className(String source, boolean override, boolean threadSafe) {
+    this(override, threadSafe);
+    this.source = source;
+  }
+
+  public $className($item.name sourceContainer, boolean threadSafe) {
+    super();
+    this.timestamp = TimeUtils.now(); <% item.props.each { prop -> %>
+    this.${prop.type.instancesName} = new ${prop.type.n.cap.cacheOverride}(threadSafe);
+    ((${prop.type.n.cap.cacheOverride}) this.{$prop.type.instancesName}.setParent(sourceContainer.get${prop.type.name}s());<% } %>
+    <% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+    this.${entity.uncap}${prop.cap} = new LinkedObjectCache<>($prop.type.instancesName);<% } } %>
+  }
+
+  public $className(String source, $item.name sourceContainer, boolean threadSafe) {
+    this(sourceContainer, threadSafe);  
+    this.source = source;
+  }
+
+  @Override
+  public String getSource() {
+    return source;
+  }
+
+  @Override
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  @Override
+  public Date getTimestamp() {
+    return timestamp;
+  }
+
+  @Override
+  public void setTimestamp(Date timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  @Override
+  public void synchronize($item.name container) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.synchronize(container.get${prop.type.cap}s());<% } %>
+  }
+
+  @Override
+  public void synchronize($item.n.cap.removes removes) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.synchronizeRemoves(removes.get${prop.type.cap}Ids());<% } %>
+  }
+
+
 }//implContainer
 ''')
 

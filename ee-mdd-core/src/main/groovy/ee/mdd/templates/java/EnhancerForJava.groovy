@@ -44,6 +44,7 @@ import ee.mdd.model.component.Service
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -84,6 +85,21 @@ class EnhancerForJava {
         properties[key]
       }
 
+      getPropsRecursive << {
+        ->
+        def key = System.identityHashCode(delegate) + 'propsRecursive'
+        if(!properties.containsKey(key)) {
+          def ret = []
+          if(delegate.superUnit) {
+            def superUnit = delegate.superUnit
+            ret.addAll(superUnit.propsRecursive)
+          }
+          delegate.props.each { ret << it }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       getMultiSuperProps << {
         ->
         def key = System.identityHashCode(delegate) + 'multiSuperProps'
@@ -106,6 +122,11 @@ class EnhancerForJava {
           properties[key] = ret
         }
         properties[key]
+      }
+
+      getInstancesName << {
+        ->
+        delegate.name[-1] == 'y' ? "${delegate.uncap[0..-2]}ies" : "${delegate.uncap}s"
       }
 
       getGenericsName << {
@@ -149,22 +170,6 @@ class EnhancerForJava {
 
 
     Entity.metaClass {
-
-      getPropsRecursive << {
-        ->
-        def key = System.identityHashCode(delegate) + 'propsRecursive'
-        if(!properties.containsKey(key)) {
-          def entity = delegate
-          def ret = []
-          if(entity.superUnit) {
-            def superUnit = entity.superUnit
-            ret.addAll(superUnit.propsRecursive)
-          }
-          ret.addAll(entity.props)
-          properties[key] = ret
-        }
-        properties[key]
-      }
 
       jpaMetasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaMetasforEntity'
