@@ -73,7 +73,7 @@ class ModelBuilderExample {
                 }
 
                 entity('Trophy') {
-                  prop('id', type: 'Long')
+                  prop('id', type: 'Long', unique: true, primaryKey: true)
                   prop('value', type: 'int')
                 }
 
@@ -116,7 +116,7 @@ class ModelBuilderExample {
                 }
 
                 entity('Um', virtual: true, meta: []) {
-                  prop('testMultiProp', type: 'Element', multi: true)
+                  prop('testMultiProp', type: 'Element', multi: true, unique:true, primaryKey: true)
                   prop('zweitesMulti', type: 'Task', opposite: 'multiTest',  multi: true)
                 }
 

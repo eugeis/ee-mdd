@@ -469,6 +469,13 @@ public class $className extends Base implements $item.name {
   }
 
   @Override
+  public void resetTempIds() { <% item.props.each { prop -> 
+    if(prop.type.idProp) { def type = prop.type.idProp.type; 
+    if (type.name.equalsIgnoreCase('Long') || type.name.equalsIgnoreCase('Integer')) { %>
+    ${prop.type.instancesName}.resetTempIds();<% } } }%>
+  }
+
+  @Override
   public void synchronize($item.name container) {<% item.props.each { prop -> %>
     ${prop.type.instancesName}.synchronize(container.get${prop.type.cap}s());<% } %>
   }
@@ -478,7 +485,65 @@ public class $className extends Base implements $item.name {
     ${prop.type.instancesName}.synchronizeRemoves(removes.get${prop.type.cap}Ids());<% } %>
   }
 
+  @Override
+  public ${item.n.cap.delta} synchronizeWithDelta($item.cap container) {
+    <% item.props.each { prop -> %>${prop.type.n.cap.deltaCache} ${prop.type.n.uncap.deltaCache} = ${prop.type.namesInstances}.synchronizeWithDelta(container.get${prop.type.cap}s(), container.get${item.n.cap.removes}().get${prop.type.cap}Ids());
+    <% } %>
+    <% def localDeltas = item.props.collect { prop -> "${prop.type.n.uncap.deltaCache}" }.join(", ") %>
+     return new ${item.n.cap.deltaImpl}(${localDeltas});
+  }
 
+  @Override
+  public void merge($item.cap container) {
+    removes.synchronize(container.get${item.n.cap.removes}());
+
+    synchronize(container);
+    synchronize(removes);
+  }
+
+  @Override
+  public ${item.n.cap.removes} get${item.n.cap.removes}() {
+    return removes;
+  }
+
+  @Override
+  public boolean isEmpty() {<%  def sizeQueries = (item.props.collect { prop -> "${prop.type.instancesName}.getSize() == 0" } + item.props.collect { prop -> "removes.get${prop.type.cap}Ids()" }).join(" && ") %>
+    return ${sizeQueries};
+  }
+
+  @Override
+  public void clear() { <% item.props.each { prop -> %>
+    ${prop.type.instancesName}.clear();<% } %>
+    removes.clear();
+  }<% item.props.each { prop -> %>
+
+  @Override
+  public ${prop.type.n.cap.cache} get${prop.type.cap}s() {
+    return ${prop.type.instancesName};
+  }<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+
+  @Override
+  public LinkedObjectCache<${entity.idProp.computedType}, $relationIdProp.computedType, $prop.type.cap> get${entity.name}${prop.cap}() {
+    return ${entity.uncap}${prop.cap};
+  }<% } } %>
+ ${macros.generate('implOperationsAndDelegates', c)}
+
+  @Override
+  public $item.name buildChangeSet() {
+    $item.name changeSet = new ${item.name}Impl(true);<% item.props.each { prop -> %>
+    ((${prop.type.n.cap.cacheOverride}) changeSet.get${prop.type.cap}s()).fillChangeSetFrom(($prop.type.n.cap.cacheOverride) get${prop.type.cap}s());<% } %>
+    return changeSet;
+  }
+
+  protected <T> T strict(T result, String method, Object... params) {
+    return ExceptionUtils.checkIfFound(result, this, method, params);
+  }
+
+  @Override
+  public void fillToLogString(LogStringBuilder b) {
+    super.fillToLogString(b); <% item.props.each { prop -> %>
+    b.append("${prop.type.instancesName}", ${prop.type.instancesName}); <% } %>
+  }
 }//implContainer
 ''')
 
