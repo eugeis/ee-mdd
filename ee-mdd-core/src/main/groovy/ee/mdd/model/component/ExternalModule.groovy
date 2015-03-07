@@ -15,23 +15,16 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.builder.ModelBuilder
+
 /**
  *
  * @author Eugen Eisler
  */
-class Model extends StructureUnit {
-  List<Model> model = []
-  List<Component> components = []
+class ExternalModule extends Module {
+  List<ExternalType> externalTypes = []
   
-  Model getModel() {
-    this
-  }
-
-  def add(Component child) {
-    components << super.add(child)
-  }
-
-  def add(Model child) {
-    model << super.add(child)
+  def add(ExternalType child) {
+	  externalTypes << super.add(child)
   }
 }

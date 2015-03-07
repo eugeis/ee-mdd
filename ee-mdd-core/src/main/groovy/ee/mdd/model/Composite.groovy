@@ -25,7 +25,7 @@ class Composite extends Element {
   Map<String, Element> refToResolved
 
   def add(Element child) {
-    children << child; child.parent = this; child.init(); child
+    children << child; child.checkAndInit(this); child
   }
 
   Element find(Closure matcher) {
@@ -56,7 +56,7 @@ class Composite extends Element {
 
   Element findRecursiveUp(Closure matcher) {
     Element ret = children.find(matcher)
-    if(!ret && !parent) {
+    if(!ret && parent) {
       parent.findRecursiveUp(matcher)
     }
     ret

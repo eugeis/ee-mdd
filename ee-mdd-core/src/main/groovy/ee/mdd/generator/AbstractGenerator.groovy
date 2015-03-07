@@ -15,7 +15,6 @@
  */
 package ee.mdd.generator
 
-import ee.mdd.builder.BuilderAware
 import ee.mdd.model.Composite
 import groovy.util.logging.Slf4j
 
@@ -24,27 +23,29 @@ import groovy.util.logging.Slf4j
  * @author Eugen Eisler
  */
 @Slf4j
-abstract class AbstractGenerator extends Composite implements BuilderAware {
-  FactoryBuilderSupport builder
-
+abstract class AbstractGenerator extends Composite {
   List<Processor> processors
 
   protected void before(Context c) {
-    processors?.findAll { it.before }.each { Processor p ->
-      try {
-        p.before(c)
-      }catch(e) {
-        log.error  "$name: Before '$p' failed '$e'", e
+    if(processors) {
+      processors.findAll { it.before }.each { Processor p ->
+        try {
+          p.before(c)
+        }catch(e) {
+          log.error  "$name: Before '$p' failed '$e'", e
+        }
       }
     }
   }
 
   protected  void after(Context c) {
-    processors?.findAll { it.after }.each { Processor p ->
-      try {
-        p.after(c)
-      } catch(e) {
-        log.error  "$name: After '$p' failed '$e'", e
+    if(processors) {
+      processors.findAll { it.after }.each { Processor p ->
+        try {
+          p.after(c)
+        } catch(e) {
+          log.error  "$name: After '$p' failed '$e'", e
+        }
       }
     }
   }

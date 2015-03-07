@@ -15,32 +15,23 @@
  */
 package ee.mdd.templates.java
 
+import java.util.Map;
+
 import ee.mdd.generator.Processor
 import ee.mdd.model.Element
-
-
+import ee.mdd.model.component.java.Java
 
 /**
  *
  * @author Eugen Eisler
  */
 class ProcessorsForJava {
-
+  Map<String, Element> refToElement
+  
   Processor javaImportsPathProcessor() {
     Processor ret = new Processor(name: 'javaImportsPath')
 
-    def noImportTypes = [
-      'int',
-      'Integer',
-      'long',
-      'float',
-      'Float',
-      'double',
-      'Double'
-    ]
-
-    def nameToPackage = ['Test': 'org.junit', 'Date': 'java.util', 'Before': 'org.junit',
-      'Assert': 'static junit.framework.Assert.*', 'Serializable': 'java.io', 'Produces' : 'javax.enterprise.inject.Produces']
+    def nameToPackage = [:]
 
     ret.before = { c ->
       //add 'name' method to context object
@@ -71,7 +62,6 @@ class ProcessorsForJava {
           addImport(derivedName)
         }
 
-
         name = { String ref ->
           //static import for Tests?
           if(ref.startsWith('assert')) {
@@ -79,12 +69,11 @@ class ProcessorsForJava {
             ref
           } else {
             if(!nameToPackage.containsKey(ref)) {
-              def model = c.model
-              Element resolved = c.model.findRecursiveUp { ref.equals(it.name) }
+              Element resolved = refToElement[ref]
               if(resolved) {
                 name(resolved)
               } else {
-                throw new IllegalStateException("Can't resolve '$ref' in model '$c.model'")
+                throw new IllegalStateException("Can't resolve '$ref'")
               }
             } else {
               addImport(ref)
@@ -96,6 +85,7 @@ class ProcessorsForJava {
       }
 
     }
+    
     ret.after = { c ->
       if (!c.error && c.className) {
         def ns = (c.module ? c.module.ns : c.item.ns)

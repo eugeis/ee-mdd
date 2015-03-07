@@ -13,36 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component.java
+package ee.mdd.model.component.js
+
+import java.util.Map;
 
 import ee.mdd.model.component.Facet
+import groovy.lang.Closure
 
 /**
  *
  * @author Eugen Eisler
  */
-class CommonJava extends Facet {
+class Js extends Facet {
 
-  def primitiveTypes = [
-    'int',
-    'long',
-    'float',
-    'double',
-    'boolean',
-    'Integer',
-    'Long',
-    'Float',
-    'Double',
-    'Boolean',
-    'String'
-  ]
+  Closure childBuilder() {
 
-  def init() {
-    primitiveTypes.each { n -> builder.extType(name: n) }
-    super.init();
-  }
+    def primitiveTypes = [
+      'int',
+      'long',
+      'float',
+      'double',
+      'boolean',
+      'Integer',
+      'Long',
+      'Float',
+      'Double',
+      'Boolean',
+      'String',
+      'Date'
+    ]
 
-  protected Map nameToNamespace() {
-    ['Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util', 'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'Serializable': 'java.io']
+    return {
+      extModule(name: 'JavaScript') {
+
+        primitiveTypes.each { n ->
+          extType(name: n)
+        }
+      }
+    }
   }
 }

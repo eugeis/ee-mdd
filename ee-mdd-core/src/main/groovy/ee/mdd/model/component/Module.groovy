@@ -16,6 +16,7 @@
 package ee.mdd.model.component
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -32,12 +33,13 @@ class Module extends StructureUnit {
   List<Controller> controllers = []
   List<Initializer> initializers = []
   List<Service> services = []
+  List<Dependency> dependencies = []
 
-  def init() {
+  protected boolean init() {
     super.init()
     if(!artifact) {
     }
-    this
+    true
   }
 
   Component getComponent() {
@@ -68,5 +70,8 @@ class Module extends StructureUnit {
   }
   def add(Initializer child) {
     initializers << child; super.add(child)
+  }
+  def add(Dependency child) {
+    dependencies << child; super.add(child)
   }
 }

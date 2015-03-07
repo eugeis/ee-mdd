@@ -18,7 +18,7 @@ package ee.mdd.templates.js
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.CommonProcessorFactory
 import ee.mdd.model.component.Model
-import ee.mdd.model.component.js.CommonJs
+import ee.mdd.model.component.js.Js
 import ee.mdd.templates.java.ModelBuilderExample
 
 
@@ -51,7 +51,7 @@ class GeneratorForJs {
 	}
 
 	private static registerJs(ModelBuilder builder) {
-		builder.registerFacet(CommonJs)
+		builder.registerFacet(Js)
 
 		def factets = builder.model('facets') {
 			commonJs()

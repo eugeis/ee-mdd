@@ -37,9 +37,11 @@ import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.DataTypeProp
 import ee.mdd.model.component.DelegateOp
 import ee.mdd.model.component.Delete
+import ee.mdd.model.component.Dependency
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Exist
+import ee.mdd.model.component.ExternalModule
 import ee.mdd.model.component.ExternalType
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Find
@@ -77,9 +79,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def attr = new CompositeFactory(beanClass: Attribute, childFactories: ['meta'])
   def param = new CompositeFactory(beanClass: Param, parent: attr)
   def operation = new CompositeFactory(beanClass: Operation, parent: lu)
-  def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
-  def facet = new CompositeFactory(beanClass: Facet, childFactories: ['extType'])
-  def su = new CompositeFactory(beanClass: StructureUnit, childFactories: ['facet', 'extType', 'namespace'])
+  def facet = new CompositeFactory(beanClass: Facet, childFactories: ['extModule', 'dependency'])
+  def su = new CompositeFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'])
   def commands = new CompositeFactory(beanClass: Command, childFactories: ['create', 'delete', 'update'], parent: controller)
   def component = new CompositeFactory(beanClass: Component, childFactories: ['module'], parent: su)
   def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
@@ -89,9 +90,11 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def controller = new CompositeFactory(beanClass: Controller, parent: cu)
   def index = new CompositeFactory(beanClass: Index)
   def initializer = new CompositeFactory(beanClass: Initializer, parent: controller)
+  def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
   def counter = new CompositeFactory(beanClass: Count, parent: dataTypeOperation)
   def create = new CompositeFactory(beanClass: Create, parent: dataTypeOperation)
   def delete = new CompositeFactory(beanClass: Delete, parent: dataTypeOperation)
+  def update = new CompositeFactory(beanClass: Update, parent: dataTypeOperation)
   def entity = new CompositeFactory(beanClass: Entity, parent: dataType)
   def enumType = new EnumTypeFactory(beanClass: EnumType, childFactories: ['lit'], parent: dataType)
   def exist = new CompositeFactory(beanClass: Exist, parent: dataTypeOperation)
@@ -100,14 +103,14 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def finder = new CompositeFactory(beanClass: Finder, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
-  def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service', 'container'], parent: su)
+  def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service', 'container', 'dependency'], parent: su)
+  def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
+  def dependency = new CompositeFactory(beanClass: Dependency)
   def delegateOp = new CompositeFactory(beanClass: DelegateOp, valueProperty: 'ref', parent: operation)
   def prop = new PropFactory(parent: attr)
   def literal = new CompositeFactory(beanClass: Literal)
   def service = new CompositeFactory(beanClass: Service, parent: cu)
-  def update = new CompositeFactory(beanClass: Update, parent: dataTypeOperation)
   def namespace = new MddFactory(beanClass: Namespace)
-
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
     super(postInstantiateDelegate)
@@ -163,6 +166,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'finder', finder
     registerFactory 'commands', commands
     registerFactory 'module', module
+    registerFactory 'extModule', externalModule
+    registerFactory 'dependency', dependency
     registerFactory 'op', operation
     registerFactory 'param', param
     registerFactory 'pojo', pojo

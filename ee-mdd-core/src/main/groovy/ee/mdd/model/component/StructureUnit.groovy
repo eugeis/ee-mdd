@@ -15,54 +15,56 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.builder.BuilderAware
+import java.util.List;
+
+import ee.mdd.builder.BuilderAware;
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.model.Composite
+import groovy.lang.Closure;
 
 
 
 /**
- *
  * @author Eugen Eisler
  */
 class StructureUnit extends Composite implements BuilderAware {
-	ModelBuilder builder
-	String key
-	Namespace namespace
-	Names n
-	Map<String, Facet> facets = [:]
+  String key
+  String version
+  Namespace namespace
+  Names n
+  Map<String, Facet> facets = [:]
+  ModelBuilder builder
 
-	def init() {
-		super.init()
-		if(namespace) {
-			namespace.init()
-		}
-	}
+  def add(Facet child) {
+    facets[child.name] = super.add(child); child
+  }
 
-	def add(Facet child) {
-		facets[child.name] = super.add(child); child
-	}
+  StructureUnit getSu() {
+    this
+  }
 
-	StructureUnit getSu() {
-		this
-	}
+  Namespace getNs() {
+    namespace ? namespace : parent.ns
+  }
 
-	Namespace getNs() {
-		namespace ? namespace : parent.ns
-	}
+  Names getN() {
+    if (!n) {
+      n = new Names(key)
+    }
+    n
+  }
 
-	Names getN() {
-		if (!n) {
-			n = new Names(key)
-		}
-		n
-	}
+  Model getModel() {
+    parent ? parent.model : null
+  }
 
-	Model getModel() {
-		parent ? parent.model : null
-	}
+  String getVersion() {
+    version ? version : parent.version
+  }
 
-	def add(Namespace item) {
-		namespace = item
-	}
+  def add(Namespace item) {
+    namespace = item
+  }
+
+  Closure childBuilder() { }
 }

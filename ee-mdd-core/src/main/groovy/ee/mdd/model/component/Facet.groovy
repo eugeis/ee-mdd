@@ -15,33 +15,29 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.builder.BuilderAware
+import ee.mdd.builder.BuilderAware;
 import ee.mdd.builder.ModelBuilder
-import ee.mdd.model.Element
+import ee.mdd.model.Composite
 
 
 /**
  *
  * @author Eugen Eisler
  */
-class Facet extends Element implements BuilderAware {
-	ModelBuilder builder
+class Facet extends Composite implements BuilderAware {
+  ModelBuilder builder
 	Module module
+  List<ExternalModule> externalModules = []
+  List<Dependency> dependencies = []
 
-	List<ExternalType> externalTypes = []
-
-	def init() {
-		def nameToNamespace = nameToNamespace()
-		if(nameToNamespace) {
-			nameToNamespace.each { n, ns -> builder.extType(name: n, namespace: ns) }
-			super.init()
-		}
-	}
-
-	def add(ExternalType child) {
-		externalTypes << super.add(child)
-	}
-
-	protected Map nameToNamespace() {
-	}
+  Closure childBuilder() {
+  }
+  
+  def add(ExternalModule child) {
+    externalModules << child; super.add(child)
+  }
+  
+  def add(Dependency child) {
+    dependencies << child; super.add(child)
+  }
 }

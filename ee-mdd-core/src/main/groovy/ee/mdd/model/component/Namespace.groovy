@@ -15,6 +15,7 @@
 */
 package ee.mdd.model.component
 
+import ee.mdd.model.Base
 import ee.mdd.model.Element
 
 
@@ -23,11 +24,10 @@ import ee.mdd.model.Element
  *
  * @author Eugen Eisler
  */
-class Namespace {
-	Element parent
+class Namespace extends Base {
 	String name, dot, path
 
-	def init() {
+	protected boolean init() {
 		Namespace parentNs = parent.parent?.ns
 		if(parentNs) {
 			dot = "${parentNs.dot}.${name}"
@@ -36,6 +36,6 @@ class Namespace {
 			dot = name
 			path = name.replace('.', '/')
 		}
-		this
+    super.init()
 	}
 }

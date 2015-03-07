@@ -25,13 +25,13 @@ import ee.mdd.model.Element
 class Param extends Attribute {
   Prop prop
 
-  def init() {
+  protected boolean init() {
     if(prop) {
       if(!type) {
         type = prop.type
       }
     }
-    this
+    super.init()
   }
 
   String deriveName(Element p = parent ) {

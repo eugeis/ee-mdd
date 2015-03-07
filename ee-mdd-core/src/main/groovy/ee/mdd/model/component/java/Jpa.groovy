@@ -16,6 +16,7 @@
 package ee.mdd.model.component.java
 
 import ee.mdd.model.component.Facet
+import groovy.lang.Closure;
 
 /**
  *
@@ -24,8 +25,9 @@ import ee.mdd.model.component.Facet
  */
 class Jpa extends Facet {
 
-  protected Map nameToNamespace() {
-    ['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence',
+  Closure childBuilder() {
+
+    def nameToNamespace = ['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence',
       'NamedQueries' : 'javax.persistence', 'Entity' : 'javax.persistence',
       'Table' : 'javax.persistence', 'Index' : 'javax.persistence', 'Column' : 'javax.persistence',
       'Id' : 'javax.persistence', 'OneToOne' : 'javax.persistence', 'OneToMany' : 'javax.persistence',
@@ -36,5 +38,13 @@ class Jpa extends Facet {
       'TemporalType' : 'javax.persistence', 'GenerationType' : 'javax.persistence', 'TableGenerator' : 'javax.persistence',
       'GeneratedValue' : 'javax.persistence', 'MappedSuperclass' : 'javax.persistence', 'Transient' : 'javax.persistence',
       'Transactional' : 'javax.transaction', 'Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb']
+
+    return {
+      extModule(name: 'Jpa') {
+        nameToNamespace.each { n, ns ->
+          extType(name: n, namespace: ns)
+        }
+      }
+    }
   }
 }

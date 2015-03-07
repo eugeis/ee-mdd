@@ -25,8 +25,8 @@ import groovy.transform.ToString
 class Component extends StructureUnit {
 	List<Module> modules = []
 
-	def init() {
-		if(!namespace) { namespace = new Namespace(name: key, parent: this).init() }
+	protected boolean init() {
+		if(!namespace) { namespace = new Namespace(name: key); namespace.checkAndInit(this) }
 		super.init()
 	}
 

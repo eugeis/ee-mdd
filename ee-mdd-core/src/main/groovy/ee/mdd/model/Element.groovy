@@ -16,6 +16,7 @@
 package ee.mdd.model
 
 import java.beans.Introspector
+import java.util.Map;
 
 
 
@@ -24,46 +25,24 @@ import java.beans.Introspector
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
-class Element {
-  String name, desc
-  Element parent
+class Element extends Base {
+  String desc
   String uncap, cap, underscored, sqlName, xmlValue, description, uri
   boolean xml = true;
 
-  def init() {
-    this
+  String getSqlName() {
+    if(sqlName == null) {
+      sqlName = getUnderscored().replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
+      sqlName = sqlName.replaceAll(/(\w)\1+/, '$1')
+    }; sqlName
   }
 
-  Element findParent(Closure matcher) {
-    if(parent) {
-      if(matcher(parent)){
-        parent
-      } else {
-        parent.findParent(matcher)
-      }
-    }
+  String getUri() {
+    if(uri == null) {
+      uri = "${parent.getUri()}"
+    }; uri
   }
-
-  List<Element> findParents(Closure matcher, def fill = []) {
-    if(parent) {
-      if(matcher(parent)) {
-        fill << parent
-      }
-      fill = parent.findParents(matcher, fill)
-    }
-    fill
-  }
-
-  String deriveName(Element p = parent ) {
-    p ? "${p.name}${getClass().simpleName}" : getClass().simpleName
-  }
-
-  String getName() {
-    if(!name) {
-      name = deriveName()
-    }; name
-  }
-
+  
   String getCap() {
     if(cap == null) {
       cap = getName().capitalize()
@@ -82,24 +61,11 @@ class Element {
     }; underscored
   }
 
-  String getSqlName() {
-    if(sqlName == null) {
-      sqlName = getUnderscored().replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
-      sqlName = sqlName.replaceAll(/(\w)\1+/, '$1')
-    }; sqlName
-  }
-
-  String getUri() {
-    if(uri == null) {
-      uri = "${parent.getUri()}"
-    }; uri
-  }
-
   String getReference() {
     getName()
   }
 
-  void fillReference(Map<String, Element> fillRefToResolved) {
+  void fillReference(Map<String, Base> fillRefToResolved) {
     fillRefToResolved[reference] = this
   }
 }

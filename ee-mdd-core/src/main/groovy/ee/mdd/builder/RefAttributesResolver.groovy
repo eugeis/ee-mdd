@@ -24,11 +24,11 @@ import ee.mdd.model.Element
 class RefAttributesResolver {
 	Set<String> duplicateReferences = [] as Set
 	Set<Class> globalTypes = [] as Set
-	Map<String, Element> refToResolved = [:]
+	Map<String, Element> refToElement = [:]
 	Map<String, RefResolveHandler> refHolders = [:]
 
 	RefResolveHandler addGlobalResolver(String name, Class type, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
-		addResolver(new RefGlobalResolveHandler(refToResolved: refToResolved, name: name, type: type,
+		addResolver(new RefGlobalResolveHandler(refToResolved: refToElement, name: name, type: type,
 		setter: setter(name, converter, multi, afterSetter)))
 	}
 
@@ -106,9 +106,9 @@ class RefAttributesResolver {
 			def ref = node.reference
 			Class globalType = globalTypes.find { Class clazz -> clazz.isInstance(node) }
 			if(globalType && !duplicateReferences.contains(ref)) {
-				def old = refToResolved.put(ref, node)
+				def old = refToElement.put(ref, node)
 				if(old) {
-					refToResolved.remove(ref)
+					refToElement.remove(ref)
 					println "Duplicate global reference '$ref' first='$old' and second='$node', remove and ignore this reference."
 					duplicateReferences << ref
 				}

@@ -19,12 +19,6 @@ import ee.mdd.builder.ModelBuilder
 import ee.mdd.model.component.Model
 
 
-
-
-
-
-
-
 class ModelBuilderExample {
 
   void testComponentChildren() {
@@ -73,6 +67,45 @@ class ModelBuilderExample {
                 container('TaskContainer') {
                   prop('Signal', type: 'Signal', cache: true)
                   prop('Um', type: 'Um', cache: true)
+                  prop('MotherStation', type: 'MotherStation')
+                  prop('ProtectionRequirement', type: 'ProtectionRequirement')
+                  prop('Trophy', type: 'Trophy')
+                }
+
+                entity('Trophy') {
+                  prop('id', type: 'Long', unique: true, primaryKey: true)
+                  prop('value', type: 'int')
+                }
+
+
+
+                entity('ProtectionRequirement', superUnit: 'ElementLink', sqlName: 'PR',
+                description: '''Protection requirements are element references which extend the reference by an element specific value They are used for possession areas to specify eg the locked position of a switch They can be specified in an ElementRefs collection instead of the ElementRef tag''') {
+                  prop('protectionKey', type: 'ProtectionKeyType', description: '''The key of the attribute which must have for the referenced element a particular value''')
+                  prop('protectionValue', type: 'ProtectionValueType', description: '''This is a global text field which can be used by the several protection requirements to specify restrictions Eg the locked position of a switch''')
+                }
+
+                entity('MotherStation', superUnit: 'Element', description: '''A mother station groups different stations in the sense of a track group In Iltis the mother station SG has stations like SGX SG8x etc ''') {
+                }
+
+                enumType('ProtectionKeyType',
+                description: '''Possible keys for a Protection Requirement property''') {
+                  lit('BlockState')
+                  lit('SwitchPosition')
+                }
+
+                enumType('ProtectionValueType',
+                description: '''Possible values for a Protection Requirement property''') {
+                  lit('Blocked')
+                  lit('Left')
+                  lit('Right')
+                  lit('Undef')
+                }
+
+                entity('ElementLink', virtual: true, base: true, description: '''A reference to an Element object''') {
+                  prop('id', type: 'Long', unique: true, primaryKey: true, xml: false, hashCode: true)
+                  prop('desc', type: 'String', sqlName: 'DSC', description: '''This is a description text which identifies the referenced element by a readable name Used only to make the XML file readable''')
+                  prop('topologyId', type: 'Long', sqlName: 'T_ID', hashCode: true, index: true, description: '''The topology Id of the referenced Element''')
                 }
 
 
@@ -83,7 +116,7 @@ class ModelBuilderExample {
                 }
 
                 entity('Um', virtual: true, meta: []) {
-                  prop('testMultiProp', type: 'Element', multi: true)
+                  prop('testMultiProp', type: 'Element', multi: true, unique:true, primaryKey: true)
                   prop('zweitesMulti', type: 'Task', opposite: 'multiTest',  multi: true)
                 }
 

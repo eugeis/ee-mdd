@@ -13,35 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component.js
+package ee.mdd.model.component
 
-import java.util.Map;
-
-import ee.mdd.model.component.Facet;
+import ee.mdd.model.Element
 
 /**
  *
  * @author Eugen Eisler
  */
-class CommonJs extends Facet {
+class Dependency extends Element {
+	Module module
 
-	def primitiveTypes = [
-		'int',
-		'long',
-		'float',
-		'double',
-		'boolean',
-		'Integer',
-		'Long',
-		'Float',
-		'Double',
-		'Boolean',
-		'String',
-		'Date'
-	]
-
-	def init() {
-		primitiveTypes.each { n -> builder.extType(name: n) }
-		super.init();
+	def add(Module child) {
+		module = super.add(child)
 	}
 }
