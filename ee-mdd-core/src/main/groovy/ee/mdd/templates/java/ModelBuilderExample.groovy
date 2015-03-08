@@ -31,7 +31,7 @@ class ModelBuilderExample {
 
         model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test') {
 
-          commonJava()
+          java()
           cdi()
           jpa()
           test()
