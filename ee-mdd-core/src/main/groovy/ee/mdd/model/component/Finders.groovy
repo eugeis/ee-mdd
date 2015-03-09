@@ -10,7 +10,7 @@ import ee.mdd.model.Element
  *
  * @author Niklas Cappelmann
  */
-class Finder extends Controller {
+class Finders extends Controller {
 
   List<Find> getFinders() {
     operations?.findAll { Find.isInstance(it) }

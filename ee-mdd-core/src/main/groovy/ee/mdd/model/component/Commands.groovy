@@ -10,7 +10,7 @@ import ee.mdd.model.Element
  *
  * @author Niklas Cappelmann
  */
-class Command extends Controller {
+class Commands extends Controller {
 
   List<Delete> getDeleters() {
     operations?.findAll { Delete.isInstance(it) }

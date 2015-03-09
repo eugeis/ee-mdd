@@ -17,7 +17,7 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.CommonProcessorFactory
-import ee.mdd.model.component.DelegateOp
+import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.java.Cdi
@@ -45,7 +45,7 @@ class GeneratorForJava {
 		Model model =  ModelBuilderExample.build (builder)
 
 		//create props for delegates
-		model.findAllRecursiveDown { DelegateOp.isInstance(it) }.each { DelegateOp d ->
+		model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
 			d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
 
 		//model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }

@@ -15,31 +15,14 @@
  */
 package ee.mdd.model.component
 
+import java.util.List;
+
 import ee.mdd.model.Element
 
 
 /**
- *
  * @author Eugen Eisler
- * @author Niklas Cappelmann
  */
-class DataType extends CompilationUnit {
-  Finders finders
-  Commands commands
-  List<Index> indexes
-  boolean xmlBinding = false
-
-  def add(Finders item) {
-    finders = super.add(item)
-  }
-
-  def add(Commands item) {
-    commands = super.add(item)
-  }
-
-  def add(Index item) {
-    if(!indexes) {
-      indexes = []
-    }; indexes << super.add(item)
-  }
+class TypeRef extends Element {
+  Type ref
 }

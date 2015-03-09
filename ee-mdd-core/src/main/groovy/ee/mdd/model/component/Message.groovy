@@ -19,27 +19,18 @@ import ee.mdd.model.Element
 
 
 /**
- *
  * @author Eugen Eisler
- * @author Niklas Cappelmann
  */
-class DataType extends CompilationUnit {
-  Finders finders
-  Commands commands
-  List<Index> indexes
-  boolean xmlBinding = false
+class Message extends TypeRef {
+  List<MetaAttribute> metas
 
-  def add(Finders item) {
-    finders = super.add(item)
+  def add(MetaAttribute item) {
+    if(!metas) {
+      metas = []
+    }; metas << super.add(item)
   }
 
-  def add(Commands item) {
-    commands = super.add(item)
-  }
-
-  def add(Index item) {
-    if(!indexes) {
-      indexes = []
-    }; indexes << super.add(item)
+  String deriveName(Element p = parent ) {
+    p ? "${p.name}${getClass().simpleName}".toLowerCase() : getClass().simpleName.toLowerCase()
   }
 }

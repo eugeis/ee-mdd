@@ -21,17 +21,17 @@ import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
-import ee.mdd.model.component.Command
+import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
-import ee.mdd.model.component.DelegateOp
+import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Exist
 import ee.mdd.model.component.Find
-import ee.mdd.model.component.Finder
+import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
@@ -387,7 +387,7 @@ class EnhancerForJava {
 
 
 
-    Command.metaClass {
+    Commands.metaClass {
 
       deleterNamedQuery << { Context c ->
         if(delegate.deleters != null) {
@@ -406,7 +406,7 @@ class EnhancerForJava {
 
 
 
-    Finder.metaClass {
+    Finders.metaClass {
 
       finderNamedQuery << { Context c ->
         if(delegate.finders != null) {
@@ -472,7 +472,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret = false
           def op = delegate
-          if(DelegateOp.isInstance(op))
+          if(OperationRef.isInstance(op))
             ret = true
           properties[key] = ret
         }

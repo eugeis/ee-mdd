@@ -22,7 +22,8 @@ import ee.mdd.model.*
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
-import ee.mdd.model.component.Command
+import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.ConditionParam
@@ -35,7 +36,6 @@ import ee.mdd.model.component.Create
 import ee.mdd.model.component.DataType
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.DataTypeProp
-import ee.mdd.model.component.DelegateOp
 import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Dependency
 import ee.mdd.model.component.Entity
@@ -45,22 +45,25 @@ import ee.mdd.model.component.ExternalModule
 import ee.mdd.model.component.ExternalType
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Find
-import ee.mdd.model.component.Finder
+import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Initializer
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
+import ee.mdd.model.component.Message
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Module
 import ee.mdd.model.component.Namespace
 import ee.mdd.model.component.Operation
+import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Param
 import ee.mdd.model.component.Pojo
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Service
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
+import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
 
 /**
@@ -70,8 +73,11 @@ import ee.mdd.model.component.Update
 class ModelBuilder extends AbstractFactoryBuilder {
 
   def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
+  def channel = new CompositeFactory(beanClass: Channel, childFactories: ['meta', 'message'])
   def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate'], parent: type)
   def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
+  def typeRef = new CompositeFactory(beanClass: TypeRef)
+  def message = new CompositeFactory(beanClass: Message,  childFactories: ['meta'], parent: typeRef)
   def basicType = new CompositeFactory(beanClass: BasicType, parent: dataType)
   def body = new CompositeFactory(beanClass: Body, childFactories: ['type'])
   def pojo = new CompositeFactory(beanClass: Pojo, parent: cu)
@@ -79,9 +85,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def attr = new CompositeFactory(beanClass: Attribute, childFactories: ['meta'])
   def param = new CompositeFactory(beanClass: Param, parent: attr)
   def operation = new CompositeFactory(beanClass: Operation, parent: lu)
+  def operationRef = new CompositeFactory(beanClass: OperationRef, valueProperty: 'ref', parent: operation)
   def facet = new CompositeFactory(beanClass: Facet, childFactories: ['extModule', 'dependency'])
   def su = new CompositeFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'])
-  def commands = new CompositeFactory(beanClass: Command, childFactories: ['create', 'delete', 'update'], parent: controller)
+  def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update'], parent: controller)
   def component = new CompositeFactory(beanClass: Component, childFactories: ['module'], parent: su)
   def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   def config = new CompositeFactory(beanClass: Config, parent: dataType)
@@ -100,13 +107,12 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def exist = new CompositeFactory(beanClass: Exist, parent: dataTypeOperation)
   def externalType = new CompositeFactory(beanClass: ExternalType, parent: type)
   def find = new CompositeFactory(beanClass: Find, parent: dataTypeOperation)
-  def finder = new CompositeFactory(beanClass: Finder, childFactories: ['exist', 'count', 'findBy'], parent: controller)
+  def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
   def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service', 'container', 'dependency'], parent: su)
   def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
   def dependency = new CompositeFactory(beanClass: Dependency)
-  def delegateOp = new CompositeFactory(beanClass: DelegateOp, valueProperty: 'ref', parent: operation)
   def prop = new PropFactory(parent: attr)
   def literal = new CompositeFactory(beanClass: Literal)
   def service = new CompositeFactory(beanClass: Service, parent: cu)
@@ -149,7 +155,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'constr', constructor
     registerFactory 'container', container
     registerFactory 'controller', controller
-    registerFactory 'delegate', delegateOp
+    registerFactory 'delegate', operationRef
     registerFactory 'index', index
     registerFactory 'initializer', initializer
     registerFactory 'count', counter
@@ -176,6 +182,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'service', service
     registerFactory 'update', update
     registerFactory 'namespace', namespace
+    registerFactory 'channel', channel
+    registerFactory 'message', message
   }
 
   void registerFacet(Class beanClass, String name = beanClass.simpleName) {

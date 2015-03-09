@@ -15,31 +15,25 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Element
+import ee.mdd.model.Composite
 
 
 /**
- *
  * @author Eugen Eisler
- * @author Niklas Cappelmann
  */
-class DataType extends CompilationUnit {
-  Finders finders
-  Commands commands
-  List<Index> indexes
-  boolean xmlBinding = false
+class Channel extends Composite {
+	List<MetaAttribute> metas
+  List<Message> message = []
+  
+  boolean queue = false
 
-  def add(Finders item) {
-    finders = super.add(item)
-  }
-
-  def add(Commands item) {
-    commands = super.add(item)
-  }
-
-  def add(Index item) {
-    if(!indexes) {
-      indexes = []
-    }; indexes << super.add(item)
+	def add(MetaAttribute item) {
+		if(!metas) {
+			metas = []
+		}; metas << super.add(item)
+	}
+  
+  def add(Message item) {
+    message << super.add(item)
   }
 }
