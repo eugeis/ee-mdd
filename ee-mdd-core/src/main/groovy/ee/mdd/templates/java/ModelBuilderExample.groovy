@@ -237,6 +237,12 @@ class ModelBuilderExample {
                   prop('task', type:'Task', opposite:'actions', description: '')
                   prop('name', type:'String')
                 }
+                
+                channel('NotificationTopic') {
+                  message(ref: 'TaskContainer')
+                  message(ref: 'TaskAction')
+                  message(ref: 'Task')
+                }
 
               }
 

@@ -110,7 +110,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   def model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
-  def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service', 'container', 'dependency'], parent: su)
+  def module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service', 'container', 'channel', 'dependency'], parent: su)
   def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
   def dependency = new CompositeFactory(beanClass: Dependency)
   def prop = new PropFactory(parent: attr)
