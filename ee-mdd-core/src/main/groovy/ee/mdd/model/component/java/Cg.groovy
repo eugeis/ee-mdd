@@ -14,7 +14,8 @@ class Cg extends Facet {
       'Environment' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
       'SupportsEnvironments' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
       'LinkedObjectCache' : 'com.siemens.ra.cg.pl.common.base.cache',
-      'Traceable' : 'com.siemens.ra.cg.pl.common.base.annotations']
+      'Traceable' : 'com.siemens.ra.cg.pl.common.base.annotations', 'JmsDestinationConfig' : 'com.siemens.ra.cg.pl.common.ejb.messaging',
+      'JmsToEventListener' : 'com.siemens.ra.cg.pl.common.ejb.messaging.jse', 'ServiceLocator' : 'com.siemens.ra.cg.pl.common.ejb.locator']
 
     return {
       extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {

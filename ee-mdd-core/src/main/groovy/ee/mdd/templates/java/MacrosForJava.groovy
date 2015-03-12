@@ -38,17 +38,17 @@ class MacrosForJava {
   protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>
 ''')
 
-      template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAtrributesProp', c)}<% if (prop.multi) { %>
+      template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
   protected ${c.name('List')}<${prop.typeEjbMember}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember} $prop.uncap;<% } } } %>
 ''')
 
-      template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAtrributesProp', c)}<% if (idProp.multi) { %>
+      template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember}> $idProp.uncap;<% } else { %>
   protected ${idProp.typeEjbMember} $idProp.uncap;<% } }%>
 ''')
 
-      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAtrributesProp', c)}
+      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>
 ''')
 
@@ -298,6 +298,10 @@ class MacrosForJava {
 public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+"${c.name(it.type)}"+' '+it.uncap}%>${ret-separator}); 
 <% } %>''')
 
+
+      //ifcs
+
+
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
 public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')}<% } %> { 
@@ -330,6 +334,9 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 public interface $c.className extends $item.n.cap.base {
 }
 //ifcContainerExtends''')
+
+
+      //classes
 
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
@@ -558,11 +565,25 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
 
       template('jmsToCdi', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdi } %>{{imports}}
 /** Jms to Cdi bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
-public class $className extends JmsToEventListener {
+public class $className extends ${c.name('JmsToEventListener')} {
 
-}
+  @Override
+  @${c.name('Inject')}
+  public void setDestinationConfig(@$component.name ${c.name('JmsDestinationConfig')} destinationConfig) {
+    super.setDestinationConfig(destinationConfig);
+  }
 
+  ${macros.generate('setEventListener', c)}
+
+  public void onChangeServiceLocator(@${c.name('Observes')}(notifyObserver = ${c.name('Reception')}.IF_EXISTS) ${c.name('ServiceLocator')} serviceLocator) {
+    setServiceLocator(serviceLocator);
+  }
+}//jmsToCdi
 ''')
+
+
+      //tests
+
 
       template('testProperties', body: '''
   @${c.name('Test')}
@@ -617,6 +638,10 @@ public class $c.className {
 }
  ''')
 
+
+      //metaAttributes
+
+
       template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
@@ -632,8 +657,18 @@ $ret''')
       template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')
 
-      template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+      template('metaAttributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')
+
+
+      //logic
+
+
+      template('setEventListener', body: '''@Inject
+  public void setEventListener(${module.cap}EventToCdi eventListener) {
+    super.setEventListener(eventListener);
+  }
+''')
 
       template('labelBody', body: '''<% if(item.labelBody) { %>
   @Override
@@ -723,6 +758,8 @@ ${ret-newLine}''')
     <% } %>
     return true;
   }''')
+
+
 
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')

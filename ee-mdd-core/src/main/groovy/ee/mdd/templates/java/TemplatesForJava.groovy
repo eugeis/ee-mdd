@@ -15,11 +15,16 @@
  */
 package ee.mdd.templates.java
 
+import com.sun.org.apache.xerces.internal.impl.xs.traversers.Container
+
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
+import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Controller
+import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Service
 
 
 

@@ -16,7 +16,6 @@
 package ee.mdd.model.component.java
 
 import ee.mdd.model.component.Facet
-import groovy.lang.Closure;
 
 /**
  *

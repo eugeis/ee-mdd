@@ -1082,8 +1082,10 @@ class EnhancerForJava {
               } else {
                 ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
               }
-            } else {
+            } else if (MetaAttribute.isInstance(delegate.value[0])) {
               ret += "(${delegate.value[0].annotation(c)})"
+            } else {
+              ret += "($delegate.value)"
             }
           } else if(delegate.multi) {
             ret += '({'+newLine+'})'
