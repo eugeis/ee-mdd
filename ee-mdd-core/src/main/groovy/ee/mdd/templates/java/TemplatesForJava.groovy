@@ -17,12 +17,9 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
-import ee.mdd.model.component.BasicType
-import ee.mdd.model.component.Container
+import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Service
 
 
 
@@ -134,6 +131,12 @@ class TemplatesForJava {
         template('ifcContainerExtends', body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
       }
 
+      items ('jmsToCdi',
+      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+
+        template('jmsToCdi', body: '''${macros.generate('jmsToCdi', c)}''')
+      }
     }
   }
 }

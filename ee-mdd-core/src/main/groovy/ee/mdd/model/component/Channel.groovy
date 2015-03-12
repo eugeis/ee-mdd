@@ -20,19 +20,44 @@ import ee.mdd.model.Composite
 
 /**
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Channel extends Composite {
-	List<MetaAttribute> metas
+  Names n
+  List<MetaAttribute> metas
   List<Message> message = []
-  
+
   boolean queue = false
 
-	def add(MetaAttribute item) {
-		if(!metas) {
-			metas = []
-		}; metas << super.add(item)
-	}
-  
+  Namespace getNs() {
+    parent.ns
+  }
+
+  Model getModel() {
+    parent.model
+  }
+
+  Module getModule() {
+    parent.module
+  }
+
+  Component getComponent() {
+    parent.component
+  }
+
+  Names getN() {
+    if (!n) {
+      n = new Names(this, name)
+    }
+    n
+  }
+
+  def add(MetaAttribute item) {
+    if(!metas) {
+      metas = []
+    }; metas << super.add(item)
+  }
+
   def add(Message item) {
     message << super.add(item)
   }
