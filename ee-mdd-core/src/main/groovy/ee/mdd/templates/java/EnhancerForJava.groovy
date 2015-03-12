@@ -21,11 +21,11 @@ import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Body
+import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
-import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
@@ -37,6 +37,7 @@ import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Operation
+import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Service
 
@@ -1034,7 +1035,27 @@ class EnhancerForJava {
       }
     }
 
+    Channel.metaClass {
 
+      metasForBridge << { Context c ->
+        def key = System.identityHashCode(delegate) + 'metasForBridge'
+        if(!properties.containsKey(key)) {
+          Channel channel = delegate
+          ModelBuilder builder = channel.component.builder
+          def metasForBridge = []
+          metasForBridge << builder.meta(type: 'ApplicationScoped' )
+          def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
+          def environment = builder.meta(type: 'Environment', value: [:])
+          environment.value['executions'] = '{ PRODUCTIVE }'
+          environment.value['runtimes'] = '{ CLIENT }'
+          supportsEnvironments.value.add(environment)
+          metasForBridge << supportsEnvironments
+          metasForBridge << builder.meta(type: 'Traceable')
+          properties[key] = metasForBridge
+        }
+        properties[key]
+      }
+    }
 
     MetaAttribute.metaClass {
 
@@ -1062,7 +1083,7 @@ class EnhancerForJava {
                 ret += '(' + delegate.value.collect { k, v -> "$k = $v" }.join(', ') + ')'
               }
             } else {
-              ret += "($delegate.value)"
+              ret += "(${delegate.value[0].annotation(c)})"
             }
           } else if(delegate.multi) {
             ret += '({'+newLine+'})'

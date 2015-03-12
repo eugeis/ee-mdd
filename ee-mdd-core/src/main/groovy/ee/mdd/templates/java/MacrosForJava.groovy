@@ -19,7 +19,6 @@ import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.CategoryGenerator
 
 
-
 /**
  *
  * @author Eugen Eisler
@@ -370,7 +369,7 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.b
 }
 //ejbEntityExtends''')
 
-      template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+      template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
 public ${item.base || item.virtual ? 'abstract':''} class $c.className extends <% if (superUnit) { %>superUnit.cap<% } else { %>Base<% } %> implements ${item.name} {
   private static final long serialVersionUID = 1L;
@@ -380,7 +379,7 @@ public ${item.base || item.virtual ? 'abstract':''} class $c.className extends <
 }
 //ejbBasicType''')
 
-      template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+      template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>
 /** JPA representation of {@link $item.name} */
 @Embeddable
 public class $className extends ${item.n.cap.baseEmbeddable} {
@@ -389,12 +388,12 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
 }
 //ejbBasicTypeExtends''')
 
-      template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
+      template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 //ejbService''')
 
-      template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>{{imports}}
+      template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
@@ -405,7 +404,7 @@ ${macros.generate('implOperations', c)}
       template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
 <% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
    if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
-   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>{{imports}}
+   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>
 @${c.name('Alternative')}
 public class $className extends Base implements $item.name {
   private static final long serialVersionUID = 1L;
@@ -548,7 +547,6 @@ public class $className extends Base implements $item.name {
 }//implContainer
 ''')
 
-
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
   $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
@@ -558,405 +556,183 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
   }<% } %>
 }''')
 
-      template('jmsToCdi', body: '''<% if (!c.className) { c.className = c.item.n.cap.jmsToCdi } %>{{imports}}
-/** Jms to Cdi bridge for '$module.name' */
+      template('jmsToCdi', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdi } %>{{imports}}
+/** Jms to Cdi bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
+public class $className extends JmsToEventListener {
 
+}
 
 ''')
 
       template('testProperties', body: '''
-      @${
-        c.name('Test')
-      }
-      public void testProperties() {
-        <% item.props.each {
-          prop -> %><% if (prop.testable) {
-            %>
-            ${
-              c.name(prop.type)
-            } $prop.uncap = $prop.testValue;<%
-          } else {
-            %>
-            ${
-              c.name(prop.type)
-            } $prop.uncap = new ${
-              prop.type.n.cap.impl
-            }();<%
-          }
-        } %><% item.props.each {
-          prop -> %>
-          item.$prop.call;<%
-        } %>
-        <% item.props.each {
-          prop -> %>
-          ${
-            c.name('assertEquals')
-          }($prop.uncap, item.$prop.getter);<%
-        } %>
-      }''')
+  @${c.name('Test')}
+  public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
+    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
+    item.$prop.call;<% } %>
+    <% item.props.each { prop -> %>
+    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
+  }''')
 
-      template('testExtends', body: '''<% c.src = true %><% if (!c.className) {
-        c.className = item.cap
-      } %>{
-        {
-          imports
-        }
-      }
-      public class $c.className extends ${
-        c.className
-      }Base {
-        <% if (c.serializable) {
-          %>
-          private static final long serialVersionUID = 1L;<%
-        } %>
-      }''')
+      template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+  private static final long serialVersionUID = 1L;<% } %>
+}''')
 
-      template('test', body: '''<% c.scope='test' %><% if (!c.className) {
-        c.className = item.cap
-      } %><% if (!c.itemInit) {
-        c.itemInit="new $item.n.cap.impl()"
-      } %>{
-        {
-          imports
-        }
-      }
-      public ${
-        c.virtual ? 'abstract ' : ''
-      }class $c.className {
-        protected $item.n.cap.impl item;
+      template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
+public ${c.virtual ? 'abstract ' : ''}class $c.className {
+  protected $item.n.cap.impl item;
+  
+  @${c.name('Before')}
+  public void before$c.className() {
+    item = $c.itemInit;
+  }
+  ${macros.generate('testProperties', c)}${macros.generate('testConstructors', c)}
+}''')
 
-        @${
-          c.name('Before')
-        }
-        public void before$c.className() {
-          item = $c.itemInit;fghfg
-        }
-        ${
-          macros.generate('testProperties', c)
-        }${
-          macros.generate('testConstructors', c)
-        }
-      }''')
+      template('testConstructors', body: '''<% item.constructors.each { constr -> %><% def className = item.n.cap.impl %>
 
-      template('testConstructors', body: '''<% item.constructors.each {
-        constr -> %><% def className = item.n.cap.impl %>
+  @${c.name('Test')}
+  public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %><% def instance; if (param.prop.testable) { instance = param.prop.testValue } else { instance = 'new '+param.prop.type.n.cap.impl+'()' } %>
+     ${c.name(param.type)} $param.uncap = $instance;<% } %><% if (item.superUnit) { %>
+     $item.n.cap.impl instance = new $className(${constr.call});<% } else { %>
+     ${c.name(item)} instance = new $className(${constr.call});<% } %><% customParams.each { param -> def prop = param.prop; %>
+     ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
+  }<% } %>''')
 
-        @${
-          c.name('Test')
-        }
-        public void testConstructor${
-          constr.paramsName
-        }() {
-          <% def customParams = constr.params.findAll {
-            !it.value && it.prop
-          }; customParams.each {
-            param -> %><% def instance; if (param.prop.testable) {
-              instance = param.prop.testValue
-            } else {
-              instance = 'new '+param.prop.type.n.cap.impl+'()'
-            } %>
-            ${
-              c.name(param.type)
-            } $param.uncap = $instance;<%
-          } %><% if (item.superUnit) {
-            %>
-            $item.n.cap.impl instance = new $className(${
-              constr.call
-            });<%
-          } else {
-            %>
-            ${
-              c.name(item)
-            } instance = new $className(${
-              constr.call
-            });<%
-          } %><% customParams.each {
-            param -> def prop = param.prop; %>
-            ${
-              c.name('assertSame')
-            }($param.uncap, instance.$prop.getter);<%
-          } %>
-        }<%
-      } %>''')
+      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
+public class $c.className {
+  
+  @${c.name('Test')}
+  public void testVal() { <% item.literals.each { lit -> lastLit = lit.cap %><% item.props.each { prop -> %>
+      ${c.name('assertNotNull')}($c.item.cap.${lit.underscored}.get${prop.cap}());    <% } } %>
+  }
 
-      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) {
-        c.className = item.n.cap.test
-      } %><% def lastLit = '' %>{
-        {
-          imports
-        }
-      }
-      public class $c.className {
+  @${c.name('Test')}
+  public void testIsLiteral() { <% item.literals.eachWithIndex { lit, i -> %>
+    ${c.name('assertTrue')}($c.item.cap.${lit.underscored}.is${lit.cap}()); <% if(lit.cap != lastLit) { %>
+    ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
+    ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
+  }
+}
+ ''')
 
-        @${
-          c.name('Test')
-        }
-        public void testVal() {
-          <% item.literals.each {
-            lit -> lastLit = lit.cap %><% item.props.each {
-              prop -> %>
-              ${
-                c.name('assertNotNull')
-              }($c.item.cap.${
-                lit.underscored
-              }.get${
-                prop.cap
-              }());    <%
-            }
-          } %>
-        }
+      template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
 
-        @${
-          c.name('Test')
-        }
-        public void testIsLiteral() {
-          <% item.literals.eachWithIndex {
-            lit, i -> %>
-            ${
-              c.name('assertTrue')
-            }($c.item.cap.${
-              lit.underscored
-            }.is${
-              lit.cap
-            }()); <% if(lit.cap != lastLit) {
-              %>
-              ${
-                c.name('assertFalse')
-              }($c.item.cap.${
-                lit.underscored
-              }.is${
-                item.literals[i+1].cap
-              }());<%
-            } else {
-              %>
-              ${
-                c.name('assertFalse')
-              }($c.item.cap.${
-                lit.underscored
-              }.is${
-                item.literals[0].cap
-              }());<%
-            }
-          } %>
-        }
-      }
-      ''')
+      template('metaAttributesBasicType', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBasicType(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
 
-      template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) {
-        annotations.each {
-          ret += newLine+it.annotation(c)
-        }
-      } %>
-      $ret''')
+      template('metaAttributesService', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForService(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
 
-      template('metaAttributesBasicType', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBasicType(c); if(annotations) {
-        annotations.each {
-          ret += newLine+it.annotation(c)
-        }
-      } %>
-      $ret''')
+      template('metaAttributesBridge', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBridge(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+$ret''')
 
-      template('metaAttributesService', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForService(c); if(annotations) {
-        annotations.each {
-          ret += newLine+it.annotation(c)
-        }
-      } %>
-      $ret''')
+      template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+${ret-newLine}''')
 
-      template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) {
-        annotations.each {
-          ret += newLine+it.annotation(c)
-        }
-      } %>
-      ${
-        ret-newLine
-      }''')
+      template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+${ret-newLine}''')
 
-      template('metaAtrributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) {
-        annotations.each {
-          ret += newLine+it.annotation(c)
-        }
-      } %>
-      ${
-        ret-newLine
-      }''')
+      template('labelBody', body: '''<% if(item.labelBody) { %>
+  @Override
+  public String naturalKey() {
+    return $item.labelBody;
+  }<% } %>
+''')
+      template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
+  public boolean attributesChanged() {
+    return this.attributesChanged;
+  }
 
-      template('labelBody', body: '''<% if(item.labelBody) {
-        %>
-        @Override
-        public String naturalKey() {
-          return $item.labelBody;
-        }<%
-      } %>
-      ''')
-      template('attributesChanged', body: '''<% if(item.attributeChangeFlag) {
-        %>
-        public boolean attributesChanged() {
-          return this.attributesChanged;
-        }
+  public void clearAttributesChanged() {
+    this.attributesChanged = false;
+  }<% } %>
+''')
 
-        public void clearAttributesChanged() {
-          this.attributesChanged = false;
-        }<%
-      } %>
-      ''')
+      template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{!it.primaryKey}; %>
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);<% if (idProp && !item.virtual) { %>
+    b.append("$idProp.name=").append($idProp.name).append(SEPARATOR);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
+    b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
+  }
+''')
 
-      template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{
-        !it.primaryKey
-      }; %>
-      @Override
-      protected void fillToString(StringBuffer b) {
-        super.fillToString(b);<% if (idProp && !item.virtual) {
-          %>
-          b.append("$idProp.name=").append($idProp.name).append(SEPARATOR);<%
-        } %><% props.each {
-          prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) {
-            %><% if (prop.multi) {
-              %>
-              b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<%
-            } else {
-              %>
-              b.append("$prop.name=").append($prop.name).append(SEPARATOR);<%
-            } %><%
-          }
-        }%>
-      }
-      ''')
+      template('hashCodeAndEqualsEntity', body: '''<% def className = item.genericsName; if(item.propsForHashCode) { %>
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    result = prime * result + (($propAccess == null) ? 0 : ${propAccess}.hashCode());<% } %>
+  }
 
-      template('hashCodeAndEqualsEntity', body: '''<% def className = item.genericsName; if(item.propsForHashCode) {
-        %>
-        @Override
-        public int hashCode() {
-          final int prime = 31;
-          int result = ${
-            item.superUnit ? 'super.hashCode()' : '1'
-          };<% item.propsForHashCode.each {
-            prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
-            result = prime * result + (($propAccess == null) ? 0 : ${
-              propAccess
-            }.hashCode());<%
-          } %>
-        }
-
-        @Override<% if (item.generic) {
-          %>
-          @SuppressWarnings("unchecked")<%
-        } %>
-        public boolean equals(Object obj) {
-          if (obj == null)
-          return false;
-          if (this == obj)
-          return true;<% if(item.virtual) {
-            %>
-            if (!super.equals(obj))
-            return false;<%
-          } %>
-          if (getClass() != obj.getClass())
-          return false;
-          $className other = (${
-            className
-          }) obj;<% item.propsForHashCode.each {
-            prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
-            if (${
-              propAccess
-            } == null) {
-              if (other.${
-                propAccess
-              } != null)
-              return false;
-            } else if (!${
-              propAccess
-            }.equals(other.${
-              propAccess
-            }))
-            return false;<%
-          } %>
-          return true;
-        }<%
-      } %>
-      ''')
+  @Override<% if (item.generic) { %>
+  @SuppressWarnings("unchecked")<% } %>
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;<% if(item.virtual) { %>
+    if (!super.equals(obj))
+      return false;<% } %>
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    if (${propAccess} == null) {
+      if (other.${propAccess} != null)
+        return false;
+    } else if (!${propAccess}.equals(other.${propAccess}))
+      return false;<% } %>
+    return true;
+  }<% } %>
+''')
 
       template('hashCodeAndEqualsBasicType', body: '''<% def className = c.className %>
-      @Override
-      public int hashCode() {
-        final int prime = 31;
-        int result = ${
-          item.superUnit ? 'super.hashCode()' : '1'
-        };<% item.props.each {
-          prop-> %>
-          result = prime * result + <% if (prop.primitive && prop.type.name != 'boolean') {
-            %>$prop.name;
-            <%
-          } else if (prop.type.name == 'boolean') {
-            %>((${
-              prop.name
-            })?1:0);
-            <%
-          } else {
-            %>(($prop.name == null) ? 0 : ${
-              prop.name
-            }.hashCode());<%
-          }
-        } %>
-        return result;
-      }
-      <% if (item.generic) {
-        %>
-        @SuppressWarnings("unchecked")<%
-      } %>
-      @Override
-      public boolean equals(Object obj) {
-        if (obj == null)
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.props.each { prop-> %>
+    result = prime * result + <% if (prop.primitive && prop.type.name != 'boolean') { %>$prop.name;
+        <% } else if (prop.type.name == 'boolean') { %>((${prop.name})?1:0); 
+        <% } else { %>(($prop.name == null) ? 0 : ${prop.name}.hashCode());<% } } %>
+    return result;
+  }
+  <% if (item.generic) { %>
+  @SuppressWarnings("unchecked")<% } %>
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;<% if (item.virtual) { %>
+    if (!super.equals(obj))
+      return false;<% } %>
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.props.each { prop-> if (!prop.primitive) { %>
+    if (${prop.name} == null) {
+      if (other.${prop.name} != null)
         return false;
-        if (this == obj)
-        return true;<% if (item.virtual) {
-          %>
-          if (!super.equals(obj))
-          return false;<%
-        } %>
-        if (getClass() != obj.getClass())
-        return false;
-        $className other = (${
-          className
-        }) obj;<% item.props.each {
-          prop-> if (!prop.primitive) {
-            %>
-            if (${
-              prop.name
-            } == null) {
-              if (other.${
-                prop.name
-              } != null)
-              return false;
-            } else if (!${
-              prop.name
-            }.equals(other.${
-              prop.name
-            }))
-            return false;<%
-          } else {
-            %>
-            if (${
-              prop.name
-            } != other.${
-              prop.name
-            })
-            return false;<%
-          } %>
-          <%
-        } %>
-        return true;
-      }''')
+    } else if (!${prop.name}.equals(other.${prop.name}))
+      return false;<% } else { %>
+    if (${prop.name} != other.${prop.name})
+      return false;<% } %>
+    <% } %>
+    return true;
+  }''')
 
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
       template('testBody', body: '''  int counter = countdown;
-      while (counter!=0) {
-        System.out.println(counter+"...");
-        counter--;
-      }
-      System.out.println(test);''')
+    while (counter!=0) {
+      System.out.println(counter+"...");
+      counter--;
+    }
+    System.out.println(test);''')
     }
   }
 }

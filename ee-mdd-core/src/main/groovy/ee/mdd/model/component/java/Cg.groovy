@@ -5,7 +5,6 @@
 package ee.mdd.model.component.java
 
 import ee.mdd.model.component.Facet
-import groovy.lang.Closure;
 
 class Cg extends Facet {
 
@@ -13,8 +12,9 @@ class Cg extends Facet {
 
     def nameToNamespace = ['Service' : 'com.siemens.ra.cg.pl.common.base.annotations',
       'Environment' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
-      'SupportsEnvironment' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
-      'LinkedObjectCache' : 'com.siemens.ra.cg.pl.common.base.cache']
+      'SupportsEnvironments' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
+      'LinkedObjectCache' : 'com.siemens.ra.cg.pl.common.base.cache',
+      'Traceable' : 'com.siemens.ra.cg.pl.common.base.annotations']
 
     return {
       extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
