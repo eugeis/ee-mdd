@@ -135,7 +135,7 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('jmsToCdi', body: '''${macros.generate('jmsToCdi', c)}''')
+        template('jmsToCdi', body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdi %> ${macros.generate('jmsToCdi', c)}<% } %>''')
       }
     }
   }

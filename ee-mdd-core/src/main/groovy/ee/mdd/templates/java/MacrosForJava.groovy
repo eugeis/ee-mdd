@@ -558,7 +558,11 @@ public enum $c.className {<% def last = item.literals.last(); item.literals.each
   }<% } %>
 }''')
 
-      template('jmsToCdi', body: '''${c.item.n.cap.test}''')
+      template('jmsToCdi', body: '''<% if (!c.className) { c.className = c.item.n.cap.jmsToCdi } %>{{imports}}
+/** Jms to Cdi bridge for '$module.name' */
+
+
+''')
 
       template('testProperties', body: '''
       @${

@@ -20,6 +20,7 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Module extends StructureUnit {
   String artifact
@@ -35,6 +36,7 @@ class Module extends StructureUnit {
   List<Service> services = []
   List<Channel> channels = []
   List<Dependency> dependencies = []
+  List<Config> configs = []
 
   protected boolean init() {
     super.init()
@@ -77,5 +79,8 @@ class Module extends StructureUnit {
   }
   def add(Channel child) {
     channels << child; super.add(child)
+  }
+  def add(Config child) {
+    configs << child; super.add(child)
   }
 }
