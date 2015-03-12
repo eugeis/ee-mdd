@@ -33,6 +33,7 @@ class Module extends StructureUnit {
   List<Controller> controllers = []
   List<Initializer> initializers = []
   List<Service> services = []
+  List<Channel> channels = []
   List<Dependency> dependencies = []
 
   protected boolean init() {
@@ -73,5 +74,8 @@ class Module extends StructureUnit {
   }
   def add(Dependency child) {
     dependencies << child; super.add(child)
+  }
+  def add(Channel child) {
+    channels << child; super.add(child)
   }
 }
