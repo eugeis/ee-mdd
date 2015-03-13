@@ -35,22 +35,18 @@ class MacrosForJava {
   protected ${c.name('List')}<${prop.type.name}> $prop.uncap; <% } else { %>
   protected ${prop.type.name} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
   protected ${c.name('List')}<${relationIdProp.type.name}< ${prop.uncap}${relationIdProp.cap};<% } else { %>
-  protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>
-''')
+  protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
   protected ${c.name('List')}<${prop.typeEjbMember}> $prop.uncap;<% } else { %>
-  protected ${prop.typeEjbMember} $prop.uncap;<% } } } %>
-''')
+  protected ${prop.typeEjbMember} $prop.uncap;<% } } } %>''')
 
       template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember}> $idProp.uncap;<% } else { %>
-  protected ${idProp.typeEjbMember} $idProp.uncap;<% } }%>
-''')
+  protected ${idProp.typeEjbMember} $idProp.uncap;<% } }%>''')
 
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
-  protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>
-''')
+  protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>''')
 
       template('defaultConstructor', body:'''
   public $className() {
@@ -73,20 +69,17 @@ class MacrosForJava {
   private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
     this.$it.prop.uncap = $it.value;<% } else { %>
     this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
-  }<% } %>
-''')
+  }<% } %>''')
 
       template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable) { %>
   <% if (prop.description) { %>
   /** $prop.description */<% } %>
-  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %> 
-''')
+  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %> ''')
 
       template('propGettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
   <% if (prop.description) { %>
   /** $prop.description */<% } %>
-  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>
-''')
+  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>''')
 
       template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
   void $prop.setter;
@@ -97,12 +90,10 @@ class MacrosForJava {
 <% } } %>''')
 
       template('relationIdPropGetterIfc', body: '''<% item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
-  <% if (relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.type.name><% } else { %>$relationIdProp.type.name<% } %> get${prop.cap}${relationIdProp.cap}();<% } } %>
-''')
+  <% if (relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.type.name><% } else { %>$relationIdProp.type.name<% } %> get${prop.cap}${relationIdProp.cap}();<% } } %>''')
 
       template('relationIdPropSetterIfc', body: '''<% item.props.each { prop -> if(prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
-  void set${prop.cap}${relationIdProp.cap}<% if(relationIdProp.multi) { %>(${c.name('List')}<$relationIdProp.type.name><% } else { %>($relationIdProp.type.name<% } %> ${prop.uncap}${relationIdProp.cap});<% } } %>
-''')
+  void set${prop.cap}${relationIdProp.cap}<% if(relationIdProp.multi) { %>(${c.name('List')}<$relationIdProp.type.name><% } else { %>($relationIdProp.type.name<% } %> ${prop.uncap}${relationIdProp.cap});<% } } %>''')
 
       template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
   @Override
@@ -133,9 +124,7 @@ class MacrosForJava {
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public <% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
     return <% if (prop.multi && prop.typeBasicType) { %>(List)<% } %>$prop.name;
-  }<% } } %>
-
-''')
+  }<% } } %>''')
 
       template('propSettersBasicType', body: ''' <% item.props.each { prop -> if (prop.writable) { %>
   @Override <% if (prop.multi && prop.typeBasicType) { %>
@@ -157,9 +146,7 @@ class MacrosForJava {
       $prop.name = new ${c.name('HashMap')}<>();
     }<% } %>
     return <% if(prop.multi && prop.typeBasicType) {%>(List)<% } %>$prop.uncap; 
-  }
-  <% } } } }%>
-''')
+  }<% } } } }%>''')
 
       template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
   public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb}> $prop.uncap);<% } else if (!prop.multi) { %>
@@ -199,8 +186,7 @@ class MacrosForJava {
     child.set${prop.opposite.cap}(null);<% } else { %>
     child.get${prop.opposite.cap}.remove(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %>
     return ${prop.getter}.remove(child);
-  }<% } } } } %>
-''')
+  }<% } } } } %>''')
 
       template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
   @Override<% } %><% if(prop.typeBasicType) { %>
@@ -210,8 +196,7 @@ class MacrosForJava {
       $prop.name = new ArrayList<>();
     }
     return <% if(prop.typeBasicType) {%>(List)<% } %>$prop.uncap;
-  }
-<% } } %>''')
+  }<% } } %>''')
 
       template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable && !prop.primaryKey) { if(!prop.opposite) { %>
   @Override<% if(prop.typeBasicType) { %>
@@ -234,8 +219,7 @@ class MacrosForJava {
   @Override
   public <% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb><% } else { %>${idProp.relTypeEjb}<% } %> $idProp.getter {
     return $idProp.uncap;
-  }<% } %>
-''')
+  }<% } %>''')
 
       template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
   @Override
@@ -247,8 +231,7 @@ class MacrosForJava {
   @Override
   public <% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.uncap} != null ? ${prop.uncap}.get${relationIdProp.cap}() : null;
-  }<% } } %>
- ''')
+  }<% } } %>''')
 
       template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
   @Override
@@ -262,8 +245,7 @@ class MacrosForJava {
   @Override
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
   ${op.resolveBody(c)}
-  }<% } } %>
-''')
+  }<% } } %>''')
 
       template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>
@@ -288,8 +270,7 @@ class MacrosForJava {
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public $op.ret ${op.name}($op.signature) {
     $op.body
-  }<% } } %>
-''')
+  }<% } } %>''')
 
 
       template('ifcMethods', body: '''
@@ -543,8 +524,10 @@ public class $className extends Base implements $item.name {
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
-  $lit.underscored${lit == last ? ';' : ','}<% } else { %>$lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
+  $lit.underscored${lit == last ? ';' : ','}<% } else { %>
+  $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
+  
   public boolean $lit.is {
     return this == $lit.underscored; 
   }<% } %>
