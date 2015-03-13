@@ -16,7 +16,7 @@
 package ee.mdd.templates.java
 
 import ee.mdd.builder.ModelBuilder
-import ee.mdd.generator.CommonProcessorFactory
+import ee.mdd.generator.Processors
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Prop
@@ -53,7 +53,7 @@ class GeneratorForJava {
 		builder.refAttrResolver.printNotResolved()
 
 		def generator = TemplatesForJavaCg.build()
-		def commonProcessorFactory = new CommonProcessorFactory()
+		def commonProcessorFactory = new Processors()
 		def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
 
 		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))

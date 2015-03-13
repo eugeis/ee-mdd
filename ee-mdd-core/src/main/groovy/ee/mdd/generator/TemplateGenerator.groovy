@@ -26,7 +26,10 @@ import ee.mdd.model.component.Type
 @Slf4j
 class TemplateGenerator extends AbstractGenerator {
 	private static final GStringTemplateEngine engine = new GStringTemplateEngine()
-
+  
+  String appendPrefix = '//'
+  boolean appendName = false
+  
 	String body
 	List<Type> types = []
 
@@ -36,7 +39,11 @@ class TemplateGenerator extends AbstractGenerator {
 		try {
 			def result = engine.createTemplate(body).make(c.storage)
 			c.output = result.toString()
-			ret = c.output
+			
+      if(appendName) {
+        c.output += "$appendPrefix$name"
+			}
+      ret = c.output
 		} catch(e) {
 			log.error "Failed generation of template=$name, e=$e"
 			c.error = e

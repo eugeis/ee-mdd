@@ -16,7 +16,7 @@
 package ee.mdd.templates.js
 
 import ee.mdd.builder.ModelBuilder
-import ee.mdd.generator.CommonProcessorFactory
+import ee.mdd.generator.Processors
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.js.Js
 import ee.mdd.templates.java.ModelBuilderExample
@@ -40,7 +40,7 @@ class GeneratorForJs {
 		Model model =  ModelBuilderExample.build (builder)
 
 		def generator = TemplatesForJs.build()
-		def commonProcessorFactory = new CommonProcessorFactory()
+		def commonProcessorFactory = new Processors()
 		def processorFactory = new ProcessorsForJs()
 
 		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJs.build()))
