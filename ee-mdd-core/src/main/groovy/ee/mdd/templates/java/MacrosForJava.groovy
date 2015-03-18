@@ -555,6 +555,10 @@ cachedContainers.each { cachedContainer -> cachedContainer.props.each { prop -> 
 c.messageSelectors = cachedContainers.collect { "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\"= '$it.cap'\\"" }; module.configs.each { messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$it.cap'\\"" }; cachedEntities.each { entity -> messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$entity.cap'\\"" } %>{{imports}}
 /** Jms to Cdi MDB for '$module.name' for containers and config objects*/
 ${macros.generate('metaAttributesBridge', c)}
+public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<Object> {
+
+  ${macros.generate('setEventListenerExternal', c)}
+}
 ''')
 
 
@@ -640,8 +644,13 @@ ${ret-newLine}''')
       //logic
 
 
-      template('setEventListener', body: '''@Inject
+      template('setEventListener', body: '''@${c.name('Inject')}
   public void setEventListener(${module.cap}EventToCdi eventListener) {
+    super.setEventListener(eventListener);
+  }''')
+
+      template('setEventListenerExternal', body: '''@${c.name('Inject')}
+  public void setEventListener(${module.cap}EventToCdiExternal eventListener) {
     super.setEventListener(eventListener);
   }''')
 

@@ -37,7 +37,7 @@ class Jpa extends Facet {
       'TemporalType' : 'javax.persistence', 'GenerationType' : 'javax.persistence', 'TableGenerator' : 'javax.persistence',
       'GeneratedValue' : 'javax.persistence', 'MappedSuperclass' : 'javax.persistence', 'Transient' : 'javax.persistence',
       'Transactional' : 'javax.transaction', 'Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb',
-      'MessageDriven' : 'javax.ejb', 'ActivationConfigProperty' : 'javax.ejb']
+      'MessageDriven' : 'javax.ejb', 'ActivationConfigProperty' : 'javax.ejb', 'MessageListener' :'javax.jms']
 
     return {
       extModule(name: 'Jpa') {

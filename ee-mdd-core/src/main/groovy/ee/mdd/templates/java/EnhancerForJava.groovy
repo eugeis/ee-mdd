@@ -1046,13 +1046,13 @@ class EnhancerForJava {
           def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
           def environment = builder.meta(type: 'Environment', value: [:])
           environment.value['executions'] = '{ PRODUCTIVE }'
-          environment.value['runtimes'] = "{ CLIENT } ${c.className}"
+          environment.value['runtimes'] = '{ CLIENT }'
           supportsEnvironments.value.add(environment)
           metasForBridge << supportsEnvironments
           metasForBridge << builder.meta(type: 'Traceable')
         } else {
           def messageDriven = builder.meta(type: 'MessageDriven', value: [:])
-          messageDriven.value['messageListenerInterface'] = 'MessageListener.class'
+          messageDriven.value['messageListenerInterface'] = "${c.name('MessageListener')}.class"
           def configProps = []
           def destinationValue, destinationTypeValue
           if(c.className.contains('Import')) {
@@ -1105,7 +1105,14 @@ class EnhancerForJava {
           configProps.add(messageSelector.annotation(c))
           def activationConfigValue = "{ \n      " + configProps.join(',\n      ') + "}"
           messageDriven.value['activationConfig'] = activationConfigValue
+
+          def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
+          def environment = builder.meta(type: 'Environment', value: [:])
+          environment.value['executions'] = '{ PRODUCTIVE }'
+          environment.value['runtimes'] = '{ SERVER }'
+          supportsEnvironments.value.add(environment)
           metasForBridge << messageDriven
+          metasForBridge << supportsEnvironments
         }
         metasForBridge
       }
