@@ -21,6 +21,12 @@ import ee.mdd.model.Element
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Container extends DataType {
+  Controller controller
+
+  def add(Controller item) {
+    controller = super.add(item)
+  }
 }

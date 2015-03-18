@@ -15,16 +15,11 @@
  */
 package ee.mdd.templates.java
 
-import com.sun.org.apache.xerces.internal.impl.xs.traversers.Container
-
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
-import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Service
 
 
 
@@ -141,6 +136,8 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
         template('jmsToCdi', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdi %> ${macros.generate('jmsToCdi', c)}<% } %>''')
+        template('jmsToCdiMdb', appendName: true, body: '''<% def cachedContainers = module.containers.findAll { it.controller.cache }%><% if (cachedContainers || module.configs) { %><% c.className = c.item.n.cap.jmsToCdiMdb %> ${macros.generate('jmsToCdiMdb', c)}<% } %>''')
+
       }
     }
   }

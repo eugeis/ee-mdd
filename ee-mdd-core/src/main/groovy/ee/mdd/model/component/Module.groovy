@@ -37,6 +37,7 @@ class Module extends StructureUnit {
   List<Channel> channels = []
   List<Dependency> dependencies = []
   List<Config> configs = []
+  List<Container> containers = []
 
   protected boolean init() {
     super.init()
@@ -82,5 +83,8 @@ class Module extends StructureUnit {
   }
   def add(Config child) {
     configs << child; super.add(child)
+  }
+  def add(Container child) {
+    containers << child; super.add(child)
   }
 }

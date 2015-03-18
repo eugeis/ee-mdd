@@ -93,7 +93,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   def config = new CompositeFactory(beanClass: Config, parent: dataType)
   def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
-  def container = new CompositeFactory(beanClass: Container, parent: dataType)
+  def container = new CompositeFactory(beanClass: Container, childFactories: ['controller'], parent: dataType)
   def controller = new CompositeFactory(beanClass: Controller, parent: cu)
   def index = new CompositeFactory(beanClass: Index)
   def initializer = new CompositeFactory(beanClass: Initializer, parent: controller)

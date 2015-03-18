@@ -550,6 +550,14 @@ public class $className extends ${c.name('JmsToEventListener')} {
   }
 }''')
 
+      template('jmsToCdiMdb', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdiMdb } %><% def cachedEntities = []; def cachedContainers = module.containers.findAll { it.controller.cache };
+cachedContainers.each { cachedContainer -> cachedContainer.props.each { prop -> if(!cachedEntities.contains(prop.type)) { cachedEntities.add(prop.type) } } };
+c.messageSelectors = cachedContainers.collect { "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\"= '$it.cap'\\"" }; module.configs.each { messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$it.cap'\\"" }; cachedEntities.each { entity -> messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$entity.cap'\\"" } %>{{imports}}
+/** Jms to Cdi MDB for '$module.name' for containers and config objects*/
+${macros.generate('metaAttributesBridge', c)}
+''')
+
+
 
       //tests
 

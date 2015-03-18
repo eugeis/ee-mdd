@@ -70,6 +70,8 @@ class ModelBuilderExample {
                   prop('MotherStation', type: 'MotherStation')
                   prop('ProtectionRequirement', type: 'ProtectionRequirement')
                   prop('Trophy', type: 'Trophy')
+
+                  controller(cache: true) {}
                 }
 
                 entity('Trophy') {
@@ -237,7 +239,7 @@ class ModelBuilderExample {
                   prop('task', type:'Task', opposite:'actions', description: '')
                   prop('name', type:'String')
                 }
-                
+
                 channel('NotificationTopic') {
                   message(ref: 'TaskContainer')
                   message(ref: 'TaskAction')

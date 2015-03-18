@@ -1038,23 +1038,79 @@ class EnhancerForJava {
     Channel.metaClass {
 
       metasForBridge << { Context c ->
-        def key = System.identityHashCode(delegate) + 'metasForBridge'
-        if(!properties.containsKey(key)) {
-          Channel channel = delegate
-          ModelBuilder builder = channel.component.builder
-          def metasForBridge = []
+        Channel channel = delegate
+        ModelBuilder builder = channel.component.builder
+        def metasForBridge = []
+        if(!(c.className.contains('Mdb'))) {
           metasForBridge << builder.meta(type: 'ApplicationScoped' )
           def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
           def environment = builder.meta(type: 'Environment', value: [:])
           environment.value['executions'] = '{ PRODUCTIVE }'
-          environment.value['runtimes'] = '{ CLIENT }'
+          environment.value['runtimes'] = "{ CLIENT } ${c.className}"
           supportsEnvironments.value.add(environment)
           metasForBridge << supportsEnvironments
           metasForBridge << builder.meta(type: 'Traceable')
-          properties[key] = metasForBridge
+        } else {
+          def messageDriven = builder.meta(type: 'MessageDriven', value: [:])
+          messageDriven.value['messageListenerInterface'] = 'MessageListener.class'
+          def configProps = []
+          def destinationValue, destinationTypeValue
+          if(c.className.contains('Import')) {
+            destinationValue = 'JMS_IMPORT_QUEUE'
+            destinationTypeValue = 'QUEUE'
+          } else {
+            destinationValue = 'JMS_NOTIFICATION_TOPIC'
+            destinationTypeValue = 'TOPIC'
+          }
+
+          def connectionFactory = builder.meta(type:'ActivationConfigProperty', value: [:])
+          connectionFactory.value['propertyName'] = 'CONNECTION_FACTORY_JNDI_NAME'
+          connectionFactory.value['propertyValue'] = "${module.cap}Constants.JMS_CONNECTION_FACTORY"
+
+          def destinationJndi = builder.meta(type:'ActivationConfigProperty', value: [:])
+          destinationJndi.value['propertyName'] = 'DESTINATION_JNDI_NAME'
+          destinationJndi.value['propertyValue'] = "${module.cap}Constants.$destinationValue"
+
+          def destination = builder.meta(type: 'ActivationConfigProperty', value: [:])
+          destination.value['propertyName'] = 'DESTINATION'
+          destination.value['propertyValue'] = "${module.cap}Constants.$destinationValue"
+
+          def destinationType = builder.meta(type: 'ActivationConfigProperty', value: [:])
+          destinationType.value['propertyName'] = 'DESTINATION_TYPE'
+          destinationType.value['propertyValue'] = "$destinationTypeValue"
+
+          def topicMessages = builder.meta(type: 'ActivationConfigProperty', value : [:])
+          topicMessages.value['propertyName'] = 'TOPIC_MESSAGES_DISTRIBUTION_MODE'
+          topicMessages.value['propertyValue'] = 'ONE_COPY'
+
+          def distributedDestination = builder.meta(type: 'ActivationConfigProperty', value: [:])
+          distributedDestination.value['propertyName'] = 'DISTRIBUTED_DESTINATION_CONNECTION'
+          distributedDestination.value['propertyValue'] = 'EVERY_MEMBER'
+
+          def messageSelector = builder.meta(type: 'ActivationConfigProperty', value: [:])
+          messageSelector.value['propertyName'] = 'MESSAGE_SELECTOR'
+          if(c.className.contains('ImportData'))
+            messageSelector.value['propertyValue'] = "datatype = '" + "${module.shared.names.constants}.JMS_MESSAGE_SELECTOR_${item.underscored}_DATA" + "'"
+          else if(c.className.contains('Import'))
+            messageSelector.value['propertyValue'] = "datatype = '" + "${module.shared.names.constants}.JMS_MESSAGE_SELECTOR_${item.underscored}" + "'"
+          else
+            messageSelector.value['propertyValue'] = c.messageSelectors.join(' + " OR " + ')
+
+          configProps.add(connectionFactory.annotation(c))
+          configProps.add(destinationJndi.annotation(c))
+          configProps.add(destination.annotation(c))
+          configProps.add(destinationType.annotation(c))
+          configProps.add(topicMessages.annotation(c))
+          configProps.add(distributedDestination.annotation(c))
+          configProps.add(messageSelector.annotation(c))
+          def activationConfigValue = "{ \n      " + configProps.join(',\n      ') + "}"
+          messageDriven.value['activationConfig'] = activationConfigValue
+          metasForBridge << messageDriven
         }
-        properties[key]
+        metasForBridge
       }
+
+
     }
 
     MetaAttribute.metaClass {
