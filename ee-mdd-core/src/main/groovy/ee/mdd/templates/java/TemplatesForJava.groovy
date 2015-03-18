@@ -128,17 +128,25 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
         template('ifcContainer', appendName: true, body: '''<% c.className = "${item.cap}Base" %>''')
-        template('ifcContainerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
+        template('ifcContainerExtends', appendName:
+        true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
       }
 
       items ('jmsToCdi',
       query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
 
         template('jmsToCdi', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdi %> ${macros.generate('jmsToCdi', c)}<% } %>''')
         template('jmsToCdiMdb', appendName: true, body: '''<% def cachedContainers = module.containers.findAll { it.controller.cache }%><% if (cachedContainers || module.configs) { %><% c.className = c.item.n.cap.jmsToCdiMdb %> ${macros.generate('jmsToCdiMdb', c)}<% } %>''')
 
       }
+
+      //      items ('notificationPlugin',
+      //      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
+      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
+      //
+      //        template('notificationPlugin', appendName: true, body: '''<% def modules = []; modules.addAll(component.modules.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = component.cap+"NotificationPlugin" %> ${macros.generate('notificationPlugin', c)} <% } %> ''')
+      //      }
     }
   }
 }
