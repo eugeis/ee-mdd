@@ -352,7 +352,7 @@ class EnhancerForJava {
           metasForService << remote
           def transaction = builder.meta(type: 'TransactionAttribute', value: "TransactionAttributeType.REQUIRES_NEW")
           metasForService << transaction
-          def supports = builder.meta(type: 'SupportsEnvironment', multi: true, value: [])
+          def supports = builder.meta(type: 'SupportsEnvironments', multi: true, value: [])
           def environment1 = builder.meta(type: 'Environment', value: [:])
           def environment2 = builder.meta(type: 'Environment', value: [:])
           environment1.value['runtimes'] = "{ SERVER }"
