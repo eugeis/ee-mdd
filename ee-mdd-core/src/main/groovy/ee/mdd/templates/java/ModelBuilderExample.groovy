@@ -249,6 +249,13 @@ class ModelBuilderExample {
               }
 
               module('backend') {
+
+                entity('backendEntity') {
+                  prop('id', type: 'Long', unique: true, primaryKey: true)
+                  prop('age', type: 'int')
+                  prop('size', type: 'int')
+                }
+
                 controller('TaskAgregator') {
                   op('hello', ret: 'String', body: '#testBody') {
                     param('test', type: 'String')

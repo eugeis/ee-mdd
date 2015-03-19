@@ -47,7 +47,10 @@ class StructureUnit extends Composite implements BuilderAware {
 
   Names getN() {
     if (!n) {
-      n = new Names(this, key)
+      if(key)
+        n = new Names(this, key)
+      else
+        n = new Names(this, name)
     }
     n
   }

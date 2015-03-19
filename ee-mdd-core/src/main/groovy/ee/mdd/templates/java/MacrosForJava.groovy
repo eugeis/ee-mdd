@@ -558,17 +558,42 @@ ${macros.generate('metaAttributesBridge', c)}
 public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<Object> {
 
   ${macros.generate('setEventListenerExternal', c)}
-}
-''')
+}''')
 
-      template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %>{{imports}}
+      template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 ${macros.generate('metaAttributesBridge', c)}
 public $className extends PluginActivator {
 
   public static final String ID = ${className}.class.getName();
+  <% modules.each { m-> %><% if(m.name == 'backend') { %>
+  private ${m.parent.key.capitalize()}JmsToCdi ${m.parent.key}JmsToCdi;<% } else { %>
+  private ${m.n.cap.jmsToCdi} ${m.name}JmsToCdi;<% } } %>
 
-}
-''')
+  public $className() {
+    super(ID);
+  }
+
+  @Override
+  protected void initialize(LifecycleEvent event) {<% modules.each { m -> %><% if(m.name == 'backend') { %>
+    ${m.parent.key}JmsToCdi.initialize();<% } else { %>
+    ${m.name}JmsToCdi.initialize();<% } } %>
+  }
+
+  @Override
+  protected void shutdown(LifecycleEvent event) {<% modules.each { m -> %><% if(m.name == 'backend') { %>
+    ${m.parent.key}JmsToCdi.close();<% } else { %>
+    ${m.name}JmsToCdi.close();<% } } %>
+  }<% modules.each { m -> %><% if(m.name == 'backend') {%>
+
+  @Inject
+  public void set${m.parent.key.capitalize()}JmsToCdi(${m.parent.key.capitalize()}JmsToCdi ${m.parent.key}JmsToCdi) {
+    this.${m.parent.key}JmsToCdi = ${m.parent.key}JmsToCdi;
+  }<% } else { %>
+  @Inject
+  public void set${m.nam.capitalize()}JmsToCdi(${m.parent.key.capitalize()}JmsToCdi ${m.parent.key}JmsToCdi) {
+    this.${m.parent.key}JmsToCdi = ${m.parent.key}JmsToCdi;
+  }<% } } %>
+}//TODO: Adapt to a future implementation of Backend and Shared modules''')
 
 
       //tests

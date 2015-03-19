@@ -24,6 +24,7 @@ import ee.mdd.model.component.Body
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.Delete
@@ -165,6 +166,19 @@ class EnhancerForJava {
           properties[key]
         }
         properties[key] = ret
+      }
+    }
+
+    Component.metaClass {
+
+      getBackends << {
+        ->
+        def key = System.identityHashCode(delegate) + 'backends'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.modules.findAll { m -> m.name.equals('backend') }
+          properties[key] = ret
+        }
+        properties[key]
       }
     }
 
