@@ -562,7 +562,7 @@ public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')
 
       template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 ${macros.generate('metaAttributesBridge', c)}
-public $className extends PluginActivator {
+public class $className extends PluginActivator {
 
   public static final String ID = ${className}.class.getName();
   <% modules.each { m-> %><% if(m.name == 'backend') { %>
@@ -574,7 +574,7 @@ public $className extends PluginActivator {
   }
 
   @Override
-  protected void initialize(LifecycleEvent event) {<% modules.each { m -> %><% if(m.name == 'backend') { %>
+  protected void initialize(${c.name('LifecycleEvent')} event) {<% modules.each { m -> %><% if(m.name == 'backend') { %>
     ${m.parent.key}JmsToCdi.initialize();<% } else { %>
     ${m.name}JmsToCdi.initialize();<% } } %>
   }
