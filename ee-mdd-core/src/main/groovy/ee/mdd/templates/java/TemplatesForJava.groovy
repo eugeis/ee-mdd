@@ -17,9 +17,13 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
+import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
+import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Service
 
 
 
@@ -141,12 +145,12 @@ class TemplatesForJava {
 
       }
 
-      //      items ('notificationPlugin',
-      //      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
-      //
-      //        template('notificationPlugin', appendName: true, body: '''<% def modules = []; modules.addAll(component.modules.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = component.cap+"NotificationPlugin" %> ${macros.generate('notificationPlugin', c)} <% } %> ''')
-      //      }
+      items ('notificationPlugin',
+      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
+
+        template('notificationPlugin', appendName: true, body: '''<% def modules = []; modules.addAll(component.modules.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = component.n.cap.notificationPlugin %> ${macros.generate('notificationPlugin', c)} <% } %> ''')
+      }
     }
   }
 }

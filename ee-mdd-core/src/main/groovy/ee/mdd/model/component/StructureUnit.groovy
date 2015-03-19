@@ -15,17 +15,15 @@
  */
 package ee.mdd.model.component
 
-import java.util.List;
-
-import ee.mdd.builder.BuilderAware;
+import ee.mdd.builder.BuilderAware
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.model.Composite
-import groovy.lang.Closure;
 
 
 
 /**
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class StructureUnit extends Composite implements BuilderAware {
   String key
@@ -49,7 +47,7 @@ class StructureUnit extends Composite implements BuilderAware {
 
   Names getN() {
     if (!n) {
-      n = new Names(key)
+      n = new Names(this, key)
     }
     n
   }
@@ -66,5 +64,6 @@ class StructureUnit extends Composite implements BuilderAware {
     namespace = item
   }
 
-  Closure childBuilder() { }
+  Closure childBuilder() {
+  }
 }

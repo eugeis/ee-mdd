@@ -555,9 +555,18 @@ cachedContainers.each { cachedContainer -> cachedContainer.props.each { prop -> 
 c.messageSelectors = cachedContainers.collect { "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\"= '$it.cap'\\"" }; module.configs.each { messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$it.cap'\\"" }; cachedEntities.each { entity -> messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$entity.cap'\\"" } %>{{imports}}
 /** Jms to Cdi MDB for '$module.name' for containers and config objects*/
 ${macros.generate('metaAttributesBridge', c)}
-public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms<Object> {
+public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<Object> {
 
   ${macros.generate('setEventListenerExternal', c)}
+}
+''')
+
+      template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %>{{imports}}
+${macros.generate('metaAttributesBridge', c)}
+public $className extends PluginActivator {
+
+  public static final String ID = ${className}.class.getName();
+
 }
 ''')
 
