@@ -147,12 +147,20 @@ class TemplatesForJava {
         template('notificationPlugin', appendName: true, body: '''<% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = component.n.cap.notificationPlugin %> ${macros.generate('notificationPlugin', c)} <% } %> ''')
       }
 
-      //      items('cdiToJms',
-      //      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
-      //
-      //        template('cdiToJms', appendName: true, body: '''''')
-      //      }
+      items('cdiToJms',
+      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
+
+        template('cdiToJms', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.cdiToJms %> ${macros.generate('cdiToJms', c)}<% } %>''')
+      }
+
+      items('eventToCdi',
+      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
+
+        template('cdiToJms', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.cdiToJms %> ${macros.generate('cdiToJms', c)}<% } %>''')
+      }
+
     }
   }
 }

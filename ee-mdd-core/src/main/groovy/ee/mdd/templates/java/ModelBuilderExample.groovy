@@ -32,6 +32,7 @@ class ModelBuilderExample {
         model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test') {
 
           java()
+          jms()
           cdi()
           jpa()
           test()
@@ -250,7 +251,7 @@ class ModelBuilderExample {
 
               module('backend') {
 
-                entity('backendEntity') {
+                entity('Area') {
                   prop('id', type: 'Long', unique: true, primaryKey: true)
                   prop('age', type: 'int')
                   prop('size', type: 'int')

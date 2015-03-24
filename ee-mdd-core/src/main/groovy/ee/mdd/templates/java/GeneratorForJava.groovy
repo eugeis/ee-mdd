@@ -17,12 +17,13 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.ModelBuilder
 import ee.mdd.generator.Processors
-import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Model
+import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.java.Cdi
 import ee.mdd.model.component.java.Cg
 import ee.mdd.model.component.java.Java
+import ee.mdd.model.component.java.Jms
 import ee.mdd.model.component.java.Jpa
 import ee.mdd.model.component.java.Test
 import ee.mdd.templates.java.cg.TemplatesForJavaCg
@@ -33,41 +34,42 @@ import ee.mdd.templates.java.cg.TemplatesForJavaCg
  */
 class GeneratorForJava {
 
-	static void main(def args) {
-		String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
+  static void main(def args) {
+    String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
 
-		println args
-		EnhancerForJava.enhanceClasses()
+    println args
+    EnhancerForJava.enhanceClasses()
 
-		def builder = new ModelBuilder()
-		registerFacets(builder)
+    def builder = new ModelBuilder()
+    registerFacets(builder)
 
-		Model model =  ModelBuilderExample.build (builder)
+    Model model =  ModelBuilderExample.build (builder)
 
-		//create props for delegates
-		model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
-			d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+    //create props for delegates
+    model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
+      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
 
-		//model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
+    //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
 
-		builder.refAttrResolver.printNotResolved()
+    builder.refAttrResolver.printNotResolved()
 
-		def generator = TemplatesForJavaCg.build()
-		def commonProcessorFactory = new Processors()
-		def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
+    def generator = TemplatesForJavaCg.build()
+    def commonProcessorFactory = new Processors()
+    def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
 
-		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
-		generator.add(javaProcessorFactory.javaImportsPathProcessor())
-		generator.add(commonProcessorFactory.printProcessor())
-		generator.add(commonProcessorFactory.fileProcessor(target))
-		generator.generate(model)
-	}
+    generator.add(commonProcessorFactory.macrosProcessor(MacrosForJava.build()))
+    generator.add(javaProcessorFactory.javaImportsPathProcessor())
+    generator.add(commonProcessorFactory.printProcessor())
+    generator.add(commonProcessorFactory.fileProcessor(target))
+    generator.generate(model)
+  }
 
-	private static registerFacets(ModelBuilder builder) {
-		builder.registerFacet(Java)
-		builder.registerFacet(Jpa)
-		builder.registerFacet(Cdi)
-		builder.registerFacet(Test)
-		builder.registerFacet(Cg)
-	}
+  private static registerFacets(ModelBuilder builder) {
+    builder.registerFacet(Java)
+    builder.registerFacet(Jms)
+    builder.registerFacet(Jpa)
+    builder.registerFacet(Cdi)
+    builder.registerFacet(Test)
+    builder.registerFacet(Cg)
+  }
 }

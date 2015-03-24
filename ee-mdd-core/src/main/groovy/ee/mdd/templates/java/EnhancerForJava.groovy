@@ -1064,6 +1064,13 @@ class EnhancerForJava {
           supportsEnvironments.value.add(environment)
           metasForBridge << supportsEnvironments
           metasForBridge << builder.meta(type: 'Traceable')
+        } else if(c.className.contains('CdiToJms')) {
+          metasForBridge << builder.meta(type: 'Stateless')
+          def supportsEnvironments = builder.meta('SupportsEnvironments', value: [])
+          def environment = builder.meta(type: 'Environment', value: [:])
+          environment.value['runtimes'] = '{ SERVER }'
+          supportsEnvironments.value.add(environment)
+          metasForBride << supportsEnvironments
         } else {
           def messageDriven = builder.meta(type: 'MessageDriven', value: [:])
           messageDriven.value['messageListenerInterface'] = "${c.name('MessageListener')}.class"

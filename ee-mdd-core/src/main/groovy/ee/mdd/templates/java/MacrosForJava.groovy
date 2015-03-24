@@ -327,7 +327,7 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}
 }''')
 
 
-      template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
+      template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
 public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
@@ -559,6 +559,58 @@ public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')
 
   ${macros.generate('setEventListenerExternal', c)}
 }''')
+
+      template('cdiToJms', body: '''<% if (!c.className) { c.className = item.n.cap.cdiToJms } %>{{imports}}
+/** Cdi to Jms bridge for '$module.name' */
+${macros.generate('metaAttributesBridge', c)}
+public class $className extends ${c.name('JmsSender')} {
+
+  @Inject
+  protected ${module.n.cap.moduleFactory} modelFactory;
+
+  public $className () {
+    super(JMS_NOTIFICATION_TOPIC, JMS_CONNECTION_FACTORY);
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <T> ${c.name('Event')}<T> perpareBeforeSent(Event<T> event) {
+    if (${c.name('CollectionUtils')}.isNotEmpty(event.getObjectList())) {
+      ${c.name('Factory')}<T> factory = (Factory<T>) modelFactory.findFactoryByType(event.getObjectType());
+      if (factory != null) {
+        ((${c.name('EventImpl')}<T>) event).setObjectList(factory.convertList(event.getObjectList()));
+      }
+    }
+    return event;
+  }<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
+
+  public void on${entity.n.cap.event}(@${c.name('Observes')} @$component.cap @${c.name('Backend')} ${entity.n.cap.event} event) {
+    send(event); 
+  }<% } } %><% module.configs.each { config -> if(config.event) { %>
+
+  public void on${config.n.cap.event}(@${c.name('Observes')} @$component.cap @${c.name('Backend')} ${config.n.cap.event} event) {
+    send(event); 
+  }<% } } %><% module.containers.each { container -> %>
+
+  public void on${container.n.cap.event}(@${c.name('Observes')} @$component.cap @${c.name('Backend')} ${container.n.cap.event} event) {
+    send(event); 
+  }<% } %>
+
+  @Override
+  @${c.name('Resource')}(mappedName = JMS_CONNECTION_FACTORY)
+  public void setConnectionFactory(${c.name('ConnectionFactory')} connectionFactory) {
+    super.setConnectionFactory(connectionFactory);
+  }
+
+  @Override
+  @Resource(mappedName = JMS_NOTIFICATION_TOPIC, type = ${c.name('Topic')}.class)
+  public void setDestination(${c.name('Destination')} destination) {
+    super.setDestination(destination);
+  }
+}
+ 
+
+
+''')
 
       template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 ${macros.generate('metaAttributesBridge', c)}
