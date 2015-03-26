@@ -644,6 +644,33 @@ public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} 
 public class $className extends ${className}Base {
 }''')
 
+      template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
+/** Event Listener to Cdi for '$module.name' */
+public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} {<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+
+  @${c.name('Inject')}
+  @${component.cap}
+  @${c.name('External')}
+  protected Event<${entity.n.cap.event}> ${entity.uncap}Publisher;<% } } %><% module.configs.each { config -> if(config.event) { %>
+
+  @${c.name('Inject')}
+  @${component.cap}
+  @${c.name('External')}
+  protected Event<${config.n.cap.event}> ${config.uncap}Publisher;<% } } %><% module.containers.each { container -> %>
+  
+  @${c.name('Inject')}
+  @${component.cap}
+  @${c.name('External')}
+  protected Event<${container.n.cap.event}> ${container.uncap}Publisher;<% } %>
+
+  @${c.name('PostConstruct')}
+  protected void postConstruct() {<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
+    registerEventPublisher(${entity.n.cap.event}.class, ${entity.uncap}Publisher);<% } } %><% module.configs.each { config -> if (config.event) { %>
+    registerEventPublisher(${config.n.cap.event}.class, ${config.uncap}Publisher);<% } } %><% module.containers.each { container -> %>
+    registerEventPublisher(${container.n.cap.event}.class, ${container.uncap}Publisher);<% } %>
+  }
+}''')
+
       template('eventToCdiExternalExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
 /** Listener for event to Cdi bridges for '$module.name' with 'External' qualifier. */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${className}Base {

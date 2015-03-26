@@ -17,13 +17,9 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
-import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Service
 
 
 
@@ -141,14 +137,8 @@ class TemplatesForJava {
 
         template('jmsToCdi', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdi %> ${macros.generate('jmsToCdi', c)}<% } %>''')
         template('jmsToCdiMdb', appendName: true, body: '''<% def cachedContainers = module.containers.findAll { it.controller.cache }%><% if (cachedContainers || module.configs) { %><% c.className = c.item.n.cap.jmsToCdiMdb %> ${macros.generate('jmsToCdiMdb', c)}<% } %>''')
-
-      }
-
-      items ('notificationPlugin',
-      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
-
         template('notificationPlugin', appendName: true, body: '''<% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = component.n.cap.notificationPlugin %> ${macros.generate('notificationPlugin', c)} <% } %> ''')
+
       }
 
       items('cdiToJms',
@@ -164,6 +154,7 @@ class TemplatesForJava {
 
         template('eventToCdi', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiBase %> ${macros.generate('eventToCdi', c)}<% } %>''')
         template('eventToCdiExtends', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdi %> ${macros.generate('eventToCdiExtends', c)}<% } %>''')
+        template('eventToCdiExternal', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternalBase %> ${macros.generate('eventToCdiExternal', c)}<% } %>''')
         template('eventToCdiExternalExtends', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternal %> ${macros.generate('eventToCdiExternalExtends', c)}<% } %>''')
       }
 
