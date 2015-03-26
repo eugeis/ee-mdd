@@ -613,6 +613,11 @@ public class $className extends ${c.name('JmsSender')} {
 public class $className extends ${className}Base {
 }''')
 
+      template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
+/** Listener for event to Cdi bridges for '$module.name' with 'External' qualifier. */${macros.generate('metaAttributesBridge', c)}
+public class $className extends ${className}Base {
+}''')
+
       template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 ${macros.generate('metaAttributesBridge', c)}
 public class $className extends PluginActivator {

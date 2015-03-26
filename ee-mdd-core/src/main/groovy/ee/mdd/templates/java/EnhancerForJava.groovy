@@ -1062,6 +1062,8 @@ class EnhancerForJava {
           environment.value['executions'] = '{ PRODUCTIVE }'
           if(c.className.contains('EventToCdi'))
             environment.value['runtimes'] = '{ CLIENT, SERVER }'
+          else if(c.className.contains('External'))
+            environment.value['runtimes'] = '{ SERVER }'
           else
             environment.value['runtimes'] = '{ CLIENT }'
           supportsEnvironments.value.add(environment)
