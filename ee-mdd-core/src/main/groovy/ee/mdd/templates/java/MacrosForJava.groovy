@@ -608,6 +608,37 @@ public class $className extends ${c.name('JmsSender')} {
   }
 }''')
 
+      template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
+/** Event Listener to Cdi for '$module.name' */
+public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} { 
+
+  @${c.name('Inject')}
+  @${component.cap}
+  protected Event<${c.name('ConnectionMetaEvent')}> connectionMetaEventPublisher;<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
+
+  @Inject
+  @${component.cap}
+  protected Event<${entity.n.cap.event}> ${entity.uncap}Publisher;<% } } %><% module.configs.each { config-> if (config.event) { %>
+
+  @Inject
+  @${component.cap}
+  @${c.name('Backend')}
+  protected Event<${config.n.cap.event}> ${config.uncap}Publisher;<% } } %><% module.containers.each { container-> %>
+
+  @Inject
+  @${component.cap}
+  @${c.name('Backend')}
+  protected Event<${container.n.cap.event}> ${container.uncap}Publisher;<% } %>
+
+  @${c.name('PostConstruct')}
+  protected void postConstruct() {
+    registerEventPublisher(ConnectionMetaEvent.class, connectionMetaEventPublisher);<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+    registerEventPublisher(${entity.n.cap.event}.class, ${entity.uncap}Publisher);<% } } %><% module.configs.each { config -> if (config.event) { %>
+    registerEventPublisher(${config.n.cap.event}.class, ${config.uncap}Publisher);<% } } %><% module.containers.each { container -> %>
+    registerEventPublisher(${container.n.cap.event}.class, ${container.uncap}Publisher);<% } %>
+  }
+}''')
+
       template('eventToCdiExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdi } %>{{imports}}
 /** Listener for Cdi to Jms bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${className}Base {
