@@ -608,12 +608,12 @@ public class $className extends ${c.name('JmsSender')} {
   }
 }''')
 
-      template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdi } %>{{imports}}
+      template('eventToCdiExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdi } %>{{imports}}
 /** Listener for Cdi to Jms bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${className}Base {
 }''')
 
-      template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
+      template('eventToCdiExternalExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
 /** Listener for event to Cdi bridges for '$module.name' with 'External' qualifier. */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${className}Base {
 }''')
