@@ -606,11 +606,12 @@ public class $className extends ${c.name('JmsSender')} {
   public void setDestination(${c.name('Destination')} destination) {
     super.setDestination(destination);
   }
-}
- 
+}''')
 
-
-''')
+      template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdi } %>{{imports}}
+/** Listener for Cdi to Jms bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
+public class $className extends ${className}Base {
+}''')
 
       template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 ${macros.generate('metaAttributesBridge', c)}

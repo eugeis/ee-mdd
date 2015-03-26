@@ -1055,12 +1055,15 @@ class EnhancerForJava {
         Channel channel = delegate
         ModelBuilder builder = channel.component.builder
         def metasForBridge = []
-        if(!(c.className.contains('Mdb'))) {
+        if(!(c.className.contains('Mdb')) && ( c.className.contains('JmsToCdi') || c.className.contains('EventToCdi') )) {
           metasForBridge << builder.meta(type: 'ApplicationScoped' )
           def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
           def environment = builder.meta(type: 'Environment', value: [:])
           environment.value['executions'] = '{ PRODUCTIVE }'
-          environment.value['runtimes'] = '{ CLIENT }'
+          if(c.className.contains('EventToCdi'))
+            environment.value['runtimes'] = '{ CLIENT, SERVER }'
+          else
+            environment.value['runtimes'] = '{ CLIENT }'
           supportsEnvironments.value.add(environment)
           metasForBridge << supportsEnvironments
           metasForBridge << builder.meta(type: 'Traceable')
@@ -1070,7 +1073,7 @@ class EnhancerForJava {
           def environment = builder.meta(type: 'Environment', value: [:])
           environment.value['runtimes'] = '{ SERVER }'
           supportsEnvironments.value.add(environment)
-          metasForBride << supportsEnvironments
+          metasForBridge << supportsEnvironments
         } else {
           def messageDriven = builder.meta(type: 'MessageDriven', value: [:])
           messageDriven.value['messageListenerInterface'] = "${c.name('MessageListener')}.class"
