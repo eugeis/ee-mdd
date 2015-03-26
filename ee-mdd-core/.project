@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>ee-mdd-core</name>
-	<comment/>
-	<projects/>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.groovy.core.groovyNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<buildSpec>
-		<buildCommand>
-			<name>org.eclipse.jdt.core.javabuilder</name>
-			<arguments/>
-		</buildCommand>
-	</buildSpec>
-	<linkedResources/>
+	<linkedResources>
+		<link>
+			<name>src-cg</name>
+			<type>2</type>
+			<location>D:/CG-latest/src/cg-pl/cg-pl-ee-shared/data</location>
+		</link>
+	</linkedResources>
 </projectDescription>
