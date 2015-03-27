@@ -732,6 +732,16 @@ public class $className extends ${item.n.cap.constantsBase} {
       //tests
 
 
+      template('beforeClass', body: '''
+  public void before$className() {
+    resetMocks();
+  }''')
+
+      template('afterClass', body: '''
+  public void after$className() {
+    verifyNoMoreInteractions();
+  }''')
+
       template('testProperties', body: '''
   @${c.name('Test')}
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
@@ -847,6 +857,50 @@ public class $className extends ${c.name('JmsMessagingAdapterTestCase')} {
     // then
     eventListenerIsUpdated(jmsToEventListener, eventListener);
   }
+}''')
+
+      template('cdiToJmsTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.cdiToJmsTest } %>{{imports}}
+public class $className {
+
+  protected static $item.n.cap.cdiToJms cdiToJms;
+  protected static ${c.name('JmsSendExecutor')} executor;
+  protected static ${c.name('Topic')} destination;
+  protected static ${c.name('ConnectionFactory')} connectionFactory;
+
+
+  @${c.name('BeforeClass')}
+  public static void beforeClass$className() {
+    cdiToJms = new $module.n.cap.cdiToJms();
+    cdiToJms.setConnectionFactory(connectionFactory = mock(ConnectionFactory.class));
+    cdiToJms.setDestination(destination = mock(Topic.class));
+    cdiToJms.setJmsSendExecutor(executor = mock(JmsSendExecutor.class));
+  }
+
+  @${c.name('After')}
+  ${macros.generate('afterClass', c)}
+
+  @${c.name('Before')}
+  ${macros.generate('beforeClass', c)}
+
+  protected void verifyNoMoreInteractions() {
+    Mockito.verifyNoMoreInteractions(executor);
+  }
+
+  protected void resetMocks() {
+    MockitoCg.resetMocks(executor);
+  }<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+
+  public void testOn${entity.n.cap.event}() {
+    ${entity.n.cap.event} event = mock(${entity.n.cap.event}.class);
+    cdiToJms.on${entity.n.cap.event}(event);
+    verify(executor).send(event, destination, connectionFactory);
+  }<% } } %><% module.containers.each { container-> %>
+
+  public void testOn${container.n.cap.event}() {
+    ${container.n.cap.event} event = mock(${container.n.cap.event}.class);
+    cdiToJms.on${container.n.cap.event}(event);
+    verify(executor).send(event, destination, connectionFactory);
+  }<% } %>
 }''')
 
 
