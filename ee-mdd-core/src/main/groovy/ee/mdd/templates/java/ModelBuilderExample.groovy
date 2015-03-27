@@ -65,7 +65,7 @@ class ModelBuilderExample {
                   lit('RightSide')
                 }
 
-                container('TaskContainer') {
+                container('TaskContainer', base:true) {
                   prop('Signal', type: 'Signal', cache: true)
                   prop('Um', type: 'Um', cache: true)
                   prop('MotherStation', type: 'MotherStation')
