@@ -138,7 +138,6 @@ class TemplatesForJava {
         template('jmsToCdi', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdi %> ${macros.generate('jmsToCdi', c)}<% } %>''')
         template('jmsToCdiMdb', appendName: true, body: '''<% def cachedContainers = module.containers.findAll { it.controller.cache }%><% if (cachedContainers || module.configs) { %><% c.className = c.item.n.cap.jmsToCdiMdb %> ${macros.generate('jmsToCdiMdb', c)}<% } %>''')
         template('notificationPlugin', appendName: true, body: '''<% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = component.n.cap.notificationPlugin %> ${macros.generate('notificationPlugin', c)} <% } %> ''')
-
       }
 
       items('cdiToJms',
@@ -157,6 +156,22 @@ class TemplatesForJava {
         template('eventToCdiExternal', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternalBase %> ${macros.generate('eventToCdiExternal', c)}<% } %>''')
         template('eventToCdiExternalExtends', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternal %> ${macros.generate('eventToCdiExternalExtends', c)}<% } %>''')
       }
+
+
+      items('BridgeTests',
+      query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ/ejb' ] ) } ) {
+        template('notificationPluginTest', body: '''<% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = c.item.n.cap.notificationPluginTest %> ${macros.generate('notificationPluginTest', c)}<% } %>''')
+      }
+
+      //      items('constants',
+      //      query: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item] ) } ) {
+      //
+      //        template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%> ${macros.generate('constants', c)}''')
+      //        template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
+      //      }
+
 
     }
   }

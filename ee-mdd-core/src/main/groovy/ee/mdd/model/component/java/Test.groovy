@@ -1,14 +1,13 @@
 package ee.mdd.model.component.java
 
-import groovy.lang.Closure;
-
 import ee.mdd.model.component.Facet
 
 class Test extends Facet {
 
   Closure childBuilder() {
 
-    def nameToNamespace = ['Test': 'org.junit', 'Before': 'org.junit', 'Assert': 'static junit.framework.Assert.*']
+    def nameToNamespace = ['Test': 'org.junit', 'Before': 'org.junit', 'Assert': 'static junit.framework.Assert.*', 'RunWith' : 'org.junit.runner',
+      'Mock' : 'org.mockito', 'MockitoJUnitRunner' : 'org.mockito.runners']
 
     return {
       extModule(name: 'JUnit') {

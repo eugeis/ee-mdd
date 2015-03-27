@@ -711,6 +711,23 @@ public class $className extends PluginActivator {
   }<% } } %>
 }//TODO: Adapt to a future implementation of Backend and Shared modules''')
 
+      template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>
+/** Constants for 'item.name' */
+public class $className {
+
+
+  public static boolean isSameApplication(String application) {
+    boolean ret = StringUtils.formatApplicationName(application).equals(APPLICATION);
+    return ret;
+  }
+}''')
+
+      template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
+/** Constants for '$item.name' */
+public class $className extends ${item.n.cap.constantsBase} {
+}
+''')
+
 
       //tests
 
@@ -765,6 +782,49 @@ public class $c.className {
     ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[i+1].cap}());<% } else { %>
     ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
+}''')
+
+      template('notificationPluginTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@${c.name('RunWith')}(${c.name('MockitoJUnitRunner')}.class)
+public class $className extends ${c.name('BaseTestCase')} {
+
+  private ${component.n.cap.notificationPlugin} notificationPlugin;
+  <% modules.each { m -> %>
+  @${c.name('Mock')}
+  private $m.n.cap.jmsToCdi ${m.n.cap.jmsToCdi};<% } %>
+
+  @${c.name('Before')}
+  public void before() {
+    notificationPlugin = new ${component.n.cap.notificationPlugin}();<% modules.each { m -> %>
+    notificationPlugin.set${m.n.cap.jmsToCdi}(${m.n.cap.jmsToCdi});<% } %>
+  }
+
+  @Test
+  public void initialize_forwardsTo_JmsToCdi() throws Exception {
+    // given
+    ${c.name('LifecycleEvent')} event = mock(LifecycleEvent.class);
+
+    // when
+    notificationPlugin.initialize(event);
+
+    // then<% modules.each { m -> %>
+    verify(${m.n.cap.jmsToCdi}).initialize();<% } %>
+  }
+
+  @Test
+  public void shutdown_forwardsTo_JmsToCdi() throws Exception {
+    // given
+    LifecycleEvent event = mock(LifecycleEvent.class);
+
+    // when
+    notificationPlugin.shutdown(event);
+
+    // then<% modules.each { m -> %>
+    verify(${m.n.cap.jmsToCdi}).close();<% } %>
+  }
+
 }''')
 
 

@@ -28,6 +28,7 @@ import ee.mdd.model.Composite
 class StructureUnit extends Composite implements BuilderAware {
   String key
   String version
+  String artifact
   Namespace namespace
   Names n
   Map<String, Facet> facets = [:]
