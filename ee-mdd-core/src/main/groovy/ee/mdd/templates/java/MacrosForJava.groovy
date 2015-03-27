@@ -903,6 +903,15 @@ public class $className {
   }<% } %>
 }''')
 
+      template('eventToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
+public class ${className} extends BaseTestCase {
+  @${c.name('Test')}
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.eventToCdi}.class);
+  }
+}''')
+
 
       //metaAttributes
 
