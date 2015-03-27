@@ -160,8 +160,10 @@ class TemplatesForJava {
 
       items('BridgeTests',
       query: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ/ejb' ] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
         template('notificationPluginTest', body: '''<% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %><% if(modules) { %><% c.className = c.item.n.cap.notificationPluginTest %> ${macros.generate('notificationPluginTest', c)}<% } %>''')
+        template('jmsToCdiTest', body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdiTest %> ${macros.generate('jmsToCdiTest', c)} <% } %>''')
+
       }
 
       //      items('constants',

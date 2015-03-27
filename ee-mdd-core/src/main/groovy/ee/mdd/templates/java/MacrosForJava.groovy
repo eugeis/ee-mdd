@@ -793,7 +793,7 @@ public class $className extends ${c.name('BaseTestCase')} {
   private ${component.n.cap.notificationPlugin} notificationPlugin;
   <% modules.each { m -> %>
   @${c.name('Mock')}
-  private $m.n.cap.jmsToCdi ${m.n.cap.jmsToCdi};<% } %>
+  private $m.n.cap.jmsToCdi ${m.uncap}JmsToCdi};<% } %>
 
   @${c.name('Before')}
   public void before() {
@@ -810,7 +810,7 @@ public class $className extends ${c.name('BaseTestCase')} {
     notificationPlugin.initialize(event);
 
     // then<% modules.each { m -> %>
-    verify(${m.n.cap.jmsToCdi}).initialize();<% } %>
+    verify(${m.uncap}JmsToCdi}).initialize();<% } %>
   }
 
   @Test
@@ -822,9 +822,31 @@ public class $className extends ${c.name('BaseTestCase')} {
     notificationPlugin.shutdown(event);
 
     // then<% modules.each { m -> %>
-    verify(${m.n.cap.jmsToCdi}).close();<% } %>
+    verify(${m.uncap}JmsToCdi}).close();<% } %>
   }
 
+}''')
+
+      template('jmsToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.jmsToCdiTest } %>{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${c.name('JmsMessagingAdapterTestCase')} {
+
+  @Override
+  protected Class<? extends ${c.name('JmsToEventListener')}> getAdapterUnderTest() {
+    return ${module.n.cap.jmsToCdi}.class;
+  }
+
+  @Test
+  public void setEventListener_updatesInterServiceLocator() {
+    // given
+    ${module.n.cap.jmsToCdi} jmsToEventListener = new ${module.n.cap.jmsToCdi}();
+    ${module.n.cap.eventToCdi} eventListener = mock(${module.n.cap.eventToCdi}.class);
+    // when
+    jmsToEventListener.setEventListener(eventListener);
+    // then
+    eventListenerIsUpdated(jmsToEventListener, eventListener);
+  }
 }''')
 
 
