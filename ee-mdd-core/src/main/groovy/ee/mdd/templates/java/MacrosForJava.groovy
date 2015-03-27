@@ -368,7 +368,11 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
 
       template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>
 /** Ejb implementation of {@link $item.name} */
-${macros.generate('metaAttributesService', c)}''')
+${macros.generate('metaAttributesService', c)}
+public ${item.base?'abstract ':''}class $className implements $item.name {<% if (item.useConverter) { %>
+  protected $module.n.cap.converter converter;<% } %>
+  <% item.operations.each { %> $it.ref.parent.name<% } %>
+''')
 
       template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
 /** Ejb implementation of {@link $item.name} */

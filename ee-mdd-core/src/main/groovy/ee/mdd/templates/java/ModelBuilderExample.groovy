@@ -263,7 +263,7 @@ class ModelBuilderExample {
                   }
                 }
 
-                service('CommandService') {    delegate(ref: 'TaskAgregator.hello')    }
+                service('CommandService', base: true) {    delegate(ref: 'TaskAgregator.hello')    }
               }
 
               module('ui', namespace: 'ui') {

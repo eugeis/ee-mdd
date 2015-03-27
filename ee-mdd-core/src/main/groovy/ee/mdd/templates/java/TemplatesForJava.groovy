@@ -17,9 +17,9 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
-import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Service
 
 
 
@@ -80,7 +80,7 @@ class TemplatesForJava {
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 
         template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
-        template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
+        //template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
       }
 
       items('implContainer',
