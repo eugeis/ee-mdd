@@ -41,6 +41,9 @@ class MacrosForJava {
   protected ${c.name('List')}<${prop.typeEjbMember}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember} $prop.uncap;<% } } } %>''')
 
+      template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(!members.contains(delegate.ref.parent)) { %>
+  protected $delegate.ref.parent.name $delegate.ref.parent.uncap<% } %><% members.add(delegate.ref.parent) %><% } %>''')
+
       template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember}> $idProp.uncap;<% } else { %>
   protected ${idProp.typeEjbMember} $idProp.uncap;<% } }%>''')
@@ -371,7 +374,18 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
 ${macros.generate('metaAttributesService', c)}
 public ${item.base?'abstract ':''}class $className implements $item.name {<% if (item.useConverter) { %>
   protected $module.n.cap.converter converter;<% } %>
-  <% item.operations.each { %> $it.ref.parent.name<% } %>
+  ${macros.generate('refsMember', c)}
+<% item.operations.each { op -> if(!op.delegateOp && op.body) { %>
+  @Override<% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
+    ${op.resolveBody(c)}
+  }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = op.rawType %>
+  @Override<% if(raw) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${op.ref.ret ? op.ref.ret.name : 'boolean'} $op.ref.name($op.ref.signature) {
+
+  }<% } } %>
 ''')
 
       template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>

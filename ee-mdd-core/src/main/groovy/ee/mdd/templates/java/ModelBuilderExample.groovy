@@ -252,9 +252,21 @@ class ModelBuilderExample {
               module('backend') {
 
                 entity('Area') {
-                  prop('id', type: 'Long', unique: true, primaryKey: true)
+                  prop('areaId', type: 'Long', unique: true, primaryKey: true)
+                  prop('name', type: 'String')
                   prop('age', type: 'int')
                   prop('size', type: 'int')
+
+                  commands {
+                    delete() { param(prop: 'areaId') }
+                  }
+
+                  finder {
+                    exist  {  param(prop: 'name') }
+                    findBy {  param(prop: 'areaId') }
+                    findBy {  param(prop: 'size') }
+                  }
+
                 }
 
                 controller('TaskAgregator') {
@@ -263,7 +275,13 @@ class ModelBuilderExample {
                   }
                 }
 
-                service('CommandService', base: true) {    delegate(ref: 'TaskAgregator.hello')    }
+                service('CommandService', base: true) {
+                  delegate(ref: 'TaskAgregator.hello')
+                  delegate(ref: 'Area.commands.DeleteByAreaId')
+                  delegate(ref: 'Area.finder.FindByAreaId')
+                  delegate(ref: 'Area.finder.FindBySize')
+                  delegate(ref: 'Area.finder.ExistByName')
+                }
               }
 
               module('ui', namespace: 'ui') {

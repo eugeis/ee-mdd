@@ -41,6 +41,7 @@ import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Service
+import ee.mdd.model.component.Type
 
 
 
@@ -70,6 +71,21 @@ class EnhancerForJava {
     Element.metaClass {
     }
 
+    Type.metaClass {
+
+      isTypeProp << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeProp'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          if(Prop.isInstance(delegate)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+    }
 
 
     CompilationUnit.metaClass {
@@ -488,6 +504,19 @@ class EnhancerForJava {
           def ret = false
           def op = delegate
           if(OperationRef.isInstance(op))
+            ret = true
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isVoid {
+        ->
+        def key = System.identityHashCode(delegate) + 'void'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def op = delegate
+          if(op.ret)
             ret = true
           properties[key] = ret
         }
