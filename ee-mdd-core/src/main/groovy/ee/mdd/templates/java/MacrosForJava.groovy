@@ -383,7 +383,8 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
   }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = op.rawType %>
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.ref.ret ? op.ref.ret.name : 'boolean'} $op.ref.name($op.ref.signature) {
+  public ${op.ref.return} $op.ref.name($op.ref.signature) {<% if(op.void) { %>
+    ${op.ref.parent}.${op.ref.name}($op.ref.signatureName);<% } else { %>
 
   }<% } } %>
 ''')

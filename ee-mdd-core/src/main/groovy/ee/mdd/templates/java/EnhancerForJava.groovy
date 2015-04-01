@@ -484,6 +484,20 @@ class EnhancerForJava {
 
     Operation.metaClass {
 
+      getReturn {
+        ->
+        def key = System.identityHashCode(delegate) + 'return'
+        if(!properties.containsKey(key)) {
+          def op = delegate
+          def ret = 'void'
+          if(op.ret) {
+            ret = op.ret.name
+          } else if (!op.ret && Exist.isInstance(op)) {
+            ret = 'boolean'
+          }
+        }
+      }
+
       isTypeBoolean {
         ->
         def key = System.identityHashCode(delegate) + 'typeBoolean'
@@ -516,7 +530,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret = false
           def op = delegate
-          if(op.ret)
+          if(!op.ret)
             ret = true
           properties[key] = ret
         }
@@ -1003,6 +1017,15 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'signature'
         if(!properties.containsKey(key)) {
           properties[key] = delegate.paramsCustom.collect { it.signature }.join(', ')
+        }
+        properties[key]
+      }
+
+      getSignatureName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'signatureName'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.paramsCustom.collect { it.name }.join(', ')
         }
         properties[key]
       }
