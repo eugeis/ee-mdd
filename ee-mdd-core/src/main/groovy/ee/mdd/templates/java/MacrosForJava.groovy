@@ -62,7 +62,6 @@ class MacrosForJava {
   }<% } %>''')
 
       template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
-
   public $className(${constr.signature(c)}) {
     super($constr.call);
   }<% } %>''')
@@ -141,7 +140,7 @@ class MacrosForJava {
   ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
   public abstract ${c.name('List')}<${prop.relTypeEjb}> $prop.getter;<% } else { %> 
-  <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter { <% if(prop.multi) { %>
+  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter { <% if(prop.multi) { %>
     if($prop.name == null) {
       $prop.name = new ${c.name('ArrayList')}<>();
     }<% } else if (prop.type.name.startsWith('Map<')) { %>
@@ -149,7 +148,7 @@ class MacrosForJava {
       $prop.name = new ${c.name('HashMap')}<>();
     }<% } %>
     return <% if(prop.multi && prop.typeBasicType) {%>(List)<% } %>$prop.uncap; 
-  }<% } } } }%>''')
+  }//JPAGETTERS<% } } } }%>''')
 
       template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
   public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb}> $prop.uncap);<% } else if (!prop.multi) { %>
@@ -352,18 +351,18 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.b
   ${macros.generate('implOperations', c)}
 }''')
 
-      template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>
+      template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
-public ${item.base || item.virtual ? 'abstract':''} class $c.className extends <% if (superUnit) { %>superUnit.cap<% } else { %>Base<% } %> implements ${item.name} {
+public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (superUnit) { %> extends superUnit.cap<% } %> implements ${c.name(item.name)} {
   private static final long serialVersionUID = 1L;
   ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
   ${macros.generate('idPropGetter', c)}${macros.generate('propGettersBasicType', c)}${macros.generate('propSettersBasicType', c)}
   ${macros.generate('implOperationsAndDelegates', c)}${macros.generate('hashCodeAndEqualsBasicType', c)}
 }''')
 
-      template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>
+      template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */
-@Embeddable
+@${c.name('Embeddable')}
 public class $className extends ${item.n.cap.baseEmbeddable} {
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
