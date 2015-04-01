@@ -83,8 +83,8 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 
-        template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
-        //template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
+        //template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
+        template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
       }
 
       items('implContainer',
