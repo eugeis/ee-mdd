@@ -23,5 +23,6 @@ import ee.mdd.model.Element
  * @author Eugen Eisler
  */
 class OperationRef extends Operation {
-  Element ref
+  Operation ref
+  Element retRef
 }

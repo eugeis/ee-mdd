@@ -530,8 +530,34 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret = false
           def op = delegate
-          if(!op.ret)
+          if(!op.ret) {
             ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isResultExpression {
+        ->
+        def key = System.identityHashCode(delegate) + 'resultExpression'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          def op = delegate
+          if(op.ret instanceof Prop)
+            ret = true
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isReturnTypeEjb {
+        ->
+        def key = System.identityHashCode(delegate) + 'returnTypeEjb'
+        if(!properties.containsKey(key)) {
+          def op = delegate
+          def retValue = op.ret
+          def ret = delegate.resultExpression ? delegate.resultExpression : (retValue instanceof Entity || retValue instanceof BasicType)
           properties[key] = ret
         }
         properties[key]
@@ -1241,4 +1267,3 @@ class EnhancerForJava {
 
   }
 }
-

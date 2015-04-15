@@ -148,7 +148,7 @@ class MacrosForJava {
       $prop.name = new ${c.name('HashMap')}<>();
     }<% } %>
     return <% if(prop.multi && prop.typeBasicType) {%>(List)<% } %>$prop.uncap; 
-  }//JPAGETTERS<% } } } }%>''')
+  }<% } } } }%>''')
 
       template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
   public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb}> $prop.uncap);<% } else if (!prop.multi) { %>
@@ -324,7 +324,7 @@ public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.s
 }''')
 
       template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
-public ${c.item.virtual?'abstract':''} class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
@@ -375,17 +375,33 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
   protected $module.n.cap.converter converter;<% } %>
   ${macros.generate('refsMember', c)}
 <% item.operations.each { op -> if(!op.delegateOp && op.body) { %>
+
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
     ${op.resolveBody(c)}
-  }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = op.rawType %>
+  }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = op.rawType || (ref.resultExpression && ref.ret.multi && ref.ret.typeEntity) %>
+  
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.ref.return} $op.ref.name($op.ref.signature) {<% if(op.void) { %>
-    ${op.ref.parent}.${op.ref.name}($op.ref.signatureName);<% } else { %>
-
-  }<% } } %>
+  public ${ref.return} $ref.name($ref.signature) {<% if(ref.void) { %>
+    ${ref.parent.name}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
+    ${ref.return} ret = ${ref.parent.name}.${ref.name}($ref.signatureName);
+    if (ret !=null) {
+      $ref.ret.name entity = ($ref.ret.name) ret;<% if (raw) { %>
+      //load LAZY loading
+      entity.${ref.ret.getter}.size();
+      return (List)entity.${ref.ret.getter};<% } else { if (item.useConverter && (ref.ret.typeEntity || ref.ret.typeBasicType)) { %> 
+      return converter.toExternal(entity.${ref.ret.getter});<% } else { %>
+      return entity.${ref.ret.getter};<% } } %>
+    } else {
+      return null;
+    }<% } else { %>
+    ${ref.ret.name} ret = ${ref.parent.name}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
+    ret = converter.toExternal(ret);<% } %>
+    return ret;<% } %><% } %>
+  }<% } %><% } %>
+}
 ''')
 
       template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
