@@ -401,6 +401,7 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
     ret = converter.toExternal(ret);<% } %>
     return ret;<% } %><% } %>
   }<% } %><% } %>
+  ${macros.generate('implInjects', c)}
 }
 ''')
 
@@ -806,6 +807,14 @@ public class $className {
 public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
+
+      template('implInjects', body: ''' <% item.operations.each { op ->%>
+  
+  @Inject
+  public void set${op.name}($op.name $op.uncap) {
+    this.$op.uncap = $op.uncap;
+  }<% } %>''')
+
 
 
       //tests
