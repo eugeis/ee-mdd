@@ -48,6 +48,7 @@ import ee.mdd.model.component.Type
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -191,7 +192,9 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'backends'
         if(!properties.containsKey(key)) {
-          def ret = delegate.modules.findAll { m -> m.name.equals('backend') }
+          def ret = delegate.modules.findAll { m ->
+            m.name.equals('backend')
+          }
           properties[key] = ret
         }
         properties[key]
@@ -498,9 +501,9 @@ class EnhancerForJava {
         }
       }
 
-      isTypeBoolean {
+      isReturnTypeBoolean {
         ->
-        def key = System.identityHashCode(delegate) + 'typeBoolean'
+        def key = System.identityHashCode(delegate) + 'returnTypeBoolean'
         if(!properties.containsKey(key)) {
           def ret = false
           def op = delegate
@@ -558,6 +561,30 @@ class EnhancerForJava {
           def op = delegate
           def retValue = op.ret
           def ret = delegate.resultExpression ? delegate.resultExpression : (retValue instanceof Entity || retValue instanceof BasicType)
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isReturnTypePrimitive {
+        ->
+        def key = System.identityHashCode(delegate) + 'returnTypePrimitive'
+        if(!properties.containsKey(key)) {
+          def op = delegate
+          def ret = false
+          def primitives = [
+            'byte',
+            'short',
+            'int',
+            'long',
+            'float',
+            'double',
+            'boolean',
+            'String',
+            'char'
+          ]
+          if(op.ret && primitives.contains(op.ret.name))
+            ret = true
           properties[key] = ret
         }
         properties[key]

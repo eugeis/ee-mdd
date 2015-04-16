@@ -17,7 +17,11 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
+import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
+import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Service
 
@@ -79,16 +83,16 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 
-        template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.serviceBaseBean %>${macros.generate('ejbService', c)}''')
-        template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.serviceBean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
+        template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.baseBean %>${macros.generate('ejbService', c)}''')
+        template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.bean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
       }
 
       items('implContainer',
       query: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('implContainer', appendName: true, body: '''<% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerBaseImpl } else { c.className = c.item.n.cap.baseImpl } %>${macros.generate('implContainer', c)}''')
-        template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %> <% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.n.cap.impl } %>${macros.generate('implContainerExtends', c)}<% } %>''')
+        template('implContainer', appendName: true, body: '''<% c.className = c.item.n.cap.baseImpl %>${macros.generate('implContainer', c)}''')
+        template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %> c.className = c.item.n.cap.impl %>${macros.generate('implContainerExtends', c)}<% } %>''')
       }
 
       items ('modelTest',

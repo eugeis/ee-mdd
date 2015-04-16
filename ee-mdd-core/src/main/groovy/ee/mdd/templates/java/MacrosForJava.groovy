@@ -261,7 +261,7 @@ class MacrosForJava {
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
-    //TODO to implement <% if (op.typeBoolean) { %>
+    //TODO to implement <% if (op.returnTypeBoolean) { %>
     return false;<% } else if (op.ret) { %>
     return null; <% } %>
   }<% } } %>''')
@@ -385,7 +385,7 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${ref.return} $ref.name($ref.signature) {<% if(ref.void) { %>
-    ${ref.parent.name}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
+    ${ref.parent.name}.${ref.name}($ref.signatureName);<% } else { %><% if (true) { %>
     ${ref.return} ret = ${ref.parent.name}.${ref.name}($ref.signatureName);
     if (ret !=null) {
       $ref.ret.name entity = ($ref.ret.name) ret;<% if (raw) { %>
@@ -401,7 +401,12 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
     ret = converter.toExternal(ret);<% } %>
     return ret;<% } %><% } %>
   }<% } %><% } %>
-  ${macros.generate('implInjects', c)}
+  ${macros.generate('implInjects', c)}<% if (item.useConverter) { %>
+
+  @${c.name('Inject')}
+  public void set${module.n.cap.converter}(${module.n.cap.converter} converter) {
+    this.converter = converter;
+  }<% } %>
 }
 ''')
 
@@ -808,11 +813,11 @@ public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
 
-      template('implInjects', body: ''' <% item.operations.each { op ->%>
+      template('implInjects', body: ''' <% item.operations.each { opRef -> def ref = opRef.ref.parent %>
   
-  @Inject
-  public void set${op.name}($op.name $op.uncap) {
-    this.$op.uncap = $op.uncap;
+  @${c.name('Inject')}
+  public void set${ref.cap}($ref.name $ref.uncap) {
+    this.$ref.uncap = $ref.uncap;
   }<% } %>''')
 
 
