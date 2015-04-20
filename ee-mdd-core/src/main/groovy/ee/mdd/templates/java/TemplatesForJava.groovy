@@ -42,25 +42,24 @@ class TemplatesForJava {
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifc', c)}''')
-        template('ifcExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
+        template('ifcEntity', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifcEntity', c)}''')
+        template('ifcEntityExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
       }
 
       items('modelApiBasicType',
       query: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
-        template('ifc', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
-        template('ifcExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
+        template('ifcBasicType', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
+        template('ifcBasicTypeExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
       }
 
       items ('modelImplEntity',
       query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-        template('implEntity', appendName: true, body: '''<% c.virtual = c.item.virtual; c.base = true; c.metas = item.metas; c.serializable = true; c.className = item.n.cap.implBase %>${macros.generate('implEntity', c)}''')
+        template('implEntity', appendName: true, body: '''<% c.virtual = c.item.virtual; c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
         template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
-
       }
 
       items('modelEjbEntity',

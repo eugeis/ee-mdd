@@ -79,9 +79,9 @@ class MacrosForJava {
   <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %> ''')
 
       template('propGettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
-  <% if (prop.description) { %>
-  /** $prop.description */<% } %>
-  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>''')
+  <% if (prop.description) { %>/** $prop.description */<% } %>
+  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>
+''')
 
       template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
   void $prop.setter;
@@ -98,6 +98,7 @@ class MacrosForJava {
   void set${prop.cap}${relationIdProp.cap}<% if(relationIdProp.multi) { %>(${c.name('List')}<$relationIdProp.type.name><% } else { %>($relationIdProp.type.name<% } %> ${prop.uncap}${relationIdProp.cap});<% } } %>''')
 
       template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
+  
   @Override
   public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
     return $prop.uncap;
@@ -110,6 +111,7 @@ class MacrosForJava {
 <% } } } %>''')
 
       template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
+  
   @Override
   public void set${prop.cap}($prop.relTypeEjb $prop.name) {
     this.$prop.uncap = $prop.uncap; 
@@ -250,8 +252,7 @@ class MacrosForJava {
   }<% } } %>''')
 
       template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
-  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>
-  @${c.name('Transactional')}<% } %>
+  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);
   <% } } %>''')
 
@@ -287,7 +288,15 @@ public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each 
 
       template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')}<% } %> { 
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')} <% } %> { 
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final String URI_PREFIX = "${item.getUri()}";
+${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
+}''')
+
+      template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+${item.description?"/*** $item.description */":''}
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}> <% } %>{ 
   /** A unique URI prefix for RESTful services and multi-language support */
   public static final String URI_PREFIX = "${item.getUri()}";
 ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -318,9 +327,10 @@ public interface $c.className extends $item.n.cap.base {
       //classes
 
 
-      template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.implBase } %>{{imports}}
-public ${c.virtual || c.base ? 'abstract ' : ''}class $c.className<% if(c.item.superUnit) { %> extends $c.item.superUnit.n.cap.impl <% } %> implements ${c.name(c.item)} {<% if (c.serializable) { %>
-  private static final long serialVersionUID = 1L;<% } %>${macros.generate('propsMember', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+      template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
+public ${(c.virtual || c.base) ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
+  private static final long serialVersionUID = 1L;
+  ${macros.generate('propsMember', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
 }''')
 
       template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
@@ -368,7 +378,7 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-      template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>
+      template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public ${item.base?'abstract ':''}class $className implements $item.name {<% if (item.useConverter) { %>
@@ -385,7 +395,7 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${ref.return} $ref.name($ref.signature) {<% if(ref.void) { %>
-    ${ref.parent.name}.${ref.name}($ref.signatureName);<% } else { %><% if (true) { %>
+    ${ref.parent.name}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
     ${ref.return} ret = ${ref.parent.name}.${ref.name}($ref.signatureName);
     if (ret !=null) {
       $ref.ret.name entity = ($ref.ret.name) ret;<% if (raw) { %>
