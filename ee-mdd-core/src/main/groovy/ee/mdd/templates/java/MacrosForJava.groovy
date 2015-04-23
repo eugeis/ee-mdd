@@ -33,8 +33,8 @@ class MacrosForJava {
 
       template('propsMember', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %><% if(prop.multi) { %>
   protected ${c.name('List')}<${prop.type.name}> $prop.uncap; <% } else { %>
-  protected ${prop.type.name} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
-  protected ${c.name('List')}<${relationIdProp.type.name}< ${prop.uncap}${relationIdProp.cap};<% } else { %>
+  protected ${c.name(prop.type.name)} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
+  protected ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
   protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>''')
 
       template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
@@ -105,20 +105,19 @@ class MacrosForJava {
   }<% } else if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
   @Override
-  public <% if(relationIdProp.multi) { %>${c.name('List')}<relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> get${prop.cap}${relationIdProp.cap}() {
+  public <% if(relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.name}${relationIdProp.cap};
-  }
-<% } } } %>''')
+  }<% } } } %>''')
 
       template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
   
   @Override
-  public void set${prop.cap}($prop.relTypeEjb $prop.name) {
+  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>$prop.relTypeEjb<% } %> $prop.name) {
     this.$prop.uncap = $prop.uncap; 
   }<% } else if (prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
   @Override
-  public void set${prop.cap}${relationIdProp.cap}($relationIdProp.relTypeEjb ${prop.name}${relationIdProp.cap}) {
+  public void set${prop.cap}${relationIdProp.cap}(<% if (relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> ${prop.name}${relationIdProp.cap}) {
     this.${prop.name}${relationIdProp.cap} = ${prop.name}${relationIdProp.cap};
   }
 <% } } } %>''')
@@ -244,7 +243,8 @@ class MacrosForJava {
   }<% } } %>
 ''')
 
-      template('methods', body: '''<% item.operations.each { op -> String ret = ''; if (op.body) { %><% if (op.rawType) { %>
+      template('methods', body: '''<% item.operations.each { op -> String ret = ''; if (op.body) { %>
+  <% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   @Override
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
@@ -328,13 +328,25 @@ public interface $c.className extends $item.n.cap.base {
 
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
-public ${(c.virtual || c.base) ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
+public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
   private static final long serialVersionUID = 1L;
-  ${macros.generate('propsMember', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+  ${macros.generate('propsMember', c)}<% if(!c.item.superUnit) { %>
+  protected Long version;
+
+  @Override
+  public Long getVersion() {
+    return version;
+  }
+
+  @Override
+  public void  setVersion(Long version) {
+    this.version = version;
+  }<% } %>${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+
 }''')
 
       template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
-public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
@@ -1066,6 +1078,7 @@ ${ret-newLine}''')
   }<% } %>''')
 
       template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{!it.primaryKey}; %>
+  
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% if (idProp && !item.virtual) { %>
@@ -1074,12 +1087,14 @@ ${ret-newLine}''')
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
   }''')
 
-      template('hashCodeAndEqualsEntity', body: '''<% def className = item.genericsName; if(item.propsForHashCode) { %>
+      template('hashCodeAndEqualsEntity', body: '''<% if(item.propsForHashCode) { %>
+  
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
     result = prime * result + (($propAccess == null) ? 0 : ${propAccess}.hashCode());<% } %>
+    return result;
   }
 
   @Override<% if (item.generic) { %>
@@ -1093,7 +1108,7 @@ ${ret-newLine}''')
       return false;<% } %>
     if (getClass() != obj.getClass())
       return false;
-    $className other = (${className}) obj;<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    $c.className other = (${c.className}) obj;<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
     if (${propAccess} == null) {
       if (other.${propAccess} != null)
         return false;

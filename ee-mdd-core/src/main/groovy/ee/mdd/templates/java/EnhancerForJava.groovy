@@ -167,7 +167,6 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'propsForHashCode'
         if(!properties.containsKey(key)) {
           def ret = delegate.props.findAll{ it.hashCode }
-          ret << delegate.props.findAll{ it.primaryKey }
           properties[key] = ret
         }
         properties[key]

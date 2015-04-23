@@ -15,11 +15,8 @@
  */
 package ee.mdd.templates.java
 
-import java.util.Map;
-
 import ee.mdd.generator.Processor
 import ee.mdd.model.Element
-import ee.mdd.model.component.java.Java
 
 /**
  *
@@ -27,7 +24,7 @@ import ee.mdd.model.component.java.Java
  */
 class ProcessorsForJava {
   Map<String, Element> refToElement
-  
+
   Processor javaImportsPathProcessor() {
     Processor ret = new Processor(name: 'javaImportsPath')
 
@@ -85,11 +82,12 @@ class ProcessorsForJava {
       }
 
     }
-    
+
     ret.after = { c ->
       if (!c.error && c.className) {
         def ns = (c.module ? c.module.ns : c.item.ns)
         def subPkg = c.subPkg ? ".$c.subPkg" : ''
+        subPkg = subPkg.replace("/", ".")
         def imports = c.imports.toList().sort().collect { "import $it;" }.join('\n')
         def staticImports =  c.staticImports ? c.staticImports.toList().sort().collect { "import $it;" }.join('\n') : ''
         staticImports = staticImports ? "\n$staticImports\n" : ''
