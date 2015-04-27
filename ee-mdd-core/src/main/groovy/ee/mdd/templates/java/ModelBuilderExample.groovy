@@ -270,7 +270,7 @@ class ModelBuilderExample {
 
                 }
 
-                controller('TaskAgregator') {
+                controller('TaskAgregator', base: true) {
                   op('hello', ret: 'String', body: '#testBody') {
                     param('test', type: 'String')
                   }

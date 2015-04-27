@@ -17,13 +17,8 @@ package ee.mdd.templates.java
 
 import ee.mdd.builder.GeneratorBuilder
 import ee.mdd.generator.Generator
-import ee.mdd.model.component.BasicType
-import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Service
 
 
 
@@ -119,12 +114,21 @@ class TemplatesForJava {
 
       //logic
       items ('logicApi',
-      query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) || Service.isInstance(it) }) },
+      query: { c -> c.model.findAllRecursiveDown( { Service.isInstance(it) }) },
       before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
         template('ifc', appendName: true, body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifc', c)}''')
         template('ifcExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcExtends', c)}<% } %>''')
       }
+
+      items ('controller',
+      query: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+
+        template('ifcController', appendName: true, body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifcController', c)}''')
+        template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
+      }
+
 
       items ('container',
       query: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },

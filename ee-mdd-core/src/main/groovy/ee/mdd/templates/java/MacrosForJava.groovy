@@ -253,8 +253,7 @@ class MacrosForJava {
 
       template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
-  ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);
-  <% } } %>''')
+  ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);<% } } %>''')
 
 
 
@@ -294,6 +293,24 @@ public interface $c.className extends<% if (item.superUnit) { %> ${item.superUni
 ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
+      template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
+${item.description?"/*** $item.description */":''}
+public interface $className extends <% if (item.superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
+${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
+}''')
+
+      template('ifcController', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}} 
+<% if (!item.base) { %>
+/**
+* The controller $item.name provides internal logic operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.cap}<% } %> {
+  ${macros.generate('interfaceBody', c)}
+}''')
+
       template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
 public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}> <% } %>{ 
@@ -307,13 +324,17 @@ ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEnti
 public interface $c.className extends $item.n.cap.base {
 }''')
 
-      template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
-${item.description?"/*** $item.description */":''}
-public interface $className extends <% if (item.superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
-${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
+      template('ifcControllerExtends', body: '''<% c.src = true %><% if(!c.className) { c.className = item.cap } %>{{imports}}
+/**
+* The $item.name controller provides internal logic operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/
+public interface $className extends $item.n.cap.base {
 }''')
 
-      template('ifcContainerExtends', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+      template('ifcContainerExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
 /**
 * The container is used to transfer bundled data between server and client.
 * <p>
@@ -383,7 +404,7 @@ public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (sup
 }''')
 
       template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
-/** JPA representation of {@link $item.name} */
+/** JPA representation of {@link ${c.name(item.name)} */
 @${c.name('Embeddable')}
 public class $className extends ${item.n.cap.baseEmbeddable} {
   private static final long serialVersionUID = 1L;
