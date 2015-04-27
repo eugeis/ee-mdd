@@ -299,6 +299,91 @@ public interface $className extends <% if (item.superUnit) { %>$superUnit.name<%
 ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
+      template('ifcContainer', body: '''<% if (!c.className) { c.className = item.n.cap.base } %><% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %>
+<%item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} 
+
+<% if (!item.base) { %>
+/**
+* The container is used to transfer bundled data between between server and client.
+* <p>
+* ${item.description?item.description:''}
+* </p>
+*/<% } else { %>/** Base interface of {@link ${c.name(item.name)}} */<% } %>
+
+public interface $c.className extends ${c.name('Serializable')} {
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final String URI_PREFIX = "${item.uri}";
+
+  /** Source of object builder. E.g. server/node name. */
+  String getSource();
+
+  void setSource(String source);
+
+  /** Time point of data fetching */
+  ${c.name('Date')} getTimestamp();
+
+  void setTimestamp(Date timestamp);
+
+  /** Reset temporary ids of new entities */
+  void resetTempIds();
+
+  /**
+   * Applies all changes from the passed container. In effect, all removes are applied.
+   *
+   * Use this method to update a container which contains all information with a container carrying delta information.
+   *
+   * @param container Delta information (new, updated and deleted deadlocks)
+   */
+  void synchronize(${item.cap} container);
+
+  /**
+   * Applies all changes and addition returns a delta cache containing all changes. This method's logic is more
+   * complex as the pure synchronize method, so it should only be used if the returned delta cache is needed for
+   * further processing.
+   *
+   * @param container Delta information (new, updated and deleted deadlocks)
+   * @return Delta container with all changes
+   */
+  $item.n.cap.delta synchronizeWithDelta($item.cap container);
+
+  /**
+   * Synchronizes only the removes.
+   */
+  void synchronize($item.n.cap.removes removes);
+
+  /**
+   * Merges the changes from the passed container. In effect, all removes are merged as well.
+   *
+   * Use this method to merge containers containing delta information.
+   *
+   * @param container Delta information (new, updated and deleted deadlocks)
+   */
+  void merge($item.cap container);
+
+  $item.n.cap.removes get${item.cap}Removes();
+
+  /**
+   * Clears all data (caches and removes)
+   */
+  void clear();
+
+  /**
+   * Returns whether the container is empty, i.e. that it contains neither container entries nor removes.
+   */
+  boolean isEmpty();
+
+  $item.name buildChangeSet();<% item.props.each { entityProp -> def entity = entityProp.type %>
+  
+  $entity.cap get${entity.n.cap.entity}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+
+  ${c.name('LinkedObjectCache')}<${entity.idProp.computedType}, $relationIdProp.computedType, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
+
+  ${macros.generate('interfaceBody', c)}
+<% item.props.each { prop -> %>
+  $prop.computedType $prop.getter;<% } %>
+  ${macros.generate('propSettersIfc', c)}
+}''')
+
       template('ifcController', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}} 
 <% if (!item.base) { %>
 /**
@@ -324,6 +409,16 @@ ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEnti
 public interface $c.className extends $item.n.cap.base {
 }''')
 
+      template('ifcContainerExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+/**
+* The container is used to transfer bundled data between server and client.
+* <p>
+* ${item.description?item.description:''}
+* </p>
+*/
+public interface $c.className extends $item.n.cap.base {
+}''')
+
       template('ifcControllerExtends', body: '''<% c.src = true %><% if(!c.className) { c.className = item.cap } %>{{imports}}
 /**
 * The $item.name controller provides internal logic operations for '$module.name'.<% if (item.description) { %>
@@ -334,15 +429,6 @@ public interface $c.className extends $item.n.cap.base {
 public interface $className extends $item.n.cap.base {
 }''')
 
-      template('ifcContainerExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
-/**
-* The container is used to transfer bundled data between server and client.
-* <p>
-* ${item.description?item.description:''}
-* </p>
-*/
-public interface $c.className extends $item.n.cap.base {
-}''')
 
 
       //classes
