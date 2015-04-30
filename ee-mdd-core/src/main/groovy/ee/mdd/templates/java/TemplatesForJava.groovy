@@ -80,13 +80,14 @@ class TemplatesForJava {
       //        template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.bean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
       //      }
       //
-      //      items('implContainer',
-      //      query: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
-      //
-      //        template('implContainer', appendName: true, body: '''<% c.className = c.item.n.cap.baseImpl %>${macros.generate('implContainer', c)}''')
-      //        template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %> c.className = c.item.n.cap.impl %>${macros.generate('implContainerExtends', c)}<% } %>''')
-      //      }
+      items('implContainer',
+      query: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+
+        template('implContainer', appendName: true, body: '''<% c.className = c.item.n.cap.baseImpl %>${macros.generate('implContainer', c)}''')
+        template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %> c.className = c.item.n.cap.impl %>${macros.generate('implContainerExtends', c)}<% } %>''')
+        template('implContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.deltaImpl %> ${macros.generate('implContainerDeltaExtends', c)}''')
+      }
       //
       //      items ('modelTest',
       //      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
@@ -139,6 +140,7 @@ class TemplatesForJava {
         template('ifcContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.delta %> ${macros.generate('ifcContainerDeltaExtends', c)}''')
         template('containerRemoves', appendName: true, body: '''<% c.className = item.n.cap.removesBase %> ${macros.generate('containerRemoves', c)}''')
         template('containerRemovesExtends', appendName: true, body: '''<% c.className = item.n.cap.removes %> ${macros.generate('containerRemovesExtends', c)}''')
+        template('implContainerDelta', appendName: true, body: '''<% c.className = item.n.cap.deltaImpl %> ${macros.generate('implContainerDelta', c)}''')
       }
 
       //      items ('jmsToCdi',

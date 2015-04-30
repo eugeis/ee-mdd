@@ -384,7 +384,7 @@ public interface $c.className extends ${c.name('Serializable')} {
   ${macros.generate('propSettersIfc', c)}
 }''')
 
-      template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>
+      template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>{{imports}}
 public interface $c.className extends ${c.name('LogStringProvider')} {
 <% item.props.each { entityProp -> def entity = entityProp.type %>
   ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
@@ -470,6 +470,43 @@ public class $c.className implements ${c.name('Serializable')}, ${c.name('LogStr
       template('containerRemovesExtends', body: '''<% if (!c.className) { c.className = item.n.cap.removes } %>{{imports}}
 public class $c.className extends $item.n.cap.removesBase {
   private static final long serialVersionUID = 1L;
+}''')
+
+      template('implContainerDelta', body: '''<% if (!c.className) { c.className = item.n.cap.deltaBaseImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+def newInstances = item.props.collect { entityProp -> "new ${entityProp.type.n.cap.deltaCacheImpl}()" }.join(", ") %>{{imports}}
+public class $c.className implements $item.n.cap.deltaImpl {
+  <% item.props.each { entityProp -> def entity = entityProp.type %>private final ${entity.n.cap.deltaCache} ${entity.uncap}DeltaCache;<% } %>
+
+  public $c.className(${signature}) {
+    <% item.props.each { entityProp -> def entity = entityProp.type %>this.${entity.uncap}DeltaCache = ${c.name('AssertionUtils')}.assertNotNull(${entity.uncap}DeltaCache);<% } %>
+  }
+
+  public $c.className() {
+    this(${newInstances});
+  }
+  <% item.props.each { entityProp -> def entity = entityProp.type %>
+  @Override
+  public ${entity.n.cap.deltaCache} get${entity.n.cap.delta}() {
+    return ${entity.uncap}DeltaCache;
+  }<% } %>
+
+  @Override
+  public void fillToLogString(${c.name('LogStringBuilder')} tf) {
+    <% item.props.each { entityProp -> def entity = entityProp.type %>tf.append("${entity.uncap}Delta", ${entity.uncap}DeltaCache);<% } %>
+  }
+}''')
+
+      template('implContainerDeltaExtends', body: '''<% if (!c.className) { c.className = item.n.cap.deltaImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+def params = item.props.collect { entityProp -> "new ${entityProp.type.uncap}deltaCache()" }.join(", ") %>
+public class $c.className extends $item.n.cap.deltaBaseImpl {
+
+  public $c.className(${signature}) {
+    super(${params});
+  }
+
+  public $c.className() {
+    super();
+  }
 }''')
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
