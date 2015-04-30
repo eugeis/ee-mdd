@@ -668,7 +668,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret
-          ret = prop.multi ? "List<${prop.type}>" : "${prop.type}"
+          ret = prop.multi ? "List<${prop.type.name}>" : "${prop.type.name}"
           properties[key] = ret
         }
         properties[key]

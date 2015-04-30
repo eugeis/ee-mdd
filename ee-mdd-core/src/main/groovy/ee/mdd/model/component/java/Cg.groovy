@@ -20,7 +20,8 @@ class Cg extends Facet {
       'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Factory' : 'com.siemens.ra.cg.pl.common.base', 'MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
       'ConnectionMetaEvent' : 'com.siemens.ra.cg.pl.common.base.model.event', 'Backend':'com.siemens.ra.cg.pl.common.base.annotations', 'External' : 'com.siemens.ra.cg.pl.common.base.annotations',
       'BaseTestCase' : 'com.siemens.ra.cg.pl.common.base.testcase', 'JmsMessagingAdapterTestCase' : 'com.siemens.ra.cg.pl.common.ejb.messaging.jse', 'JmsSendExecutor' : 'com.siemens.ra.cg.pl.common.ejb.messaging',
-      'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model']
+      'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model',
+      'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util']
 
     return {
       extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {

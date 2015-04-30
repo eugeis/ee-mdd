@@ -132,10 +132,12 @@ class TemplatesForJava {
 
       items ('container',
       query: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
-      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+      before: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'model'] ) } ) {
 
         template('ifcContainer', appendName: true, body: '''<% c.className = c.item.n.cap.base %> ${macros.generate('ifcContainer', c)}''')
         template('ifcContainerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
+        template('ifcContainerDelta', appendName: true, body: '''<% c.className = item.n.cap.deltaBase %> ${macros.generate('ifcContainerDelta', c)}''')
+        template('ifcContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.delta %> ${macros.generate('ifcContainerDeltaExtends', c)}''')
       }
 
       items ('jmsToCdi',

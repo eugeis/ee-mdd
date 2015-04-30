@@ -378,10 +378,21 @@ public interface $c.className extends ${c.name('Serializable')} {
 
   ${c.name('LinkedObjectCache')}<${entity.idProp.computedType}, $relationIdProp.computedType, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
 
-  ${macros.generate('interfaceBody', c)}
-<% item.props.each { prop -> %>
+  ${macros.generate('interfaceBody', c)}<% item.props.each { prop -> %>
+
   $prop.computedType $prop.getter;<% } %>
   ${macros.generate('propSettersIfc', c)}
+}''')
+
+
+      template('ifcContainerDelta', body: '''
+public interface $c.className extends ${c.name('LogStringProvider')} {
+<% item.props.each { entityProp -> def entity = entityProp.type %>
+  ${c.name(entity.n.cap.deltaCache)} get${c.name(entity.n.cap.delta)}();<% } %>
+}''')
+
+      template('ifcContainerDeltaExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.delta } %><% def superClassName = item.n.cap.deltaBase %>{{imports}}
+public interface $c.className extends $superClassName {
 }''')
 
       template('ifcController', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}} 
