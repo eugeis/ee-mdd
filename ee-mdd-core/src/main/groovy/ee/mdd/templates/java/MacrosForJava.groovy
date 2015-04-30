@@ -384,11 +384,10 @@ public interface $c.className extends ${c.name('Serializable')} {
   ${macros.generate('propSettersIfc', c)}
 }''')
 
-
-      template('ifcContainerDelta', body: '''
+      template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>
 public interface $c.className extends ${c.name('LogStringProvider')} {
 <% item.props.each { entityProp -> def entity = entityProp.type %>
-  ${c.name(entity.n.cap.deltaCache)} get${c.name(entity.n.cap.delta)}();<% } %>
+  ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
 }''')
 
       template('ifcContainerDeltaExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.delta } %><% def superClassName = item.n.cap.deltaBase %>{{imports}}
@@ -444,6 +443,34 @@ public interface $className extends $item.n.cap.base {
 
       //classes
 
+
+      template('containerRemoves', body: '''<% if (!c.className) { c.className = item.n.cap.removesBase } %>{{imports}}
+public class $c.className implements ${c.name('Serializable')}, ${c.name('LogStringProvider')} {
+  private static final long serialVersionUID = 1L;<% item.props.each { entityProp -> def entity = entityProp.type %>
+  protected ${c.name('HashSet')}<$entity.idProp.type.name> ${entity.cap}Ids = new HashSet<>();<% } %><% item.props.each { entityProp -> def entity = entityProp.type %>
+
+  public ${c.name('Set')}<$entity.idProp.type.name> get${entity.cap}Ids() {
+    return ${entity.cap}Ids;
+  }<% } %>
+  
+  public void synchronize($c.className removes) {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    ${entity.cap}Ids.addAll(removes.get${entity.cap}Ids());<% } %>
+  }
+
+  public void clear() {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    ${entity.cap}Ids.clear();<% } %>
+  }
+
+  @Override
+  public void fillToLogString(${c.name('LogStringBuilder')} b) {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    b.append(" ${entity.cap}Ids", ${entity.cap}Ids);<% } %>
+  }
+}''')
+
+      template('containerRemovesExtends', body: '''<% if (!c.className) { c.className = item.n.cap.removes } %>{{imports}}
+public class $c.className extends $item.n.cap.removesBase {
+  private static final long serialVersionUID = 1L;
+}''')
 
       template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
 public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
