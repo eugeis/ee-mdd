@@ -21,13 +21,16 @@ import org.codehaus.groovy.runtime.InvokerHelper
 
 import ee.mdd.model.Base
 import ee.mdd.model.component.Namespace
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  * @author Eugen Eisler
  */
+@Slf4j
 class AbstractFactoryBuilder extends FactoryBuilderSupport {
+  GroovyShell shell = new GroovyShell()
   protected  Map<String, Object> storedContinuationData
   RefAttributesResolver refAttrResolver
   AttributeToObject attributeToObject
@@ -94,6 +97,7 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   boolean checkFactoryAllowed(Object name) {
     MddFactory parent = getParentFactory()
     if(parent != null && !parent.isChildAllowed(name)) {
+      LOG.error "Child element '$name' in not allowed for parent '$parent'."
       throw new RuntimeException("Child element '$name' in not allowed for parent '$parent'.")
     }
     true
@@ -148,10 +152,10 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
       if (current != null) {
         getProxyBuilder().setParent(current, node);
       }
-      
-      Closure childClosure = BuilderAware.isInstance(node) ? node.childBuilder() : null
+
+      Factory parentFactory = getProxyBuilder().getCurrentFactory();
+      Closure childClosure = parentFactory.childClosure(getProxyBuilder().getChildBuilder(), node)
       if (closure != null || childClosure != null) {
-        Factory parentFactory = getProxyBuilder().getCurrentFactory();
         if (parentFactory.isLeaf()) {
           throw new RuntimeException("'" + name + "' doesn't support nesting.");
         }
@@ -159,7 +163,7 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
         if(closure) {
           createChildNodes(node, closure, current, parentFactory)
         }
-        
+
         if(childClosure) {
           createChildNodes(node, childClosure, current, parentFactory)
         }
@@ -174,6 +178,19 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
       }
     }
     return node;
+  }
+
+  public createChildNodes(node, String closureAsText) {
+    Closure closure = evaluate(closureAsText)
+    //closure.@owner = node
+    createChildNodes(node, closure)
+  }
+
+  public createChildNodes(node, Closure closure) {
+    Object current = getProxyBuilder().getCurrent()
+    Factory parentFactory = getProxyBuilder().getCurrentFactory();
+
+    createChildNodes(node, closure, current, parentFactory)
   }
 
   protected createChildNodes(node, Closure closure, current, Factory parentFactory) {
@@ -202,6 +219,35 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
         getProxyBuilder().popContext();
       }
     }
+  }
+
+  Object build(File file) {
+    if(file.exists()) {
+      build(file.text)
+    } else {
+      log.error "Could not find file '$file'"
+    }
+  }
+
+  Object buildFromClasspath(String path) {
+    URL resource = getClass().getResource(path)
+    if(resource) {
+      build(resource)
+    } else {
+      log.error "Could not find path '$path'"
+    }
+  }
+
+  Object build(URL resource) {
+    build(resource.text)
+  }
+
+  Object build(String source) {
+    build(source, new GroovyClassLoader())
+  }
+
+  Closure evaluate(String text) {
+    Closure closure =shell.evaluate("{ it -> $text }")
   }
 }
 

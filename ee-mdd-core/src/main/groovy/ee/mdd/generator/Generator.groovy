@@ -26,18 +26,15 @@ import java.util.concurrent.Callable
  */
 @Slf4j
 class Generator extends AbstractGenerator {
-  Map<String, CategoryGenerator> categories = [:]
+  Map<String, TemplateGroup> templates = [:]
 
-  void generate(Model model) {
-    log.info "$name: Generate for model '$model.name'"
-    //Executor executor = new Executor(5)
-    Executor executor = new Executor(1)
+  void generate(Context context) {
+    log.info "$name: Generate for context '$context'"
+    Executor executor = new Executor(5)
+//    Executor executor = new Executor(1)
 
-    Context c = new Context()
-    c.model = model
-
-    categories.each { catName, CategoryGenerator category ->
-      category.generate(c) { template, templateContext, generator ->
+    templates.each { groupName, TemplateGroup templates ->
+      templates.generate(context) { template, templateContext, generator ->
 
         executor.submit ( {
           before(templateContext)
@@ -50,20 +47,20 @@ class Generator extends AbstractGenerator {
   }
 
 
-  def generate(String catName, String template, Context c) {
+  def generate(String groupName, String template, Context c) {
     def ret = ''
-    if(categories.containsKey(catName)){
+    if(templates.containsKey(groupName)){
       before(c)
-      ret = categories[catName].generate(template, c)
+      ret = templates[groupName].generate(template, c)
       after(c)
     } else {
-      c.error = new IllegalStateException("$name: Generation of '${catName}.$template is not possible, because category '$catName' does not exists.")
+      c.error = new IllegalStateException("$name: Generation of '${groupName}.$template is not possible, because templates '$groupName' does not exists.")
       log.error c.error.message
     }
     ret
   }
 
-  def add(CategoryGenerator child) {
-    categories[child.name] = super.add(child); child
+  def add(TemplateGroup child) {
+    templates[child.name] = super.add(child); child
   }
 }

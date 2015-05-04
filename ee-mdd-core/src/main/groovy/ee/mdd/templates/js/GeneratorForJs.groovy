@@ -15,11 +15,10 @@
  */
 package ee.mdd.templates.js
 
-import ee.mdd.builder.ModelBuilder
-import ee.mdd.generator.Processors
+import ee.mdd.ModelBuilder
+import ee.mdd.generator.ProcessorsFactory
+import ee.mdd.generator.js.Js
 import ee.mdd.model.component.Model
-import ee.mdd.model.component.js.Js
-import ee.mdd.templates.java.ModelBuilderExample
 
 
 
@@ -37,10 +36,10 @@ class GeneratorForJs {
 		def builder = new ModelBuilder()
 		registerJs(builder)
 
-		Model model =  ModelBuilderExample.build (builder)
+    Model model =  builder.build('model.groovy')
 
 		def generator = TemplatesForJs.build()
-		def commonProcessorFactory = new Processors()
+		def commonProcessorFactory = new ProcessorsFactory()
 		def processorFactory = new ProcessorsForJs()
 
 		generator.add(commonProcessorFactory.macrosProcessor(MacrosForJs.build()))

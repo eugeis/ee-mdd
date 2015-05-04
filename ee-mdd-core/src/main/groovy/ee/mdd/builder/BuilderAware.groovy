@@ -4,10 +4,9 @@
  */
 package ee.mdd.builder
 
-import groovy.lang.Closure;
+import ee.mdd.ModelBuilder
 
 
 interface BuilderAware {
   void setBuilder(ModelBuilder builder)
-  Closure childBuilder()
 }

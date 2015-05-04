@@ -13,40 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.generator.js
 
-import ee.mdd.model.Body;
+import java.util.Map;
 
+import ee.mdd.model.component.Facet
+import groovy.lang.Closure
 
 /**
  *
  * @author Eugen Eisler
- * @author Niklas Cappelmann
  */
-class LogicUnit extends Body {
-  List<MetaAttribute> metas
-  List<Param> params = []
-  String paramsLogicName
+class Js extends Facet {
 
-  String deriveParamsLogicName() {
-    paramsLogicName = ''
-    params.each {
-      paramsLogicName += 'And'+it.cap
+  Closure childBuilder() {
+
+    def primitiveTypes = [
+      'int',
+      'long',
+      'float',
+      'double',
+      'boolean',
+      'Integer',
+      'Long',
+      'Float',
+      'Double',
+      'Boolean',
+      'String',
+      'Date'
+    ]
+
+    return {
+      extModule(name: 'JavaScript') {
+
+        primitiveTypes.each { n ->
+          extType(name: n)
+        }
+      }
     }
-    paramsLogicName -= 'And'
-  }
-
-  def add(Param child) {
-    params << child; super.add(child)
-  }
-
-  List<Param> getParamsCustom() {
-    params.findAll { !it.value }
-  }
-
-  def add(MetaAttribute item) {
-    if(!metas) {
-      metas = []
-    }; metas << super.add(item)
   }
 }

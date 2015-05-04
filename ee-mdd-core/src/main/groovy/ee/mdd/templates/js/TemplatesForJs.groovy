@@ -15,7 +15,7 @@
  */
 package ee.mdd.templates.js
 
-import ee.mdd.builder.GeneratorBuilder
+import ee.mdd.GeneratorBuilder;
 import ee.mdd.generator.Generator
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
@@ -25,20 +25,20 @@ import ee.mdd.model.component.EnumType
  * @author Eugen Eisler
  */
 class TemplatesForJs {
-	
+
   static Generator build() {
     def ret = new GeneratorBuilder().generator('model') {
 
-      items ('api',
-      query: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+      templates ('api',
+      items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
       before: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
 
         template('impl', body: '''<% c.virtual=true; c.serializable=true; c.className="${entity.name}Base" %>${macros.generate('impl', c)}''')
         template('implExtends', body: '''<% c.serializable=true; c.className="${entity.name}" %>${macros.generate('implExtends', c)}''')
       }
 
-      items ('enum',
-      query: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
+      templates ('enum',
+      items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
       before: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
 
         template('enum', body: '''${macros.generate('enum', c)}''')

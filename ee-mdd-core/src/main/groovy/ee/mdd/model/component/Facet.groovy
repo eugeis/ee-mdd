@@ -15,8 +15,8 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.builder.BuilderAware;
-import ee.mdd.builder.ModelBuilder
+import ee.mdd.ModelBuilder
+import ee.mdd.builder.BuilderAware
 import ee.mdd.model.Composite
 
 
@@ -26,18 +26,26 @@ import ee.mdd.model.Composite
  */
 class Facet extends Composite implements BuilderAware {
   ModelBuilder builder
-	Module module
+  Module module
+  String path
   List<ExternalModule> externalModules = []
-  List<Dependency> dependencies = []
+  Map<String, Facet> facets = [:]
+  List<Module> moduleDependencies = []
 
-  Closure childBuilder() {
-  }
-  
   def add(ExternalModule child) {
     externalModules << child; super.add(child)
   }
-  
-  def add(Dependency child) {
-    dependencies << child; super.add(child)
+
+  def add(Module child) {
+    moduleDependencies << child; super.add(child)
+  }
+
+  def add(Facet child) {
+    facets[child.name] = super.add(child); child
+  }
+
+  @Override
+  public String toString() {
+    "${getClass().simpleName} [name=$name]"
   }
 }

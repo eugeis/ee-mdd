@@ -15,8 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.ModelBuilder;
 import ee.mdd.builder.BuilderAware
-import ee.mdd.builder.ModelBuilder
 import ee.mdd.model.Composite
 
 
@@ -68,6 +68,4 @@ class StructureUnit extends Composite implements BuilderAware {
     namespace = item
   }
 
-  Closure childBuilder() {
-  }
 }

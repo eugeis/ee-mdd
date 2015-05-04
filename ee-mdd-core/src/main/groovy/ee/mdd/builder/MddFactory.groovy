@@ -15,7 +15,7 @@
  */
 package ee.mdd.builder
 
-import groovy.util.FactoryBuilderSupport;
+import ee.mdd.model.Base
 
 /**
  *
@@ -33,16 +33,23 @@ class MddFactory extends AbstractFactory {
       return value
     }
     def ret = beanClass.newInstance()
-    
-    if(BuilderAware.isInstance(ret)) {
-      ret.builder = builder
+
+    prepareInstance(builder, value, ret)
+  }
+
+  Closure childClosure(FactoryBuilderSupport builder, node) {
+  }
+  
+  protected Object prepareInstance(FactoryBuilderSupport builder, value, fillInstance) {
+    if(BuilderAware.isInstance(fillInstance)) {
+      fillInstance.builder = builder
     }
 
     if(value != null) {
       //attributes[valueProperty] = value
-      ret[valueProperty] = value
+      fillInstance[valueProperty] = value
     }
-    ret
+    fillInstance
   }
 
 
@@ -55,16 +62,24 @@ class MddFactory extends AbstractFactory {
   }
 
   public void setParent( FactoryBuilderSupport builder, Object parent, Object child ) {
-    child.parent = parent
+    if(Base.isInstance(child)) {
+      child.parent = parent
+    } else {
+      println "Can't assign parent '$parent' to '$child' in '$this'"
+    }
   }
 
   public void setChild( FactoryBuilderSupport builder, Object parent, Object child ) {
-    parent.add(child)
+    try {
+      parent.add(child)
+    } catch(e) {
+      println "Can't add '$child' to parent '$parent' in '$this' "
+    }
   }
 
   @Override
   public String toString() {
-    return  "${getClass().simpleName} [beanClass=" + beanClass + "]"
+    "${getClass().simpleName} [beanClass=$beanClass]"
   }
 }
 

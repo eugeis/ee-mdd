@@ -15,7 +15,7 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.builder.ModelBuilder
+import ee.mdd.ModelBuilder;
 
 /**
  *

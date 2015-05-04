@@ -27,15 +27,17 @@ class Base {
   protected boolean init = false
   String name
   Base parent
-  
+
   void checkAndInit(Base parent) {
     if(!init) {
       this.parent = parent
       init = init()
     }
   }
-  
-  protected boolean init() { true }
+
+  protected boolean init() {
+    true
+  }
 
   Base findParent(Closure matcher) {
     if(parent) {
@@ -47,12 +49,14 @@ class Base {
     }
   }
 
-  List<Base> findParents(Closure matcher, def fill = []) {
+  List<Base> findParents(boolean stopAfterFirstMismatch = false, def fill = [], Closure matcher) {
     if(parent) {
       if(matcher(parent)) {
         fill << parent
+        fill = parent.findParents(stopAfterFirstMismatch, fill, matcher)
+      } else if(!stopAfterFirstMismatch){
+        fill = parent.findParents(stopAfterFirstMismatch, fill, matcher)
       }
-      fill = parent.findParents(matcher, fill)
     }
     fill
   }
