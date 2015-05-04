@@ -186,11 +186,12 @@ class TemplatesForJava {
       }
 
       //      items('constants',
-      //      query: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
-      //      before: { c -> c.putAll( [ component: c.item.component, module: c.item] ) } ) {
+      //      query: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
+      //      before: { c -> c.putAll( [ component: c.item] ) } ) {
       //
       //        template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%> ${macros.generate('constants', c)}''')
       //        template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
+      //        template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.ml %> ${macros.generate('constantsMl', c)}''')
       //      }
 
 

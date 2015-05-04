@@ -21,7 +21,8 @@ import ee.mdd.model.Element
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Literal extends Element {
-  String body
+  String body, definition
 }

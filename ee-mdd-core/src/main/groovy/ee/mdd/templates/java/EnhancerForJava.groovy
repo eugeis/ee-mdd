@@ -70,6 +70,20 @@ class EnhancerForJava {
       Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
+
+      isTypeEnum << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeEnum'
+        if(!properties.containsKey(key)) {
+          def el = delegate
+          def ret = false
+          if(EnumType.isInstance(el)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     Type.metaClass {
@@ -497,7 +511,9 @@ class EnhancerForJava {
           } else if (!op.ret && Exist.isInstance(op)) {
             ret = 'boolean'
           }
+          properties[key] = ret
         }
+        properties[key]
       }
 
       isReturnTypeBoolean {
@@ -680,7 +696,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = "${prop.type.name}"
-          if(Entity.isInstance(delegate.type)) {
+          if(Entity.isInstance(prop.type)) {
             ret = "${prop.type.n.cap.Entity}"
           }
           properties[key] = ret
@@ -1001,20 +1017,6 @@ class EnhancerForJava {
           def prop = delegate
           def ret = false
           if(BasicType.isInstance(prop.type)) {
-            ret = true
-          }
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
-      isTypeEnum << {
-        ->
-        def key = System.identityHashCode(delegate) +'typeEnum'
-        if(!properties.containsKey(key)) {
-          def prop = delegate
-          def ret = false
-          if(EnumType.isInstance(prop.type)) {
             ret = true
           }
           properties[key] = ret

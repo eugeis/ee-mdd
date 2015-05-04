@@ -40,7 +40,7 @@ class ModelBuilderExample {
 
           model ('Platform', key: 'pl') {
             //constr
-            component('UserManagement', key: 'um') {
+            component('UserManagement', key: 'um', artifact: 'cg-pl-um') {
               facet( )
 
               facet('common')

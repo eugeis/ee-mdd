@@ -84,27 +84,28 @@ class MacrosForJava {
 ''')
 
       template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
-  void $prop.setter;
-<% } } %>''')
+  
+  void $prop.setter;<% } } %>''')
 
       template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
-  void $prop.setter;
-<% } } %>''')
+  void $prop.setter;<% } } %>''')
 
       template('relationIdPropGetterIfc', body: '''<% item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  
   <% if (relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.type.name><% } else { %>$relationIdProp.type.name<% } %> get${prop.cap}${relationIdProp.cap}();<% } } %>''')
 
       template('relationIdPropSetterIfc', body: '''<% item.props.each { prop -> if(prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  
   void set${prop.cap}${relationIdProp.cap}<% if(relationIdProp.multi) { %>(${c.name('List')}<$relationIdProp.type.name><% } else { %>($relationIdProp.type.name<% } %> ${prop.uncap}${relationIdProp.cap});<% } } %>''')
 
       template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
   
-  @Override
+  <% if (!item.typeEnum) { %>@Override<% } %>
   public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
     return $prop.uncap;
   }<% } else if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
-  @Override
+  <% if (!item.typeEnum) { %>@Override<% } %>
   public <% if(relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.name}${relationIdProp.cap};
   }<% } } } %>''')
@@ -253,13 +254,13 @@ class MacrosForJava {
 
       template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
-  ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);<% } } %>''')
+  ${op.return} $op.name(${op.signature(c)});<% } } %>''')
 
       template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  $op.ret ${op.name}($op.signature);<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  $op.ret ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.ref.return} ${op.ref.name}($op.ref.signature);<% } } %>''')
+  ${op.ref.return} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
       template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
   
@@ -830,14 +831,47 @@ public class $className extends $item.n.cap.baseImpl {
 ''')
 
       template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
+public enum $c.className implements ${c.name('Labeled')} {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
   $lit.underscored${lit == last ? ';' : ','}<% } else { %>
   $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
   
   public boolean $lit.is {
     return this == $lit.underscored; 
+  }<% } %><% item.operations.each { op -> if(op.body) { %>
+  <% if (op.override) { %>@Override<% } %><% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  ${macros.generate('methods', c)}<% } } %>
+
+  @Override
+  public String getNaturalKey() {
+    return name();
+  }
+
+  public static $className findByOrdinal(int ordinal) {
+    if (ordinal < values().length) {
+      return values()[ordinal];
+    } else {
+      throw new ${c.name('ControlguideNotFoundException')}("$className(ordinal)", ordinal);
+    }
+  }<% if(item.defaultLiteral) { %>
+
+  public static $className findByName(String name) {
+    return findByName(name, $item.defaultLiteral.underscored);
   }<% } %>
+
+  public static $className findByName(String name, $className defaultValue) {
+    $className ret = defaultValue;
+    if (name != null) {
+      for ($className literal : values()) {
+        if(literal.name().equalsIgnoreCase(name)) {
+          ret = literal;
+          break;
+        }
+      }
+    }
+    return ret;
+  }
 }''')
 
       template('jmsToCdi', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdi } %>{{imports}}
@@ -1034,6 +1068,14 @@ public class $className {
 public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
+
+      template('constantsMl', body: '''<% if (!c.className) { c.className = item.n.cap.Ml } %>
+/** Multi language constants for '$module.name' */
+public class $className {
+  // base name for '$module.name' resource bundle
+  public static final String ML_BASE = 
+''')
+
 
       template('implInjects', body: ''' <% item.operations.each { opRef -> def ref = opRef.ref.parent %>
   
@@ -1351,8 +1393,10 @@ ${ret-newLine}''')
     return true;
   }''')
 
-
-
+      template('buildMlKey', body: '''
+  public MLKey buildMlKey() {
+    return new MLKeyImpl(${item.component.n.cap.ml}.ML_BASE, name());
+  }''')
 
       template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
