@@ -51,6 +51,11 @@ class MacrosForJava {
       template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>''')
 
+      template('versionMember', body: '''<% if (!item.superUnit) { %>
+  @${c.name('Version')}
+  @${c.name('Column')}(name = "VERSION")
+  protected Long version;<% } %>''')
+
       template('defaultConstructor', body:'''
   public $className() {
   }''')
@@ -243,6 +248,18 @@ class MacrosForJava {
     //nothing, because object based;
   }<% } } %>
 ''')
+
+      template('getSetVersion', body: '''
+  @Override
+  public Long getVersion() {
+    return version;
+  }
+
+  @Override
+  public void setVersion(Long version) {
+    this.version = version;
+  }''')
+
 
       template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
   <% if (op.rawType) { %>
@@ -554,13 +571,13 @@ public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${item.cap}B
 
 
       template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
-public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.name(c.item.cap)} {
+public ${c.virtual || c.base ? 'abstract' : ''} class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
-  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
+  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('versionMember', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
   ${macros.generate('idPropGetter', c)}${macros.generate('idPropSetter', c)}
-  ${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaMultiSuperPropSetters', c)}
+  ${macros.generate('getSetVersion', c)}${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaMultiSuperPropSetters', c)}
   ${macros.generate('jpaPropGetters', c)}${macros.generate('jpaPropSetters', c)}
   ${macros.generate('relationIdPropGetter', c)}${macros.generate('relationIdPropSetter', c)}
   ${macros.generate('labelBody',c)}${macros.generate('attributesChanged', c)}

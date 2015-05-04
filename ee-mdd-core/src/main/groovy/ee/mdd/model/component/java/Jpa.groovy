@@ -27,7 +27,7 @@ class Jpa extends Facet {
   Closure childBuilder() {
 
     def nameToNamespace = ['ApplicationScoped' : 'javax.enterprise.context', 'NamedQuery' : 'javax.persistence',
-      'NamedQueries' : 'javax.persistence', 'Entity' : 'javax.persistence',
+      'NamedQueries' : 'javax.persistence', 'Entity' : 'javax.persistence', 'Version' : 'javax.persistence',
       'Table' : 'javax.persistence', 'Index' : 'javax.persistence', 'Column' : 'javax.persistence',
       'Id' : 'javax.persistence', 'OneToOne' : 'javax.persistence', 'OneToMany' : 'javax.persistence',
       'ManyToOne' : 'javax.persistence', 'ManyToMany' : 'javax.persistence', 'JoinColumn' : 'javax.persistence',
