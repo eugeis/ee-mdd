@@ -26,14 +26,14 @@ import java.util.concurrent.Callable
  */
 @Slf4j
 class Generator extends AbstractGenerator {
-  Map<String, TemplateGroup> templates = [:]
+  Map<String, TemplateGroup> templateGroups = [:]
 
   void generate(Context context) {
     log.info "$name: Generate for context '$context'"
     Executor executor = new Executor(5)
-//    Executor executor = new Executor(1)
+    //    Executor executor = new Executor(1)
 
-    templates.each { groupName, TemplateGroup templates ->
+    templateGroups.each { groupName, TemplateGroup templates ->
       templates.generate(context) { template, templateContext, generator ->
 
         executor.submit ( {
@@ -49,9 +49,9 @@ class Generator extends AbstractGenerator {
 
   def generate(String groupName, String template, Context c) {
     def ret = ''
-    if(templates.containsKey(groupName)){
+    if(templateGroups.containsKey(groupName)){
       before(c)
-      ret = templates[groupName].generate(template, c)
+      ret = templateGroups[groupName].generate(template, c)
       after(c)
     } else {
       c.error = new IllegalStateException("$name: Generation of '${groupName}.$template is not possible, because templates '$groupName' does not exists.")
@@ -61,6 +61,6 @@ class Generator extends AbstractGenerator {
   }
 
   def add(TemplateGroup child) {
-    templates[child.name] = super.add(child); child
+    templateGroups[child.name] = super.add(child); child
   }
 }
