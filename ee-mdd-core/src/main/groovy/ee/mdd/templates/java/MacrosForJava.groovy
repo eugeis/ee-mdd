@@ -243,21 +243,26 @@ class MacrosForJava {
   }<% } } %>
 ''')
 
-      template('methods', body: '''<% item.operations.each { op -> String ret = ''; if (op.body) { %>
+      template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
   <% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   @Override
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
   ${op.resolveBody(c)}
-  }<% } } %>''')
+  }<% } %>''')
 
       template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);<% } } %>''')
 
-
+      template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
+  ${op.description?"   /** $op.description */":''}
+  $op.ret ${op.name}($op.signature);<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.ref.return} ${op.ref.name}($op.ref.signature);<% } } %>''')
 
       template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
+  
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
@@ -285,12 +290,26 @@ public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each 
       //ifcs
 
 
-      template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')} <% } %> { 
-  /** A unique URI prefix for RESTful services and multi-language support */
-  public static final String URI_PREFIX = "${item.getUri()}";
-${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
+      template('ifcService', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}
+<% if (!item.base) { %>
+/**
+* The service provides public operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+public interface $className {
+  ${macros.generate('interfaceBodyExternal', c)}
+}''')
+
+      template('ifcServiceExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>
+/**
+* The service provides public operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/
+public interface $c.className extends $item.n.cap.base {
 }''')
 
       template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
@@ -551,8 +570,7 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
       template('ejbEntityExtends', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;      
-  ${macros.generate('superConstructor', c)}
-  ${macros.generate('implOperations', c)}
+  ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
       template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
@@ -565,7 +583,7 @@ public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (sup
 }''')
 
       template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
-/** JPA representation of {@link ${c.name(item.name)} */
+/** JPA representation of {@link ${c.name(item.name)}} */
 @${c.name('Embeddable')}
 public class $className extends ${item.n.cap.baseEmbeddable} {
   private static final long serialVersionUID = 1L;
