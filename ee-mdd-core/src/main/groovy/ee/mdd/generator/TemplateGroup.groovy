@@ -17,8 +17,6 @@ package ee.mdd.generator
 
 import groovy.util.logging.Slf4j
 
-import javax.xml.transform.Templates
-
 /**
  *
  * @author Eugen Eisler

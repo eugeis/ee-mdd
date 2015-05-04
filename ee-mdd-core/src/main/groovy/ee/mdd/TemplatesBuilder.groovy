@@ -21,21 +21,24 @@ import ee.mdd.builder.TemplateGroupFactory
 import ee.mdd.generator.Generator
 import ee.mdd.generator.Processor
 import ee.mdd.generator.Template
-import ee.mdd.model.Body;
-import ee.mdd.model.component.Type
+import ee.mdd.model.Body
 
 /**
  *
  * @author Eugen Eisler
  */
-class GeneratorBuilder extends AbstractFactoryBuilder {
+class TemplatesBuilder extends AbstractFactoryBuilder {
 
   void registerAll() {
     def factoryGenerator = new CompositeFactory(beanClass: Generator, childFactories: [
       'templates',
       'processor'
     ])
-    def templates = new TemplateGroupFactory(childFactories: ['template', 'processor', 'templates'])
+    def templates = new TemplateGroupFactory(childFactories: [
+      'templates',
+      'template',
+      'processor'
+    ])
     def processor = new CompositeFactory(beanClass: Processor, childFactories: [])
     def template = new CompositeFactory(beanClass: Template, childFactories: ['type', 'processor'])
     def body = new CompositeFactory(beanClass: Body, childFactories: ['type'])

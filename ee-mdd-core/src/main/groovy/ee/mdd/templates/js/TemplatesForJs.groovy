@@ -15,8 +15,8 @@
  */
 package ee.mdd.templates.js
 
-import ee.mdd.GeneratorBuilder;
-import ee.mdd.generator.Generator
+import ee.mdd.TemplatesBuilder
+import ee.mdd.generator.TemplateGroup;
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 
@@ -26,8 +26,8 @@ import ee.mdd.model.component.EnumType
  */
 class TemplatesForJs {
 
-  static Generator build() {
-    def ret = new GeneratorBuilder().generator('model') {
+  static TemplateGroup build() {
+    def ret = new TemplatesBuilder().tempaltes('model') {
 
       templates ('api',
       items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },

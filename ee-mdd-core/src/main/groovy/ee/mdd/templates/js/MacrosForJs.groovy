@@ -15,7 +15,7 @@
  */
 package ee.mdd.templates.js
 
-import ee.mdd.GeneratorBuilder;
+import ee.mdd.TemplatesBuilder;
 import ee.mdd.generator.TemplateGroup
 
 
@@ -27,7 +27,7 @@ import ee.mdd.generator.TemplateGroup
 class MacrosForJs {
 
   static TemplateGroup build() {
-    new GeneratorBuilder().templates ('macros') {
+    new TemplatesBuilder().templates ('macros') {
 
       template('header', body: '''/* EE Software */''')
 

@@ -15,13 +15,11 @@
  */
 package ee.mdd.generator.java
 
-import ee.mdd.GeneratorBuilder
 import ee.mdd.ModelBuilder
 import ee.mdd.generator.Context
+import ee.mdd.generator.FacetTemplateLoader
 import ee.mdd.generator.Generator
 import ee.mdd.generator.ProcessorsFactory
-import ee.mdd.generator.TemplateGroup
-import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
@@ -54,15 +52,16 @@ class GeneratorForJava {
 
       builder.refAttrResolver.printNotResolved()
 
-      def generatorBuilder = new GeneratorBuilder()
-      Generator generator = generatorBuilder.generator('java')
+
+      FacetTemplateLoader templateLoader = new FacetTemplateLoader()
+
+      Generator generator = new Generator()
+      generator.add(templateLoader.loadFacetTemplates(model))
 
       def commonProcessorFactory = new ProcessorsFactory()
       def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
 
-      generator.add(commonProcessorFactory.macrosProcessor(generatorBuilder.buildFromClasspath("/templates/java/macros.groovy")))
-
-      loadFacetTemplates(model, generator, generatorBuilder)
+      generator.add(commonProcessorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
 
       generator.add(javaProcessorFactory.javaImportsPathProcessor())
       generator.add(commonProcessorFactory.printProcessor())
@@ -73,24 +72,5 @@ class GeneratorForJava {
 
       generator.generate(c)
     }
-  }
-
-  private static loadFacetTemplates(Model model, Generator generator, GeneratorBuilder generatorBuilder) {
-    def facetTemplateLoader
-    facetTemplateLoader = { facets ->
-      if(facets) {
-        facets.each { facetName, Facet facet ->
-          URL resource = facet.getClass().getResource("/templates$facet.path${facet.name}.groovy")
-          if(resource) {
-            TemplateGroup templateGroup = generatorBuilder.build(resource)
-            if(templateGroup) {
-              generator.add(templateGroup)
-            }
-          }
-          facetTemplateLoader facet.facets
-        }
-      }
-    }
-    facetTemplateLoader model.facets
   }
 }
