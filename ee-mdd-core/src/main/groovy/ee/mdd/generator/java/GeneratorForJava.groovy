@@ -62,23 +62,7 @@ class GeneratorForJava {
 
       generator.add(commonProcessorFactory.macrosProcessor(generatorBuilder.buildFromClasspath("/templates/java/macros.groovy")))
 
-      def facetTemplateLoader
-      facetTemplateLoader = { facets ->
-        if(facets) {
-          facets.each { facetName, Facet facet ->
-            URL resource = facet.getClass().getResource("/templates$facet.path${facet.name}.groovy")
-            if(resource) {
-              TemplateGroup templateGroup = generatorBuilder.build(resource)
-              if(templateGroup) {
-                generator.add(templateGroup)
-              }
-            }
-            facetTemplateLoader facet.facets
-          }
-        }
-      }
-      facetTemplateLoader model.facets
-
+      loadFacetTemplates(model, generator, generatorBuilder)
 
       generator.add(javaProcessorFactory.javaImportsPathProcessor())
       generator.add(commonProcessorFactory.printProcessor())
@@ -89,5 +73,24 @@ class GeneratorForJava {
 
       generator.generate(c)
     }
+  }
+
+  private static loadFacetTemplates(Model model, Generator generator, GeneratorBuilder generatorBuilder) {
+    def facetTemplateLoader
+    facetTemplateLoader = { facets ->
+      if(facets) {
+        facets.each { facetName, Facet facet ->
+          URL resource = facet.getClass().getResource("/templates$facet.path${facet.name}.groovy")
+          if(resource) {
+            TemplateGroup templateGroup = generatorBuilder.build(resource)
+            if(templateGroup) {
+              generator.add(templateGroup)
+            }
+          }
+          facetTemplateLoader facet.facets
+        }
+      }
+    }
+    facetTemplateLoader model.facets
   }
 }
