@@ -25,6 +25,7 @@ class Operation extends LogicUnit {
   Type ret
   boolean rawType = false
   boolean transactional = false
+  boolean override = false
 
   String getNameExternal() {
     name

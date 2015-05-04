@@ -70,6 +70,20 @@ class EnhancerForJava {
       Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
+
+      isTypeEnum << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeEnum'
+        if(!properties.containsKey(key)) {
+          def el = delegate
+          def ret = false
+          if(EnumType.isInstance(el)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     Type.metaClass {
@@ -167,7 +181,6 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'propsForHashCode'
         if(!properties.containsKey(key)) {
           def ret = delegate.props.findAll{ it.hashCode }
-          ret << delegate.props.findAll{ it.primaryKey }
           properties[key] = ret
         }
         properties[key]
@@ -430,7 +443,7 @@ class EnhancerForJava {
           delegate.deleters.each { deleter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.className+'.'+deleter.operationName
-            namedQuery.value['items'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
+            namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
             deleterQueries << namedQuery
           }
           deleterQueries
@@ -449,7 +462,7 @@ class EnhancerForJava {
           delegate.finders.each { finder ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.className+'.'+finder.operationName
-            namedQuery.value['items'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
+            namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
             finderQueries << namedQuery
           }
           finderQueries
@@ -463,7 +476,7 @@ class EnhancerForJava {
           delegate.counters.each { counter ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.className+'.'+counter.operationName
-            namedQuery.value['items'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
             counterQueries << namedQuery
           }
           counterQueries
@@ -477,7 +490,7 @@ class EnhancerForJava {
           delegate.exists.each { exist ->
             def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
             namedQuery.value['name'] = c.className+'.'+exist.operationName
-            namedQuery.value['items'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
+            namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
             existsQueries << namedQuery
           }
           existsQueries
@@ -498,7 +511,9 @@ class EnhancerForJava {
           } else if (!op.ret && Exist.isInstance(op)) {
             ret = 'boolean'
           }
+          properties[key] = ret
         }
+        properties[key]
       }
 
       isReturnTypeBoolean {
@@ -669,7 +684,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret
-          ret = prop.multi ? "List<${prop.type}>" : "${prop.type}"
+          ret = prop.multi ? "List<${prop.type.name}>" : "${prop.type.name}"
           properties[key] = ret
         }
         properties[key]
@@ -681,7 +696,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = "${prop.type.name}"
-          if(Entity.isInstance(delegate.type)) {
+          if(Entity.isInstance(prop.type)) {
             ret = "${prop.type.n.cap.Entity}"
           }
           properties[key] = ret
@@ -1009,20 +1024,6 @@ class EnhancerForJava {
         properties[key]
       }
 
-      isTypeEnum << {
-        ->
-        def key = System.identityHashCode(delegate) +'typeEnum'
-        if(!properties.containsKey(key)) {
-          def prop = delegate
-          def ret = false
-          if(EnumType.isInstance(prop.type)) {
-            ret = true
-          }
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
       isElementCollection << {
         ->
         def key = System.identityHashCode(delegate) +'elementCollection'
@@ -1289,8 +1290,5 @@ class EnhancerForJava {
         properties[key]
       }
     }
-
-
-
   }
 }

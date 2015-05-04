@@ -13,7 +13,10 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
   model ('Platform', key: 'pl') {
     //constr
-    component('UserManagement', key: 'um') {
+    component('UserManagement', key: 'um', artifact: 'cg-pl-um') {
+      facet( )
+
+      facet('common')
 
       module('shared') {
 
@@ -49,6 +52,8 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('id', type: 'Long', unique: true, primaryKey: true)
           prop('value', type: 'int')
         }
+
+
 
         entity('ProtectionRequirement', superUnit: 'ElementLink', sqlName: 'PR',
         description: '''Protection requirements are element references which extend the reference by an element specific value They are used for possession areas to specify eg the locked position of a switch They can be specified in an ElementRefs collection instead of the ElementRef tag''') {
@@ -87,7 +92,8 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
         }
 
         entity('Um', virtual: true, meta: []) {
-          prop('testMultiProp', type: 'Element', multi: true, unique:true, primaryKey: true)
+          prop('id', type: 'Long', unique: true, primaryKey: true)
+          prop('testMultiProp', type: 'Element', multi: true)
           prop('zweitesMulti', type: 'Task', opposite: 'multiTest',  multi: true)
         }
 
@@ -103,11 +109,11 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
         entity('Element',
         description: '''An element can be any general topological item which can be identified by a a topological Id and a name An Element can be assigned a ControlArea''') {
-          prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true, multi: true)
+          prop('id', type: 'Long', unique: true, primaryKey: true, xml: false, hashCode: true)
           //                  prop('controlArea', description: '''The assigned ControlArea for this Element''')
-          prop('longName', type: "String", index: true, description: '''Long name of the element''')
-          prop('shortName', type: "String", hashCode: true, index: true, description: '''Short name of the element''')
-          prop('topologyId', type: "int", sqlName: 'T_ID', hashCode: true, index: true, description: '''Unique Id assigned by engineering''')
+          prop('longName', type: 'String', index: true, description: '''Long name of the element''')
+          prop('shortName', type: 'String', hashCode: true, index: true, description: '''Short name of the element''')
+          prop('topologyId', type: 'Long', sqlName: 'T_ID', hashCode: true, index: true, description: '''Unique Id assigned by engineering''')
           prop('type', type: 'Element', description: '''The type classification of the Element''')
           //
           //                  //                  cache {}
@@ -129,7 +135,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
         entity('AllowedConnection',
         description: '''Describes an allowed connection by type which can be attached in the timetable to this location''') {
           prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true)
-          prop('direction', type: 'int', hashCode: true, index: true, description: '''The direction in which the connection is allowed''')
+          prop('direction', type: 'int', index: true, description: '''The direction in which the connection is allowed''')
           prop('stationTrack', type: 'StationTrack', opposite: 'allowedConnections')
           prop('type', type: 'String', description: '''The type of the connection''')
         }
@@ -144,7 +150,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
 
         entity('Comment', superUnit: 'Um', attributeChangeFlag: true) {
-          prop('id', type: 'Task',  unique: true, primaryKey: true, multi: true)
+          prop('id', type: 'Long',  unique: true, primaryKey: true)
           prop('testTask', type: 'Task', opposite: 'comment')
           prop('testProp', type: 'Task', multi: true)
           prop('dateOfCreation', type: 'Date')
@@ -220,24 +226,24 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
       module('backend') {
 
         entity('Area') {
-          prop('areaId', type: 'Long', unique: true, primaryKey: true)
+          prop('id', type: 'Long', unique: true, primaryKey: true)
           prop('name', type: 'String')
           prop('age', type: 'int')
           prop('size', type: 'int')
 
           commands {
-            delete() { param(prop: 'areaId') }
+            delete() { param(prop: 'id') }
           }
 
           finder {
             exist  {  param(prop: 'name') }
-            findBy {  param(prop: 'areaId') }
+            findBy {  param(prop: 'id') }
             findBy {  param(prop: 'size') }
           }
 
         }
 
-        controller('TaskAgregator') {
+        controller('TaskAgregator', base: true) {
           op('hello', ret: 'String', body: '#testBody') {
             param('test', type: 'String')
           }
@@ -245,8 +251,8 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
         service('CommandService', base: true) {
           delegate(ref: 'TaskAgregator.hello')
-          delegate(ref: 'Area.commands.DeleteByAreaId')
-          delegate(ref: 'Area.finder.FindByAreaId')
+          delegate(ref: 'Area.commands.DeleteById')
+          delegate(ref: 'Area.finder.FindById')
           delegate(ref: 'Area.finder.FindBySize')
           delegate(ref: 'Area.finder.ExistByName')
         }

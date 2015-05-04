@@ -13,118 +13,123 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- 
- /**
+
+
+/**
  *
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
- 
+
 templates ('macros') {
 
-      template('header', body: '''/* EE Software */''')
+  template('header', body: '''/* EE Software */''')
 
-      template('propsMember', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %><% if(prop.multi) { %>
+  template('propsMember', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %><% if(prop.multi) { %>
   protected ${c.name('List')}<${prop.type.name}> $prop.uncap; <% } else { %>
-  protected ${prop.type.name} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
-  protected ${c.name('List')}<${relationIdProp.type.name}< ${prop.uncap}${relationIdProp.cap};<% } else { %>
+  protected ${c.name(prop.type.name)} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
+  protected ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
   protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>''')
 
-      template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
+  template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
   protected ${c.name('List')}<${prop.typeEjbMember}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember} $prop.uncap;<% } } } %>''')
 
-      template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(!members.contains(delegate.ref.parent)) { %>
+  template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(!members.contains(delegate.ref.parent)) { %>
   protected $delegate.ref.parent.name $delegate.ref.parent.uncap<% } %><% members.add(delegate.ref.parent) %><% } %>''')
 
-      template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
+  template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember}> $idProp.uncap;<% } else { %>
   protected ${idProp.typeEjbMember} $idProp.uncap;<% } }%>''')
 
-      template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
+  template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>''')
 
-      template('defaultConstructor', body:'''
+  template('versionMember', body: '''<% if (!item.superUnit) { %>
+  @${c.name('Version')}
+  @${c.name('Column')}(name = "VERSION")
+  protected Long version;<% } %>''')
+
+  template('defaultConstructor', body:'''
   public $className() {
   }''')
 
-      template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
+  template('baseConstructor', body: '''<% item.constructors.each { constr -> %>
   public $className(${constr.signature(c)}) {<% constr.params.each { param -> if (param.value!=null) { %>
     ${param.resolveValue(c)}<% } else if (param.prop!=null) { %>
     this.$param.prop.uncap = $param.prop.uncap;<% } } %>
   }<% } %>''')
 
-      template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
+  template('superConstructor', body: ''' <% item.constructors.each { constr -> %>
   public $className(${constr.signature(c)}) {
     super($constr.call);
   }<% } %>''')
 
-      template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
+  template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
 
   private $className(${constr.signature(c)}) {<% constr.params.each { if(it.prop!=null) { if (it.value!=null) { %>
     this.$it.prop.uncap = $it.value;<% } else { %>
     this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
   }<% } %>''')
 
-      template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable) { %>
+  template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable) { %>
   <% if (prop.description) { %>
   /** $prop.description */<% } %>
   <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %> ''')
 
-      template('propGettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
+  template('propGettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
   <% if (prop.description) { %>/** $prop.description */<% } %>
   <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>
 ''')
 
-      template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
-  void $prop.setter;
-<% } } %>''')
+  template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
+  
+  void $prop.setter;<% } } %>''')
 
-      template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
-  void $prop.setter;
-<% } } %>''')
+  template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
+  void $prop.setter;<% } } %>''')
 
-      template('relationIdPropGetterIfc', body: '''<% item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  template('relationIdPropGetterIfc', body: '''<% item.props.each { prop -> if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  
   <% if (relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.type.name><% } else { %>$relationIdProp.type.name<% } %> get${prop.cap}${relationIdProp.cap}();<% } } %>''')
 
-      template('relationIdPropSetterIfc', body: '''<% item.props.each { prop -> if(prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  template('relationIdPropSetterIfc', body: '''<% item.props.each { prop -> if(prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  
   void set${prop.cap}${relationIdProp.cap}<% if(relationIdProp.multi) { %>(${c.name('List')}<$relationIdProp.type.name><% } else { %>($relationIdProp.type.name<% } %> ${prop.uncap}${relationIdProp.cap});<% } } %>''')
 
-      template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
+  template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
   
-  @Override
+  <% if (!item.typeEnum) { %>@Override<% } %>
   public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
     return $prop.uncap;
   }<% } else if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
-  @Override
-  public <% if(relationIdProp.multi) { %>${c.name('List')}<relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> get${prop.cap}${relationIdProp.cap}() {
+  <% if (!item.typeEnum) { %>@Override<% } %>
+  public <% if(relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.name}${relationIdProp.cap};
-  }
-<% } } } %>''')
+  }<% } } } %>''')
 
-      template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
+  template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
   
   @Override
-  public void set${prop.cap}($prop.relTypeEjb $prop.name) {
+  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>$prop.relTypeEjb<% } %> $prop.name) {
     this.$prop.uncap = $prop.uncap; 
   }<% } else if (prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
   @Override
-  public void set${prop.cap}${relationIdProp.cap}($relationIdProp.relTypeEjb ${prop.name}${relationIdProp.cap}) {
+  public void set${prop.cap}${relationIdProp.cap}(<% if (relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> ${prop.name}${relationIdProp.cap}) {
     this.${prop.name}${relationIdProp.cap} = ${prop.name}${relationIdProp.cap};
   }
 <% } } } %>''')
 
-      template('propGettersBasicType', body: ''' <% item.props.each { prop -> if (prop.readable) { %>
+  template('propGettersBasicType', body: ''' <% item.props.each { prop -> if (prop.readable) { %>
   @Override<% if (prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public <% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
     return <% if (prop.multi && prop.typeBasicType) { %>(List)<% } %>$prop.name;
   }<% } } %>''')
 
-      template('propSettersBasicType', body: ''' <% item.props.each { prop -> if (prop.writable) { %>
+  template('propSettersBasicType', body: ''' <% item.props.each { prop -> if (prop.writable) { %>
   @Override <% if (prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.type.name><% } else { %>$prop.type.name<% } %> $prop.name) {
@@ -132,7 +137,7 @@ templates ('macros') {
   }<% } } %>''')
 
 
-      template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
+  template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
   ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
   public abstract ${c.name('List')}<${prop.relTypeEjb}> $prop.getter;<% } else { %> 
@@ -146,7 +151,7 @@ templates ('macros') {
     return <% if(prop.multi && prop.typeBasicType) {%>(List)<% } %>$prop.uncap; 
   }<% } } } }%>''')
 
-      template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
+  template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
   public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb}> $prop.uncap);<% } else if (!prop.multi) { %>
   ${!prop.typeEntity?'@Override':''}
   public void set${prop.cap}(${prop.relTypeEjb} $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
@@ -186,7 +191,7 @@ templates ('macros') {
     return ${prop.getter}.remove(child);
   }<% } } } } %>''')
 
-      template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
+  template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
   @Override<% } %><% if(prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${c.name('List')}<${prop.relTypeEjb}> $prop.getter {
@@ -196,7 +201,7 @@ templates ('macros') {
     return <% if(prop.typeBasicType) {%>(List)<% } %>$prop.uncap;
   }<% } } %>''')
 
-      template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable && !prop.primaryKey) { if(!prop.opposite) { %>
+  template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable && !prop.primaryKey) { if(!prop.opposite) { %>
   @Override<% if(prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public void set$prop.cap(${prop.relTypeEjb} $prop.uncap) {
@@ -213,46 +218,63 @@ templates ('macros') {
     }
   }<% } } } %>''')
 
-      template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp) { %>
+  template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp) { %>
   @Override
   public <% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb><% } else { %>${idProp.relTypeEjb}<% } %> $idProp.getter {
     return $idProp.uncap;
   }<% } %>''')
 
-      template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
+  template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
   @Override
   public void set${idProp.cap}(<% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb><% } else { %>${idProp.relTypeEjb}<% } %> $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
   }<% } %>''')
 
-      template('relationIdPropGetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  template('relationIdPropGetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
   @Override
   public <% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.uncap} != null ? ${prop.uncap}.get${relationIdProp.cap}() : null;
   }<% } } %>''')
 
-      template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+  template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
   @Override
   public void set${prop.cap}${relationIdProp.cap}(<% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> ${prop.uncap}${relationIdProp.cap}) {
     //nothing, because object based;
   }<% } } %>
 ''')
 
-      template('methods', body: '''<% item.operations.each { op -> String ret = ''; if (op.body) { %><% if (op.rawType) { %>
+  template('getSetVersion', body: '''
+  @Override
+  public Long getVersion() {
+    return version;
+  }
+
+  @Override
+  public void setVersion(Long version) {
+    this.version = version;
+  }''')
+
+
+  template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
+  <% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   @Override
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
   ${op.resolveBody(c)}
-  }<% } } %>''')
+  }<% } %>''')
 
-      template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
+  template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
-  ${op.ret ? op.ret.name : 'void'} $op.name($op.signature);
-  <% } } %>''')
+  ${op.return} $op.name(${op.signature(c)});<% } } %>''')
 
+  template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
+  ${op.description?"   /** $op.description */":''}
+  $op.ret ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.ref.return} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
-
-      template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
+  template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
+  
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
@@ -261,7 +283,7 @@ templates ('macros') {
     return null; <% } %>
   }<% } } %>''')
 
-      template('implOperationsAndDelegates', body: ''' <% item.operations.each { op -> if(op.body) { %> 
+  template('implOperationsAndDelegates', body: ''' <% item.operations.each { op -> if(op.body) { %> 
   <% if (c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
@@ -270,25 +292,152 @@ templates ('macros') {
   }<% } } %>''')
 
 
-      template('ifcMethods', body: '''
+  template('ifcMethods', body: '''
   
 <% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
 public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+"${c.name(it.type)}"+' '+it.uncap}%>${ret-separator}); 
 <% } %>''')
 
 
-      //ifcs
+  //ifcs
 
 
-      template('ifc', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Serializable')} <% } %> { 
-  /** A unique URI prefix for RESTful services and multi-language support */
-  public static final String URI_PREFIX = "${item.getUri()}";
-${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
+  template('ifcService', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}
+<% if (!item.base) { %>
+/**
+* The service provides public operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+public interface $className {
+  ${macros.generate('interfaceBodyExternal', c)}
 }''')
 
-      template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('ifcServiceExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>
+/**
+* The service provides public operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/
+public interface $c.className extends $item.n.cap.base {
+}''')
+
+  template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
+${item.description?"/*** $item.description */":''}
+public interface $className extends <% if (item.superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
+${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
+}''')
+
+  template('ifcContainer', body: '''<% if (!c.className) { c.className = item.n.cap.base } %><% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %>
+<%item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} 
+
+<% if (!item.base) { %>
+/**
+* The container is used to transfer bundled data between between server and client.
+* <p>
+* ${item.description?item.description:''}
+* </p>
+*/<% } else { %>/** Base interface of {@link ${c.name(item.name)}} */<% } %>
+
+public interface $c.className extends ${c.name('Serializable')} {
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final String URI_PREFIX = "${item.uri}";
+
+  /** Source of object builder. E.g. server/node name. */
+  String getSource();
+
+  void setSource(String source);
+
+  /** Time point of data fetching */
+  ${c.name('Date')} getTimestamp();
+
+  void setTimestamp(Date timestamp);
+
+  /** Reset temporary ids of new entities */
+  void resetTempIds();
+
+  /**
+   * Applies all changes from the passed container. In effect, all removes are applied.
+   *
+   * Use this method to update a container which contains all information with a container carrying delta information.
+   *
+   * @param container Delta information (new, updated and deleted deadlocks)
+   */
+  void synchronize(${item.cap} container);
+
+  /**
+   * Applies all changes and addition returns a delta cache containing all changes. This method's logic is more
+   * complex as the pure synchronize method, so it should only be used if the returned delta cache is needed for
+   * further processing.
+   *
+   * @param container Delta information (new, updated and deleted deadlocks)
+   * @return Delta container with all changes
+   */
+  $item.n.cap.delta synchronizeWithDelta($item.cap container);
+
+  /**
+   * Synchronizes only the removes.
+   */
+  void synchronize($item.n.cap.removes removes);
+
+  /**
+   * Merges the changes from the passed container. In effect, all removes are merged as well.
+   *
+   * Use this method to merge containers containing delta information.
+   *
+   * @param container Delta information (new, updated and deleted deadlocks)
+   */
+  void merge($item.cap container);
+
+  $item.n.cap.removes get${item.cap}Removes();
+
+  /**
+   * Clears all data (caches and removes)
+   */
+  void clear();
+
+  /**
+   * Returns whether the container is empty, i.e. that it contains neither container entries nor removes.
+   */
+  boolean isEmpty();
+
+  $item.name buildChangeSet();<% item.props.each { entityProp -> def entity = entityProp.type %>
+  
+  $entity.cap get${entity.n.cap.entity}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+
+  ${c.name('LinkedObjectCache')}<${entity.idProp.computedType}, $relationIdProp.computedType, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
+
+  ${macros.generate('interfaceBody', c)}<% item.props.each { prop -> %>
+
+  $prop.computedType $prop.getter;<% } %>
+  ${macros.generate('propSettersIfc', c)}
+}''')
+
+  template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>{{imports}}
+public interface $c.className extends ${c.name('LogStringProvider')} {
+<% item.props.each { entityProp -> def entity = entityProp.type %>
+  ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
+}''')
+
+  template('ifcContainerDeltaExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.delta } %><% def superClassName = item.n.cap.deltaBase %>{{imports}}
+public interface $c.className extends $superClassName {
+}''')
+
+  template('ifcController', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}} 
+<% if (!item.base) { %>
+/**
+* The controller $item.name provides internal logic operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.cap}<% } %> {
+  ${macros.generate('interfaceBody', c)}
+}''')
+
+  template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
 public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}> <% } %>{ 
   /** A unique URI prefix for RESTful services and multi-language support */
@@ -296,18 +445,12 @@ public interface $c.className extends<% if (item.superUnit) { %> ${item.superUni
 ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
-      template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %>{{imports}}
+  template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %>{{imports}}
 /** Base interface for {@link $item.n.cap.base} */
 public interface $c.className extends $item.n.cap.base {
 }''')
 
-      template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
-${item.description?"/*** $item.description */":''}
-public interface $className extends <% if (item.superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
-${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
-}''')
-
-      template('ifcContainerExtends', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('ifcContainerExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
 /**
 * The container is used to transfer bundled data between server and client.
 * <p>
@@ -317,30 +460,118 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 public interface $c.className extends $item.n.cap.base {
 }''')
 
-
-      //classes
-
-
-      template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
-public ${(c.virtual || c.base) ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
-  private static final long serialVersionUID = 1L;
-  ${macros.generate('propsMember', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+  template('ifcControllerExtends', body: '''<% c.src = true %><% if(!c.className) { c.className = item.cap } %>{{imports}}
+/**
+* The $item.name controller provides internal logic operations for '$module.name'.<% if (item.description) { %>
+* <p>
+* $item.description
+* </p><% } %>
+*/
+public interface $className extends $item.n.cap.base {
 }''')
 
-      template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
-public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
+
+
+  //classes
+
+
+  template('containerRemoves', body: '''<% if (!c.className) { c.className = item.n.cap.removesBase } %>{{imports}}
+public class $c.className implements ${c.name('Serializable')}, ${c.name('LogStringProvider')} {
+  private static final long serialVersionUID = 1L;<% item.props.each { entityProp -> def entity = entityProp.type %>
+  protected ${c.name('HashSet')}<$entity.idProp.type.name> ${entity.cap}Ids = new HashSet<>();<% } %><% item.props.each { entityProp -> def entity = entityProp.type %>
+
+  public ${c.name('Set')}<$entity.idProp.type.name> get${entity.cap}Ids() {
+    return ${entity.cap}Ids;
+  }<% } %>
+  
+  public void synchronize($c.className removes) {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    ${entity.cap}Ids.addAll(removes.get${entity.cap}Ids());<% } %>
+  }
+
+  public void clear() {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    ${entity.cap}Ids.clear();<% } %>
+  }
+
+  @Override
+  public void fillToLogString(${c.name('LogStringBuilder')} b) {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    b.append(" ${entity.cap}Ids", ${entity.cap}Ids);<% } %>
+  }
+}''')
+
+  template('containerRemovesExtends', body: '''<% if (!c.className) { c.className = item.n.cap.removes } %>{{imports}}
+public class $c.className extends $item.n.cap.removesBase {
+  private static final long serialVersionUID = 1L;
+}''')
+
+  template('implContainerDelta', body: '''<% if (!c.className) { c.className = item.n.cap.deltaBaseImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+def newInstances = item.props.collect { entityProp -> "new ${entityProp.type.n.cap.deltaCacheImpl}()" }.join(", ") %>{{imports}}
+public class $c.className implements $item.n.cap.deltaImpl {
+  <% item.props.each { entityProp -> def entity = entityProp.type %>private final ${entity.n.cap.deltaCache} ${entity.uncap}DeltaCache;<% } %>
+
+  public $c.className(${signature}) {
+    <% item.props.each { entityProp -> def entity = entityProp.type %>this.${entity.uncap}DeltaCache = ${c.name('AssertionUtils')}.assertNotNull(${entity.uncap}DeltaCache);<% } %>
+  }
+
+  public $c.className() {
+    this(${newInstances});
+  }
+  <% item.props.each { entityProp -> def entity = entityProp.type %>
+  @Override
+  public ${entity.n.cap.deltaCache} get${entity.n.cap.delta}() {
+    return ${entity.uncap}DeltaCache;
+  }<% } %>
+
+  @Override
+  public void fillToLogString(${c.name('LogStringBuilder')} tf) {
+    <% item.props.each { entityProp -> def entity = entityProp.type %>tf.append("${entity.uncap}Delta", ${entity.uncap}DeltaCache);<% } %>
+  }
+}''')
+
+  template('implContainerDeltaExtends', body: '''<% if (!c.className) { c.className = item.n.cap.deltaImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+def params = item.props.collect { entityProp -> "new ${entityProp.type.uncap}deltaCache()" }.join(", ") %>
+public class $c.className extends $item.n.cap.deltaBaseImpl {
+
+  public $c.className(${signature}) {
+    super(${params});
+  }
+
+  public $c.className() {
+    super();
+  }
+}''')
+
+  template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
+public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
+  private static final long serialVersionUID = 1L;
+  ${macros.generate('propsMember', c)}<% if(!c.item.superUnit) { %>
+  protected Long version;
+
+  @Override
+  public Long getVersion() {
+    return version;
+  }
+
+  @Override
+  public void  setVersion(Long version) {
+    this.version = version;
+  }<% } %>${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+
+}''')
+
+  template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
+public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
 
-      template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
-public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUnit) { %> extends ${superUnit.n.cap.entity}<% } %> implements ${c.name(c.item.cap)} {
+  template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
+public ${c.virtual || c.base ? 'abstract' : ''} class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
   private transient boolean attributesChanged = false;<% } %>
-  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
+  ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('versionMember', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
   ${macros.generate('idPropGetter', c)}${macros.generate('idPropSetter', c)}
-  ${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaMultiSuperPropSetters', c)}
+  ${macros.generate('getSetVersion', c)}${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaMultiSuperPropSetters', c)}
   ${macros.generate('jpaPropGetters', c)}${macros.generate('jpaPropSetters', c)}
   ${macros.generate('relationIdPropGetter', c)}${macros.generate('relationIdPropSetter', c)}
   ${macros.generate('labelBody',c)}${macros.generate('attributesChanged', c)}
@@ -348,14 +579,13 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className<% if(superUni
   ${macros.generate('hashCodeAndEqualsEntity', c)}
 }''')
 
-      template('ejbEntityExtends', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+  template('ejbEntityExtends', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;      
-  ${macros.generate('superConstructor', c)}
-  ${macros.generate('implOperations', c)}
+  ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-      template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+  template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
 public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (superUnit) { %> extends superUnit.cap<% } %> implements ${c.name(item.name)} {
   private static final long serialVersionUID = 1L;
@@ -364,15 +594,15 @@ public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (sup
   ${macros.generate('implOperationsAndDelegates', c)}${macros.generate('hashCodeAndEqualsBasicType', c)}
 }''')
 
-      template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
-/** JPA representation of {@link $item.name} */
+  template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+/** JPA representation of {@link ${c.name(item.name)}} */
 @${c.name('Embeddable')}
 public class $className extends ${item.n.cap.baseEmbeddable} {
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-      template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
+  template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public ${item.base?'abstract ':''}class $className implements $item.name {<% if (item.useConverter) { %>
@@ -414,14 +644,14 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
 }
 ''')
 
-      template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
+  template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
 ${macros.generate('implOperations', c)}
 }''')
 
-      template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
+  template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
 <% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
    if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
    if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>
@@ -566,7 +796,7 @@ public class $className extends Base implements $item.name {
   }
 }''')
 
-      template('implContainerExtends', body: '''<% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.n.cap.impl } %>{{imports}}
+  template('implContainerExtends', body: '''<% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.n.cap.impl } %>{{imports}}
 @${c.name('Alternative')}
 public class $className extends $item.n.cap.baseImpl {
   private static final long serialVersionUID = 1L;
@@ -611,18 +841,51 @@ public class $className extends $item.n.cap.baseImpl {
 
 ''')
 
-      template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public enum $c.className {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
+  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+public enum $c.className implements ${c.name('Labeled')} {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
   $lit.underscored${lit == last ? ';' : ','}<% } else { %>
   $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
   
   public boolean $lit.is {
     return this == $lit.underscored; 
+  }<% } %><% item.operations.each { op -> if(op.body) { %>
+  <% if (op.override) { %>@Override<% } %><% if(op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  ${macros.generate('methods', c)}<% } } %>
+
+  @Override
+  public String getNaturalKey() {
+    return name();
+  }
+
+  public static $className findByOrdinal(int ordinal) {
+    if (ordinal < values().length) {
+      return values()[ordinal];
+    } else {
+      throw new ${c.name('ControlguideNotFoundException')}("$className(ordinal)", ordinal);
+    }
+  }<% if(item.defaultLiteral) { %>
+
+  public static $className findByName(String name) {
+    return findByName(name, $item.defaultLiteral.underscored);
   }<% } %>
+
+  public static $className findByName(String name, $className defaultValue) {
+    $className ret = defaultValue;
+    if (name != null) {
+      for ($className literal : values()) {
+        if(literal.name().equalsIgnoreCase(name)) {
+          ret = literal;
+          break;
+        }
+      }
+    }
+    return ret;
+  }
 }''')
 
-      template('jmsToCdi', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdi } %>{{imports}}
+  template('jmsToCdi', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdi } %>{{imports}}
 /** Jms to Cdi bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${c.name('JmsToEventListener')} {
 
@@ -639,7 +902,7 @@ public class $className extends ${c.name('JmsToEventListener')} {
   }
 }''')
 
-      template('jmsToCdiMdb', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdiMdb } %><% def cachedEntities = []; def cachedContainers = module.containers.findAll { it.controller.cache };
+  template('jmsToCdiMdb', body: '''<% if (!c.className) { c.className = item.n.cap.jmsToCdiMdb } %><% def cachedEntities = []; def cachedContainers = module.containers.findAll { it.controller.cache };
 cachedContainers.each { cachedContainer -> cachedContainer.props.each { prop -> if(!cachedEntities.contains(prop.type)) { cachedEntities.add(prop.type) } } };
 c.messageSelectors = cachedContainers.collect { "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\"= '$it.cap'\\"" }; module.configs.each { messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$it.cap'\\"" }; cachedEntities.each { entity -> messageSelectors << "JMS_MSG_PROPERTY_TYPE_OF_OBJECT + \\" = '$entity.cap'\\"" } %>{{imports}}
 /** Jms to Cdi MDB for '$module.name' for containers and config objects*/
@@ -649,7 +912,7 @@ public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')
   ${macros.generate('setEventListenerExternal', c)}
 }''')
 
-      template('cdiToJms', body: '''<% if (!c.className) { c.className = item.n.cap.cdiToJms } %>{{imports}}
+  template('cdiToJms', body: '''<% if (!c.className) { c.className = item.n.cap.cdiToJms } %>{{imports}}
 /** Cdi to Jms bridge for '$module.name' */
 ${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${c.name('JmsSender')} {
@@ -697,7 +960,7 @@ public class $className extends ${c.name('JmsSender')} {
   }
 }''')
 
-      template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
+  template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
 public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} { 
 
@@ -728,12 +991,12 @@ public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} 
   }
 }''')
 
-      template('eventToCdiExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdi } %>{{imports}}
+  template('eventToCdiExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdi } %>{{imports}}
 /** Listener for Cdi to Jms bridge for '$module.name' */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${className}Base {
 }''')
 
-      template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
+  template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
 public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} {<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
 
@@ -760,12 +1023,12 @@ public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} 
   }
 }''')
 
-      template('eventToCdiExternalExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
+  template('eventToCdiExternalExtends', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
 /** Listener for event to Cdi bridges for '$module.name' with 'External' qualifier. */${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${className}Base {
 }''')
 
-      template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
+  template('notificationPlugin', body: '''<% if (!c.className) { c.className = component.cap+"NotificationPlugin" } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 ${macros.generate('metaAttributesBridge', c)}
 public class $className extends PluginActivator {
 
@@ -800,7 +1063,7 @@ public class $className extends PluginActivator {
   }<% } } %>
 }//TODO: Adapt to a future implementation of Backend and Shared modules''')
 
-      template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>
+  template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>
 /** Constants for 'item.name' */
 public class $className {
 
@@ -811,13 +1074,21 @@ public class $className {
   }
 }''')
 
-      template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
+  template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
 /** Constants for '$item.name' */
 public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
 
-      template('implInjects', body: ''' <% item.operations.each { opRef -> def ref = opRef.ref.parent %>
+  template('constantsMl', body: '''<% if (!c.className) { c.className = item.n.cap.Ml } %>
+/** Multi language constants for '$module.name' */
+public class $className {
+  // base name for '$module.name' resource bundle
+  public static final String ML_BASE = 
+''')
+
+
+  template('implInjects', body: ''' <% item.operations.each { opRef -> def ref = opRef.ref.parent %>
   
   @${c.name('Inject')}
   public void set${ref.cap}($ref.name $ref.uncap) {
@@ -826,20 +1097,20 @@ public class $className extends ${item.n.cap.constantsBase} {
 
 
 
-      //tests
+  //tests
 
 
-      template('beforeClass', body: '''
+  template('beforeClass', body: '''
   public void before$className() {
     resetMocks();
   }''')
 
-      template('afterClass', body: '''
+  template('afterClass', body: '''
   public void after$className() {
     verifyNoMoreInteractions();
   }''')
 
-      template('testProperties', body: '''
+  template('testProperties', body: '''
   @${c.name('Test')}
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
     ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
@@ -849,12 +1120,12 @@ public class $className extends ${item.n.cap.constantsBase} {
     ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
   }''')
 
-      template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-      template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
+  template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className {
   protected $item.n.cap.impl item;
   
@@ -865,7 +1136,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
   ${macros.generate('testProperties', c)}${macros.generate('testConstructors', c)}
 }''')
 
-      template('testConstructors', body: '''<% item.constructors.each { constr -> %><% def className = item.n.cap.impl %>
+  template('testConstructors', body: '''<% item.constructors.each { constr -> %><% def className = item.n.cap.impl %>
 
   @${c.name('Test')}
   public void testConstructor${constr.paramsName}() { <% def customParams = constr.params.findAll { !it.value && it.prop }; customParams.each { param -> %><% def instance; if (param.prop.testable) { instance = param.prop.testValue } else { instance = 'new '+param.prop.type.n.cap.impl+'()' } %>
@@ -875,7 +1146,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
-      template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
+  template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
 public class $c.className {
   
   @${c.name('Test')}
@@ -891,7 +1162,7 @@ public class $c.className {
   }
 }''')
 
-      template('notificationPluginTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
+  template('notificationPluginTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @${c.name('RunWith')}(${c.name('MockitoJUnitRunner')}.class)
@@ -934,7 +1205,7 @@ public class $className extends ${c.name('BaseTestCase')} {
 
 }''')
 
-      template('jmsToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.jmsToCdiTest } %>{{imports}}
+  template('jmsToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.jmsToCdiTest } %>{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 public class $className extends ${c.name('JmsMessagingAdapterTestCase')} {
@@ -956,7 +1227,7 @@ public class $className extends ${c.name('JmsMessagingAdapterTestCase')} {
   }
 }''')
 
-      template('cdiToJmsTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.cdiToJmsTest } %>{{imports}}
+  template('cdiToJmsTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.cdiToJmsTest } %>{{imports}}
 public class $className {
 
   protected static $item.n.cap.cdiToJms cdiToJms;
@@ -1000,7 +1271,7 @@ public class $className {
   }<% } %>
 }''')
 
-      template('eventToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
+  template('eventToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
 public class ${className} extends BaseTestCase {
   @${c.name('Test')}
   @Override
@@ -1010,47 +1281,47 @@ public class ${className} extends BaseTestCase {
 }''')
 
 
-      //metaAttributes
+  //metaAttributes
 
 
-      template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+  template('metaAttributesEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
-      template('metaAttributesBasicType', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBasicType(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+  template('metaAttributesBasicType', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBasicType(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
-      template('metaAttributesService', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForService(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+  template('metaAttributesService', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForService(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
-      template('metaAttributesBridge', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBridge(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+  template('metaAttributesBridge', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBridge(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
-      template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+  template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')
 
-      template('metaAttributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+  template('metaAttributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')
 
 
-      //logic
+  //logic
 
 
-      template('setEventListener', body: '''@${c.name('Inject')}
+  template('setEventListener', body: '''@${c.name('Inject')}
   public void setEventListener(${module.cap}EventToCdi eventListener) {
     super.setEventListener(eventListener);
   }''')
 
-      template('setEventListenerExternal', body: '''@${c.name('Inject')}
+  template('setEventListenerExternal', body: '''@${c.name('Inject')}
   public void setEventListener(${module.cap}EventToCdiExternal eventListener) {
     super.setEventListener(eventListener);
   }''')
 
-      template('labelBody', body: '''<% if(item.labelBody) { %>
+  template('labelBody', body: '''<% if(item.labelBody) { %>
   @Override
   public String naturalKey() {
     return $item.labelBody;
   }<% } %>''')
-      template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
+  template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
   public boolean attributesChanged() {
     return this.attributesChanged;
   }
@@ -1059,7 +1330,8 @@ ${ret-newLine}''')
     this.attributesChanged = false;
   }<% } %>''')
 
-      template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{!it.primaryKey}; %>
+  template('propsToString', body: '''<% def idProp = item.idProp; def props = item.props.findAll{!it.primaryKey}; %>
+  
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% if (idProp && !item.virtual) { %>
@@ -1068,12 +1340,14 @@ ${ret-newLine}''')
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
   }''')
 
-      template('hashCodeAndEqualsEntity', body: '''<% def className = item.genericsName; if(item.propsForHashCode) { %>
+  template('hashCodeAndEqualsEntity', body: '''<% if(item.propsForHashCode) { %>
+  
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
     result = prime * result + (($propAccess == null) ? 0 : ${propAccess}.hashCode());<% } %>
+    return result;
   }
 
   @Override<% if (item.generic) { %>
@@ -1087,7 +1361,7 @@ ${ret-newLine}''')
       return false;<% } %>
     if (getClass() != obj.getClass())
       return false;
-    $className other = (${className}) obj;<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
+    $c.className other = (${c.className}) obj;<% item.propsForHashCode.each { prop -> def propAccess = prop.primaryKey ? 'getId()' : prop.name; %>
     if (${propAccess} == null) {
       if (other.${propAccess} != null)
         return false;
@@ -1096,7 +1370,7 @@ ${ret-newLine}''')
     return true;
   }<% } %>''')
 
-      template('hashCodeAndEqualsBasicType', body: '''<% def className = c.className %>
+  template('hashCodeAndEqualsBasicType', body: '''<% def className = c.className %>
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -1130,16 +1404,17 @@ ${ret-newLine}''')
     return true;
   }''')
 
+  template('buildMlKey', body: '''
+  public MLKey buildMlKey() {
+    return new MLKeyImpl(${item.component.n.cap.ml}.ML_BASE, name());
+  }''')
 
+  template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
-
-      template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
-
-      template('testBody', body: '''  int counter = countdown;
+  template('testBody', body: '''  int counter = countdown;
     while (counter!=0) {
       System.out.println(counter+"...");
       counter--;
     }
     System.out.println(test);''')
- }
-  
+}
