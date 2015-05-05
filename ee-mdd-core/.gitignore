@@ -3,3 +3,5 @@
 /.gradle
 /.DS_Store
 /.classpath
+/nbproject/
+/dist/
