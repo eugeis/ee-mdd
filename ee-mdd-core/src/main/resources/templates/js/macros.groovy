@@ -13,36 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.templates.js
-
-import ee.mdd.TemplatesBuilder;
-import ee.mdd.generator.TemplateGroup
-
 
 
 /**
  *
  * @author Eugen Eisler
  */
-class MacrosForJs {
 
-  static TemplateGroup build() {
-    new TemplatesBuilder().templates ('macros') {
+templates ('macros') {
 
-      template('header', body: '''/* EE Software */''')
+  template('header', body: '''/* EE Software */''')
 
 
-      template('propsMember', body: '''<% item.props.each { prop -> %>
+  template('propsMember', body: '''<% item.props.each { prop -> %>
   this.$prop.uncap;<% } %>''')
 
-      template('propsInit', body: '''<% item.props.each { prop -> %>
+  template('propsInit', body: '''<% item.props.each { prop -> %>
   this.$prop.uncap = $prop.uncap;<% } %>''')
 
-      template('impl', body: '''<% if(!c.className) { c.className=item.name } %>
+  template('impl', body: '''<% if(!c.className) { c.className=item.name } %>
 function $c.className($item.signature) {${macros.generate('propsInit', c)}
 }''')
 
-      template('implExtends', body: '''<% c.src=true %><% if(!c.className) { c.className=item.name } %>
+  template('implExtends', body: '''<% c.src=true %><% if(!c.className) { c.className=item.name } %>
 function $c.className() {
   // inherit from base class
   ${c.className}.prototype = new <% if (item.superUnit) {%>$item.superUnit.cap()<% } else { %>${c.className}Base()<% } %>;
@@ -51,7 +44,7 @@ function $c.className() {
   ${c.className}.prototype.constructor = ${c.className};
 }''')
 
-      template('enum', body: '''<% if(!c.className) { c.className=item.name }; def classNameLit = "${c.className}Lit" %>
+  template('enum', body: '''<% if(!c.className) { c.className=item.name }; def classNameLit = "${c.className}Lit" %>
 function $classNameLit($item.signature) {
   this.name = name;${macros.generate('propsInit', c)}
 }
@@ -67,6 +60,4 @@ ${classNameLit}.prototype = {
 var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> %>
   $lit.underscored: new $classNameLit($lit.init)${lit == last ? '' : ','}<% } %>
 }''')
-    }
-  }
 }

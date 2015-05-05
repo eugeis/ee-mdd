@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.templates.js
+package ee.mdd.generator.js
 
 import javafx.beans.binding.*
 import javafx.beans.property.*
