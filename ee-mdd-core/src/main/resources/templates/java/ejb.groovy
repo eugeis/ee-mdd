@@ -19,3 +19,15 @@
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
+ 
+templates('ejb') {
+  
+  templates ('facadeEjbService',
+  items: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
+  
+    template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.baseBean %>${macros.generate('ejbService', c)}''')
+    template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.bean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
+  }
+  
+}

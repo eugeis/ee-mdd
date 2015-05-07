@@ -563,8 +563,7 @@ public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${item.cap}B
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-
-  template('ejbEntity', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
+  template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
 public ${c.virtual || c.base ? 'abstract' : ''} class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@Transient
@@ -579,13 +578,13 @@ public ${c.virtual || c.base ? 'abstract' : ''} class $c.className extends<% if(
   ${macros.generate('hashCodeAndEqualsEntity', c)}
 }''')
 
-  template('ejbEntityExtends', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
+  template('entityBean', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
 public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;      
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-  template('ejbBasicType', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+  template('basicTypeBase', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
 public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (superUnit) { %> extends superUnit.cap<% } %> implements ${c.name(item.name)} {
   private static final long serialVersionUID = 1L;
@@ -594,7 +593,7 @@ public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (sup
   ${macros.generate('implOperationsAndDelegates', c)}${macros.generate('hashCodeAndEqualsBasicType', c)}
 }''')
 
-  template('ejbBasicTypeExtends', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+  template('basicTypeBean', body: '''<% c.src = true %><% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link ${c.name(item.name)}} */
 @${c.name('Embeddable')}
 public class $className extends ${item.n.cap.baseEmbeddable} {
