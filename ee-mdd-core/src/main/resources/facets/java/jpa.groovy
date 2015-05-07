@@ -30,8 +30,7 @@ def nameToNamespace = ['NamedQuery' : 'javax.persistence',
   'CollectionTable' : 'javax.persistence', 'CascadeType' : 'javax.persistence', 'FetchType' : 'javax.persistence',
   'TemporalType' : 'javax.persistence', 'GenerationType' : 'javax.persistence', 'TableGenerator' : 'javax.persistence',
   'GeneratedValue' : 'javax.persistence', 'MappedSuperclass' : 'javax.persistence', 'Transient' : 'javax.persistence',
-  'Transactional' : 'javax.transaction', 'Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb',
-  'Resource' : 'javax.annotation']
+  'Transactional' : 'javax.transaction']
 
 extModule(name: 'Jpa') {
   nameToNamespace.each { n, ns ->
