@@ -1,28 +1,25 @@
+def _scripts = System.getenv('CG_CM_SCRIPTS_HOME') ?: 'D:/CG/src/cg-cm/cg-cm-scripts'
+ext.scripts = project.hasProperty('superpom') ? project.superpom : "$_scripts/gradlebuild"
+logger.info "Calculated 'superpom' location: $scripts"
+
+def f = null
+try {
+	f = file("$scripts/build.gradle")
+} catch (e) {}
+
+if(f && f.exists()) {
+	apply from: "$scripts/build.gradle"
+} else {
+
 apply plugin: 'js'
 apply plugin: 'css'
 apply plugin: 'eclipse'
-
-
-// define the dependencies gradle buildscript will use to build
-// the app (not the app itself)
-buildscript {
-	repositories {
-		mavenLocal()
-		mavenCentral()
-	}
-
-	dependencies {
-		classpath 'com.eriwen:gradle-js-plugin:1.12.1'
-		classpath 'com.eriwen:gradle-css-plugin:1.11.1'
-	}
-
-}
 
 repositories {
 	mavenLocal()
 	mavenCentral()
 }
-
+}
 
 group = 'ee-mdd-example'
 version = '1.0'
