@@ -84,7 +84,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('topologyId', type: 'Long', sqlName: 'T_ID', hashCode: true, index: true, description: '''The topology Id of the referenced Element''')
         }
 
-
         basicType('Coordinate', base: true,
         description: '''The coordinates of the item in the internal planning tool for the topography''') {
           prop('x', type: 'Long', description: '''The xvalue of this location''')
@@ -131,7 +130,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           }
         }
 
-
         entity('AllowedConnection',
         description: '''Describes an allowed connection by type which can be attached in the timetable to this location''') {
           prop('id', type: "Long", unique: true, primaryKey: true, xml: false, hashCode: true)
@@ -147,7 +145,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('position', type: 'Integer', description: '''The position of this station track''')
           prop('tgmtNumber', type: 'Integer', description: '''The platform number used in TGMT''')
         }
-
 
         entity('Comment', superUnit: 'Um', attributeChangeFlag: true) {
           prop('id', type: 'Long',  unique: true, primaryKey: true)

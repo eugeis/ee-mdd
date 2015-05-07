@@ -15,9 +15,9 @@
  */
 package ee.mdd.generator.java
 
-import ee.mdd.ModelBuilder;
+import ee.mdd.ModelBuilder
 import ee.mdd.generator.Context
-import ee.mdd.model.Body;
+import ee.mdd.model.Body
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
@@ -702,6 +702,11 @@ class EnhancerForJava {
           properties[key] = ret
         }
         properties[key]
+      }
+
+      relTypeEjb << { Context c ->
+        //register usage of the type, in order to calculate imports, etc.
+        c.name(delegate.type)
       }
 
       getTypeEjbMember << {

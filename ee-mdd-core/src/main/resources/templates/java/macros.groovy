@@ -100,24 +100,24 @@ templates ('macros') {
   template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
   
   <% if (!item.typeEnum) { %>@Override<% } %>
-  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
+  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter {
     return $prop.uncap;
   }<% } else if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
   <% if (!item.typeEnum) { %>@Override<% } %>
-  public <% if(relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> get${prop.cap}${relationIdProp.cap}() {
+  public <% if(relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb(c))}><% } else { %>${c.name(relationIdProp.relTypeEjb(c))}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.name}${relationIdProp.cap};
   }<% } } } %>''')
 
   template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
   
   @Override
-  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>$prop.relTypeEjb<% } %> $prop.name) {
+  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>$prop.relTypeEjb(c)<% } %> $prop.name) {
     this.$prop.uncap = $prop.uncap; 
   }<% } else if (prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
   @Override
-  public void set${prop.cap}${relationIdProp.cap}(<% if (relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb)}><% } else { %>${c.name(relationIdProp.relTypeEjb)}<% } %> ${prop.name}${relationIdProp.cap}) {
+  public void set${prop.cap}${relationIdProp.cap}(<% if (relationIdProp.multi) { %>${c.name('List')}<${c.name(relationIdProp.relTypeEjb(c))}><% } else { %>${c.name(relationIdProp.relTypeEjb(c))}<% } %> ${prop.name}${relationIdProp.cap}) {
     this.${prop.name}${relationIdProp.cap} = ${prop.name}${relationIdProp.cap};
   }
 <% } } } %>''')
@@ -125,7 +125,7 @@ templates ('macros') {
   template('propGettersBasicType', body: ''' <% item.props.each { prop -> if (prop.readable) { %>
   @Override<% if (prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public <% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter {
+  public <% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter {
     return <% if (prop.multi && prop.typeBasicType) { %>(List)<% } %>$prop.name;
   }<% } } %>''')
 
@@ -140,8 +140,8 @@ templates ('macros') {
   template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
   ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
-  public abstract ${c.name('List')}<${prop.relTypeEjb}> $prop.getter;<% } else { %> 
-  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb><% } else { %>${prop.relTypeEjb}<% } %> $prop.getter { <% if(prop.multi) { %>
+  public abstract ${c.name('List')}<${prop.relTypeEjb(c)}> $prop.getter;<% } else { %> 
+  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter { <% if(prop.multi) { %>
     if($prop.name == null) {
       $prop.name = new ${c.name('ArrayList')}<>();
     }<% } else if (prop.type.name.startsWith('Map<')) { %>
@@ -152,9 +152,9 @@ templates ('macros') {
   }<% } } } }%>''')
 
   template('jpaPropSetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.writable && !prop.primaryKey) {  %><% if(item.virtual && prop.multi) { %>
-  public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb}> $prop.uncap);<% } else if (!prop.multi) { %>
+  public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb(c)}> $prop.uncap);<% } else if (!prop.multi) { %>
   ${!prop.typeEntity?'@Override':''}
-  public void set${prop.cap}(${prop.relTypeEjb} $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
+  public void set${prop.cap}(${prop.relTypeEjb(c)} $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
     if (ComparisonUtils.areNotEquals(this.$prop.uncap, $prop.uncap)) {
       this.$prop.name = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember})<% } %>$prop.name;
       this.attributesChanged = true;
@@ -164,7 +164,7 @@ templates ('macros') {
   <% if (prop.typeBasicType) { %>
   @Override<% if (prop.multi) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } } %>
-  public void set${prop.cap}<% if(prop.multi) { %>(${c.name('List')}<${prop.relTypeEjb}><% } else { %>(${prop.relTypeEjb}<% } %> $prop.uncap) {
+  public void set${prop.cap}<% if(prop.multi) { %>(${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>(${prop.relTypeEjb(c)}<% } %> $prop.uncap) {
     this.$prop.uncap = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>(${prop.typeEjbMember})<% } %>$prop.uncap;<% if (prop.typeEl && prop.type.ordered || (prop.opposite && !prop.opposite.multi)) { %>
     if ($prop.name != null) {<% if (prop.type.ordered) { %>
       long order = 1;
@@ -178,14 +178,14 @@ templates ('macros') {
     }<% } %>
   }<% } %><% if (prop.typeEl && prop.multi) { %>
 
-  public boolean addTo${prop.cap}($prop.relTypeEjb child) {<% if (prop.opposite) { if (!prop.opposite.multi) { %>
+  public boolean addTo${prop.cap}($prop.relTypeEjb(c) child) {<% if (prop.opposite) { if (!prop.opposite.multi) { %>
     child.set${prop.opposite.cap}(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } else { %>
     child.get${prop.opposite.cap}.add(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %><% if (prop.typeEl && prop.type.ordered) { %>
     child.setOrder(Long.valueOf(${prop.getter}.size() + 1));<% } %>
     return ${prop.getter}.add(child);
  }
 
-  public boolean removeFrom${prop.cap}($prop.relTypeEjb child) {<% if(prop.opposite) { if(!prop.opposite.multi) { %>
+  public boolean removeFrom${prop.cap}($prop.relTypeEjb(c) child) {<% if(prop.opposite) { if(!prop.opposite.multi) { %>
     child.set${prop.opposite.cap}(null);<% } else { %>
     child.get${prop.opposite.cap}.remove(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %>
     return ${prop.getter}.remove(child);
@@ -194,7 +194,7 @@ templates ('macros') {
   template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
   @Override<% } %><% if(prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${c.name('List')}<${prop.relTypeEjb}> $prop.getter {
+  public ${c.name('List')}<${prop.relTypeEjb(c)}> $prop.getter {
     if($prop.name == null) {
       $prop.name = new ArrayList<>();
     }
@@ -204,12 +204,12 @@ templates ('macros') {
   template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable && !prop.primaryKey) { if(!prop.opposite) { %>
   @Override<% if(prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public void set$prop.cap(${prop.relTypeEjb} $prop.uncap) {
+  public void set$prop.cap(${prop.relTypeEjb(c)} $prop.uncap) {
     this.$prop.uncap = <%if(prop.typeBasicType) { %>(List)<% } %> $prop.uncap; 
   }
   <% } else { %>
   @Override
-  public void set$prop.cap(${prop.relTypeEjb} $prop.uncap) {
+  public void set$prop.cap(${prop.relTypeEjb(c)} $prop.uncap) {
     this.$prop.uncap = $prop.uncap;
     if ($prop.uncap != null) {
       for ($prop.relTypeEjb child : $prop.uncap) {
@@ -220,25 +220,25 @@ templates ('macros') {
 
   template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp) { %>
   @Override
-  public <% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb><% } else { %>${idProp.relTypeEjb}<% } %> $idProp.getter {
+  public <% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb(c)><% } else { %>${idProp.relTypeEjb(c)}<% } %> $idProp.getter {
     return $idProp.uncap;
   }<% } %>''')
 
   template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
   @Override
-  public void set${idProp.cap}(<% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb><% } else { %>${idProp.relTypeEjb}<% } %> $idProp.uncap) {
+  public void set${idProp.cap}(<% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb(c)><% } else { %>${idProp.relTypeEjb(c)}<% } %> $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
   }<% } %>''')
 
   template('relationIdPropGetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
   @Override
-  public <% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> get${prop.cap}${relationIdProp.cap}() {
+  public <% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb(c)><% } else { %>${relationIdProp.relTypeEjb(c)}<% } %> get${prop.cap}${relationIdProp.cap}() {
     return ${prop.uncap} != null ? ${prop.uncap}.get${relationIdProp.cap}() : null;
   }<% } } %>''')
 
   template('relationIdPropSetter', body: '''<% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
   @Override
-  public void set${prop.cap}${relationIdProp.cap}(<% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb><% } else { %>${relationIdProp.relTypeEjb}<% } %> ${prop.uncap}${relationIdProp.cap}) {
+  public void set${prop.cap}${relationIdProp.cap}(<% if(relationIdProp.multi) { %>${c.name('List')}<$relationIdProp.relTypeEjb(c)><% } else { %>${relationIdProp.relTypeEjb(c)}<% } %> ${prop.uncap}${relationIdProp.cap}) {
     //nothing, because object based;
   }<% } } %>
 ''')
@@ -566,7 +566,7 @@ public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${item.cap}B
   template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
 public ${c.virtual || c.base ? 'abstract' : ''} class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
-  <% if(c.item.attributeChangeFlag) {%>@Transient
+  <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
   private transient boolean attributesChanged = false;<% } %>
   ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('versionMember', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
   ${macros.generate('idPropGetter', c)}${macros.generate('idPropSetter', c)}

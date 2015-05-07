@@ -1,3 +1,6 @@
+import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Entity
+
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -26,8 +29,8 @@ templates('jpa') {
   items: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
   
-    template('basicTypeBase', appendName: true, body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('ejbBasicType', c)}''')
-    template('basicTypeBean', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('ejbBasicTypeExtends', c)} <% } %>''')
+    template('basicTypeBase', appendName: true, body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('basicTypeBaseBean', c)}''')
+    template('basicTypeBean', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('basicTypeBean', c)} <% } %>''')
   }
       
   templates ('entity',

@@ -1,3 +1,5 @@
+import ee.mdd.model.component.Service
+
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -29,5 +31,4 @@ templates('ejb') {
     template('ejbService', appendName: true, body: '''<% c.className = c.item.n.cap.baseBean %>${macros.generate('ejbService', c)}''')
     template('ejbServiceExtends', appendName: true, body: '''<% if (c.item.base) { %> <% c.className = c.item.n.cap.bean %>${macros.generate('ejbServiceExtends', c)} <% } %>''')
   }
-  
 }

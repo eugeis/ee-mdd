@@ -1,3 +1,5 @@
+import ee.mdd.model.component.Channel
+
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -38,6 +40,4 @@ templates('cdi') {
     template('eventToCdiExternal', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternalBase %> ${macros.generate('eventToCdiExternal', c)}<% } %>''')
     template('eventToCdiExternalExtends', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternal %> ${macros.generate('eventToCdiExternalExtends', c)}<% } %>''')
   }
-  
-  
 }
