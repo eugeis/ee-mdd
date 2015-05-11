@@ -100,7 +100,7 @@ templates ('macros') {
   template('propGetters', body: '''<% item.props.each { prop -> if (prop.readable && !prop.typeEntity) { %>
   
   <% if (!item.typeEnum) { %>@Override<% } %>
-  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter {
+  public <% if(prop.multi) { %>${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter {
     return $prop.uncap;
   }<% } else if(prop.readable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
@@ -112,7 +112,7 @@ templates ('macros') {
   template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
   
   @Override
-  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>$prop.relTypeEjb(c)<% } %> $prop.name) {
+  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.name) {
     this.$prop.uncap = $prop.uncap; 
   }<% } else if (prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
 
@@ -125,7 +125,7 @@ templates ('macros') {
   template('propGettersBasicType', body: ''' <% item.props.each { prop -> if (prop.readable) { %>
   @Override<% if (prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public <% if (prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter {
+  public <% if (prop.multi) { %>${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter {
     return <% if (prop.multi && prop.typeBasicType) { %>(List)<% } %>$prop.name;
   }<% } } %>''')
 
@@ -141,7 +141,7 @@ templates ('macros') {
   ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
   public abstract ${c.name('List')}<${prop.relTypeEjb(c)}> $prop.getter;<% } else { %> 
-  public <% if(prop.multi) { %>${c.name('List')}<$prop.relTypeEjb(c)><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter { <% if(prop.multi) { %>
+  public <% if(prop.multi) { %>${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.getter { <% if(prop.multi) { %>
     if($prop.name == null) {
       $prop.name = new ${c.name('ArrayList')}<>();
     }<% } else if (prop.type.name.startsWith('Map<')) { %>
@@ -178,14 +178,14 @@ templates ('macros') {
     }<% } %>
   }<% } %><% if (prop.typeEl && prop.multi) { %>
 
-  public boolean addTo${prop.cap}($prop.relTypeEjb(c) child) {<% if (prop.opposite) { if (!prop.opposite.multi) { %>
+  public boolean addTo${prop.cap}(${prop.relTypeEjb(c)} child) {<% if (prop.opposite) { if (!prop.opposite.multi) { %>
     child.set${prop.opposite.cap}(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } else { %>
     child.get${prop.opposite.cap}.add(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %><% if (prop.typeEl && prop.type.ordered) { %>
     child.setOrder(Long.valueOf(${prop.getter}.size() + 1));<% } %>
     return ${prop.getter}.add(child);
  }
 
-  public boolean removeFrom${prop.cap}($prop.relTypeEjb(c) child) {<% if(prop.opposite) { if(!prop.opposite.multi) { %>
+  public boolean removeFrom${prop.cap}(${prop.relTypeEjb(c)} child) {<% if(prop.opposite) { if(!prop.opposite.multi) { %>
     child.set${prop.opposite.cap}(null);<% } else { %>
     child.get${prop.opposite.cap}.remove(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } } %>
     return ${prop.getter}.remove(child);
