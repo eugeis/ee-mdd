@@ -40,7 +40,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
         container('TaskContainer', base:true) {
           prop('Signal', type: 'Signal', cache: true)
-          prop('Um', type: 'Um', cache: true)
           prop('MotherStation', type: 'MotherStation')
           prop('ProtectionRequirement', type: 'ProtectionRequirement')
           prop('Trophy', type: 'Trophy')
@@ -88,12 +87,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
         description: '''The coordinates of the item in the internal planning tool for the topography''') {
           prop('x', type: 'Long', description: '''The xvalue of this location''')
           prop('y', type: 'Long', description: '''The yvalue of this location ''')
-        }
-
-        entity('Um', virtual: true, meta: []) {
-          prop('id', type: 'Long', unique: true, primaryKey: true)
-          prop('testMultiProp', type: 'Element', multi: true)
-          prop('zweitesMulti', type: 'Task', opposite: 'multiTest',  multi: true)
         }
 
         entity('Signal', base: true) {
@@ -146,7 +139,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('tgmtNumber', type: 'Integer', description: '''The platform number used in TGMT''')
         }
 
-        entity('Comment', superUnit: 'Um', attributeChangeFlag: true) {
+        entity('Comment', attributeChangeFlag: true) {
           prop('id', type: 'Long',  unique: true, primaryKey: true)
           prop('testTask', type: 'Task', opposite: 'comment')
           prop('testProp', type: 'Task', multi: true)
@@ -167,7 +160,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('closed', type: 'Date', index: true)
           prop('actions', type: 'String' )
           prop('size', type: 'int')
-          prop('multiTest', type:'Um', opposite: 'zweitesMulti', multi: true)
+          prop('order', type: 'Long', xml: 'false')
 
           constr {}
 

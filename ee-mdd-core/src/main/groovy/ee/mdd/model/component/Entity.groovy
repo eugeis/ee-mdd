@@ -15,7 +15,6 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Element
 
 
 

@@ -155,13 +155,14 @@ templates ('macros') {
   public abstract void set${prop.cap}(${c.name('List')}<${prop.relTypeEjb(c)}> $prop.uncap);<% } else if (!prop.multi) { %>
   ${!prop.typeEntity?'@Override':''}
   public void set${prop.cap}(${prop.relTypeEjb(c)} $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
-    if (ComparisonUtils.areNotEquals(this.$prop.uncap, $prop.uncap)) {
+    if (${c.name('ComparisonUtils')}.areNotEquals(this.$prop.uncap, $prop.uncap)) {
       this.$prop.name = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember(c)})<% } %>$prop.name;
       this.attributesChanged = true;
     }<% } else { %>
   this.$prop.uncap = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember(c)})<% } %>$prop.uncap;<% } %>
   }<% } else { %>
   <% if (prop.typeBasicType) { %>
+
   @Override<% if (prop.multi) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } } %>
   public void set${prop.cap}<% if(prop.multi) { %>(${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>(${prop.relTypeEjb(c)}<% } %> $prop.uncap) {
@@ -172,7 +173,7 @@ templates ('macros') {
         child.setOrder(order++);<% if(prop.opposite && !prop.opposite.multi) { %>
         child.set$prop.opposite.cap(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } %>
       }<% } else if (prop.opposite && !prop.opposite.multi) { %>
-      for ($prop.relTypeEjb child : $prop.name) {
+      for ($prop.relTypeEjb child : $prop.name) { //HALLO
         child.set${prop.opposite.cap}(${item.base ? "($item.n.cap.Entity)" : ''}this);
       }<% } %>
     }<% } %>
@@ -191,8 +192,9 @@ templates ('macros') {
     return ${prop.getter}.remove(child);
   }<% } } } } %>''')
 
-  template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { if(!c.enumType) { %>
-  @Override<% } %><% if(prop.typeBasicType) { %>
+  template('jpaMultiSuperPropGetters', body: '''<% item.multiSuperProps.each { prop -> if(prop.readable && !prop.primaryKey) { %>
+  <% if(!c.enumType && !item.superUnit.virtual) { %>
+  @Override<% } %><% if(prop.typeBasicType) { %> 
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${c.name('List')}<${prop.relTypeEjb(c)}> $prop.getter {
     if($prop.name == null) {
@@ -202,14 +204,15 @@ templates ('macros') {
   }<% } } %>''')
 
   template('jpaMultiSuperPropSetters', body: '''<% item.multiSuperProps.each { prop -> if (prop.writable && !prop.primaryKey) { if(!prop.opposite) { %>
-  @Override<% if(prop.typeBasicType) { %>
+  <% if(!item.superUnit.virtual) { %>
+  @Override<% } %><% if(prop.typeBasicType) { %> 
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public void set$prop.cap(${prop.relTypeEjb(c)} $prop.uncap) {
+  public void set$prop.cap(${c.name('List')}<${prop.relTypeEjb(c)}> $prop.uncap) {
     this.$prop.uncap = <%if(prop.typeBasicType) { %>(List)<% } %> $prop.uncap; 
   }
-  <% } else { %>
-  @Override
-  public void set$prop.cap(${prop.relTypeEjb(c)} $prop.uncap) {
+  <% } else { %><% if(!item.superUnit.virtual) { %>
+  @Override<% } %>
+  public void set$prop.cap(${c.name('List')}<${prop.relTypeEjb(c)}> $prop.uncap) {
     this.$prop.uncap = $prop.uncap;
     if ($prop.uncap != null) {
       for ($prop.relTypeEjb child : $prop.uncap) {
@@ -584,7 +587,7 @@ public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.b
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-  template('basicTypeBase', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
+  template('basicTypeBaseBean', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
 public ${item.base || item.virtual ? 'abstract':''} class $c.className<% if (superUnit) { %> extends superUnit.cap<% } %> implements ${c.name(item.name)} {
   private static final long serialVersionUID = 1L;
