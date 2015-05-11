@@ -35,7 +35,7 @@ def primitiveTypes = [
 ]
 
 def nameToNamespace = ['Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util',
-  'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'Serializable': 'java.io']
+  'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'Serializable': 'java.io', 'HashSet' : 'java.util']
 
 extModule(name: 'Java') {
 
