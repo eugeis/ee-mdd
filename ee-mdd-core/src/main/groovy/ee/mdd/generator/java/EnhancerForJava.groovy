@@ -721,16 +721,19 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getTypeEjbMember << {
-        ->
+      typeEjbMember << { Context c ->
         def key = System.identityHashCode(delegate) + 'typeEjbMember'
         if(!properties.containsKey(key)) {
           def prop = delegate
-          def ret = "${prop.type.name}"
+          def ret
           if(Entity.isInstance(prop.type)) {
             ret = "${prop.type.n.cap.Entity}"
           } else if (BasicType.isInstance(prop.type)) {
             ret = "${prop.type.n.cap.Embeddable}"
+          } else {
+            ret  = "${prop.type.name}"
+            //register usage of the type, in order to calculate imports, etc.
+            c.name(ret)
           }
           properties[key] = ret
         }

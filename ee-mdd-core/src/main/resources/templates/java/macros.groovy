@@ -32,15 +32,15 @@ templates ('macros') {
   protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>''')
 
   template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
-  protected ${c.name('List')}<${prop.typeEjbMember}> $prop.uncap;<% } else { %>
-  protected ${prop.typeEjbMember} $prop.uncap;<% } } } %>''')
+  protected ${c.name('List')}<${prop.typeEjbMember(c)}> $prop.uncap;<% } else { %>
+  protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
   template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(!members.contains(delegate.ref.parent)) { %>
   protected $delegate.ref.parent.name $delegate.ref.parent.uncap<% } %><% members.add(delegate.ref.parent) %><% } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
-  protected ${c.name('List')}<${idProp.typeEjbMember}> $idProp.uncap;<% } else { %>
-  protected ${idProp.typeEjbMember} $idProp.uncap;<% } }%>''')
+  protected ${c.name('List')}<${idProp.typeEjbMember(c)}> $idProp.uncap;<% } else { %>
+  protected ${idProp.typeEjbMember(c)} $idProp.uncap;<% } }%>''')
 
   template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>''')
@@ -133,7 +133,7 @@ templates ('macros') {
   @Override <% if (prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.type.name><% } else { %>$prop.type.name<% } %> $prop.name) {
-    this.$prop.name = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>($prop.typeEjbMember)<% } %>$prop.name;
+    this.$prop.name = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>($prop.typeEjbMember(c))<% } %>$prop.name;
   }<% } } %>''')
 
 
@@ -156,16 +156,16 @@ templates ('macros') {
   ${!prop.typeEntity?'@Override':''}
   public void set${prop.cap}(${prop.relTypeEjb(c)} $prop.uncap) { <% if(item.attributeChangeFlag && !prop.ignoreInChangeFlag) { %>
     if (ComparisonUtils.areNotEquals(this.$prop.uncap, $prop.uncap)) {
-      this.$prop.name = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember})<% } %>$prop.name;
+      this.$prop.name = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember(c)})<% } %>$prop.name;
       this.attributesChanged = true;
     }<% } else { %>
-  this.$prop.uncap = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember})<% } %>$prop.uncap;<% } %>
+  this.$prop.uncap = <% if (prop.typeBasicType) { %>(${prop.typeEjbMember(c)})<% } %>$prop.uncap;<% } %>
   }<% } else { %>
   <% if (prop.typeBasicType) { %>
   @Override<% if (prop.multi) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } } %>
   public void set${prop.cap}<% if(prop.multi) { %>(${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>(${prop.relTypeEjb(c)}<% } %> $prop.uncap) {
-    this.$prop.uncap = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>(${prop.typeEjbMember})<% } %>$prop.uncap;<% if (prop.typeEl && prop.type.ordered || (prop.opposite && !prop.opposite.multi)) { %>
+    this.$prop.uncap = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>(${prop.typeEjbMember(c)})<% } %>$prop.uncap;<% if (prop.typeEl && prop.type.ordered || (prop.opposite && !prop.opposite.multi)) { %>
     if ($prop.name != null) {<% if (prop.type.ordered) { %>
       long order = 1;
       for ($prop.relTypeEjb child : $prop.name) {
@@ -559,12 +559,12 @@ public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends
 }''')
 
   template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
-public ${c.item.virtual?'abstract ' : ''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
+public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
   template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
-public ${c.virtual || c.base ? 'abstract' : ''} class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
+public ${c.virtual || c.base ? 'abstract ':''}class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
   private transient boolean attributesChanged = false;<% } %>
