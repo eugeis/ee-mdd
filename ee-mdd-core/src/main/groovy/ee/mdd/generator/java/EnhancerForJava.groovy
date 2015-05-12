@@ -690,20 +690,6 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getRelTypeEjb << {
-        ->
-        def key = System.identityHashCode(delegate) + 'relTypeEjb'
-        if(!properties.containsKey(key)) {
-          def prop = delegate
-          def ret = "${prop.type.name}"
-          if(Entity.isInstance(prop.type)) {
-            ret = "${prop.type.n.cap.Entity}"
-          }
-          properties[key] = ret
-        }
-        properties[key]
-      }
-
       relTypeEjb << { Context c ->
         def key = System.identityHashCode(delegate) + 'relTypeEjb'
         if(!properties.containsKey(key)) {

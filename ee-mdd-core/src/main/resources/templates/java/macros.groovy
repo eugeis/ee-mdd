@@ -169,11 +169,11 @@ templates ('macros') {
     this.$prop.uncap = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>(${prop.typeEjbMember(c)})<% } %>$prop.uncap;<% if (prop.typeEl && prop.type.ordered || (prop.opposite && !prop.opposite.multi)) { %>
     if ($prop.name != null) {<% if (prop.type.ordered) { %>
       long order = 1;
-      for ($prop.relTypeEjb child : $prop.name) {
+      for (${prop.relTypeEjb(c)} child : $prop.name) {
         child.setOrder(order++);<% if(prop.opposite && !prop.opposite.multi) { %>
         child.set$prop.opposite.cap(${item.base ? "($item.n.cap.Entity)" : ''}this);<% } %>
       }<% } else if (prop.opposite && !prop.opposite.multi) { %>
-      for ($prop.relTypeEjb child : $prop.name) { //HALLO
+      for (${prop.relTypeEjb(c)} child : $prop.name) {
         child.set${prop.opposite.cap}(${item.base ? "($item.n.cap.Entity)" : ''}this);
       }<% } %>
     }<% } %>
@@ -215,7 +215,7 @@ templates ('macros') {
   public void set$prop.cap(${c.name('List')}<${prop.relTypeEjb(c)}> $prop.uncap) {
     this.$prop.uncap = $prop.uncap;
     if ($prop.uncap != null) {
-      for ($prop.relTypeEjb child : $prop.uncap) {
+      for ($prop.relTypeEjb(c) child : $prop.uncap) {
         child.set$prop.opposite.cap(${c.item.base ? "($item.n.cap.entity)" : ''}this);
       }
     }

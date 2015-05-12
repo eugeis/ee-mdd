@@ -160,12 +160,12 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           constr {}
 
           constr {
-            param(prop: 'comment')
+            param(prop: 'id')
             param(prop: 'created', value: '#newDate')
           }
 
           constr {
-            param(prop: 'comment')
+            param(prop: 'actions')
             param(prop: 'created')
             param(prop: 'closed')
           }
