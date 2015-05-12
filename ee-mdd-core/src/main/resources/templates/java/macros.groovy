@@ -221,13 +221,13 @@ templates ('macros') {
     }
   }<% } } } %>''')
 
-  template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp) { %>
+  template('idPropGetter', body : '''<% def idProp = c.item.idProp; if(idProp && !item.virtual) { %>
   @Override
   public <% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb(c)><% } else { %>${idProp.relTypeEjb(c)}<% } %> $idProp.getter {
     return $idProp.uncap;
   }<% } %>''')
 
-  template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp) { %>
+  template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp && !item.virtual) { %>
   @Override
   public void set${idProp.cap}(<% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb(c)><% } else { %>${idProp.relTypeEjb(c)}<% } %> $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
@@ -567,7 +567,7 @@ public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}Bas
 }''')
 
   template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}
-public ${c.virtual || c.base ? 'abstract ':''}class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
+public ${item.virtual || item.base ? 'abstract ':''}class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
   private transient boolean attributesChanged = false;<% } %>

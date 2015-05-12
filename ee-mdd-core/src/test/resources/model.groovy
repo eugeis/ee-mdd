@@ -40,7 +40,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
         container('TaskContainer', base:true) {
           prop('Signal', type: 'Signal', cache: true)
-          prop('MotherStation', type: 'MotherStation')
           prop('ProtectionRequirement', type: 'ProtectionRequirement')
           prop('Trophy', type: 'Trophy')
 
@@ -102,14 +101,11 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
         entity('Element',
         description: '''An element can be any general topological item which can be identified by a a topological Id and a name An Element can be assigned a ControlArea''') {
           prop('id', type: 'Long', unique: true, primaryKey: true, xml: false, hashCode: true)
-          //                  prop('controlArea', description: '''The assigned ControlArea for this Element''')
           prop('longName', type: 'String', index: true, description: '''Long name of the element''')
           prop('shortName', type: 'String', hashCode: true, index: true, description: '''Short name of the element''')
           prop('topologyId', type: 'Long', sqlName: 'T_ID', hashCode: true, index: true, description: '''Unique Id assigned by engineering''')
           prop('type', type: 'Element', description: '''The type classification of the Element''')
-          //
-          //                  //                  cache {}
-          //
+
           commands {
             delete { param(prop: 'topologyId') }
           }
@@ -117,7 +113,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           finder {
             exist {  param(prop: 'shortName')  }
             exist {  param(prop: 'topologyId')  }
-            //                    //                    findBy(unique: true) {  param(prop: 'longName')  }
             findBy {  param(prop: 'shortName')  }
             findBy {  param(prop: 'topologyId') }
           }
