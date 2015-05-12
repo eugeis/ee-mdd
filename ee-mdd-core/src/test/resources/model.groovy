@@ -59,9 +59,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('protectionValue', type: 'ProtectionValueType', description: '''This is a global text field which can be used by the several protection requirements to specify restrictions Eg the locked position of a switch''')
         }
 
-        entity('MotherStation', superUnit: 'Element', description: '''A mother station groups different stations in the sense of a track group In Iltis the mother station SG has stations like SGX SG8x etc ''') {
-        }
-
         enumType('ProtectionKeyType',
         description: '''Possible keys for a Protection Requirement property''') {
           lit('BlockState')
