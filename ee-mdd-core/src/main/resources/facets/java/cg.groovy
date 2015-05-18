@@ -33,7 +33,8 @@ def nameToNamespace = ['Backend' : 'com.siemens.ra.cg.pl.common.base.annotations
   'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model',
   'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util', 'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion',
   'MLKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MLKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml' , 'MLKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
-  'Labeled' : 'com.siemens.ra.cg.pl.common.base.model', 'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception', 'ComparisonUtils' : 'com.siemens.ra.cg.pl.common.base.util']
+  'Labeled' : 'com.siemens.ra.cg.pl.common.base.model', 'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception', 'ComparisonUtils' : 'com.siemens.ra.cg.pl.common.base.util',
+  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core']
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

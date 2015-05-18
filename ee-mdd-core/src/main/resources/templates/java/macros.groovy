@@ -36,7 +36,7 @@ templates ('macros') {
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
   template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(!members.contains(delegate.ref.parent)) { %>
-  protected $delegate.ref.parent.name $delegate.ref.parent.uncap<% } %><% members.add(delegate.ref.parent) %><% } %>''')
+  protected ${c.name(delegate.ref.parent.name)} $delegate.ref.parent.uncap;<% } %><% members.add(delegate.ref.parent) %><% } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember(c)}> $idProp.uncap;<% } else { %>
@@ -472,6 +472,19 @@ public interface $c.className extends $item.n.cap.base {
 */
 public interface $className extends $item.n.cap.base {
 }''')
+  
+  template('ifcFinders', body: '''<% if(!c.className) { c.className = item.n.cap.finders } %><% def finders = item.finders; def idProp = item.idProp; %>{{imports}}
+<% if(finders.description) { %>/**
+* $finders.description
+*/<% } else { %>/** The finders provide Find, Count, Exist operations for entity {@link $item.cap}.*/<% } %>
+public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% finders.counters.each { op -> %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.return} ${op.name}($op.signature);<% } %><% finders.finders.each { op -> %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.return} ${op.name}($op.signature);<% } %><% finders.exists.each { op -> %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.return} ${op.name}($op.signature);<% } %>
+}''')
 
 
 
@@ -604,10 +617,10 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-  template('ejbService', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
+  template('serviceBaseBean', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
-public ${item.base?'abstract ':''}class $className implements $item.name {<% if (item.useConverter) { %>
+public ${item.base?'abstract ':''}class $className implements ${c.name(item.name)} {<% if (item.useConverter) { %>
   protected $module.n.cap.converter converter;<% } %>
   ${macros.generate('refsMember', c)}
 <% item.operations.each { op -> if(!op.delegateOp && op.body) { %>
@@ -621,8 +634,8 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${ref.return} $ref.name($ref.signature) {<% if(ref.void) { %>
-    ${ref.parent.name}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
-    ${ref.return} ret = ${ref.parent.name}.${ref.name}($ref.signatureName);
+    ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
+    ${ref.return} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);
     if (ret !=null) {
       $ref.ret.name entity = ($ref.ret.name) ret;<% if (raw) { %>
       //load LAZY loading
@@ -633,7 +646,7 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
     } else {
       return null;
     }<% } else { %>
-    ${ref.ret.name} ret = ${ref.parent.name}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
+    ${ref.ret.name} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
     ret = converter.toExternal(ret);<% } %>
     return ret;<% } %><% } %>
   }<% } %><% } %>
@@ -646,7 +659,7 @@ public ${item.base?'abstract ':''}class $className implements $item.name {<% if 
 }
 ''')
 
-  template('ejbServiceExtends', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
+  template('serviceBean', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
