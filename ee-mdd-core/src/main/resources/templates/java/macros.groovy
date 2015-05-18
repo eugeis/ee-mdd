@@ -567,7 +567,7 @@ public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}Bas
 }''')
 
   template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
-public ${item.virtual || item.base ? 'abstract ':''}class $c.className extends<% if(superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
+public ${item.virtual || item.base ? 'abstract ':''}class $c.className extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
   private transient boolean attributesChanged = false;<% } %>
@@ -1298,8 +1298,8 @@ $ret''')
   template('metaAttributesBridge', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.metasForBridge(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 $ret''')
 
-  template('jpaMetasEntity', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
-${ret-newLine}''')
+  template('jpaMetasEntity', body: '''<% if(!item.virtual) { %><% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.item.jpaMetasForEntity(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
+${ret-newLine}<% } %>''')
 
   template('metaAttributesProp', body: '''<% def ret = ''; String newLine = System.properties['line.separator']; def annotations = c.prop.propMapping(c); if(annotations) { annotations.each { ret += newLine+it.annotation(c) } } %>
 ${ret-newLine}''')

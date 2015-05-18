@@ -269,22 +269,25 @@ class EnhancerForJava {
           def ret = '{'+newLine
           def propIndex
           def index
+          def empty = true
           def separator = ', '+newLine
 
           delegate.props.each {
             propIndex = it.propIndex(c)
             if(propIndex) {
               ret += separator+'    '+propIndex.annotation(c)
+              empty = false
             }
           }
           delegate.indexes.each  {
             index = it.metaIndex(c)
             if(index) {
               ret += separator+'    '+index.annotation(c)
+              empty = false
             }
           }
           ret += '}'
-          if(propIndex || index) {
+          if(!empty) {
             properties[key] = ret-separator
           }
         }
@@ -866,6 +869,7 @@ class EnhancerForJava {
                 association = builder.meta(type: 'OneToMany')
                 association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
               }
+              metas << association
             } else {
               if(opposite.multi) {
                 association = builder.meta(type: 'ManyToOne')

@@ -125,6 +125,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
         entity('StationTrack', superUnit: 'Element',
         description: '''A station track is a track belonging to a station The name of the station track is often shown in passenger timetables<br/><br/>A station track without platform track can only be used for technical stops ''') {
+          prop('id', type: 'Long', unique: true, primaryKey: true)
           prop('allowedConnections', type: 'AllowedConnection', multi: true, opposite: 'stationTrack', description: '''The list of allowed connections''')
           prop('isVirtual', type: 'Boolean', description: '''Marks this station track as virtual<br/><br/>Such a station track can be used to express relations from routes to stations on this route''')
           prop('position', type: 'Integer', description: '''The position of this station track''')
