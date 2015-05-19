@@ -108,8 +108,7 @@ class RefAttributesResolver {
       if(globalType && !duplicateReferences.contains(ref)) {
         def old = refToElement.put(ref, node)
         if(old) {
-          refToElement.remove(ref)
-          println "Duplicate global reference '$ref' first='$old' and second='$node', remove and ignore this reference."
+          println "Duplicate global reference '$ref' first='$old' and second='$node'."
           duplicateReferences << ref
         }
       }

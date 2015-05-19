@@ -12,12 +12,10 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
   }
 
   model ('Platform', key: 'pl') {
-    //constr
+
     component('UserManagement', key: 'um', artifact: 'cg-pl-um') {
-      facet( )
 
-      facet('common')
-
+      
       module('shared') {
 
         enumType('TaskType', defaultLiteral: 'Unknown', desc: '''Defines the type of a task''') {
@@ -203,7 +201,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           message(ref: 'TaskAction')
           message(ref: 'Task')
         }
-
       }
 
       module('backend') {
@@ -223,7 +220,6 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
             findBy {  param(prop: 'id') }
             findBy {  param(prop: 'size') }
           }
-
         }
 
         controller('TaskAgregator', base: true) {
