@@ -30,7 +30,7 @@ class Context {
   def propertyMissing(String name, value) {
     storage[name] = value
   }
-  
+
   def propertyMissing(String name) {
     if(!storage.containsKey(name)) {
       storage[name] = [:]
@@ -40,6 +40,10 @@ class Context {
 
   void putAll(Map m) {
     storage.putAll(m)
+  }
+
+  def get(String name) {
+    storage[name]
   }
 
   Context clone() {

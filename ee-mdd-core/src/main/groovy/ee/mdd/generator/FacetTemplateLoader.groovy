@@ -17,6 +17,20 @@ class FacetTemplateLoader {
         currentFacets.each { facetName, Facet facet ->
           TemplateGroup templateGroup = load(facet.path, facetName)
           if(templateGroup) {
+
+            if(templateGroup.onlyIf == null) {
+              templateGroup.onlyIf = { Context c ->
+                def su = c.get('module')
+                if(!su) {
+                  su = c.get('component')
+                }
+                if(!su) {
+                  su = c.get('model')
+                }
+                su?.isFacetEnabled(facet)
+              }
+            }
+
             facetTemplates.add(templateGroup)
             facetTemplateLoader templateGroup, facet.facets
           }
@@ -37,7 +51,8 @@ class FacetTemplateLoader {
     if(resource) {
       ret = builder.build(resource.text)
     }
-    
+
+    //we need empty facet template group for structure facets like e.g. java, js
     if(!ret) {
       ret = new TemplateGroup(name: facetName)
     }

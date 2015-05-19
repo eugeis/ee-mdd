@@ -44,6 +44,14 @@ class Facet extends Composite implements BuilderAware {
     facets[child.name] = super.add(child); child
   }
 
+  Facet getRootFacet() {
+    Facet ret = this
+    if(Facet.isInstance(parent)) {
+      ret = parent.rootFacet
+    }
+    ret
+  }
+
   @Override
   public String toString() {
     "${getClass().simpleName} [name=$name]"
