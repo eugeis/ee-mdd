@@ -36,12 +36,12 @@ class GeneratorForJava {
 
     String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
 
+    ModelBuilder builder = new ModelBuilder()
+    Model model =  builder.buildFromClasspath("/model.groovy" )
+
     println args
     EnhancerForJava.enhanceClasses()
 
-    ModelBuilder builder = new ModelBuilder()
-
-    Model model =  builder.buildFromClasspath("/model.groovy" )
 
     if(model) {
       //create props for delegates

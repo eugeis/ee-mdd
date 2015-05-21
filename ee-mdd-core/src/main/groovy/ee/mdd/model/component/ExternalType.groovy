@@ -21,6 +21,7 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  */
 class ExternalType extends Type {
+  String alias
 	Namespace namespace
   
   Namespace getNs() { namespace }
