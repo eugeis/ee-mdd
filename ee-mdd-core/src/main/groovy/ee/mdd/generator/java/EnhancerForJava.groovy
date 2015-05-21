@@ -551,7 +551,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret = false
           def op = delegate
-          if(!op.ret) {
+          if(!op.ret && !Exist.isInstance(op)) {
             ret = true
           }
           properties[key] = ret

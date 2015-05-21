@@ -25,7 +25,7 @@ class Delete extends DataTypeOperation {
 
   protected boolean init() {
     if(!ret) {
-      ret = parent.parent
+      ret = null
     }
     super.init()
   }

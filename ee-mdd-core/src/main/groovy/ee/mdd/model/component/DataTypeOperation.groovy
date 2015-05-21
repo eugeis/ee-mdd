@@ -34,7 +34,7 @@ class DataTypeOperation extends Operation {
     if(!paramsLogicName) {
       deriveParamsLogicName();
     }
-    "${getClass().simpleName}$dataTypePart$by$paramsLogicName"
+    "${decapitalize(getClass().simpleName)}$dataTypePart$by$paramsLogicName"
   }
 
   String deriveNameExternal(DataType dt = dataType) {

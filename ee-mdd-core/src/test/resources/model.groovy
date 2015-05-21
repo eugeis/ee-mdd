@@ -212,12 +212,12 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           prop('size', type: 'int')
 
           commands {
-            delete() { param(prop: 'id') }
+            delete() { param(prop: 'name') }
           }
 
           finder {
             exist  {  param(prop: 'name') }
-            findBy {  param(prop: 'id') }
+            findBy {  param(prop: 'name') }
             findBy {  param(prop: 'size') }
           }
         }
@@ -230,10 +230,10 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
 
         service('CommandService', base: true) {
           delegate(ref: 'TaskAgregator.hello')
-          delegate(ref: 'Area.commands.DeleteById')
-          delegate(ref: 'Area.finder.FindById')
-          delegate(ref: 'Area.finder.FindBySize')
-          delegate(ref: 'Area.finder.ExistByName')
+          delegate(ref: 'Area.commands.deleteByName')
+          delegate(ref: 'Area.finder.findByName')
+          delegate(ref: 'Area.finder.findBySize')
+          delegate(ref: 'Area.finder.existByName')
         }
       }
 

@@ -479,11 +479,24 @@ public interface $className extends $item.n.cap.base {
 */<% } else { %>/** The finders provide Find, Count, Exist operations for entity {@link $item.cap}.*/<% } %>
 public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% finders.counters.each { op -> %>
   ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}($op.signature);<% } %><% finders.finders.each { op -> %>
+  ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.finders.each { op -> %>
   ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}($op.signature);<% } %><% finders.exists.each { op -> %>
+  ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.exists.each { op -> %>
   ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}($op.signature);<% } %>
+  ${op.return} ${op.name}(${op.signature(c)});<% } %>
+}''')
+  
+  template('ifcCommands', body: '''<% if(!c.className) { c.className = item.n.cap.commands } %><% def commands = item.commands; def idProp = item.idProp; %>{{imports}}
+<% if(commands.description) { %>/**
+* $commands.description
+*/<% } else { %>/** The commands provide Delete, Update, Create operations for entity {@link $item.cap}.*/<% } %>
+public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% commands.deleters.each { op -> %>
+${op.description?"   /** $op.description */":''}
+  ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updates.each { op -> %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.creates.each { op -> %>
+  ${op.description?"   /** $op.description */":''}
+  ${op.return} ${op.name}(${op.signature(c)});<% } %>
 }''')
 
 
@@ -627,13 +640,13 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
+  public ${op.return} $op.name($op.signature) {
     ${op.resolveBody(c)}
   }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = op.rawType || (ref.resultExpression && ref.ret.multi && ref.ret.typeEntity) %>
   
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${ref.return} $ref.name($ref.signature) {<% if(ref.void) { %>
+  public ${ref.return} $ref.name(${ref.signature(c)}) {<% if(ref.void) { %>
     ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
     ${ref.return} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);
     if (ret !=null) {
@@ -646,7 +659,7 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
     } else {
       return null;
     }<% } else { %>
-    ${ref.ret.name} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
+    ${c.name(ref.return)} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
     ret = converter.toExternal(ret);<% } %>
     return ret;<% } %><% } %>
   }<% } %><% } %>
@@ -1103,12 +1116,12 @@ public class $className {
 ''')
 
 
-  template('implInjects', body: ''' <% item.operations.each { opRef -> def ref = opRef.ref.parent %>
+  template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
   
   @${c.name('Inject')}
   public void set${ref.cap}($ref.name $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
-  }<% } %>''')
+  }<% op << ref %><% } } %>''')
 
 
 

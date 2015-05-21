@@ -19,6 +19,14 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Create extends DataTypeOperation {
+
+  protected boolean init() {
+    if(!ret) {
+      ret = parent.parent
+    }
+    super.init()
+  }
 }

@@ -16,7 +16,6 @@
 package ee.mdd.model
 
 import java.beans.Introspector
-import java.util.Map;
 
 
 
@@ -42,7 +41,7 @@ class Element extends Base {
       uri = "${parent.getUri()}"
     }; uri
   }
-  
+
   String getCap() {
     if(cap == null) {
       cap = getName().capitalize()
@@ -51,8 +50,12 @@ class Element extends Base {
 
   String getUncap() {
     if(uncap == null) {
-      uncap = Introspector.decapitalize(getName())
+      uncap = decapitalize(getName())
     }; uncap
+  }
+
+  String decapitalize(value) {
+    Introspector.decapitalize("" + value)
   }
 
   String getUnderscored() {
