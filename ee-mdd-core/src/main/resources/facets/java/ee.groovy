@@ -19,7 +19,7 @@
  */
 
 def nameToNamespace = ['Base' : 'ee.common.core.model',
-  'Identity' : 'ee.common.core.model', 'IdentitySetter' : 'ee.common.core.model', 'IdentityImpl' : 'ee.common.core.model']
+  'Identity' : 'ee.common.core.model', 'IdentityImpl' : 'ee.common.core.model', 'Labeled' : 'ee.common.core.model']
 
 extModule(name: 'EeCommonCore', artifact: 'ee-common-core') {
   nameToNamespace.each { n, ns ->
