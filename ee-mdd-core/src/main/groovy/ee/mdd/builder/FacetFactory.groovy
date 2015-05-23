@@ -18,9 +18,7 @@ package ee.mdd.builder
 import ee.mdd.model.component.Facet
 import groovy.util.logging.Slf4j;
 
-
 /**
- *
  * @author Eugen Eisler
  */
 @Slf4j
@@ -59,7 +57,7 @@ class FacetFactory extends FacetAwareFactory {
     if(beanClass) {
       super.toString()
     } else {
-      "${getClass().simpleName} [name=$name]"
+      "${getClass().simpleName} [facetName=$facetName]"
     }
   }
 }

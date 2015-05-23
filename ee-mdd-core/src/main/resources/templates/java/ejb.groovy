@@ -1,4 +1,4 @@
-import ee.mdd.model.component.Service
+import ee.mdd.model.component.Facade
 
 /*
  * Copyright 2011-2012 the original author or authors.
@@ -25,7 +25,7 @@ import ee.mdd.model.component.Service
 templates('ejb') {
   
   templates ('facadeEjbService',
-  items: { c -> c.model.findAllRecursiveDown( {Service.isInstance(it) }) },
+  items: { c -> c.model.findAllRecursiveDown( { Facade.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
   
     template('serviceBaseBean', appendName: true, body: '''<% c.className = c.item.n.cap.baseBean %>${macros.generate('serviceBaseBean', c)}''')

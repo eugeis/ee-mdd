@@ -21,6 +21,6 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
-class Service extends CompilationUnit {
+class Facade extends CompilationUnit {
   boolean useConverter = false
 }

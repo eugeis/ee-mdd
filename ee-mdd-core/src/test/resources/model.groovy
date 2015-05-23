@@ -8,6 +8,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
     jms()
     jpa()
     test()
+    ee()
     cg()
   }
 
@@ -228,7 +229,7 @@ model ('Controlguide', key: 'cg', namespace: 'com.siemens.ra.cg', uri: 'cg.test'
           }
         }
 
-        service('CommandService', base: true) {
+        facade('CommandService', base: true) {
           delegate(ref: 'TaskAgregator.hello')
           delegate(ref: 'Area.commands.deleteByName')
           delegate(ref: 'Area.finder.findByName')

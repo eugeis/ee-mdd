@@ -97,8 +97,9 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   boolean checkFactoryAllowed(Object name) {
     MddFactory parent = getParentFactory()
     if(parent != null && !parent.isChildAllowed(name)) {
-      LOG.error "Child element '$name' in not allowed for parent '$parent'."
-      throw new RuntimeException("Child element '$name' in not allowed for parent '$parent'.")
+      String msg = "Child element '$name' in not allowed for parent '$parent'."
+      log.error msg
+      throw new RuntimeException(msg)
     }
     true
   }

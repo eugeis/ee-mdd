@@ -20,7 +20,7 @@ import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Service
+import ee.mdd.model.component.Facade
 
 /**
  *

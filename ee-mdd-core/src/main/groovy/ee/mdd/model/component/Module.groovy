@@ -33,7 +33,7 @@ class Module extends StructureUnit {
   List<BasicType> basicType = []
   List<Controller> controllers = []
   List<Initializer> initializers = []
-  List<Service> services = []
+  List<Facade> services = []
   List<Channel> channels = []
   List<Module> dependencies = []
   List<Config> configs = []
@@ -69,7 +69,7 @@ class Module extends StructureUnit {
   def add(Controller child) {
     controllers << child; super.add(child)
   }
-  def add(Service child) {
+  def add(Facade child) {
     services << child; super.add(child)
   }
   def add(Initializer child) {

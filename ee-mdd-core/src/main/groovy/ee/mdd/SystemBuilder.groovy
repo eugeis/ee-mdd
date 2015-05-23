@@ -18,9 +18,10 @@ package ee.mdd
 import ee.mdd.builder.AbstractFactoryBuilder
 import ee.mdd.builder.CompositeFactory
 import ee.mdd.builder.MddFactory
-import ee.mdd.model.component.Service
+import ee.mdd.model.component.Facade
 import ee.mdd.model.system.Content
 import ee.mdd.model.system.Machine
+import ee.mdd.model.system.Service
 import ee.mdd.model.system.Workspace
 
 /**
@@ -34,9 +35,9 @@ class SystemBuilder extends AbstractFactoryBuilder {
 
     refAttrResolver.addGlobalResolver('machine', Machine)
     refAttrResolver.addGlobalResolver('workspace', Workspace)
-    refAttrResolver.addGlobalResolver('service', Service)
+    refAttrResolver.addGlobalResolver('service', Facade)
 
-    refAttrResolver.addGlobalTypes([Machine, Workspace, Service])
+    refAttrResolver.addGlobalTypes([Machine, Workspace, Facade])
 
     if(postInstantiateDelegate) {
       super.addPostInstantiateDelegate(postInstantiateDelegate)

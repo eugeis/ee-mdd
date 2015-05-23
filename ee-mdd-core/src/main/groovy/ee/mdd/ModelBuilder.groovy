@@ -67,7 +67,7 @@ import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Param
 import ee.mdd.model.component.Pojo
 import ee.mdd.model.component.Prop
-import ee.mdd.model.component.Service
+import ee.mdd.model.component.Facade
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
@@ -117,11 +117,11 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   private ModelFactory model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   private def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
-  private CompositeFactory module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'service', 'container', 'channel', 'dependency'], parent: su)
+  private CompositeFactory module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency'], parent: su)
   private def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
   private def prop = new PropFactory(parent: attr)
   private def literal = new CompositeFactory(beanClass: Literal)
-  private def service = new CompositeFactory(beanClass: Service, parent: cu)
+  private def facade = new CompositeFactory(beanClass: Facade, parent: cu)
   private def namespace = new MddFactory(beanClass: Namespace)
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
@@ -186,7 +186,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'pojo', pojo
     registerFactory 'prop', prop
     registerFactory 'lit', literal
-    registerFactory 'service', service
+    registerFactory 'facade', facade
     registerFactory 'update', update
     registerFactory 'namespace', namespace
     registerFactory 'channel', channel

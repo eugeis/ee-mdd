@@ -40,14 +40,8 @@ import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
-import ee.mdd.model.component.Service
+import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Type
-
-
-
-
-
-
 
 /**
  *
@@ -382,10 +376,10 @@ class EnhancerForJava {
     }
 
 
-    Service.metaClass {
+    Facade.metaClass {
 
       metasForService << { Context c ->
-        Service service = delegate
+        Facade service = delegate
         ModelBuilder builder = service.component.builder
         def metasForService = []
         if(service.metas) {
