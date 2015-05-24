@@ -1,1 +1,1 @@
-include "ee-mdd-core"
+include 'ee-mdd-core', 'ee-mdd-gradle'

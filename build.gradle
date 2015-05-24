@@ -8,6 +8,7 @@ subprojects {
   apply plugin: 'eclipse'
   apply plugin: 'groovy'
   apply plugin: 'maven'
+  apply plugin: 'maven-publish'
 
   sourceCompatibility = 1.7
   targetCompatibility = 1.7
@@ -35,6 +36,13 @@ subprojects {
       ['bin', 'target', 'build', 'dist', 'temp', '.idea', 'dist.zip'].each { name ->
         def file = new File("$task.project.name/$name")
         if(file.exists()) if(file.isDirectory())file.deleteDir() else file.delete()
+      }
+    }
+
+    task createFolders << { task ->
+      ['src/main/groovy'].each { name ->
+        def file = new File("$task.project.name/$name")
+        file.mkdirs()
       }
     }
   }
