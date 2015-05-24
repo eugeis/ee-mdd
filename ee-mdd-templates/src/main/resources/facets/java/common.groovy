@@ -32,10 +32,10 @@ def primitiveTypes = [
   'Double',
   'Boolean',
   'String'
-]
+].sort()
 
 def nameToNamespace = ['Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util',
-  'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'Serializable': 'java.io', 'HashSet' : 'java.util']
+  'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'Serializable': 'java.io', 'HashSet' : 'java.util'] as TreeMap
 
 extModule(name: 'Java') {
 

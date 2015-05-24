@@ -11,8 +11,14 @@ class LoadModel extends MddTask {
 
   @TaskAction
   void load() {
-    mdd.model = [:]
     validateState()
+
+    def modelFile = new File(mdd.modelSource)
+    if(modelFile.exists()) {
+      mdd.model = mdd.generator.loadModel(modelFile.toURI().toURL())
+    } else {
+      throw new IllegalStateException( 'Model file does not exists $modelFile.' )
+    }
   }
 
   private validateState() {

@@ -20,7 +20,7 @@
  * @author Niklas Cappelmann
  */
 
-def nameToNamespace = ['Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb']
+def nameToNamespace = ['Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb'] as TreeMap
 
 extModule(name: 'Ejb') {
   nameToNamespace.each { n, ns ->

@@ -30,48 +30,43 @@ import ee.mdd.model.component.Prop
  */
 class GeneratorForJava {
 
-  static void main(def args) {
-    String mainResources = "${args[0]}/../ee-mdd-core/src/main/resources"
-    String testResources = "${args[0]}/../ee-mdd-core/src/test/resources"
-
-    String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_java'
-
+  static {
     EnhancerForJava.enhanceClasses()
+  }
 
-    ModelBuilder builder = new ModelBuilder()
-    Model model =  builder.buildFromClasspath("/model.groovy" )
+  ModelBuilder builder = new ModelBuilder()
 
-    println args
+  Model loadModel(URL modelSource) {
+    Model model =  builder.build(modelSource)
+    builder.refAttrResolver.printNotResolved()
+    model
+  }
+
+  void deriveModel(Model model) {
+    //create props for delegates
+    model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
+      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+  }
 
 
-    if(model) {
-      //create props for delegates
-      model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
-        d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+  void generate(Model model, File target) {
+    FacetTemplateLoader templateLoader = new FacetTemplateLoader()
 
-      //model.findAllRecursiveDown { Component.isInstance(it) }.each { it.add(new Init) }
+    Generator generator = new Generator()
+    generator.add(templateLoader.loadFacetTemplates(model))
 
-      builder.refAttrResolver.printNotResolved()
+    def commonProcessorFactory = new ProcessorsFactory()
+    def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
 
+    generator.add(commonProcessorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
 
-      FacetTemplateLoader templateLoader = new FacetTemplateLoader()
+    generator.add(javaProcessorFactory.javaImportsPathProcessor())
+    generator.add(commonProcessorFactory.printProcessor())
+    generator.add(commonProcessorFactory.fileProcessor(target))
 
-      Generator generator = new Generator()
-      generator.add(templateLoader.loadFacetTemplates(model))
+    Context c = new Context(name: model.name)
+    c.model = model
 
-      def commonProcessorFactory = new ProcessorsFactory()
-      def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
-
-      generator.add(commonProcessorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
-
-      generator.add(javaProcessorFactory.javaImportsPathProcessor())
-      generator.add(commonProcessorFactory.printProcessor())
-      generator.add(commonProcessorFactory.fileProcessor(target))
-
-      Context c = new Context(name: model.name)
-      c.model = model
-
-      generator.generate(c)
-    }
+    generator.generate(c)
   }
 }

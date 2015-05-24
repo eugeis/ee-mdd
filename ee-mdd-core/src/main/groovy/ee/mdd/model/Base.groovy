@@ -15,7 +15,6 @@
  */
 package ee.mdd.model
 
-import java.beans.Introspector
 
 
 
@@ -70,4 +69,6 @@ class Base {
       name = deriveName()
     }; name
   }
+
+  Map attributes() {}
 }

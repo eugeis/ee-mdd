@@ -15,9 +15,7 @@
  */
 package ee.mdd.model
 
-
 /**
- *
  * @author Eugen Eisler
  */
 class Composite extends Element {

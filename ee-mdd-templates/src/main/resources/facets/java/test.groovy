@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
- /**
-  *
-  * @author Eugen Eisler
-  * @author Niklas Cappelmann
-  */
- 
- def nameToNamespace = ['Test': 'org.junit', 'After' : 'org.junit','Before': 'org.junit', 'BeforeClass' : 'org.junit', 'Assert': 'static junit.framework.Assert.*', 'RunWith' : 'org.junit.runner',
-  'Mock' : 'org.mockito', 'MockitoJUnitRunner' : 'org.mockito.runners']
+/**
+ *
+ * @author Eugen Eisler
+ * @author Niklas Cappelmann
+ */
+
+def nameToNamespace = ['Test': 'org.junit', 'After' : 'org.junit','Before': 'org.junit', 'BeforeClass' : 'org.junit', 'Assert': 'static junit.framework.Assert.*', 'RunWith' : 'org.junit.runner',
+  'Mock' : 'org.mockito', 'MockitoJUnitRunner' : 'org.mockito.runners'] as TreeMap
 
 extModule(name: 'test') {
   nameToNamespace.each { n, ns ->
