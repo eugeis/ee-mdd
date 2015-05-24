@@ -1,1 +1,1 @@
-include 'ee-mdd-core', 'ee-mdd-gradle'
+include 'ee-mdd-core', 'ee-mdd-templates', 'ee-mdd-gradle'
