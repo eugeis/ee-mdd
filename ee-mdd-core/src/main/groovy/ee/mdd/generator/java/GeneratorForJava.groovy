@@ -42,10 +42,11 @@ class GeneratorForJava {
     model
   }
 
-  void deriveModel(Model model) {
+  Model deriveModel(Model model) {
     //create props for delegates
     model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
       d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+    model
   }
 
 

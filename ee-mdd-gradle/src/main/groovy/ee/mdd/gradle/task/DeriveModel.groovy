@@ -8,11 +8,11 @@ class DeriveModel extends MddTask {
     description = 'Start generation for configured generator and loaded model.'
     dependsOn( buildName(LoadModel) )
   }
-  
+
   @TaskAction
   void generate() {
     validateState()
-    
+    mdd.model = mdd.generator.deriveModel(mdd.model)
   }
 
   private validateState() {
