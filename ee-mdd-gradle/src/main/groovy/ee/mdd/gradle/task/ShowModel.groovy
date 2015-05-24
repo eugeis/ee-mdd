@@ -4,6 +4,7 @@ import java.awt.print.PrinterAbortException
 
 import org.gradle.api.tasks.TaskAction
 
+import ee.mdd.model.component.Facet;
 import ee.mdd.util.ElementPrinter
 
 class ShowModel extends MddTask {
@@ -17,7 +18,7 @@ class ShowModel extends MddTask {
   @TaskAction
   void show() {
     validateState()
-    printer.print(mdd.model)
+    printer.print(mdd.model, { !Facet.isInstance(it) })
   }
 
   private validateState() {

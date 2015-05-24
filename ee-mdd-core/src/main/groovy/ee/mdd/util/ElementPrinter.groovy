@@ -42,21 +42,23 @@ class ElementPrinter {
     this.out = out
   }
 
-  void print(Element item) {
-    out.printIndent()
-    printNameAndAttributes(item)
+  void print(Element item, Closure filter = { true }) {
+    if(filter(item)) {
+      out.printIndent()
+      printNameAndAttributes(item)
 
-    if(Composite.isInstance(item)) {
-      Composite composite = (Composite)item
-      if(composite.children) {
-        printList(composite.children)
+      if(Composite.isInstance(item)) {
+        Composite composite = (Composite)item
+        if(composite.children) {
+          printList(composite.children, filter)
+        } else {
+          out.println()
+        }
       } else {
         out.println()
       }
-    } else {
-      out.println()
+      out.flush()
     }
-    out.flush()
   }
 
   private printNameAndAttributes(Element item) {
@@ -68,10 +70,10 @@ class ElementPrinter {
     }
   }
 
-  protected void printList(List<Element> list) {
+  protected void printList(List<Element> list, Closure filter) {
 
-    def itemsWithoutChildren = list.findAll { !Composite.isInstance(it) || !it.children }
-    def itemsWithChildren = list.findAll { Composite.isInstance(it) && it.children}
+    def itemsWithoutChildren = list.findAll { filter && (!Composite.isInstance(it) || !it.children) }
+    def itemsWithChildren = list.findAll { filter && (Composite.isInstance(it) && it.children) }
 
     if(itemsWithChildren) {
       out.println(' {')
@@ -81,7 +83,7 @@ class ElementPrinter {
         printListWithoutChildren(itemsWithoutChildren)
         out.println('')
       }
-      itemsWithChildren.each { print(it) }
+      itemsWithChildren.each { print(it, filter) }
 
       out.decrementIndent()
       out.printIndent()
