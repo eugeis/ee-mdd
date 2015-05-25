@@ -21,19 +21,19 @@ import ee.mdd.model.Element
  *
  * @author Eugen Eisler
  */
-class RefAttributesResolver {
-  Set<String> duplicateReferences = [] as Set
-  Set<Class> globalTypes = [] as Set
+class TypeResolver {
+  Set<String> duplicates = [] as Set
+  Set<Class> types = [] as Set
   Map<String, Element> refToElement = [:]
-  Map<String, RefResolveHandler> refHolders = [:]
+  Map<String, ResolveHandler> handlers = [:]
 
-  RefResolveHandler addGlobalResolver(String name, Class type, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
-    addResolver(new RefGlobalResolveHandler(refToResolved: refToElement, name: name, type: type,
+  ResolveHandler addGlobalResolver(String name, Class type, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+    addResolver(new GlobalResolveHandler(resolved: refToElement, name: name, type: type,
     setter: setter(name, converter, multi, afterSetter)))
   }
 
-  RefResolveHandler addParentResolver(String name, Class type, int depth = 0, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
-    addResolver(new RefParentResolveHandler(name: name, type: type, depth: depth,
+  ResolveHandler addParentResolver(String name, Class type, int depth = 0, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+    addResolver(new ParentResolveHandler(name: name, type: type, depth: depth,
     setter: setter(name, converter, multi, afterSetter)))
   }
 
@@ -49,24 +49,24 @@ class RefAttributesResolver {
     }
   }
 
-  RefResolveHandler addResolver(RefResolveHandler resolver) {
-    refHolders[resolver.name] = resolver
+  ResolveHandler addResolver(ResolveHandler resolver) {
+    handlers[resolver.name] = resolver
   }
 
-  RefResolveHandler get(String name) {
-    refHolders.get(name)
+  ResolveHandler get(String name) {
+    handlers.get(name)
   }
 
   boolean addGlobalType(Class item) {
-    globalTypes.add(item)
+    types.add(item)
   }
 
   boolean addGlobalTypes(Collection<? extends Class> items) {
-    globalTypes.addAll(items)
+    types.addAll(items)
   }
 
   def attributteDelegate = { FactoryBuilderSupport builder, node, Map attributes ->
-    refHolders.each { name, RefResolveHandler ref ->
+    handlers.each { name, ResolveHandler ref ->
       if (attributes.containsKey(name)) {
         def parent = builder.parent
         def refName = attributes[name]
@@ -80,7 +80,7 @@ class RefAttributesResolver {
       }
     }
 
-    refHolders.each { name, RefResolveHandler ref ->
+    handlers.each { name, ResolveHandler ref ->
       attributes.remove(name)
     }
   }
@@ -90,7 +90,7 @@ class RefAttributesResolver {
   }
 
   void printNotResolved() {
-    refHolders.each { name, RefResolveHandler handler ->
+    handlers.each { name, ResolveHandler handler ->
       if(!handler.resolved) {
         handler.printNotResolved()
       }
@@ -104,16 +104,16 @@ class RefAttributesResolver {
     if (node instanceof Element) {
 
       def ref = node.reference
-      Class globalType = globalTypes.find { Class clazz -> clazz.isInstance(node) }
-      if(globalType && !duplicateReferences.contains(ref)) {
+      Class globalType = types.find { Class clazz -> clazz.isInstance(node) }
+      if(globalType && !duplicates.contains(ref)) {
         def old = refToElement.put(ref, node)
         if(old) {
           println "Duplicate global reference '$ref' first='$old' and second='$node'."
-          duplicateReferences << ref
+          duplicates << ref
         }
       }
 
-      refHolders.each { name, RefResolveHandler handler ->
+      handlers.each { name, ResolveHandler handler ->
         handler.onElement(node)
       }
     }

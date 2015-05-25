@@ -127,26 +127,26 @@ class ModelBuilder extends AbstractFactoryBuilder {
   ModelBuilder(Closure postInstantiateDelegate = null) {
     super(postInstantiateDelegate)
 
-    OppositeResolveHandler oppositeResolver = refAttrResolver.addResolver(new OppositeResolveHandler(name: 'opposite'))
-    refAttrResolver.addResolver(oppositeResolver)
+    OppositeResolveHandler oppositeResolver = typeResolver.addResolver(new OppositeResolveHandler(name: 'opposite'))
+    typeResolver.addResolver(oppositeResolver)
 
-    refAttrResolver.addGlobalResolver('type', Type, null, false, { prop, resolved ->
+    typeResolver.addGlobalResolver('type', Type, null, false, { prop, resolved ->
       if(DataTypeProp.isInstance(prop) && DataType.isInstance(resolved) && !prop.opposite) {
         oppositeResolver.onDataTypeProp(prop)
       }
     })
-    refAttrResolver.addGlobalResolver('ret', Type)
-    refAttrResolver.addGlobalResolver('ref', Element)
+    typeResolver.addGlobalResolver('ret', Type)
+    typeResolver.addGlobalResolver('ref', Element)
 
-    refAttrResolver.addParentResolver('prop', Prop, 2)
-    refAttrResolver.addGlobalResolver('module', Module)
-    refAttrResolver.addGlobalResolver('superUnit', CompilationUnit)
+    typeResolver.addParentResolver('prop', Prop, 2)
+    typeResolver.addGlobalResolver('module', Module)
+    typeResolver.addGlobalResolver('superUnit', CompilationUnit)
 
     MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
-    refAttrResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
-    refAttrResolver.addParentResolver('props', Prop, 2, null, true)
+    typeResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
+    typeResolver.addParentResolver('props', Prop, 2, null, true)
 
-    refAttrResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
+    typeResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
 
     facets.names.each { facetName -> registerFactory facetName, new FacetFactory(facetName: facetName, facets: facets, parent: facet) }
     

@@ -22,7 +22,7 @@ import ee.mdd.model.Element
  *
  * @author Eugen Eisler
  */
-interface RefResolveHandler {
+interface ResolveHandler {
   void onElement(Element el)
   void addResolveRequest(String ref, Composite parent, item)
   boolean isResolved()

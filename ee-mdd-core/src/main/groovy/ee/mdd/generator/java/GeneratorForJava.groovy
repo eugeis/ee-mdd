@@ -38,7 +38,7 @@ class GeneratorForJava {
 
   Model loadModel(URL modelSource) {
     Model model =  builder.build(modelSource)
-    builder.refAttrResolver.printNotResolved()
+    builder.typeResolver.printNotResolved()
     model
   }
 
@@ -57,7 +57,7 @@ class GeneratorForJava {
     generator.add(templateLoader.loadFacetTemplates(model))
 
     def processorFactory = new ProcessorsFactory()
-    def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
+    def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.typeResolver.refToElement)
 
     generator.add(processorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
 

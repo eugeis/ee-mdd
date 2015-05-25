@@ -32,7 +32,7 @@ import groovy.util.logging.Slf4j
 class AbstractFactoryBuilder extends FactoryBuilderSupport {
   GroovyShell shell = new GroovyShell()
   protected  Map<String, Object> storedContinuationData
-  RefAttributesResolver refAttrResolver
+  TypeResolver typeResolver
   AttributeToObject attributeToObject
 
   AbstractFactoryBuilder(Closure postInstantiateDelegate = null, boolean init = true) {
@@ -42,10 +42,10 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
     attributeToObject.add('namespace', new MddFactory(beanClass: Namespace))
     addAttributeDelegate(attributeToObject.attributteDelegate)
 
-    refAttrResolver = new RefAttributesResolver()
-    addAttributeDelegate(refAttrResolver.attributteDelegate)
-    addPostInstantiateDelegate(refAttrResolver.postInstantiateDelegate)
-    addPostNodeCompletionDelegate(refAttrResolver.postNodeCompletionDelegate)
+    typeResolver = new TypeResolver()
+    addAttributeDelegate(typeResolver.attributteDelegate)
+    addPostInstantiateDelegate(typeResolver.postInstantiateDelegate)
+    addPostNodeCompletionDelegate(typeResolver.postNodeCompletionDelegate)
 
     if(postInstantiateDelegate) {
       addPostInstantiateDelegate(postInstantiateDelegate)

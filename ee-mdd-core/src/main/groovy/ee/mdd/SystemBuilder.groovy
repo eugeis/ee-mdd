@@ -33,11 +33,11 @@ class SystemBuilder extends AbstractFactoryBuilder {
   SystemBuilder(Closure postInstantiateDelegate = null) {
     super(postInstantiateDelegate)
 
-    refAttrResolver.addGlobalResolver('machine', Machine)
-    refAttrResolver.addGlobalResolver('workspace', Workspace)
-    refAttrResolver.addGlobalResolver('service', Service)
+    typeResolver.addGlobalResolver('machine', Machine)
+    typeResolver.addGlobalResolver('workspace', Workspace)
+    typeResolver.addGlobalResolver('service', Service)
 
-    refAttrResolver.addGlobalTypes([Machine, Workspace, Service])
+    typeResolver.addGlobalTypes([Machine, Workspace, Service])
 
     if(postInstantiateDelegate) {
       super.addPostInstantiateDelegate(postInstantiateDelegate)

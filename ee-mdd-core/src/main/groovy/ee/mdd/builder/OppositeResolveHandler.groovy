@@ -25,7 +25,7 @@ import ee.mdd.model.component.DataTypeProp
  *
  * @author Eugen Eisler
  */
-class OppositeResolveHandler implements RefResolveHandler {
+class OppositeResolveHandler implements ResolveHandler {
 	String name
 	Class type
 	Map<DataTypeProp, String> notResolved = [:]

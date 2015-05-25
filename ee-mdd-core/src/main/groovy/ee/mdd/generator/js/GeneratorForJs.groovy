@@ -48,7 +48,7 @@ class GeneratorForJs {
 
     if(model) {
       
-      builder.refAttrResolver.printNotResolved()
+      builder.typeResolver.printNotResolved()
 
       FacetTemplateLoader templateLoader = new FacetTemplateLoader()
 

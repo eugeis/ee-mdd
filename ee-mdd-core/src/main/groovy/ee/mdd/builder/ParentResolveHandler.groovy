@@ -24,7 +24,7 @@ import ee.mdd.model.Element
  *
  * @author Eugen Eisler
  */
-class RefParentResolveHandler implements RefResolveHandler {
+class ParentResolveHandler implements ResolveHandler {
   String name
   Class type
   int depth = 0

@@ -23,36 +23,36 @@ import ee.mdd.model.Element
  *
  * @author Eugen Eisler
  */
-class RefGlobalResolveHandler implements RefResolveHandler {
+class GlobalResolveHandler implements ResolveHandler {
   final static SEPARATOR = '.'
   String name
   Class type
   Closure setter
 
-  Map<String, Object> refToResolved
-  Map<String, List<Object>> notResolvedRefToItems = [:]
-  Map<String, List<Object>> notResolvedPathRefToItems = [:]
+  Map<String, Object> resolved
+  Map<String, List<Object>> notResolvedToItems = [:]
+  Map<String, List<Object>> notResolvedPathToItems = [:]
 
   void onElement(Element el) {
     if (type.isInstance(el)) {
       def ref = el.reference
       //resolve not resolved yet
-      if(notResolvedRefToItems.containsKey(ref)) {
+      if(notResolvedToItems.containsKey(ref)) {
         resolve(ref, el)
       }
     }
   }
 
   private resolve(String ref, Element el) {
-    notResolvedRefToItems[ref].each {  item ->
+    notResolvedToItems[ref].each {  item ->
       setter(item, el)
     }
-    notResolvedRefToItems.remove(ref)
+    notResolvedToItems.remove(ref)
   }
 
   void addResolveRequest(String ref, Composite parent, item) {
-    if (refToResolved.containsKey(ref)) {
-      setter.call(item, refToResolved[ref])
+    if (resolved.containsKey(ref)) {
+      setter.call(item, resolved[ref])
     } else {
       if(ref.contains(SEPARATOR)) {
         addResolvePathRequest(ref, parent, item)
@@ -65,11 +65,11 @@ class RefGlobalResolveHandler implements RefResolveHandler {
   private addResolvePathRequest(String ref, Composite parent, item) {
     def parts = ref.split("\\$SEPARATOR")
     String refPart = parts[0]
-    if(refToResolved.containsKey(refPart)) {
-      resolve(refToResolved[refPart], parts[1..parts.length-1], item)
+    if(resolved.containsKey(refPart)) {
+      resolve(resolved[refPart], parts[1..parts.length-1], item)
     } else {
       def subParts = parts[1..parts.length-1]
-      notResolvedRefToItems[refPart] = { resolve(it, subParts, item) }
+      notResolvedToItems[refPart] = { resolve(it, subParts, item) }
     }
   }
 
@@ -96,26 +96,26 @@ class RefGlobalResolveHandler implements RefResolveHandler {
   }
 
   private addRequest(String ref, item) {
-    if (!notResolvedRefToItems[ref]) {
-      notResolvedRefToItems[ref] = []
+    if (!notResolvedToItems[ref]) {
+      notResolvedToItems[ref] = []
     }
-    notResolvedRefToItems[ref] << item
+    notResolvedToItems[ref] << item
   }
 
   @Override
   boolean isResolved() {
-    notResolvedRefToItems.isEmpty() && notResolvedPathRefToItems.isEmpty()
+    notResolvedToItems.isEmpty() && notResolvedPathToItems.isEmpty()
   }
 
   @Override
   void printNotResolved() {
 
-    if(!notResolvedRefToItems.isEmpty()) {
-      println "Not resolved: $name: ${notResolvedRefToItems.keySet()}"
+    if(!notResolvedToItems.isEmpty()) {
+      println "Not resolved: $name: ${notResolvedToItems.keySet()}"
     }
 
-    if(!notResolvedPathRefToItems.isEmpty()) {
-      println "Not resolved: $name: ${notResolvedPathRefToItems.keySet()}"
+    if(!notResolvedPathToItems.isEmpty()) {
+      println "Not resolved: $name: ${notResolvedPathToItems.keySet()}"
     }
   }
 }
