@@ -27,6 +27,7 @@ abstract class AbstractGenerator extends Composite {
   List<Processor> processors
   OutputPurpose purpose = OutputPurpose.PRODUCTION
   OutputType type = OutputType.API
+  String facet
 
   protected void before(Context c) {
     if(processors) {
@@ -51,7 +52,20 @@ abstract class AbstractGenerator extends Composite {
       }
     }
   }
+  
+  protected void extendContextOutput(Context c) {
+    if(purpose) {
+      c.outPurpose = purpose
+    }
 
+    if(type) {
+      c.outType = type
+    }
+
+    if(facet) {
+      c.facet = facet
+    }
+  }
 
   def add(Processor child) {
     if(processors == null) {

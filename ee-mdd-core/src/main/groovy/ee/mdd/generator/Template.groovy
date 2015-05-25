@@ -33,6 +33,7 @@ class Template extends AbstractGenerator {
 
   def generate(Context c) {
     def ret = ''
+    extendContextOutput(c)
     before(c)
     try {
       def result = engine.createTemplate(body).make(c.storage)

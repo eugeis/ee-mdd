@@ -34,6 +34,7 @@ class Generator extends AbstractGenerator {
     //    Executor executor = new Executor(1)
 
     templateGroups.each { groupName, TemplateGroup templates ->
+      //call generate(template, executor closure)
       templates.generate(context) { template, templateContext, generator ->
 
         executor.submit ( {

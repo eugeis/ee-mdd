@@ -21,6 +21,11 @@ package ee.mdd.generator;
  */
 class Context {
   String name
+  
+  OutputPurpose outPurpose
+  OutputType outType
+  String facet
+  
   Map storage = null
 
   Context() {
@@ -47,7 +52,7 @@ class Context {
   }
 
   Context clone() {
-    Context ret = new Context(name: name, storage: this.storage.clone())
+    Context ret = new Context(name: name, outPurpose:outPurpose, outType: outType, facet: facet, storage: this.storage.clone())
     ret.c = ret
     ret
   }

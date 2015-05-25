@@ -76,6 +76,8 @@ class TemplateGroup extends AbstractGenerator {
   }
 
   protected void extendContext(Context c) {
+    extendContextOutput(c)
+    
     try {
       context?.call(c)
     } catch (e) {
