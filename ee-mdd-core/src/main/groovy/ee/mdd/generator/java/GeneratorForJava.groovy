@@ -56,14 +56,14 @@ class GeneratorForJava {
     Generator generator = new Generator()
     generator.add(templateLoader.loadFacetTemplates(model))
 
-    def commonProcessorFactory = new ProcessorsFactory()
+    def processorFactory = new ProcessorsFactory()
     def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.refAttrResolver.refToElement)
 
-    generator.add(commonProcessorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
+    generator.add(processorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
 
     generator.add(javaProcessorFactory.javaImportsPathProcessor())
-    generator.add(commonProcessorFactory.printProcessor())
-    generator.add(commonProcessorFactory.fileProcessor(target))
+    generator.add(processorFactory.printProcessor())
+    generator.add(processorFactory.fileProcessor(target))
 
     Context c = new Context(name: model.name)
     c.model = model

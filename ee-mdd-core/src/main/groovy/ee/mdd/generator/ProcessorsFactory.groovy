@@ -15,10 +15,6 @@
 */
 package ee.mdd.generator
 
-import ee.mdd.generator.AbstractGenerator
-import ee.mdd.generator.Processor
-import ee.mdd.model.Element
-import ee.mdd.model.component.Namespace
 
 /**
  *
@@ -26,7 +22,7 @@ import ee.mdd.model.component.Namespace
  */
 class ProcessorsFactory {
 
-  Processor fileProcessor(String target) {
+  Processor fileProcessor(File target) {
     Processor ret = new Processor(name: 'writeFile')
 
     ret.before = { c ->
@@ -36,7 +32,7 @@ class ProcessorsFactory {
 
     ret.after = { c ->
       if(!c.error && c.path) {
-        File file = new File("$target/$c.path")
+        File file = new File(target, "$c.path")
         if(!file.parentFile.exists()) {
           file.parentFile.mkdirs()
         }
@@ -49,7 +45,7 @@ class ProcessorsFactory {
     ret
   }
 
-  Processor printProcessor(String target) {
+  Processor printProcessor() {
     Processor ret = new Processor(name: 'prinln')
 
     ret.after = { c -> if (!c.error) { println c.output } }

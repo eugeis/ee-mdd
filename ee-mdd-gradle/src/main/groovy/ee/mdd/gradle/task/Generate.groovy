@@ -8,11 +8,11 @@ class Generate extends MddTask {
     description = 'Start generation for configured generator and loaded model.'
     dependsOn( buildName(DeriveModel) )
   }
-  
+
   @TaskAction
   void generate() {
     validateState()
-    
+    mdd.generator.generate( mdd.model, new File(mdd.target) )
   }
 
   private validateState() {
