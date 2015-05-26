@@ -26,13 +26,29 @@ import ee.mdd.model.Composite
  * @author Niklas Cappelmann
  */
 class StructureUnit extends Composite implements BuilderAware {
+  String artifact
   String key
   String version
-  String artifact
   Namespace namespace
   Names n
   Map<String, Facet> facets = [:]
   ModelBuilder builder
+
+  protected boolean init() {
+    super.init()
+    initArtifact()
+    true
+  }
+
+  protected initArtifact() {
+    if(!artifact) {
+      if(parent?.artifact) {
+        artifact = "${parent.artifact}-${key ? key : name}"
+      } else {
+        artifact = key ? key : name
+      }
+    }
+  }
 
   def add(Facet child) {
     facets[child.name] = super.add(child); child

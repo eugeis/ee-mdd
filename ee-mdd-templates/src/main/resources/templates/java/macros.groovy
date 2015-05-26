@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import static ee.mdd.generator.OutputPurpose.*
+import static ee.mdd.generator.OutputType.*
 
 /**
  *
@@ -1142,7 +1144,7 @@ public class $c.className extends ${c.className}Base {<% if (c.serializable) { %
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-  template('test', body: '''<% c.scope='test' %><% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
+  template('test', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className {
   protected $item.n.cap.impl item;
   
@@ -1163,7 +1165,7 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
-  template('testEnum', body : ''' <% c.scope='test' %><% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
+  template('testEnum', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
 public class $c.className {
   
   @${c.name('Test')}
@@ -1179,7 +1181,7 @@ public class $c.className {
   }
 }''')
 
-  template('notificationPluginTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
+  template('notificationPluginTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @${c.name('RunWith')}(${c.name('MockitoJUnitRunner')}.class)
@@ -1222,7 +1224,7 @@ public class $className extends ${c.name('BaseTestCase')} {
 
 }''')
 
-  template('jmsToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.jmsToCdiTest } %>{{imports}}
+  template('jmsToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.jmsToCdiTest } %>{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 public class $className extends ${c.name('JmsMessagingAdapterTestCase')} {
@@ -1244,7 +1246,7 @@ public class $className extends ${c.name('JmsMessagingAdapterTestCase')} {
   }
 }''')
 
-  template('cdiToJmsTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.cdiToJmsTest } %>{{imports}}
+  template('cdiToJmsTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.cdiToJmsTest } %>{{imports}}
 public class $className {
 
   protected static $item.n.cap.cdiToJms cdiToJms;
@@ -1288,7 +1290,7 @@ public class $className {
   }<% } %>
 }''')
 
-  template('eventToCdiTest', body: '''<% c.scope='test' %><% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
+  template('eventToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
 public class ${className} extends BaseTestCase {
   @${c.name('Test')}
   @Override

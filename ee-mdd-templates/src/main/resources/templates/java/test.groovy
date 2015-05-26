@@ -1,7 +1,3 @@
-import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Entity
-import ee.mdd.model.component.EnumType
-
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -18,6 +14,12 @@ import ee.mdd.model.component.EnumType
  * limitations under the License.
  */
 
+import static ee.mdd.generator.OutputPurpose.*
+import static ee.mdd.generator.OutputType.*
+
+import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Entity
+import ee.mdd.model.component.EnumType
 
 /**
  *
@@ -25,11 +27,11 @@ import ee.mdd.model.component.EnumType
  * @author Niklas Cappelmann
  */
  
-templates('test') {
+templates('test', purpose: UNIT_TEST) {
    
   templates ('modelTest',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl', scope: 'test'] ) } ) {
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
    
     template('test', appendName: true, body: '''<% c.virtual = true; c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}''')
     template('testExtends', appendName: true, body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
@@ -47,7 +49,7 @@ templates('test') {
   
   templates ('enumTest',
   items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
-  context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType, scope: 'test' ] ) } ) {
+  context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
   
     template('testEnum', appendName: true, body: '''<% c.className = "${item.n.cap.test}Base" %>${macros.generate('testEnum', c)}''')
     template('testEnumExtends', appendName: true, body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')

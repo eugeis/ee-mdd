@@ -15,15 +15,12 @@
  */
 package ee.mdd.model.component
 
-
-
 /**
  *
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
 class Module extends StructureUnit {
-  String artifact
   boolean startupInitializer = false
   boolean facade = false
 
@@ -38,13 +35,6 @@ class Module extends StructureUnit {
   List<Module> dependencies = []
   List<Config> configs = []
   List<Container> containers = []
-
-  protected boolean init() {
-    super.init()
-    if(!artifact) {
-    }
-    true
-  }
 
   Component getComponent() {
     parent.component
