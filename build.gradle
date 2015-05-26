@@ -1,14 +1,34 @@
+def _scripts = System.getenv('CG_CM_SCRIPTS_HOME') ?: 'D:/CG/src/cg-cm/cg-cm-scripts'
+ext.scripts = project.hasProperty('superpom') ? project.superpom : "$_scripts/gradlebuild"
+logger.info "Calculated 'superpom' location: $scripts"
+
+File f = null
+try {
+  f = file("$scripts/repos.gradle")
+} catch (e) {}
+
 allprojects {
   group = 'ee.mdd'
   version = '1.0-SNAPSHOT'
 }
 
 subprojects {
+
   apply plugin: 'java'
   apply plugin: 'eclipse'
   apply plugin: 'groovy'
   apply plugin: 'maven'
   apply plugin: 'maven-publish'
+
+
+  if(f && f.exists()) {
+    apply from: f.absolutePath
+  } else {
+    repositories {
+      mavenLocal()
+      mavenCentral()
+    }
+  }
 
   sourceCompatibility = 1.7
   targetCompatibility = 1.7
@@ -22,10 +42,7 @@ subprojects {
     testCompile 'junit:junit:4.+'
   }
 
-  repositories {
-    mavenLocal()
-    mavenCentral()
-  }
+
 
   jar {
     manifest {
