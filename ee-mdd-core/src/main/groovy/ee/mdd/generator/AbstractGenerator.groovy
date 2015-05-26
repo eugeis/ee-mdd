@@ -55,11 +55,11 @@ abstract class AbstractGenerator extends Composite {
   
   protected void extendContextOutput(Context c) {
     if(purpose) {
-      c.outPurpose = purpose
+      c.outputPurpose = purpose
     }
 
     if(type) {
-      c.outType = type
+      c.outputType = type
     }
 
     if(facet) {

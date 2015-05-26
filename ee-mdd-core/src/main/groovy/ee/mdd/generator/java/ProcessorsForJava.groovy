@@ -15,6 +15,7 @@
  */
 package ee.mdd.generator.java
 
+import ee.mdd.generator.Context
 import ee.mdd.generator.Processor
 import ee.mdd.model.Element
 
@@ -83,7 +84,7 @@ class ProcessorsForJava {
 
     }
     
-    ret.after = { c ->
+    ret.after = { Context c ->
       if (!c.error && c.className) {
         def ns = (c.module ? c.module.ns : c.item.ns)
         def subPkg = c.subPkg ? ".$c.subPkg" : ''
@@ -92,7 +93,7 @@ class ProcessorsForJava {
         staticImports = staticImports ? "\n$staticImports\n" : ''
         imports = imports ? "$staticImports\n$imports\n" : ''
         c.output = "package $ns.dot$subPkg;\n" + c.output.replace( '{{imports}}', imports )
-        if(!c.scope) { c.scope = c.purpose?.test ? 'test' : 'main' }
+        if(!c.scope) { c.scope = c.outputPurpose?.test ? 'test' : 'main' }
         def artifact = (c.module ? "${c.module.artifact}/" : '/')
         def path = c.src ? "${artifact}src/$c.scope/java" : "${artifact}src-gen/$c.scope/java"
         def subPath = c.subPkg ? "/$c.subPkg" : ''
