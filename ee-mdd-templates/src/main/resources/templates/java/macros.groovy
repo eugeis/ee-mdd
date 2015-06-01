@@ -444,7 +444,7 @@ public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.
 
   template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('Entity')}<${item.idProp.type.name}>}<${item.idProp.type.name}> <% } %>{ 
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}>}<${item.idProp.type.name}> <% } %>{ 
   /** A unique URI prefix for RESTful services and multi-language support */
   public static final String URI_PREFIX = "${item.getUri()}";
 ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -474,7 +474,7 @@ public interface $c.className extends $item.n.cap.base {
 */
 public interface $className extends $item.n.cap.base {
 }''')
-  
+
   template('ifcFinders', body: '''<% if(!c.className) { c.className = item.n.cap.finders } %><% def finders = item.finders; def idProp = item.idProp; %>{{imports}}
 <% if(finders.description) { %>/**
 * $finders.description
@@ -487,7 +487,7 @@ public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${
   ${op.description?"   /** $op.description */":''}
   ${op.return} ${op.name}(${op.signature(c)});<% } %>
 }''')
-  
+
   template('ifcCommands', body: '''<% if(!c.className) { c.className = item.n.cap.commands } %><% def commands = item.commands; def idProp = item.idProp; %>{{imports}}
 <% if(commands.description) { %>/**
 * $commands.description

@@ -19,7 +19,7 @@
  */
 
 def nameToNamespace = ['Base' : 'ee.common.core.model',
-  'Entity' : 'ee.common.core.model', 'EntityImpl' : 'ee.common.core.model', 'EntityJpa' : 'ee.common.core.model.jpa',
+  'EntityIfc' : 'ee.common.core.model', 'EntityImpl' : 'ee.common.core.model', 'EntityJpa' : 'ee.common.core.model.jpa',
   'Labeled' : 'ee.common.core.model'] as TreeMap
 
 extModule(name: 'EeCommonCore', artifact: 'ee-common-core') {
