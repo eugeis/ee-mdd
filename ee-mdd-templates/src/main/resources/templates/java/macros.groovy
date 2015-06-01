@@ -663,7 +663,7 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
 }
 ''')
 
-  template('serviceBean', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
+  template('serviceBean', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
