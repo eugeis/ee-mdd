@@ -31,6 +31,7 @@ import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Exist
+import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Find
 import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
@@ -40,7 +41,6 @@ import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
-import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Type
 
 /**
@@ -392,6 +392,7 @@ class EnhancerForJava {
           stateless.value['mappedName'] = "SERVICE_${service.underscored}"
           metasForService << stateless
           def remote = builder.meta(type: 'Remote', value: "${delegate.name}.class")
+          c.name(delegate.name)
           metasForService << remote
           def transaction = builder.meta(type: 'TransactionAttribute', value: "TransactionAttributeType.REQUIRES_NEW")
           metasForService << transaction
