@@ -16,18 +16,18 @@ import ee.mdd.model.component.Channel
  * limitations under the License.
  */
 
- /**
-  *
-  * @author Eugen Eisler
-  * @author Niklas Cappelmann
-  */
- 
+/**
+ *
+ * @author Eugen Eisler
+ * @author Niklas Cappelmann
+ */
+
 templates('cdi') {
-   
+
   templates ('cdiToJms',
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ/ejb' ] ) } ) {
-   
+
     template('cdiToJms', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.cdiToJms %> ${macros.generate('cdiToJms', c)}<% } %>''')
   }
 

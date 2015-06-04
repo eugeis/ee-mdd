@@ -230,7 +230,7 @@ templates ('macros') {
   }<% } %>''')
 
   template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp && !item.virtual) { %>
-  @Override
+  
   public void set${idProp.cap}(<% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb(c)><% } else { %>${idProp.relTypeEjb(c)}<% } %> $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
   }<% } %>''')
@@ -254,7 +254,6 @@ templates ('macros') {
     return version;
   }
 
-  @Override
   public void setVersion(Long version) {
     this.version = version;
   }''')
@@ -1144,7 +1143,8 @@ public class $c.className extends ${c.className}Base {<% if (c.serializable) { %
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-  template('test', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>{{imports}}
+  template('test', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>
+import static org.junit.Assert.*;{{imports}}
 public ${c.virtual ? 'abstract ' : ''}class $c.className {
   protected $item.n.cap.impl item;
   
@@ -1165,7 +1165,8 @@ public ${c.virtual ? 'abstract ' : ''}class $c.className {
      ${c.name('assertSame')}($param.uncap, instance.$prop.getter);<% } %>
   }<% } %>''')
 
-  template('testEnum', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>{{imports}}
+  template('testEnum', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.n.cap.test } %><% def lastLit = '' %>
+import static org.junit.Assert.*;{{imports}}
 public class $c.className {
   
   @${c.name('Test')}

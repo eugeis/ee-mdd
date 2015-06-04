@@ -1,3 +1,11 @@
+import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Container
+import ee.mdd.model.component.Controller
+import ee.mdd.model.component.Entity
+import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Facade
+
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -14,13 +22,6 @@
  * limitations under the License.
  */
 
-import ee.mdd.model.component.BasicType
-import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Container
-import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Entity
-import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Facade
 
 /**
  *
