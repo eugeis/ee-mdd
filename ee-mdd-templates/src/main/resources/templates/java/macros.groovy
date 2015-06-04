@@ -1354,9 +1354,9 @@ ${ret-newLine}''')
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% if (idProp && !item.virtual) { %>
-    b.append("$idProp.name=").append($idProp.name).append(SEPARATOR);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
-    b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
-    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
+    b.append("$idProp.name=").append($idProp.name).append(SEP);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
+    b.append("$prop.name=").append($prop.getter).append(SEP);<% } else { %>
+    b.append("$prop.name=").append($prop.name).append(SEP);<% } %><% } }%>
   }''')
 
   template('hashCodeAndEqualsEntity', body: '''<% if(item.propsForHashCode) { %>
