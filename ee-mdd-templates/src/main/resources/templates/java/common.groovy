@@ -1,10 +1,14 @@
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Facade
+
+
+
 
 /*
  * Copyright 2011-2012 the original author or authors.
@@ -120,12 +124,12 @@ templates ('common') {
 
   }
 
-  //      templates ('constants',
-  //      items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
-  //      context: { c -> c.putAll( [ component: c.item] ) } ) {
-  //
-  //        template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%> ${macros.generate('constants', c)}''')
-  //        template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
-  //        template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.ml %> ${macros.generate('constantsMl', c)}''')
-  //      }
+  templates ('constants',
+  items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item, module: c.item.module, subPkg: 'integ'] ) } ) {
+
+    template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constants', c)}''')
+    //    template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
+    //    template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.ml %> ${macros.generate('constantsMl', c)}''')
+  }
 }

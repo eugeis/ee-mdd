@@ -25,7 +25,7 @@ import ee.mdd.model.Element
  */
 class ProcessorsForJava {
   Map<String, Element> refToElement
-  
+
   Processor javaImportsPathProcessor() {
     Processor ret = new Processor(name: 'javaImportsPath')
 
@@ -83,7 +83,7 @@ class ProcessorsForJava {
       }
 
     }
-    
+
     ret.after = { Context c ->
       if (!c.error && c.className) {
         def ns = (c.module ? c.module.ns : c.item.ns)
@@ -97,7 +97,7 @@ class ProcessorsForJava {
         def artifact = (c.module ? "${c.module.artifact}/" : '/')
         def path = c.src ? "${artifact}src/$c.scope/java" : "${artifact}src-gen/$c.scope/java"
         def subPath = c.subPkg ? "/$c.subPkg" : ''
-        c.path = "$path/$ns.path$subPath/${c.className}.java"
+        if(!c.path) { c.path = "$path/$ns.path$subPath/${c.className}.java" }
         c.overwrite = !c.src
       }
     }

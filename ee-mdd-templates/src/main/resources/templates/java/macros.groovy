@@ -1081,15 +1081,19 @@ public class $className extends PluginActivator {
   }<% } } %>
 }//TODO: Adapt to a future implementation of Backend and Shared modules''')
 
-  template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>
-/** Constants for 'item.name' */
+  template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>{{imports}}
+/** Constants for '${c.item.name}' */
 public class $className {
-
-
-  public static boolean isSameApplication(String application) {
-    boolean ret = StringUtils.formatApplicationName(application).equals(APPLICATION);
-    return ret;
-  }
+  public static final String JMS_CONNECTION_FACTORY = ee.common.model.CommonConstants.JMS_CONNECTION_FACTORY;
+  public static final String JMS_CONNECTION_FACTORY_NOT_XA = ee.common.model.CommonConstants.JMS_CONNECTION_FACTORY_NOT_XA;
+  public static final String JMS_NOTIFICATION_TOPIC = "java:global/jms/cg/${component.key}/NotificationTopic";
+  public static final String JMS_IMPORT_QUEUE = "java:global/jms/cg/${component.key}/ImportQueue";
+<% item.modules.each { depModule -> %><% if(depModule.name != 'shared') { %>
+  public static final String MODULE_${depModule.underscored} = "$depModule.uncap";<% depModule.services.each { service -> %>
+  public static final String SERVICE_${service.underscored} = "${service.name}";<% } %><% depModule.containers.each { container -> %>
+  public static final String JMS_MESSAGE_SELECTOR_${container.underscored} = "$container.uncap";
+  public static final String JMS_MESSAGE_SELECTOR_${container.underscored}_DATA = "${container.uncap}_data";<% } %>
+<% } } %>
 }''')
 
   template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
