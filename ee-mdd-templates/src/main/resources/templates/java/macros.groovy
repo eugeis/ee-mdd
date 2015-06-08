@@ -1084,8 +1084,8 @@ public class $className extends PluginActivator {
   template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>{{imports}}
 /** Constants for '${c.item.name}' */
 public class $className {
-  public static final String JMS_CONNECTION_FACTORY = ee.common.model.CommonConstants.JMS_CONNECTION_FACTORY;
-  public static final String JMS_CONNECTION_FACTORY_NOT_XA = ee.common.model.CommonConstants.JMS_CONNECTION_FACTORY_NOT_XA;
+  public static final String JMS_CONNECTION_FACTORY = com.siemens.ra.cg.pl.common.base.integ.CommonConstants.JMS_CONNECTION_FACTORY;
+  public static final String JMS_CONNECTION_FACTORY_NOT_XA = com.siemens.ra.cg.pl.common.base.integ.CommonConstants.JMS_CONNECTION_FACTORY_NOT_XA;
   public static final String JMS_NOTIFICATION_TOPIC = "java:global/jms/cg/${component.key}/NotificationTopic";
   public static final String JMS_IMPORT_QUEUE = "java:global/jms/cg/${component.key}/ImportQueue";
 <% item.modules.each { depModule -> %><% if(depModule.name != 'shared') { %>
