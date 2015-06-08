@@ -15,7 +15,7 @@ class LoadModel extends MddTask {
 
     def modelFile = new File(mdd.modelSource)
     if(modelFile.exists()) {
-      mdd.model = mdd.generator.loadModel(modelFile.toURI().toURL())
+      mdd.model = mdd.generator.loadModel(modelFile.toURI().toURL(), mdd.facet)
     } else {
       throw new IllegalStateException( 'Model file does not exists $modelFile.' )
     }

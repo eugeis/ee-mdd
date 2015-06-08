@@ -20,6 +20,7 @@ import ee.mdd.generator.Context
 import ee.mdd.generator.FacetTemplateLoader
 import ee.mdd.generator.Generator
 import ee.mdd.generator.ProcessorsFactory
+import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
@@ -36,8 +37,16 @@ class GeneratorForJava {
 
   ModelBuilder builder = new ModelBuilder()
 
-  Model loadModel(URL modelSource) {
-    Model model =  builder.build(modelSource)
+  Model loadModel(URL modelSource, Closure facetClosure = null) {
+    Model model
+    if(facetClosure) {
+      Facet facet =  builder.build(facetClosure)
+      model =  builder.build(modelSource)
+      model.add(facet)
+    } else {
+      model =  builder.build(modelSource)
+    }
+    
     builder.typeResolver.printNotResolved()
     model
   }

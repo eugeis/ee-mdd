@@ -242,6 +242,11 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   Object build(URL resource) {
     build(resource.text)
   }
+  
+  Object build(Closure closure) {
+    closure.delegate = this;
+    closure.call();
+  }
 
   Object build(String source) {
     build(source, new GroovyClassLoader())
