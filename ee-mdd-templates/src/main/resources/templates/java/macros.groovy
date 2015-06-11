@@ -1103,12 +1103,15 @@ public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
 
-  template('constantsMl', body: '''<% if (!c.className) { c.className = item.n.cap.Ml } %>
-/** Multi language constants for '$module.name' */
+  template('constantsMl', body: '''<% if (!c.className) { c.className = item.n.cap.MlBase } %>
+/** Multi language constants for '${c.item.name}' */
 public class $className {
-  // base name for '$module.name' resource bundle
-  public static final String ML_BASE = 
-''')
+}''')
+
+  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = item.n.cap.Ml } %>
+/** Multi language constants for '${c.item.name}' */
+public class $className extends ${className}Base {
+}''')
 
 
   template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
