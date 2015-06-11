@@ -25,4 +25,14 @@ import ee.mdd.model.Element
  */
 class Literal extends Element {
   String body, definition
+
+  protected boolean init() {
+    super.init()
+    initDef()
+    true
+  }
+
+  void initDef() {
+    definition = body ? "$underscored($body)" : underscored
+  }
 }

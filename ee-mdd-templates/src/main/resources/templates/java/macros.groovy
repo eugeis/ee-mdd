@@ -74,8 +74,7 @@ templates ('macros') {
     this.$it.prop.uncap = $it.prop.uncap;<% } } } %>
   }<% } %>''')
 
-  template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable) { %>
-  <% if (prop.description) { %>
+  template('propGettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable) { %><% if (prop.description) { %>
   /** $prop.description */<% } %>
   <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %> ''')
 
@@ -861,9 +860,9 @@ public class $className extends $item.n.cap.baseImpl {
 ''')
 
   template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-public enum $c.className implements ${c.name('Labeled')} {<% def last = item.literals.last(); item.literals.each { lit -> %><% if(!lit.body) { %>
-  $lit.underscored${lit == last ? ';' : ','}<% } else { %>
-  $lit.underscored($lit.body)${lit == last ? ';' : ','}<% } } %>
+${item.description?"/*** $item.description */":''}
+public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')} {<% def last = item.literals.last(); item.literals.each { lit -> %>
+  ${lit.definition}${lit == last ? ';' : ','}<% } %>
   ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
   
   public boolean $lit.is {
@@ -872,9 +871,10 @@ public enum $c.className implements ${c.name('Labeled')} {<% def last = item.lit
   <% if (op.override) { %>@Override<% } %><% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   ${macros.generate('methods', c)}<% } } %>
+  ${macros.generate('buildMlKey', c)}
 
   @Override
-  public String getNaturalKey() {
+  public String getLabel() {
     return name();
   }
 
@@ -1143,7 +1143,7 @@ public class $className {
     ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
   }''')
 
-  template('testExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('testExtends', purpose: UNIT_TEST, body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
 public class $c.className extends ${c.className}Base {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
@@ -1430,8 +1430,9 @@ ${ret-newLine}''')
   }''')
 
   template('buildMlKey', body: '''
-  public MLKey buildMlKey() {
-    return new MLKeyImpl(${item.component.n.cap.ml}.ML_BASE, name());
+  @Override
+  public ${c.name('MLKey')} buildMlKey() {
+    return new ${c.name('MLKeyImpl')}(${component.n.cap.ml}.ML_BASE, name());
   }''')
 
   template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')

@@ -32,7 +32,7 @@ def nameToNamespace = ['Backend' : 'com.siemens.ra.cg.pl.common.base.annotations
   'BaseTestCase' : 'com.siemens.ra.cg.pl.common.base.testcase', 'JmsMessagingAdapterTestCase' : 'com.siemens.ra.cg.pl.common.ejb.messaging.jse', 'JmsSendExecutor' : 'com.siemens.ra.cg.pl.common.ejb.messaging',
   'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model',
   'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util', 'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion',
-  'MLKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MLKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml' , 'MLKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
+  'MLKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MlKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml' , 'MLKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
   'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception', 'ComparisonUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'SERVER' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'CLIENT' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*'] as TreeMap
