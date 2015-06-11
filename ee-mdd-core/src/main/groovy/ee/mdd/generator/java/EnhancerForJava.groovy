@@ -394,15 +394,13 @@ class EnhancerForJava {
           def remote = builder.meta(type: 'Remote', value: "${delegate.name}.class")
           c.name(delegate.name)
           metasForService << remote
-          def transaction = builder.meta(type: 'TransactionAttribute', value: "TransactionAttributeType.REQUIRES_NEW")
-          metasForService << transaction
           def supports = builder.meta(type: 'SupportsEnvironments', multi: true, value: [])
           def environment1 = builder.meta(type: 'Environment', value: [:])
           def environment2 = builder.meta(type: 'Environment', value: [:])
-          environment1.value['runtimes'] = "{ SERVER }"
+          environment1.value['runtimes'] = "{ ${c.name('SERVER')} }"
           supports.value.add(environment1)
-          environment2.value['executions'] = "{ CLIENT }"
-          environment2.value['runtimes'] = "{ LOCAL, MEMORY }"
+          environment2.value['executions'] = "{ ${c.name('LOCAL')}, ${c.name('MEMORY')} }"
+          environment2.value['runtimes'] = "{ ${c.name('CLIENT')} }"
           supports.value.add(environment2)
           metasForService << supports
         }

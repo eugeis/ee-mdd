@@ -662,7 +662,8 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
 }
 ''')
 
-  template('serviceBean', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>{{imports}}
+  template('serviceBean', body: '''<% if(!c.className) { c.className = item.n.cap.serviceBean } %>
+import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.constantsBase}.*;{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
