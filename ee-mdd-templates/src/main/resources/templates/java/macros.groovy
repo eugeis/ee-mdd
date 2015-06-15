@@ -576,7 +576,7 @@ public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends
 
 }''')
 
-  template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
+  template('implEntityExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
 public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
@@ -1153,12 +1153,12 @@ public class $className extends ${className}Base {
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
     ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
     ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
-    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } %><% } else { %>
-    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
-    item.$prop.call;<% } %>
-    <% item.props.each { prop -> %><% if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
+    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } %><% } else if (!prop.type.typeEnum) { %>
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop ->  if (!prop.type.typeEnum) {%>
+    item.$prop.call;<% } }%>
+    <% item.props.each { prop ->  if (!prop.type.typeEnum) { %><% if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
     ${c.name('assertEquals')}(${prop.uncap}${relationIdProp.cap}, item.get${prop.cap}${relationIdProp.cap}());<%} } else { %>
-    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } } %>
+    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } } } %>
   }''')
 
   template('testExtends', purpose: UNIT_TEST, body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -1168,7 +1168,7 @@ public class $c.className extends ${c.className}Base {<% if (c.serializable) { %
 
   template('test', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>
 import static org.junit.Assert.*;{{imports}}
-public ${c.virtual ? 'abstract ' : ''}class $c.className {
+public abstract class $c.className {
   protected $item.n.cap.impl item;
   
   @${c.name('Before')}
