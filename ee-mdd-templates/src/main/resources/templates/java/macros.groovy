@@ -859,7 +859,8 @@ public class $className extends $item.n.cap.baseImpl {
 
 ''')
 
-  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.name}Ml;{{imports}}
 ${item.description?"/*** $item.description */":''}
 public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')} {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
@@ -1103,12 +1104,23 @@ public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
 
-  template('constantsMl', body: '''<% if (!c.className) { c.className = item.n.cap.MlBase } %>
+  template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %>
 /** Multi language constants for '${c.item.name}' */
 public class $className {
+  //base name for '$item.name' resource bundle
+  public static final String ML_BASE = "${component.artifact}.ml_${component.artifact}";<% item.modules.each { depModule -> if(depModule.name != 'shared') { depModule.entities.each { def entity -> def finders = entity.finders; def commands = entity.commands;  %>
+  public static final String $entity.underscored = "${entity.underscored.toLowerCase()}";<% if ( (commands || finders) && !entity.virtual ) { commands.updates.each { def op -> %>
+  public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } %><% depModule.containers.each { def container -> %>
+  public static final String $container.underscored = "${container.underscored.toLowerCase()}";
+  public static final String ${container.underscored}_IMPORTED = "${container.underscored.toLowerCase()}_imported";
+  public static final String ${container.underscored}_IMPORT_FAILED = "${container.underscored.toLowerCase()}_import_failed";
+  public static final String ${container.underscored}_DELETED = "${container.underscored.toLowerCase()}_deleted";<% } } %>
+  <% depModule.configs.each { def config -> %>
+  public static final String $config.underscored = "${config.underscored.toLowerCase()};
+  public static final String ${config.underscored}_UPDATED = "${config.underscored.toLowerCase()}_updated";<% } } %>
 }''')
 
-  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = item.n.cap.Ml } %>
+  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = "${item.name}Ml" } %>
 /** Multi language constants for '${c.item.name}' */
 public class $className extends ${className}Base {
 }''')
@@ -1435,7 +1447,7 @@ ${ret-newLine}''')
   template('buildMlKey', body: '''
   @Override
   public ${c.name('MLKey')} buildMlKey() {
-    return new ${c.name('MLKeyImpl')}(${component.n.cap.ml}.ML_BASE, name());
+    return new ${c.name('MLKeyImpl')}(${component.name}Ml.ML_BASE, name());
   }''')
 
   template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
