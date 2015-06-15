@@ -1151,11 +1151,14 @@ public class $className extends ${className}Base {
   template('testProperties', body: '''
   @${c.name('Test')}
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
-    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
+    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
+    ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
+    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } %><% } else { %>
     ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
     item.$prop.call;<% } %>
-    <% item.props.each { prop -> %>
-    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
+    <% item.props.each { prop -> %><% if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
+    ${c.name('assertEquals')}(${prop.uncap}${relationIdProp.cap}, item.get${prop.cap}${relationIdProp.cap}());<%} } else { %>
+    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } } %>
   }''')
 
   template('testExtends', purpose: UNIT_TEST, body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}

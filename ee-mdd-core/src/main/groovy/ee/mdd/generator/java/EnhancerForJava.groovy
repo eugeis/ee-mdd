@@ -726,7 +726,12 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'call'
         if(!properties.containsKey(key)) {
-          properties[key] = "set$delegate.cap($delegate.uncap)"
+          if (delegate.typeEntity && (delegate.manyToOne || delegate.oneToOne)) {
+            def relationIdProp = delegate.type.idProp
+            properties[key] = "set${delegate.cap}${relationIdProp.cap}(${delegate.uncap}${relationIdProp.cap})"
+          } else {
+            properties[key] = "set$delegate.cap($delegate.uncap)"
+          }
         }
         properties[key]
       }
