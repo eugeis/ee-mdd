@@ -442,7 +442,9 @@ public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.
 
   template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %> {
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}>, ${c.name('IdEntity')}<${item.idProp.type.name}><% } %>{ 
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final String URI_PREFIX = "${item.getUri()}";
 ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
@@ -857,7 +859,8 @@ public class $className extends $item.n.cap.baseImpl {
 
 ''')
 
-  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.name}Ml;{{imports}}
 ${item.description?"/*** $item.description */":''}
 public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')} {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
@@ -880,7 +883,7 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
     if (ordinal < values().length) {
       return values()[ordinal];
     } else {
-      throw new ${c.name('NotFoundException')}("$className(ordinal)", ordinal);
+      throw new ${c.name('ControlguideNotFoundException')}("$className(ordinal)", ordinal);
     }
   }<% if(item.defaultLiteral) { %>
 
@@ -979,11 +982,11 @@ public class $className extends ${c.name('JmsSender')} {
 
   template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
-public abstract class $className extends ${c.name('MultiTypeEventListener')} { 
+public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} { 
 
   @${c.name('Inject')}
   @${component.cap}
-  protected Event<${c.name('ConnectionEvent')}> connectionEventPublisher;<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
+  protected Event<${c.name('ConnectionMetaEvent')}> connectionMetaEventPublisher;<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
 
   @Inject
   @${component.cap}
@@ -1001,7 +1004,7 @@ public abstract class $className extends ${c.name('MultiTypeEventListener')} {
 
   @${c.name('PostConstruct')}
   protected void postConstruct() {
-    registerEventPublisher(ConnectionEvent.class, connectionEventPublisher);<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+    registerEventPublisher(ConnectionMetaEvent.class, connectionMetaEventPublisher);<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
     registerEventPublisher(${entity.n.cap.event}.class, ${entity.uncap}Publisher);<% } } %><% module.configs.each { config -> if (config.event) { %>
     registerEventPublisher(${config.n.cap.event}.class, ${config.uncap}Publisher);<% } } %><% module.containers.each { container -> %>
     registerEventPublisher(${container.n.cap.event}.class, ${container.uncap}Publisher);<% } %>
@@ -1015,7 +1018,7 @@ public class $className extends ${className}Base {
 
   template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
-public abstract class $className extends ${c.name('MultiTypeEventListener')} {<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} {<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
 
   @${c.name('Inject')}
   @${component.cap}
@@ -1101,7 +1104,6 @@ public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
 
-
   template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %>
 /** Multi language constants for '${c.item.name}' */
 public class $className {
@@ -1149,11 +1151,14 @@ public class $className extends ${className}Base {
   template('testProperties', body: '''
   @${c.name('Test')}
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
-    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else { %> 
-    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop -> %>
-    item.$prop.call;<% } %>
-    <% item.props.each { prop -> %>
-    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } %>
+    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
+    ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
+    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } %><% } else if (!prop.type.typeEnum) { %>
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop ->  if (!prop.type.typeEnum) {%>
+    item.$prop.call;<% } }%>
+    <% item.props.each { prop ->  if (!prop.type.typeEnum) { %><% if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
+    ${c.name('assertEquals')}(${prop.uncap}${relationIdProp.cap}, item.get${prop.cap}${relationIdProp.cap}());<%} } else { %>
+    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } } } %>
   }''')
 
   template('testExtends', purpose: UNIT_TEST, body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
@@ -1163,7 +1168,7 @@ public class $c.className extends ${c.className}Base {<% if (c.serializable) { %
 
   template('test', purpose: UNIT_TEST, body: '''<% if (!c.className) { c.className = item.cap } %><% if (!c.itemInit) { c.itemInit="new $item.n.cap.impl()" } %>
 import static org.junit.Assert.*;{{imports}}
-public ${c.virtual ? 'abstract ' : ''}class $c.className {
+public abstract class $c.className {
   protected $item.n.cap.impl item;
   
   @${c.name('Before')}
@@ -1444,8 +1449,8 @@ ${ret-newLine}''')
 
   template('buildMlKey', body: '''
   @Override
-  public ${c.name('MlKey')} buildMlKey() {
-    return new ${c.name('MlKeyImpl')}(${c.name(component.n.cap.ml)}.ML_BASE, name());
+  public ${c.name('MLKey')} buildMlKey() {
+    return new ${c.name('MLKeyImpl')}(${component.name}Ml.ML_BASE, name());
   }''')
 
   template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
