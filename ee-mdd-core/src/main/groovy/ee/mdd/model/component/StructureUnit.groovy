@@ -16,8 +16,11 @@
 package ee.mdd.model.component
 
 import ee.mdd.ModelBuilder
+import ee.mdd.builder.AbstractFactoryBuilder;
 import ee.mdd.builder.BuilderAware
+import ee.mdd.builder.MddFactory
 import ee.mdd.model.Composite
+import groovy.lang.Closure;
 
 
 
@@ -26,13 +29,15 @@ import ee.mdd.model.Composite
  * @author Niklas Cappelmann
  */
 class StructureUnit extends Composite implements BuilderAware {
-  String artifact
+  AbstractFactoryBuilder builder
+  MddFactory factory
+
+    String artifact
   String key
   String version
   Namespace namespace
   Names n
   Map<String, Facet> facets = [:]
-  ModelBuilder builder
 
   protected boolean init() {
     super.init()
@@ -59,7 +64,7 @@ class StructureUnit extends Composite implements BuilderAware {
   }
 
   Namespace getNs() {
-    namespace ? namespace : parent.ns
+    namespace ? namespace : parent?.ns
   }
 
   Names getN() {
@@ -87,5 +92,9 @@ class StructureUnit extends Composite implements BuilderAware {
   boolean isFacetEnabled(Facet facet) {
     boolean ret = facets[facet.rootFacet.name] != null
     ret
+  }
+  
+  def extend(Closure closure) {
+    builder.createChildNodes(this, factory, closure)
   }
 }

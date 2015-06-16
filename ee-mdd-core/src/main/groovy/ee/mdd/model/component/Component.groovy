@@ -15,7 +15,6 @@
 */
 package ee.mdd.model.component
 
-import groovy.transform.ToString
 
 
 /**
@@ -24,9 +23,10 @@ import groovy.transform.ToString
  */
 class Component extends StructureUnit {
 	List<Module> modules = []
-
+  Module shared
+  
 	protected boolean init() {
-		if(!namespace) { namespace = new Namespace(name: key); namespace.checkAndInit(this) }
+		if(!namespace) { namespace = new Namespace(name: key ?: name); namespace.checkAndInit(this) }
 		super.init()
 	}
 
@@ -35,4 +35,11 @@ class Component extends StructureUnit {
 	def add(Module child) {
 		modules << child; super.add(child)
 	}
+  
+  Module getModule() {
+    if(!shared && modules) {
+      shared = modules.get(0)
+    }
+    shared
+  }
 }

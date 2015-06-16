@@ -15,7 +15,10 @@
  */
 package ee.mdd.builder
 
+import java.util.Map;
+
 import ee.mdd.model.Base
+import groovy.util.FactoryBuilderSupport;
 
 /**
  *
@@ -32,24 +35,28 @@ class MddFactory extends AbstractFactory {
     if (checkValue(name, value)) {
       return value
     }
-    def ret = beanClass.newInstance()
+    def ret = createInstance(builder, name, value, attributes)
+    prepareInstance(builder, name, value, attributes, ret)
+    ret
+  }
 
-    prepareInstance(builder, value, ret)
+  protected Object createInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) {
+    beanClass.newInstance()
   }
 
   Closure childClosure(FactoryBuilderSupport builder, node) {
   }
   
-  protected Object prepareInstance(FactoryBuilderSupport builder, value, fillInstance) {
+  protected void prepareInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes, fillInstance) {
     if(BuilderAware.isInstance(fillInstance)) {
       fillInstance.builder = builder
+      fillInstance.factory = this
     }
 
     if(value != null) {
       //attributes[valueProperty] = value
       fillInstance[valueProperty] = value
     }
-    fillInstance
   }
 
 

@@ -15,7 +15,10 @@
  */
 package ee.mdd.builder
 
+import java.util.Map;
+
 import ee.mdd.model.component.Facet
+import groovy.util.FactoryBuilderSupport;
 import groovy.util.logging.Slf4j;
 
 /**
@@ -25,19 +28,17 @@ import groovy.util.logging.Slf4j;
 class FacetFactory extends FacetAwareFactory {
   String facetName
 
-  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
+  @Override
+  protected Object createInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) {
     Object ret
-    def parent = builder.parent
-
-    String path = Facet.isInstance(parent) ? "$parent.path$parent.name/" : '/'
     if(beanClass) {
-      ret = super.newInstance(builder, name, value, attributes)
+      ret = super.newInstance(attributes)
     } else if(facetName) {
-      ret = prepareInstance(builder, value, new Facet(name: facetName))
+      ret = new Facet(name: facetName)
     } else {
-      ret = prepareInstance(builder, value, new Facet())
+      ret = new Facet()
     }
-    ret.path = path
+    ret.path = Facet.isInstance(parent) ? "$parent.path$parent.name/" : '/'
     ret
   }
 

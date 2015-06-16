@@ -15,9 +15,12 @@
  */
 package ee.mdd.builder
 
+import java.util.Map
+
 import ee.mdd.model.component.DataType
 import ee.mdd.model.component.DataTypeProp
 import ee.mdd.model.component.Prop
+import groovy.util.FactoryBuilderSupport
 
 
 /**
@@ -31,21 +34,13 @@ class PropFactory extends CompositeFactory {
     this.beanClass = Prop
   }
 
-  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
-    if (checkValue(name, value)) {
-      return value
-    }
-    def parent = builder.parent
+  protected Object createInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) {
     def ret
+    def parent = builder.parent
     if(DataType.isInstance(parent)) {
       ret = new DataTypeProp()
     } else {
       ret = new Prop()
-    }
-
-    if(value != null) {
-      //attributes[valueProperty] = value
-      ret[valueProperty] = value
     }
     ret
   }

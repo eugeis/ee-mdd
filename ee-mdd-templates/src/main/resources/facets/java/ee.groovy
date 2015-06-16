@@ -18,12 +18,38 @@
  * @author Eugen Eisler
  */
 
-def nameToNamespace = ['Base' : 'ee.common.core.model',
-  'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model', 'EntityJpa' : 'ee.common.model.jpa',
-  'Labeled' : 'ee.common.model'] as TreeMap
+extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
+  ['Base' : 'ee.common.core.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model',
+  'Factory' : 'ee.common.model',
+  'Labeled' : 'ee.common.model', 'Event' : 'ee.common.model', 'EventImpl' : 'ee.common.model',
+  'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
+  'Finder' : 'ee.common.core', 'Manager' : 'ee.common.core', 'EventListener' : 'ee.common.core',
+  'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
+  'MlKey' : 'ee.common.ml', 'MlKeyBuilder' : 'ee.common.ml' , 'MlKeyImpl' : 'ee.common.ml',
+  'Backend' : 'ee.common.annotation', 'Service' : 'ee.common.annotation', 'Environment' : 'ee.common.annotation', 
+  'External' : 'ee.common.annotation', 'SupportsEnvironments' : 'ee.common.annotation', 'Traceable' : 'ee.common.annotation',
+  'SERVER' : 'static ee.common.RuntimeType.*', 
+  'CLIENT' : 'static ee.common.integ.RuntimeType.*', 'LOCAL' : 'static ee.common.integ.ExecutionType.*', 'MEMORY' : 'static ee.common.integ.ExecutionType.*', 
+  'StringUtils' : 'ee.common.util', 'CollectionUtils' : 'ee.common.util', 'ComparisonUtils' : 'ee.common.util',
+  'AssertionUtils' : 'ee.common.util', 'LogStringProvider' : 'ee.common.util', 'LogStringBuilder' : 'ee.common.util',
+  'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
+  'NotFoundException' : 'ee.common.exception'].each { n, ns ->
+    extType(name: n, namespace: ns)
+  }
+}
 
-extModule(name: 'EeCommonCore', artifact: 'ee-common-core') {
-  nameToNamespace.each { n, ns ->
+extModule(name: 'EeCommonBaseJpa', artifact: 'ee-common-base_jpa') {
+  ['EntityJpa' : 'ee.common.jpa'].each { n, ns ->
+    extType(name: n, namespace: ns)
+  }
+}
+
+extModule(name: 'EeCommonJms', artifact: 'ee-common-jms') {
+  ['JmsSendExecutor' : 'ee.common.jms', 'JmsSender' : 'ee.common.jms',
+    'JmsDestinationConfig' : 'ee.common.jms',
+    'JmsMessagingAdapterTestCase' : 'ee.common.jms',
+    'JmsToEventListener' : 'ee.common.jms.jse',
+    'SingleTypeEventListenerBridgeByJms' : 'ee.common.jms'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }

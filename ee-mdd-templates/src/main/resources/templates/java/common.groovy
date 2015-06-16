@@ -1,15 +1,3 @@
-import ee.mdd.model.component.BasicType
-import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Component
-import ee.mdd.model.component.Container
-import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Entity
-import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Facade
-
-
-
-
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -32,6 +20,15 @@ import ee.mdd.model.component.Facade
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
+
+import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Component
+import ee.mdd.model.component.Container
+import ee.mdd.model.component.Controller
+import ee.mdd.model.component.Entity
+import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Facade
 
 templates ('common') {
 
@@ -56,7 +53,7 @@ templates ('common') {
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
 
-    template('implEntity', appendName: true, body: '''<% c.virtual = c.item.virtual; c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
+    template('implEntity', appendName: true, body: '''<% c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
     template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
   }
 
@@ -128,9 +125,17 @@ templates ('common') {
   items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item, module: c.item.module, subPkg: 'integ'] ) } ) {
     // Custom paths for Component templates
-    template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constants', c)}''')
+    template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%>${macros.generate('constants', c)}''')
     //    template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
-    template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.mlBase %><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsMl', c)}''')
-    template('MlExtends', appendName: true, body: '''<% c.className = c.item.n.cap.ml %><% c.path = "ee-mdd_example-shared/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsMlExtends', c)}''')
+    
+    template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.mlBase %>
+/** Multi language constants for '${c.item.name}' */
+public class $className {
+  public static final String ML_BASE = "";
+}''')
+    template('MlExtends', appendName: true, body: '''<% c.src = true %><% c.className = c.item.n.cap.ml %>
+/** Multi language constants for '${c.item.name}' */
+public final class $className extends $item.n.cap.MlBase {
+}''')
   }
 }

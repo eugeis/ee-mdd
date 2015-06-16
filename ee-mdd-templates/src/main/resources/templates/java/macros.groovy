@@ -442,9 +442,7 @@ public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.
 
   template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}>, ${c.name('IdEntity')}<${item.idProp.type.name}><% } %>{ 
-  /** A unique URI prefix for RESTful services and multi-language support */
-  public static final String URI_PREFIX = "${item.getUri()}";
+public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %> {
 ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
@@ -576,7 +574,7 @@ public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends
 
 }''')
 
-  template('implEntityExtends', body: '''<% c.src = true; c.virtual = false; %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
+  template('implEntityExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.impl } %>{{imports}}
 public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
@@ -882,7 +880,7 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
     if (ordinal < values().length) {
       return values()[ordinal];
     } else {
-      throw new ${c.name('ControlguideNotFoundException')}("$className(ordinal)", ordinal);
+      throw new ${c.name('NotFoundException')}("$className(ordinal)", ordinal);
     }
   }<% if(item.defaultLiteral) { %>
 
@@ -981,11 +979,11 @@ public class $className extends ${c.name('JmsSender')} {
 
   template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
-public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} { 
+public abstract class $className extends ${c.name('MultiTypeEventListener')} { 
 
   @${c.name('Inject')}
   @${component.cap}
-  protected Event<${c.name('ConnectionMetaEvent')}> connectionMetaEventPublisher;<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
+  protected Event<${c.name('ConnectionEvent')}> connectionEventPublisher;<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
 
   @Inject
   @${component.cap}
@@ -1003,7 +1001,7 @@ public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} 
 
   @${c.name('PostConstruct')}
   protected void postConstruct() {
-    registerEventPublisher(ConnectionMetaEvent.class, connectionMetaEventPublisher);<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+    registerEventPublisher(ConnectionEvent.class, connectionEventPublisher);<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
     registerEventPublisher(${entity.n.cap.event}.class, ${entity.uncap}Publisher);<% } } %><% module.configs.each { config -> if (config.event) { %>
     registerEventPublisher(${config.n.cap.event}.class, ${config.uncap}Publisher);<% } } %><% module.containers.each { container -> %>
     registerEventPublisher(${container.n.cap.event}.class, ${container.uncap}Publisher);<% } %>
@@ -1017,7 +1015,7 @@ public class $className extends ${className}Base {
 
   template('eventToCdiExternal', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiExternal } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
-public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} {<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
+public abstract class $className extends ${c.name('MultiTypeEventListener')} {<% module.entities.each { entity-> if (entity.event && !entity.virtual) { %>
 
   @${c.name('Inject')}
   @${component.cap}
@@ -1103,12 +1101,24 @@ public class $className extends ${item.n.cap.constantsBase} {
 }
 ''')
 
-  template('constantsMl', body: '''<% if (!c.className) { c.className = item.n.cap.MlBase } %>
+
+  template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %>
 /** Multi language constants for '${c.item.name}' */
 public class $className {
+  //base name for '$item.name' resource bundle
+  public static final String ML_BASE = "${component.artifact}.ml_${component.artifact}";<% item.modules.each { depModule -> if(depModule.name != 'shared') { depModule.entities.each { def entity -> def finders = entity.finders; def commands = entity.commands;  %>
+  public static final String $entity.underscored = "${entity.underscored.toLowerCase()}";<% if ( (commands || finders) && !entity.virtual ) { commands.updates.each { def op -> %>
+  public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } %><% depModule.containers.each { def container -> %>
+  public static final String $container.underscored = "${container.underscored.toLowerCase()}";
+  public static final String ${container.underscored}_IMPORTED = "${container.underscored.toLowerCase()}_imported";
+  public static final String ${container.underscored}_IMPORT_FAILED = "${container.underscored.toLowerCase()}_import_failed";
+  public static final String ${container.underscored}_DELETED = "${container.underscored.toLowerCase()}_deleted";<% } } %>
+  <% depModule.configs.each { def config -> %>
+  public static final String $config.underscored = "${config.underscored.toLowerCase()};
+  public static final String ${config.underscored}_UPDATED = "${config.underscored.toLowerCase()}_updated";<% } } %>
 }''')
 
-  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = item.n.cap.Ml } %>
+  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = "${item.name}Ml" } %>
 /** Multi language constants for '${c.item.name}' */
 public class $className extends ${className}Base {
 }''')
@@ -1434,8 +1444,8 @@ ${ret-newLine}''')
 
   template('buildMlKey', body: '''
   @Override
-  public ${c.name('MLKey')} buildMlKey() {
-    return new ${c.name('MLKeyImpl')}(${component.n.cap.ml}.ML_BASE, name());
+  public ${c.name('MlKey')} buildMlKey() {
+    return new ${c.name('MlKeyImpl')}(${c.name(component.n.cap.ml)}.ML_BASE, name());
   }''')
 
   template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')

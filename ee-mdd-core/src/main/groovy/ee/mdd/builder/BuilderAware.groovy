@@ -8,5 +8,6 @@ import ee.mdd.ModelBuilder
 
 
 interface BuilderAware {
-  void setBuilder(ModelBuilder builder)
+  void setBuilder(AbstractFactoryBuilder builder)
+  void setFactory(MddFactory factory)
 }

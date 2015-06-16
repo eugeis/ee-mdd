@@ -61,13 +61,13 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
           public Object newInstance(FactoryBuilderSupport builder, Object name, Object value,
               Map properties) throws InstantiationException, IllegalAccessException {
             if (FactoryBuilderSupport.checkValueIsTypeNotString(value, name, beanClass)) {
-              return value;
+              return value
             } else {
-              return beanClass.newInstance();
+              return beanClass.newInstance()
             }
           }
-        });
-    getRegistrationGroup(groupName).add(theName);
+        })
+    getRegistrationGroup(groupName).add(theName)
   }
 
   protected Factory resolveFactory(Object name, Map attributes, Object value) {
@@ -105,21 +105,21 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   }
 
   protected Object dispatchNodeCall(Object name, Object args) {
-    Object node;
-    Closure closure = null;
-    List list = InvokerHelper.asList(args);
+    Object node
+    Closure closure = null
+    List list = InvokerHelper.asList(args)
 
-    final boolean needToPopContext;
+    final boolean needToPopContext
     if (getProxyBuilder().getContexts().isEmpty()) {
       // should be called on first build method only
-      getProxyBuilder().newContext();
-      needToPopContext = true;
+      getProxyBuilder().newContext()
+      needToPopContext = true
     } else {
-      needToPopContext = false;
+      needToPopContext = false
     }
 
     try {
-      Map namedArgs = Collections.EMPTY_MAP;
+      Map namedArgs = Collections.EMPTY_MAP
 
       // the arguments come in like [named_args?, args..., closure?]
       // so peel off a hashmap from the front, and a closure from the
@@ -131,34 +131,34 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
 
       if ((list.size() > 0)
       && (list.get(0) instanceof LinkedHashMap)) {
-        namedArgs = (Map) list.get(0);
-        list = list.subList(1, list.size());
+        namedArgs = (Map) list.get(0)
+        list = list.subList(1, list.size())
       }
       if ((list.size() > 0)
       && (list.get(list.size() - 1) instanceof Closure)) {
-        closure = (Closure) list.get(list.size() - 1);
-        list = list.subList(0, list.size() - 1);
+        closure = (Closure) list.get(list.size() - 1)
+        list = list.subList(0, list.size() - 1)
       }
-      Object arg;
+      Object arg
       if (list.size() == 0) {
-        arg = null;
+        arg = null
       } else if (list.size() == 1) {
-        arg = list.get(0);
+        arg = list.get(0)
       } else {
-        arg = list;
+        arg = list
       }
-      node = getProxyBuilder().createNode(name, namedArgs, arg);
+      node = getProxyBuilder().createNode(name, namedArgs, arg)
 
-      Object current = getProxyBuilder().getCurrent();
+      Object current = getProxyBuilder().getCurrent()
       if (current != null) {
-        getProxyBuilder().setParent(current, node);
+        getProxyBuilder().setParent(current, node)
       }
 
-      Factory parentFactory = getProxyBuilder().getCurrentFactory();
+      Factory parentFactory = getProxyBuilder().getCurrentFactory()
       Closure childClosure = parentFactory.childClosure(getProxyBuilder().getChildBuilder(), node)
       if (closure != null || childClosure != null) {
         if (parentFactory.isLeaf()) {
-          throw new RuntimeException("'" + name + "' doesn't support nesting.");
+          throw new RuntimeException("'" + name + "' doesn't support nesting.")
         }
 
         if(closure) {
@@ -170,54 +170,61 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
         }
       }
 
-      getProxyBuilder().nodeCompleted(current, node);
-      node = getProxyBuilder().postNodeCompletion(current, node);
+      getProxyBuilder().nodeCompleted(current, node)
+      node = getProxyBuilder().postNodeCompletion(current, node)
     } finally {
       if (needToPopContext) {
         // pop the first context
-        getProxyBuilder().popContext();
+        getProxyBuilder().popContext()
       }
     }
-    return node;
+    return node
   }
 
-  public createChildNodes(node, String closureAsText) {
+  public createChildNodes(node, Factory nodeFactory, String closureAsText) {
     Closure closure = evaluate(closureAsText)
-    //closure.@owner = node
     createChildNodes(node, closure)
   }
 
-  public createChildNodes(node, Closure closure) {
-    Object current = getProxyBuilder().getCurrent()
-    Factory parentFactory = getProxyBuilder().getCurrentFactory();
-
-    createChildNodes(node, closure, current, parentFactory)
+  public createChildNodes(node, Factory nodeFactory, Closure closure) {
+    getProxyBuilder().newContext()
+    try {
+      getProxyBuilder().getContext().put(OWNER, closure.getOwner())
+      getProxyBuilder().getContext().put(CURRENT_NODE, node)
+      getProxyBuilder().getContext().put(PARENT_FACTORY, nodeFactory) 
+      getProxyBuilder().getContext().put(PARENT_BUILDER, this)
+      // lets register the builder as the delegate
+      getProxyBuilder().setClosureDelegate(closure, node)
+      closure.call()
+    } finally {
+      getProxyBuilder().popContext()
+    }
   }
 
-  protected createChildNodes(node, Closure closure, current, Factory parentFactory) {
-    boolean processContent = true;
+  protected createChildNodes(node, Closure closure, parent, Factory parentFactory) {
+    boolean processContent = true
     if (parentFactory.isHandlesNodeChildren()) {
-      processContent = parentFactory.onNodeChildren(this, node, closure);
+      processContent = parentFactory.onNodeChildren(this, node, closure)
     }
     if (processContent) {
       // push new node on stack
-      String parentName = getProxyBuilder().getCurrentName();
-      Map parentContext = getProxyBuilder().getContext();
-      getProxyBuilder().newContext();
+      String parentName = getProxyBuilder().getCurrentName()
+      Map parentContext = getProxyBuilder().getContext()
+      getProxyBuilder().newContext()
       try {
-        getProxyBuilder().getContext().put(OWNER, closure.getOwner());
-        getProxyBuilder().getContext().put(CURRENT_NODE, node);
-        getProxyBuilder().getContext().put(PARENT_FACTORY, parentFactory);
-        getProxyBuilder().getContext().put(PARENT_NODE, current);
-        getProxyBuilder().getContext().put(PARENT_CONTEXT, parentContext);
-        getProxyBuilder().getContext().put(PARENT_NAME, parentName);
-        getProxyBuilder().getContext().put(PARENT_BUILDER, parentContext.get(CURRENT_BUILDER));
-        getProxyBuilder().getContext().put(CURRENT_BUILDER, parentContext.get(CHILD_BUILDER));
+        getProxyBuilder().getContext().put(OWNER, closure.getOwner())
+        getProxyBuilder().getContext().put(CURRENT_NODE, node)
+        getProxyBuilder().getContext().put(PARENT_FACTORY, parentFactory)
+        getProxyBuilder().getContext().put(PARENT_NODE, parent)
+        getProxyBuilder().getContext().put(PARENT_CONTEXT, parentContext)
+        getProxyBuilder().getContext().put(PARENT_NAME, parentName)
+        getProxyBuilder().getContext().put(PARENT_BUILDER, parentContext.get(CURRENT_BUILDER))
+        getProxyBuilder().getContext().put(CURRENT_BUILDER, parentContext.get(CHILD_BUILDER))
         // lets register the builder as the delegate
-        getProxyBuilder().setClosureDelegate(closure, node);
-        closure.call();
+        getProxyBuilder().setClosureDelegate(closure, node)
+        closure.call()
       } finally {
-        getProxyBuilder().popContext();
+        getProxyBuilder().popContext()
       }
     }
   }
@@ -242,10 +249,10 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   Object build(URL resource) {
     build(resource.text)
   }
-  
+
   Object build(Closure closure) {
-    closure.delegate = this;
-    closure.call();
+    closure.delegate = this
+    closure.call()
   }
 
   Object build(String source) {

@@ -15,22 +15,25 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.ModelBuilder
+import ee.mdd.builder.AbstractFactoryBuilder
 import ee.mdd.builder.BuilderAware
+import ee.mdd.builder.MddFactory
 import ee.mdd.model.Composite
-
 
 /**
  *
  * @author Eugen Eisler
  */
 class Facet extends Composite implements BuilderAware {
-  ModelBuilder builder
+  AbstractFactoryBuilder builder
+  MddFactory factory
+  
   Module module
   String path
   List<ExternalModule> externalModules = []
   Map<String, Facet> facets = [:]
   List<Module> dependencies = []
+  Closure modelExtender
 
   def add(ExternalModule child) {
     externalModules << child; super.add(child)
@@ -44,12 +47,26 @@ class Facet extends Composite implements BuilderAware {
     facets[child.name] = super.add(child); child
   }
 
+  def extendModel(Model model) {
+    model.add(this)
+    if(modelExtender) {
+      modelExtender.call(model)
+      facets.each { name, childFacet ->
+        childFacet.extendModel(model)
+      }
+    }
+  }
+
   Facet getRootFacet() {
     Facet ret = this
     if(Facet.isInstance(parent)) {
       ret = parent.rootFacet
     }
     ret
+  }
+
+  def extend(Closure closure) {
+    builder.createChildNodes(this, factory, closure)
   }
 
   @Override

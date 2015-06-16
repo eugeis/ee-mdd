@@ -42,7 +42,7 @@ class GeneratorForJava {
     if(facetClosure) {
       Facet facet =  builder.build(facetClosure)
       model =  builder.build(modelSource)
-      model.add(facet)
+      facet.extendModel(model)
     } else {
       model =  builder.build(modelSource)
     }

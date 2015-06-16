@@ -15,7 +15,10 @@
  */
 package ee.mdd.builder
 
+import java.util.Map
+
 import ee.mdd.model.component.Model
+import groovy.util.FactoryBuilderSupport
 
 
 /**
@@ -29,21 +32,16 @@ class ModelFactory extends CompositeFactory {
     this.beanClass = Model
   }
 
-  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
-    if (checkValue(name, value)) {
-      return value
-    }
-    def parent = builder.parent
-    def ret = new Model()
+  @Override
+  protected Object createInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) {
+    new Model()
+  }
 
+  @Override
+  protected void prepareInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes, fillInstance) {
+    super.prepareInstance(builder, name, value, attributes, fillInstance)
     if(!attributes.containsKey('namespace') && attributes.key) {
       attributes['namespace'] = attributes.key
     }
-
-    if(value != null) {
-      //attributes[valueProperty] = value
-      ret[valueProperty] = value
-    }
-    ret
   }
 }
