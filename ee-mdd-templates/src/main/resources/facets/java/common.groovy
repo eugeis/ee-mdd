@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -14,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ee.mdd.model.component.Component
-import ee.mdd.model.component.Model
 
 /**
  *
@@ -51,8 +48,8 @@ extModule(name: 'Java') {
   }
 }
 
-modelExtender = { Model model ->
-  model.components.each { Component component ->
+modelExtender = { model ->
+  model.components.each { component ->
     if(component.module) {
       component.module.extend { config('Ml') }
     }

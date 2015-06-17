@@ -27,7 +27,7 @@ class GenerateTest {
     
     Model model = generator.builder.model ('MddExample', key: 'cg', namespace: 'ee.mdd', uri: 'cg.test') {
     
-      component('MddExample', key: 'me', namespace: 'example', artifact: 'ee-mdd_example') {
+      component('MddExampleComponent', key: 'me', namespace: 'example', artifact: 'ee-mdd_example') {
     
         module('shared') {
     

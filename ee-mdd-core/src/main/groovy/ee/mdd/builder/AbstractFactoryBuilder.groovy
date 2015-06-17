@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.InvokerHelper
 
 import ee.mdd.model.Base
 import ee.mdd.model.component.Namespace
+import groovy.lang.Script
 import groovy.util.logging.Slf4j
 
 
@@ -183,7 +184,9 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
 
   public createChildNodes(node, Factory nodeFactory, String closureAsText) {
     Closure closure = evaluate(closureAsText)
-    createChildNodes(node, closure)
+    if(closure) {
+      createChildNodes(node, closure)
+    }
   }
 
   public createChildNodes(node, Factory nodeFactory, Closure closure) {
@@ -191,7 +194,7 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
     try {
       getProxyBuilder().getContext().put(OWNER, closure.getOwner())
       getProxyBuilder().getContext().put(CURRENT_NODE, node)
-      getProxyBuilder().getContext().put(PARENT_FACTORY, nodeFactory) 
+      getProxyBuilder().getContext().put(PARENT_FACTORY, nodeFactory)
       getProxyBuilder().getContext().put(PARENT_BUILDER, this)
       // lets register the builder as the delegate
       getProxyBuilder().setClosureDelegate(closure, node)
@@ -260,6 +263,13 @@ class AbstractFactoryBuilder extends FactoryBuilderSupport {
   }
 
   Closure evaluate(String text) {
+//    Closure ret
+//    Class viewClass = new GroovyClassLoader().parseClass(text)
+//    if (Script.class.isAssignableFrom(viewClass)) {
+//      Script script = InvokerHelper.createScript(viewClass, this)
+//      ret = { script.run() }
+//    }
+//    ret
     Closure closure =shell.evaluate("{ it -> $text }")
   }
 }
