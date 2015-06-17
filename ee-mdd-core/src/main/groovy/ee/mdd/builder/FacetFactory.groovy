@@ -38,7 +38,8 @@ class FacetFactory extends FacetAwareFactory {
     } else {
       ret = new Facet()
     }
-    ret.path = Facet.isInstance(parent) ? "$parent.path$parent.name/" : '/'
+    def parentNode = builder.parent
+    ret.path = Facet.isInstance(parentNode) ? "$parentNode.path$parentNode.name/" : '/'
     ret
   }
 

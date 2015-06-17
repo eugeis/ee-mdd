@@ -273,6 +273,11 @@ class GenerateTest {
       }
     }
     
+    model.add(facet)
+    facet.extendModel(model)
+    
+    generator.generate(model, new File('temp'))
+    
     model.extend {
       component('Foo') {
         

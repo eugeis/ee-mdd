@@ -3,7 +3,9 @@ package ee.mdd.generator
 import ee.mdd.TemplatesBuilder
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
+import groovy.util.logging.Slf4j;
 
+@Slf4j
 class FacetTemplateLoader {
   String path = '/templates'
   TemplatesBuilder builder = new TemplatesBuilder()
@@ -50,6 +52,8 @@ class FacetTemplateLoader {
     URL resource = getClass().getResource(absolutPath)
     if(resource) {
       ret = builder.build(resource.text)
+    } else {
+      log.info("Templates not found '{}'", absolutPath)
     }
 
     //we need empty facet template group for structure facets like e.g. java, js
