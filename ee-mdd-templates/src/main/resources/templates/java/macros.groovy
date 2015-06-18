@@ -674,7 +674,7 @@ ${macros.generate('implOperations', c)}
    if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
    if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>{{imports}}
 @${c.name('Alternative')}
-public class $className extends Base implements $item.name {
+public class $className extends ${c.name('Base')} implements ${c.name(item.name)} {
   private static final long serialVersionUID = 1L;
 
   protected ${className}Removes removes = new ${className}Removes();

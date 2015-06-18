@@ -19,7 +19,7 @@
  */
 
 extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
-  ['Base' : 'ee.common.core.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model',
+  ['Base' : 'ee.common.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model',
   'Factory' : 'ee.common.model',
   'Labeled' : 'ee.common.model', 'Event' : 'ee.common.model', 'EventImpl' : 'ee.common.model',
   'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
