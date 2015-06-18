@@ -112,7 +112,7 @@ templates ('macros') {
 
   template('propsSetter', body: '''<% item.props.each { prop -> if (prop.writable && !prop.typeEntity) { %>
   
-  ${prop.primaryKey? '':'@Override'}
+  ${prop.primaryKey && !item.superUnit ? '':'@Override'}
   public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %> $prop.name) {
     this.$prop.uncap = $prop.uncap; 
   }<% } else if (prop.writable && prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if (relationIdProp) { %>
@@ -229,7 +229,7 @@ templates ('macros') {
   }<% } %>''')
 
   template('idPropSetter', body: '''<% def idProp = c.item.idProp; if(idProp && !item.virtual) { %>
-  
+  ${item.superUnit && !item.superUnit.virtual ? '@Override' : ''}
   public void set${idProp.cap}(<% if(idProp.multi) { %>${c.name('List')}<$idProp.relTypeEjb(c)><% } else { %>${idProp.relTypeEjb(c)}<% } %> $idProp.uncap) {
     this.$idProp.uncap = $idProp.uncap;
   }<% } %>''')
@@ -252,7 +252,7 @@ templates ('macros') {
   public Long getVersion() {
     return version;
   }
-
+  ${item.superUnit ? '@Override':''}
   public void setVersion(Long version) {
     this.version = version;
   }''')
@@ -1158,7 +1158,7 @@ public class $className extends ${className}Base {
     <% list = [] %><% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne) && !((prop.type) in list)) {  list << prop.type %>
     item.$prop.call;<% } %><% if (!prop.type.typeEnum && !prop.typeEntity) { %>
     item.$prop.call;<% } }%>
-    <% list = [] %><% item.props.each { prop -> if (!prop.typeEnum && !prop.typeEntity ) { %>
+    <% list = [] %><% item.props.each { prop -> if (!prop.type.typeEnum && !prop.typeEntity ) { %>
     ${c.name('assertEquals')}($prop.uncap, item.$prop.getter); <% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne) && !((prop.type) in list)) { list << prop.type; def relationIdProp = prop.type.idProp %>
     ${c.name('assertEquals')}(${prop.uncap}${relationIdProp.cap}, item.get${prop.cap}${relationIdProp.cap}());<% } } %>
   }''')
