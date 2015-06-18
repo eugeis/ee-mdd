@@ -672,7 +672,7 @@ ${macros.generate('implOperations', c)}
   template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
 <% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
    if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
-   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>
+   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>{{imports}}
 @${c.name('Alternative')}
 public class $className extends Base implements $item.name {
   private static final long serialVersionUID = 1L;
@@ -1148,17 +1148,19 @@ public class $className extends ${className}Base {
     verifyNoMoreInteractions();
   }''')
 
-  template('testProperties', body: '''
+  template('testProperties', body: '''<% def list = [] %>
   @${c.name('Test')}
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
-    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
+    ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { %><% if(prop.type.idProp!=null) { if(!((prop.type) in list)) { list << (prop.type); def relationIdProp = prop.type.idProp %><% if(relationIdProp.multi) { %>
     ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
-    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } %><% } else if (!prop.type.typeEnum) { %>
-    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %><% item.props.each { prop ->  if (!prop.type.typeEnum) {%>
+    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } } %><% } else if (!prop.type.typeEnum && !prop.typeEntity) { %>
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %>
+    <% list = [] %><% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne) && !((prop.type) in list)) {  list << prop.type %>
+    item.$prop.call;<% } %><% if (!prop.type.typeEnum && !prop.typeEntity) { %>
     item.$prop.call;<% } }%>
-    <% item.props.each { prop ->  if (!prop.type.typeEnum) { %><% if(prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %>
-    ${c.name('assertEquals')}(${prop.uncap}${relationIdProp.cap}, item.get${prop.cap}${relationIdProp.cap}());<%} } else { %>
-    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter);<% } } } %>
+    <% list = [] %><% item.props.each { prop -> if (!prop.typeEnum && !prop.typeEntity ) { %>
+    ${c.name('assertEquals')}($prop.uncap, item.$prop.getter); <% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne) && !((prop.type) in list)) { list << prop.type; def relationIdProp = prop.type.idProp %>
+    ${c.name('assertEquals')}(${prop.uncap}${relationIdProp.cap}, item.get${prop.cap}${relationIdProp.cap}());<% } } %>
   }''')
 
   template('testExtends', purpose: UNIT_TEST, body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}

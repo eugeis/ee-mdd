@@ -61,7 +61,7 @@ class EnhancerForJava {
 
     def properties = Collections.synchronizedMap([:])
     Map<String, String> typeToTestValue = [String: '\"TestString\"', Long: 'Long.valueOf(1)', long: '1L',
-      Integer: 'Integer.value(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
+      Integer: 'Integer.valueOf(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
 
     Element.metaClass {
 
