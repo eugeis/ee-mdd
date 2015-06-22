@@ -43,6 +43,7 @@ import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Type
 
+
 /**
  *
  * @author Eugen Eisler
@@ -170,6 +171,26 @@ class EnhancerForJava {
         properties[key]
       }
 
+      getGenericSgn << {
+        ->
+        def key = System.identityHashCode(delegate) + 'genericSgn'
+        if(!properties.containsKey(key)) {
+          def ret = (delegate.generic ? "<${delegate.generics.join(', ')}>" : '')
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      getSimpleGenericSgn << {
+        ->
+        def key = System.identityHashCode(delegate) + 'simpleGenericSgn'
+        if(!properties.containsKey(key)) {
+          def ret = (delegate.generic ? "${delegate.generics.join(', ')}, " : '')
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       getPropsForHashCode << {
         ->
         def key = System.identityHashCode(delegate) + 'propsForHashCode'
@@ -184,12 +205,12 @@ class EnhancerForJava {
         ->
         def key = System.identityHashCode(delegate) + 'generic'
         if(!properties.containsKey(key)) {
-          def ret
+          def ret = false
           if(delegate.generics)
             ret = (!delegate.generics.empty ? true : false)
-          properties[key]
+          properties[key] = ret
         }
-        properties[key] = ret
+        properties[key]
       }
     }
 
@@ -816,6 +837,15 @@ class EnhancerForJava {
             ret = true
           }
           properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isTypeLong << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeLong'
+        if(!properties.containsKey(key)) {
+          properties[key] = (delegate.type.name == 'Long' ? true : false)
         }
         properties[key]
       }

@@ -502,6 +502,31 @@ ${op.description?"   /** $op.description */":''}
 
   //classes
 
+  template('cacheImpl', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def manager = item.manager; def type = item.virtual?'E':item.cap; def cacheSuper %>
+<% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "LongEntityCache<$type>" } else if (idProp.typeInteger) { cacheSuper = "IntegerEntityCache<$type>" } else if (idProp.typeString) { cacheSuper = "StringEntityCache<$type>" } else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
+<% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "LongCacheOverride<$type>" } else if (idProp.typeInteger) { cacheSuper = "IntegerCacheOverride<$type>" } else if (idProp.typeString) { cacheSuper = "StringCacheOverride<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
+<% } %>
+<% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>{{imports}}
+public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends $cacheSuper implements $item.n.cap.cache<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
+
+}''')
+
+  template('cacheImplExtends', body: '''{{imports}}
+/** Cache implementation for {@link $item.name} */
+@${c.name('Alternative')}<% def type = item.virtual ? 'E':item.cap; def idProp = item.idProp %>
+<% if (item.virtual) { %> public abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${c.override ? item.n.cap.cacheOverrideBase : item.n.cap.cacheBaseImpl} <% } else { %> public class $className extends ${c.override ? item.n.cap.cacheOverrideBase : item.n.cap.cacheBaseImpl}<% } %> {
+  private static final long serialVersionUID = 1L;
+
+  public $className() {
+    super();
+  }
+
+  public $className(boolean threadSafe) {
+    super(threadSafe);
+  }
+
+  ${macros.generate('implOperations', c)}
+}''')
 
   template('containerIdsBase', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
 public class $c.className extends ${c.name('Base')} {
@@ -688,7 +713,7 @@ public class $className extends ${c.name('Base')} implements $item.name {
 
   public $className(boolean override, boolean threadSafe) {
     super();
-    this.timestamp = TimeUtils.now();
+    this.timestamp = ${c.name('TimeUtils')}.now();
     if(!override) {<% item.props.each { prop -> %>
       this.${prop.type.instancesName} = new ${prop.cap}CacheImpl(threadSafe); <% } %>
     } else {<% item.props.each { prop -> %>
@@ -705,7 +730,7 @@ public class $className extends ${c.name('Base')} implements $item.name {
 
   public $className($item.name sourceContainer, boolean threadSafe) {
     super();
-    this.timestamp = TimeUtils.now(); <% item.props.each { prop -> %>
+    this.timestamp = ${c.name('TimeUtils')}.now(); <% item.props.each { prop -> %>
     this.${prop.type.instancesName} = new ${prop.type.n.cap.cacheOverride}(threadSafe);
     ((${prop.type.n.cap.cacheOverride}) this.{$prop.type.instancesName}.setParent(sourceContainer.get${prop.type.name}s());<% } %>
     <% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>

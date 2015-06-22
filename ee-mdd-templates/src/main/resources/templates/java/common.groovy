@@ -60,6 +60,16 @@ templates ('common') {
     template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
   }
 
+  templates('cacheImpl',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'cache']) } ) {
+
+    template('cacheImpl', appendName: true, body: '''<% c.className = item.n.cap.cacheBaseImpl %> ${macros.generate('cacheImpl', c)}''')
+    template('cacheImplExtends', appendName: true, body: '''<% c.className = item.n.cap.cacheImpl %> ${macros.generate('cacheImplExtends', c)}''')
+    template('cacheOverride', appendName: true, body: '''<% c.className = item.n.cap.cacheOverrideBase %><% c.override = true %> ${macros.generate('cacheImpl', c)}''')
+    template('cacheOverrideExtends', appendName: true, body: '''<% c.className = item.n.cap.cacheOverride %><% c.override = true %> ${macros.generate('cacheImplExtends', c)}''')
+  }
+
   templates ('enum',
   items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
   context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {

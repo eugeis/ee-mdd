@@ -35,7 +35,8 @@ def nameToNamespace = ['Backend' : 'com.siemens.ra.cg.pl.common.base.annotations
   'MLKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MlKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml' , 'MLKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
   'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception', 'ComparisonUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util',
-  'SERVER' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'CLIENT' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*'] as TreeMap
+  'SERVER' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*',
+  'CLIENT' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
