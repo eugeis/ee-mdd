@@ -334,8 +334,7 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 }''')
 
   template('ifcContainer', body: '''<% if (!c.className) { c.className = item.n.cap.base } %><% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %>
-<%item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} 
-
+<%item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model
 <% if (!item.base) { %>
 /**
 * The container is used to transfer bundled data between between server and client.
@@ -504,31 +503,32 @@ ${op.description?"   /** $op.description */":''}
   //classes
 
 
-  template('containerRemoves', body: '''<% if (!c.className) { c.className = item.n.cap.removesBase } %>{{imports}}
-public class $c.className implements ${c.name('Serializable')}, ${c.name('LogStringProvider')} {
+  template('containerIdsBase', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
+public class $c.className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;<% item.props.each { entityProp -> def entity = entityProp.type %>
-  protected ${c.name('HashSet')}<$entity.idProp.type.name> ${entity.cap}Ids = new HashSet<>();<% } %><% item.props.each { entityProp -> def entity = entityProp.type %>
+  protected ${c.name('HashSet')}<$entity.idProp.type.name> ${entity.instancesName} = new HashSet<>();<% } %><% item.props.each { entityProp -> def entity = entityProp.type %>
 
-  public ${c.name('Set')}<$entity.idProp.type.name> get${entity.cap}Ids() {
-    return ${entity.cap}Ids;
+  public ${c.name('Set')}<$entity.idProp.type.name> get${entity.cap}s() {
+    return ${entity.instancesName};
   }<% } %>
   
-  public void synchronize($c.className removes) {<% item.props.each { entityProp -> def entity = entityProp.type %>
-    ${entity.cap}Ids.addAll(removes.get${entity.cap}Ids());<% } %>
+  public void synchronize($c.className removed) {<% item.props.each { entityProp -> def entity = entityProp.type %>
+    ${entity.instancesName}.addAll(removed.get${entity.cap}s());<% } %>
   }
 
   public void clear() {<% item.props.each { entityProp -> def entity = entityProp.type %>
-    ${entity.cap}Ids.clear();<% } %>
+    ${entity.instancesName}.clear();<% } %>
   }
 
   @Override
-  public void fillToLogString(${c.name('LogStringBuilder')} b) {<% item.props.each { entityProp -> def entity = entityProp.type %>
-    b.append(" ${entity.cap}Ids", ${entity.cap}Ids);<% } %>
+  public void fillToString(StringBuffer b) {
+    super.fillToString(b);<% item.props.each { entityProp -> def entity = entityProp.type %>
+    b.append("${entity.instancesName}=").append(${entity.instancesName}).append(SEP);<% } %>
   }
 }''')
 
-  template('containerRemovesExtends', body: '''<% if (!c.className) { c.className = item.n.cap.removes } %>{{imports}}
-public class $c.className extends $item.n.cap.removesBase {
+  template('containerIds', body: '''<% if (!c.className) { c.className = item.n.cap.ids } %>{{imports}}
+public class $c.className extends $item.n.cap.idsBase {
   private static final long serialVersionUID = 1L;
 }''')
 
@@ -672,17 +672,18 @@ ${macros.generate('implOperations', c)}
   template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
 <% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
    if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
-   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>{{imports}}
+   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>import ee.mdd.example.model.${item.n.cap.ids};
+import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model {{imports}} 
 @${c.name('Alternative')}
-public class $className extends ${c.name('Base')} implements ${c.name(item.name)} {
+public class $className extends ${c.name('Base')} implements $item.name {
   private static final long serialVersionUID = 1L;
 
-  protected ${className}Removes removes = new ${className}Removes();
+  protected ${item.n.cap.ids} removed = new ${item.n.cap.ids}();
 
   protected String source;
-  protected Date timestamp; 
+  protected ${c.name('Date')} timestamp; 
   <% c.item.props.each { prop -> %>
-  protected $prop.type.name ${prop.type.instancesName}; <% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+  protected ${c.name(prop.type.name)} ${prop.type.instancesName}; <% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
   protected ${c.name('LinkedObjectCache')}< <% if (entity.idProp.multi) {%>List<entity.idProp.type><% } else {%>entity.idProp.type<% } %>, <% if (relationIdProp.multi) {%>List<relationIdProp.type><% } else {%>relationIdProp.type<% } %>, prop.type.cap> ${entity.uncap}${prop.cap};<% } } %>
 
   public $className(boolean override, boolean threadSafe) {

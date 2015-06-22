@@ -92,8 +92,8 @@ templates ('common') {
     template('ifcContainerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
     template('ifcContainerDelta', appendName: true, body: '''<% c.className = item.n.cap.deltaBase %> ${macros.generate('ifcContainerDelta', c)}''')
     template('ifcContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.delta %> ${macros.generate('ifcContainerDeltaExtends', c)}''')
-    template('containerRemoves', appendName: true, body: '''<% c.className = item.n.cap.removesBase %> ${macros.generate('containerRemoves', c)}''')
-    template('containerRemovesExtends', appendName: true, body: '''<% c.className = item.n.cap.removes %> ${macros.generate('containerRemovesExtends', c)}''')
+    template('containerIdsBase', appendName: true, body: '''<% c.className = item.n.cap.idsBase %> ${macros.generate('containerIdsBase', c)}''')
+    template('containerIds', appendName: true, body: '''<% c.className = item.n.cap.ids %> ${macros.generate('containerIds', c)}''')
     template('implContainerDelta', appendName: true, body: '''<% c.className = item.n.cap.deltaBaseImpl %> ${macros.generate('implContainerDelta', c)}''')
   }
 
