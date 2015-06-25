@@ -498,13 +498,18 @@ ${op.description?"   /** $op.description */":''}
   ${op.return} ${op.name}(${op.signature(c)});<% } %>
 }''')
 
+  template('ifcCache', body: '''
+public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
+}
+''')
+
 
 
   //classes
 
   template('cacheImpl', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def manager = item.manager; def type = item.virtual?'E':item.cap; def cacheSuper %>
-<% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "LongEntityCache<$type>" } else if (idProp.typeInteger) { cacheSuper = "IntegerEntityCache<$type>" } else if (idProp.typeString) { cacheSuper = "StringEntityCache<$type>" } else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
-<% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "LongCacheOverride<$type>" } else if (idProp.typeInteger) { cacheSuper = "IntegerCacheOverride<$type>" } else if (idProp.typeString) { cacheSuper = "StringCacheOverride<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
+<% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
+<% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
 <% } %>
 <% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>{{imports}}
 public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends $cacheSuper implements $item.n.cap.cache<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
