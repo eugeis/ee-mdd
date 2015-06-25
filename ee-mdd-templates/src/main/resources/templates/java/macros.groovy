@@ -498,16 +498,35 @@ ${op.description?"   /** $op.description */":''}
   ${op.return} ${op.name}(${op.signature(c)});<% } %>
 }''')
 
-  template('ifcCache', body: '''
+  template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':item.cap; def cacheSuper %>{{imports}}
+<% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "Cache<$idProp.type, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<$idProp.type, $type>" } %>
+<% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.type && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
+public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${item.cap}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% item.props.each { prop -> if(prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
+ 
+  Set <${c.name(idProp.type)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
+
+  List<$type> findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
+
+  List<$type> findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
+
+  List<$type> findBy${prop.cap}${relationIdProp.cap}s(List<${relationIdProp.computedType}> ${prop.uncap}${relationIdProp.cap}s);
+  
+  List<$type> findBy${prop.cap}${relationIdProp.cap}sStrict(List<${relationIdProp.computedType}> ${prop.uncap}${relationIdProp.cap}s);<% } else if (prop.type && prop.oneToOne) { def relationIdProp = prop.type.idProp %>
+
+  $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
+
+  $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap};<% } } %>
+}''')
+
+  template('ifcCacheExtends', body: '''
 public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
-}
-''')
+}''')
 
 
 
   //classes
 
-  template('cacheImpl', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def manager = item.manager; def type = item.virtual?'E':item.cap; def cacheSuper %>
+  template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':item.cap; def cacheSuper %>{{imports}}
 <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
 <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
 <% } %>
@@ -516,7 +535,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
 
 }''')
 
-  template('cacheImplExtends', body: '''{{imports}}
+  template('implCacheExtends', body: '''{{imports}}
 /** Cache implementation for {@link $item.name} */
 @${c.name('Alternative')}<% def type = item.virtual ? 'E':item.cap; def idProp = item.idProp %>
 <% if (item.virtual) { %> public abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${c.override ? item.n.cap.cacheOverrideBase : item.n.cap.cacheBaseImpl} <% } else { %> public class $className extends ${c.override ? item.n.cap.cacheOverrideBase : item.n.cap.cacheBaseImpl}<% } %> {
