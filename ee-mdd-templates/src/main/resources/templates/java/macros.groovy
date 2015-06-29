@@ -498,14 +498,14 @@ ${op.description?"   /** $op.description */":''}
   ${op.return} ${op.name}(${op.signature(c)});<% } %>
 }''')
 
-  template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':item.cap; def cacheSuper %>{{imports}}
-<% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "Cache<$idProp.type, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<$idProp.type, $type>" } %>
-<% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.type && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
+  template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
+<% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<$idProp.type.name, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<$idProp.type, $type>" } %>
+<% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
 public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${item.cap}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% item.props.each { prop -> if(prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
  
-  Set <${c.name(idProp.type)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
+  ${c.name('Set')} <${c.name(idProp.type)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
 
-  List<$type> findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
+  ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
 
   List<$type> findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
 
@@ -515,7 +515,7 @@ public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E ext
 
   $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});
 
-  $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap};<% } } %>
+  $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType} ${prop.uncap}${relationIdProp.cap});<% } } %>
 }''')
 
   template('ifcCacheExtends', body: '''
@@ -530,23 +530,96 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
 <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
 <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
 <% } %>
-<% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>{{imports}}
+<% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
 public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends $cacheSuper implements $item.n.cap.cache<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
+  <% singlePropIndexes.each { prop -> if (prop.unique) { %>
+  protected Map<$prop.type.name, $idProp.type.name> ${prop.uncap}ToId = null;<% } else { %>
+  protected ${c.name('LinkToSetCache')}<$prop.type.name, $idProp.type.name> ${prop.uncap}ToIds = null;<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) {%>
+  protected ${c.name('LinkToSetCache')}<$relationIdProp.type.name, $idProp.type.name> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
+  protected Map<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
+  protected ${c.name('LinkToSetCache')}<String, $idProp.type.name> ${key}ToIds = null;<% } %><% } %>
+
+  public $className() {
+    super();
+  }<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %>
+   <% String finderKeyName = op.params.collect { it.prop.uncap }.join('And'); %>
+   <% if (op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) { def param = op.params.get(0); def prop = param.prop; %>
+
+  @Override
+  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
+     checkAndInitPropertyBasedLazyCaches();<% if (param.multi) { %>
+    ${c.name('HashSet')}<$idProp.type.name> ret = new HashSet<>();
+    for($prop.type $prop.name : ${prop.name}s) {<% if (prop.unique) { %>
+      if (${prop.uncap}ToId.containsKey($prop.name)) {
+        ret.add(${prop.uncap}ToId.get($prop.name));
+     }<% if (override) { %> else if (parent != null) {
+        Set<$idProp.type.name> ids = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+        ids.removeAll(deleted);
+        ret.addAll(ids);
+      }<% } %><% } else { %><% if (op.unique) { %>
+      $idProp.type.name id = ${prop.uncapName}ToId.get($propAttr.paramName);
+      if (id != null) {
+        ret.add(id);
+      }<% } else { %>
+      LinkToSet<?, $idProp.type.name> ids = ${prop.uncapName}ToIds.get($propAttr.paramName);
+      if (ids != null) {
+        ret.addAll(ids.getTo());
+      }<% } %><% if (c.override) { %>
+      if (parent != null) {<% if (op.unique) { %>
+        $idProp.type.name id = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+        if (id != null) {
+          ret.add(id);
+        }<% } else { %>
+        ret = new ${c.name('HashSet')}<>(ret);
+        ret.addAll((($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName));<% } %>
+        ret.removeAll(deleted);<% } %><% } %>
+    }
+    return ret;<% } else { %><% if (prop.unique) { %>
+    $idProp.type.name ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { %>
+    ${macros.generate('retNullOrDeleted', c)}
+    <% } %><% } else { %>
+    Set<$idProp.type.name> ret = null;
+    LinkToSet<?, $idProp.type.name> ids = ${prop.uncap}ToIds.get($prop.name);
+    ${macros.generate('checkIdsNull', c)}<% if (c.override) { %>
+    if (parent != null) {<% if (op.unique) { %>
+        $idProp.type.name id = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+        if (id != null) {
+          ret.add(id);
+        }<% } else { %>
+        ret = new ${c.name('HashSet')}<>(ret);
+        ret.addAll((($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName));<% } %>
+        ret.removeAll(deleted);<% } %><% } %><% if (item.ordered) { %>
+    sort${item.cap}sByOrder(ret);<% } %><% if (op.unique && !prop.unique) { %>
+    if (!ret.isEmpty()) {
+      return ret.iterator().next();
+    } else {
+      return null;
+    }<% } else { %>
+    return ret;<% } %><% } %>
+  }
+  
+  @Override
+  public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
+    $idProp.type id = ${op.name}AsId($op.signatureName);
+    $type ret = null;
+    if (id != null) {
+      ret = get(id);
+    }<% } else { %>
+    Set<$idProp.type.name> ids = ${op.name}AsId($op.signatureName);
+    List<$type> ret = getAll(ids);<% } %>
+    return ret;
+  }<% } } } %>
 
 }''')
 
   template('implCacheExtends', body: '''{{imports}}
-/** Cache implementation for {@link $item.name} */
+/** Cache implementation for {@link ${c.name(item.name)}} */
 @${c.name('Alternative')}<% def type = item.virtual ? 'E':item.cap; def idProp = item.idProp %>
 <% if (item.virtual) { %> public abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${c.override ? item.n.cap.cacheOverrideBase : item.n.cap.cacheBaseImpl} <% } else { %> public class $className extends ${c.override ? item.n.cap.cacheOverrideBase : item.n.cap.cacheBaseImpl}<% } %> {
-  private static final long serialVersionUID = 1L;
+  
 
   public $className() {
     super();
-  }
-
-  public $className(boolean threadSafe) {
-    super(threadSafe);
   }
 
   ${macros.generate('implOperations', c)}
@@ -1504,6 +1577,29 @@ ${ret-newLine}''')
   public ${c.name('MLKey')} buildMlKey() {
     return new ${c.name('MLKeyImpl')}(${component.name}Ml.ML_BASE, name());
   }''')
+
+  template('propToIds', body: '''if (parent != null) {<% if (op.unique) { %>
+        $idProp.type.name id = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+        if (id != null) {
+          ret.add(id);
+        }<% } else { %>
+        ret = new ${c.name('HashSet')}<>(ret);
+        ret.addAll((($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName));<% } %>
+        ret.removeAll(deleted);''')
+
+  template('retNullOrDeleted', body: '''if (ret == null && parent != null) {
+      ret = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+      if (ret != null && deleted.contains(ret)) {
+        ret = null;
+      }
+}''')
+
+  template('checkIdsNull', body: '''if (ids != null) {
+      ret = ids.getTo();
+    } else {
+      ret = Collections.emptySet();
+    }''')
+
 
   template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
