@@ -35,7 +35,7 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
   'NotFoundException' : 'ee.common.exception', 'LongEntityCache' : 'ee.common.cache', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',
   'IntegerCacheOverride' : 'ee.common.cache', 'LongCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
-  'TempIdCache' : 'ee.common.cache', 'Cache' : 'ee.common.cache', 'LinkToSetCache' : 'ee.common.cache'].each { n, ns ->
+  'TempIdCache' : 'ee.common.cache', 'Cache' : 'ee.common.cache', 'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
