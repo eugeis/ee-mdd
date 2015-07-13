@@ -695,13 +695,13 @@ class EnhancerForJava {
         properties[key]
       }
 
-      getComputedType << {
-        ->
+      computedType << { Context c ->
         def key = System.identityHashCode(delegate) + 'computedType'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret
           ret = prop.multi ? "List<${prop.type.name}>" : "${prop.type.name}"
+          c.name(prop.type.name)
           properties[key] = ret
         }
         properties[key]

@@ -20,8 +20,7 @@
  * @author Niklas Cappelmann
  */
 
-def nameToNamespace = ['Backend' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Service' : 'com.siemens.ra.cg.pl.common.base.annotations',
-  'Environment' : 'com.siemens.ra.cg.pl.common.base.cdi.env', 'SupportsEnvironments' : 'com.siemens.ra.cg.pl.common.base.cdi.env','LinkedObjectCache' : 'com.siemens.ra.cg.pl.common.base.cache',
+def nameToNamespace = ['Backend' : 'com.siemens.ra.cg.pl.common.base.annotations',
   'JmsDestinationConfig' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 'JmsSender' : 'com.siemens.ra.cg.pl.common.ejb.messaging',
   'Event' : 'com.siemens.ra.cg.pl.common.base.messaging', 'EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
   'EventListener' : 'com.siemens.ra.cg.pl.common.base.messaging', 'JmsToEventListener' : 'com.siemens.ra.cg.pl.common.ejb.messaging.jse',
@@ -34,9 +33,7 @@ def nameToNamespace = ['Backend' : 'com.siemens.ra.cg.pl.common.base.annotations
   'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util', 'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion',
   'MLKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MlKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml' , 'MLKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
   'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception', 'ComparisonUtils' : 'com.siemens.ra.cg.pl.common.base.util',
-  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util',
-  'SERVER' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*',
-  'CLIENT' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
+  'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
