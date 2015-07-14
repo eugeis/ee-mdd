@@ -701,7 +701,7 @@ class EnhancerForJava {
           def prop = delegate
           def ret
           ret = prop.multi ? "List<${prop.type.name}>" : "${prop.type.name}"
-          c.name(prop.type.name)
+          c.name("${prop.type.name}")
           properties[key] = ret
         }
         properties[key]
@@ -1057,6 +1057,19 @@ class EnhancerForJava {
           if(BasicType.isInstance(prop.type)) {
             ret = true
           }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isTypeDate << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeDate'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Date.isInstance(prop.type))
+            ret = true
           properties[key] = ret
         }
         properties[key]
