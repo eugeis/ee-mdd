@@ -162,15 +162,15 @@ templates ('common') {
 	 *
 	 *
 	 *
-	 *  ${macros.generate('myhtmlfootermacro', c)}
+	 *
 	 */
 
 
 	templates ('api',
 	items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
 	context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
-		template('dings', appendName: true,  body: '''<% c.className = "${item.name}html" %> ${macros.generate('myhtmlheadermacro', c)} ${macros.generate('myhtmlbodymacro', c)}''')
-		//template('dings2', appendName: true,  body: '''<% c.className = "${item.name}js" %> ${macros.generate('myangularmacro', c)}''')
-		//template('dings3', appendName: true,  body: '''<% c.className = "${item.name}css" %> ${macros.generate('mycssmacro', c)}''')
+		template('dings', appendName: true,  body: '''<% c.className = "${item.name}html" %> ${macros.generate('myhtmlheadermacro', c)} ${macros.generate('myhtmlbodymacro', c)} ${macros.generate('myhtmlfootermacro', c)}''')
+		template('dings2', appendName: true,  body: '''<% c.className = "${item.name}js" %> ${macros.generate('myangularmacro', c)}''')
+		template('dings3', appendName: true,  body: '''<% c.className = "${item.name}css" %> ${macros.generate('mycssmacro', c)}''')
 	}
 }

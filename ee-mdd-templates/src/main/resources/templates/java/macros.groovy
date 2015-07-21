@@ -1965,105 +1965,105 @@ ${ret-newLine}''')
 ''')
 
 	template('myangularmacro', body: '''<% if(!c.className) { c.className=item.name }; %>
-function \$(a){return document.getElementById(a);}
+function \\$(a){return document.getElementById(a);}
 
 (function(){
 	var app = angular.module("${c.className}",[]);
 
-	app.controller("BookController", function(\$scope) {
-		\$scope.currentID = 0;
+	app.controller("BookController", function(\\$scope) {
+		\\$scope.currentID = 0;
 
-		\$scope.newBook = {};
-		\$scope.books = [];
+		\\$scope.newBook = {};
+		\\$scope.books = [];
 
-		\$scope.init = function() {
+		\\$scope.init = function() {
 			myBooks.forEach(function(book,index) {
-				\$scope.add(book);
+				\\$scope.add(book);
 			});
 		}
 
-		\$scope.add = function(book) {
+		\\$scope.add = function(book) {
 			if (!book.hasOwnProperty("id") && !book.hasOwnProperty("tag")) {
-				book.id = book.tag = ++\$scope.currentID;
+				book.id = book.tag = ++\\$scope.currentID;
 			}
-			\$scope.books.push(book);
-			\$scope.\$broadcast('newBookAdded');
-			\$scope.resetToId();
+			\\$scope.books.push(book);
+			\\$scope.\\$broadcast('newBookAdded');
+			\\$scope.resetToId();
 		};
 
-		\$scope.edit = function(book) {
-			if (!\$scope.tableForm.\$valid) {
-				\$scope.newBook = \$scope.remove(book);
-				\$scope.resetToId();
+		\\$scope.edit = function(book) {
+			if (!\\$scope.tableForm.\\$valid) {
+				\\$scope.newBook = \\$scope.remove(book);
+				\\$scope.resetToId();
 			}
 		};
 
-		\$scope.promptDelete = function(book) {
+		\\$scope.promptDelete = function(book) {
 			if (window.confirm("Are you sure you want to delete this entry?")) {
-				\$scope.remove(book);
-				\$scope.resetToId();
+				\\$scope.remove(book);
+				\\$scope.resetToId();
 			}
 		}
 
-		\$scope.remove = function(book) {
-			return \$scope.books.splice(\$scope.books.indexOf(book),1)[0];
+		\\$scope.remove = function(book) {
+			return \\$scope.books.splice(\\$scope.books.indexOf(book),1)[0];
 		}
 
-		\$scope.submit = function() {
-			if(\$scope.tableForm.\$valid) {
-				\$scope.add(\$scope.newBook);
-				\$scope.newBook = {};
+		\\$scope.submit = function() {
+			if(\\$scope.tableForm.\\$valid) {
+				\\$scope.add(\\$scope.newBook);
+				\\$scope.newBook = {};
 			}
 		}
 
-		\$scope.resetToId = function() {
-			\$scope.books.forEach(function(book) {
-				\$scope.displayId(book);
+		\\$scope.resetToId = function() {
+			\\$scope.books.forEach(function(book) {
+				\\$scope.displayId(book);
 			});
 		}
 
-		\$scope.displayCross = function(book) {
+		\\$scope.displayCross = function(book) {
 			book.tag = '\u00D7';
 		}
 
-		\$scope.displayId = function(book) {
+		\\$scope.displayId = function(book) {
 			book.tag = book.id;
 		}
 
-		\$scope.sortAuthor = function() {
-			\$scope.books = \$scope.books.sort(function(a,b) {
+		\\$scope.sortAuthor = function() {
+			\\$scope.books = \\$scope.books.sort(function(a,b) {
 				return a.author.localeCompare(b.author) || a.title.localeCompare(b.title)
 			});
 		}
 
-		\$scope.sortID = function() {
-			\$scope.books = \$scope.books.sort(function(a,b) {
+		\\$scope.sortID = function() {
+			\\$scope.books = \\$scope.books.sort(function(a,b) {
 				return a.id-b.id;
 			});
 		}
 
-		\$scope.sortTitle = function() {
-			\$scope.books = \$scope.books.sort(function(a,b) {
+		\\$scope.sortTitle = function() {
+			\\$scope.books = \\$scope.books.sort(function(a,b) {
 				return a.title.localeCompare(b.title) || a.author.localeCompare(b.author)
 			});
 		}
 
-		\$scope.getJSON = function() {
+		\\$scope.getJSON = function() {
 			var retArray = [];
-			\$scope.books.forEach(function(d) {
+			\\$scope.books.forEach(function(d) {
 				var book = {
 					author: d.author,
 					title: d.title
 				};
 				retArray.push(book);
 			});
-			\$("json-area").innerHTML = JSON.stringify(retArray).replace(/({.*?},)/g,"\$1\n");
+			\\$("json-area").innerHTML = JSON.stringify(retArray).replace(/({.*?},)/g,"\\$1\n");
 		}
 	});
 
 app.directive('focusOn', function() {
 	return function(scope, elem, attr) {
-		scope.\$on(attr.focusOn, function(e) {
+		scope.\\$on(attr.focusOn, function(e) {
 			elem[0].focus();
 		});
 	};
