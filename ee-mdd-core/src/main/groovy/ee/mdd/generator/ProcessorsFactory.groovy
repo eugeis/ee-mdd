@@ -15,6 +15,8 @@
  */
 package ee.mdd.generator
 
+import java.io.File;
+
 
 /**
  *
