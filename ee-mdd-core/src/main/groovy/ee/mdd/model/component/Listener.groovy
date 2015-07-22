@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.ui.Widget;
+
 
 /**
  * @author Eugen Eisler

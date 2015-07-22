@@ -13,11 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.model.ui
+
+import ee.mdd.model.component.LogicUnit;
+import ee.mdd.model.component.Type;
+
 
 /**
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
-class Control extends Widget {
+class Widget extends LogicUnit {
+  boolean ml = false
+  boolean _static = false
+  Type domainType
+
+  View getView() {
+    this instanceof View ? this : parent.view
+  }
+
+  String getWidgetType() {
+    getClass().getSimpleName()
+  }
+
+  String getFieldName() {
+    "$uncap$widgetType"
+  }
+
+  String getGetter() {
+    "get$cap$widgetType"
+  }
 }

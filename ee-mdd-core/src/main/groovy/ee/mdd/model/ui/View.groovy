@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.model.ui
 
 /**
  *
