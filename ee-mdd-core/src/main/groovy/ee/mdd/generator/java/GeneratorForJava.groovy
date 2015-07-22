@@ -16,70 +16,25 @@
 package ee.mdd.generator.java
 
 import ee.mdd.ModelBuilder
-import ee.mdd.generator.Context
 import ee.mdd.generator.FacetTemplateLoader
 import ee.mdd.generator.Generator
+import ee.mdd.generator.GeneratorFactoryBase
 import ee.mdd.generator.ProcessorsFactory
-import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
-import ee.mdd.model.component.OperationRef
-import ee.mdd.model.component.Prop
 
 /**
  *
  * @author Eugen Eisler
  */
-class GeneratorForJava {
+class GeneratorForJava extends GeneratorFactoryBase {
 
   static {
     EnhancerForJava.enhanceClasses()
   }
 
-  ModelBuilder builder = new ModelBuilder()
-
-  Model loadModel(URL modelSource, Closure facetClosure = null) {
-    Model model
-    if(facetClosure) {
-      Facet facet =  builder.build(facetClosure)
-      model =  builder.build(modelSource)
-      if(facet) {
-        model.add(facet)
-        facet.extendModel(model)
-      }
-    } else {
-      model =  builder.build(modelSource)
-    }
-
-    builder.typeResolver.printNotResolved()
-    model
-  }
-
-  Model deriveModel(Model model) {
-    //create props for delegates
-    model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
-      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
-    model
-  }
-
-
-  void generate(Model model, File target) {
-    FacetTemplateLoader templateLoader = new FacetTemplateLoader()
-
-    Generator generator = new Generator()
-    generator.add(templateLoader.loadFacetTemplates(model))
-
-    def processorFactory = new ProcessorsFactory()
+  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader) {
     def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.typeResolver.refToElement)
-
     generator.add(processorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
-
     generator.add(javaProcessorFactory.javaImportsPathProcessor())
-    generator.add(processorFactory.printProcessor())
-    generator.add(processorFactory.fileProcessor(target))
-
-    Context c = new Context(name: model.name)
-    c.model = model
-
-    generator.generate(c)
   }
 }

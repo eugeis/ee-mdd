@@ -15,15 +15,14 @@
  */
 package ee.mdd.generator.js
 
-import ee.mdd.ModelBuilder
-import ee.mdd.generator.Context
+
+
+
 import ee.mdd.generator.FacetTemplateLoader
 import ee.mdd.generator.Generator
+import ee.mdd.generator.GeneratorFactoryBase
 import ee.mdd.generator.ProcessorsFactory
-import ee.mdd.generator.java.EnhancerForJava
 import ee.mdd.model.component.Model
-import ee.mdd.model.component.OperationRef
-import ee.mdd.model.component.Prop
 
 
 
@@ -31,43 +30,15 @@ import ee.mdd.model.component.Prop
  *
  * @author Eugen Eisler
  */
-class GeneratorForJs {
+class GeneratorForJs extends GeneratorFactoryBase {
 
-  static void main(def args) {
-    String mainResources = "${args[0]}/../ee-mdd-core/src/main/resources"
-    String testResources = "${args[0]}/../ee-mdd-core/src/test/resources"
+  static {
+    EnhancerForJs.enhanceClasses()
+  }
 
-    String target = args ? new File("${args[0]}/../ee-mdd-example_java") : '/Users/eugeis/git/ee-mdd/ee-mdd-example_js'
-
-    println args
-    EnhancerForJava.enhanceClasses()
-
-    ModelBuilder builder = new ModelBuilder()
-
-    Model model =  builder.buildFromClasspath("/model.groovy" )
-
-    if(model) {
-      
-      builder.typeResolver.printNotResolved()
-
-      FacetTemplateLoader templateLoader = new FacetTemplateLoader()
-
-      Generator generator = new Generator()
-      generator.add(templateLoader.loadFacetTemplates(model))
-
-      def commonProcessorFactory = new ProcessorsFactory()
-      def processorFactory = new ProcessorsForJs()
-
-      generator.add(commonProcessorFactory.macrosProcessor(templateLoader.load('/js/', 'macros')))
-
-      generator.add(processorFactory.jsPathProcessor())
-      generator.add(commonProcessorFactory.printProcessor())
-      generator.add(commonProcessorFactory.fileProcessor(target))
-
-      Context c = new Context(name: model.name)
-      c.model = model
-
-      generator.generate(c)
-    }
+  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader) {
+    def jsProcessorFactory = new ProcessorsForJs()
+    generator.add(processorFactory.macrosProcessor(templateLoader.load('/js/', 'macros')))
+    generator.add(jsProcessorFactory.jsPathProcessor())
   }
 }
