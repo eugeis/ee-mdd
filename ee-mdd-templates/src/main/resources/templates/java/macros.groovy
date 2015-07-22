@@ -1937,31 +1937,46 @@ templates ('macros') {
 	<form ng-controller="BookController" ng-submit="submit()" name="tableForm">
 		<table id="bookTable" class="table table-bordered table-striped" ng-init="init()">
 			<tr>
+
 <% item.props.each { %><th ng-click="sort$it.name()">$it.name</th>\n<% } %>
+
 			</tr>
 			<tr ng-repeat="book in books">
 				<td class="${item.props[0].name}column" ng-mouseover="displayCross(book)" ng-mouseleave="display${item.props[0].name}(book)">
-					<span ng-click="promptDelete(book)">{book.tag}}</span>
+					<span ng-click="promptDelete(book)">{{book.tag}}</span>
 				</td>
 
 <% for (int i = 1; i < item.props.size(); i++) {
 def it = item.props[i]
 %>
-<td ng-click="edit(book)">{{book.$it.name}}</td>\n
+			<td ng-click="edit(book)">{{book.$it.name}}</td>\n
 <% } %>
+
 			</tr>
 			<tr>
 				<td class="tableSubmit" ng-click="submit()"><span>{{tableForm.\\$valid ? "&#x2713 " : "&#x25B7"}}</span></td>
+				<td><input class="tableInput" type="text" ng-model="newBook.${item.props[1].name}" focus-on="newBookAdded" required>
 
-<% for (int i = 1; i < item.props.size() - 1; i++) {
+<% if (item.props.size() == 2) { %>
+				<input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1" />
+<% } %>
+
+				</td>\n
+
+<% for (int i = 2; i < item.props.size() - 1; i++) {
 def it = item.props[i]
 %>
-<td><input class="tableInput" type="text" ng-model="newBook.$it.name" focus-on="newBookAdded" required></td>\n
+				<td><input class="tableInput" type="text" ng-model="newBook.$it.name" required></td>\n
 <% } %>
+
+<% if (item.props.size() > 2) { %>
 
 				<td><input class="tableInput" type="text" ng-model="newBook.${item.props[item.props.size()-1].name}" required>
 					<input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1" />
 				</td>
+
+<% } %>
+
 			</tr>
 		</table>
 		<input type="button" ng-click="getJSON()" value="Get JSON">
@@ -2055,11 +2070,13 @@ def it = item.props[i] %>
 			var retArray = [];
 			\\$scope.books.forEach(function(d) {
 				var book = {
+
 <% for (int i = item.props.size()-1; i > 1; i-- ) {
 def it = item.props[i] %>
 					${it.name}: d.${it.name},
 <% } %>
-${item.props[1].name}: d.${item.props[1].name}
+
+				${item.props[1].name}: d.${item.props[1].name}
 				};
 				retArray.push(book);
 			});
