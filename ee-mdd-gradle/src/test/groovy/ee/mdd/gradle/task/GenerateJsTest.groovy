@@ -56,6 +56,7 @@ class GenerateJsTest {
 					}
 
 					entity('Task', attributeChangeFlag: true, ordered: true) {
+						//List<Prop> props (CompilationUnit)
 						prop('id', type: 'Long', primaryKey: true, unique: true)
 						prop('comment', type: 'Comment', opposite: 'testTask')
 						prop('created', type: 'Date', unique: true)
@@ -64,29 +65,33 @@ class GenerateJsTest {
 						prop('size', type: 'int')
 						prop('order', type: 'Long', xml: 'false')
 
+						//List<Constructor> constructors (CompilationUnit)
 						constr {}
 
 						constr {
+							//List<Param> params (LogicUnit)
 							param(prop: 'id')
 							param(prop: 'created', value: '#newDate')
 						}
 
 						constr {
+							//List<Param> params (LogicUnit)
 							param(prop: 'actions')
 							param(prop: 'created')
 							param(prop: 'closed')
 						}
 
+						//List<Operation> operations (CompilationUnit)
 						op('hello', body: '#testBody') {
+							//List<Param> params (LogicUnit)
 							param('Test', type: 'String')
 							param('countdown', type: 'int')
 						}
 
-						index( props: [
-							'comment',
-							'created'
-						])
+						//List<Index> indexes (DataType)
+						index( props: ['comment', 'created'])
 
+						//Finders finders (DataType)
 						finder {
 							findBy { param(prop: 'comment' ) }
 							count { param(prop: 'created') }
@@ -96,6 +101,7 @@ class GenerateJsTest {
 							}
 						}
 
+						//Commands commands (DataType)
 						commands {
 							delete { param(prop: 'closed') }
 						}
