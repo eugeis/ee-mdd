@@ -42,7 +42,7 @@ class CommonProcessorFactory {
         }
         if(!file.exists() || c.overwrite) {
           println "Write file $file"
-          file.withWriter('unicode'){ w-> w << c.output }
+          file.withWriter('UTF-8'){ w-> w << c.output }
         }
       }
     }
