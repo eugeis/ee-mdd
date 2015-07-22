@@ -1,12 +1,8 @@
-package ee.mdd.model.ui;
+package ee.mdd.model.ui
 
 class Header extends Control {
   Header(){
     ml = true
-    _static = true;
-  }
-
-  void init() {
-    super.init()
+    _static = true
   }
 }

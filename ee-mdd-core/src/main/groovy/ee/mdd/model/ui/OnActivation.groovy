@@ -1,12 +1,13 @@
-package ee.mdd.model.ui;
+package ee.mdd.model.ui
 
 class OnActivation extends Listener {
-  void init() {
+  boolean init() {
     super.init()
     eventType = "ActivationEvent"
     callbackBaseName = "${parent.capName}Activated"
     eventValueType = 'String'
     signatureValue = 'String value'
+    true
   }
 
   void buildMe() {

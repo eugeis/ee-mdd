@@ -1,12 +1,13 @@
-package ee.mdd.model.ui;
+package ee.mdd.model.ui
 
 class OnChange extends Listener {
-  void init() {
+  boolean init() {
     super.init()
     eventTypeRawType = "ChangeEvent"
     eventType = "$eventTypeRawType<$eventValueType>"
     signatureValue = "$eventValueType value"
     callbackBaseName = "${parent.capName}Changed"
+    true
   }
 
   void buildMe() {

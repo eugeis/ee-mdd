@@ -1,12 +1,13 @@
-package ee.mdd.model.ui;
+package ee.mdd.model.ui
 
 class OnContextMenuRequest extends Listener {
-  void init() {
+  boolean init() {
     super.init()
     eventType = "ContextMenuRequestEvent"
     callbackBaseName = "${parent.capName}ContextMenuRequested"
     eventValueType = 'String'
     signatureValue = 'String value'
+    true
   }
 
   void buildMe() {
