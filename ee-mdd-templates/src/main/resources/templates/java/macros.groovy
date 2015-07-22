@@ -1925,10 +1925,6 @@ templates ('macros') {
 		<link rel="stylesheet" href="${item.name}.css">
 		<script src="angular.js" type="text/javascript"></script>
 		<script src="${item.name}.js" type="text/javascript"></script>
-
-		<% item.props.each { %> $it.name <% } %>
-
-
 </head>
 <body>
 ''')
@@ -2092,8 +2088,7 @@ app.directive('focusOn', function() {
 	};
 });
 
-var myBooks = [{"author":"Author 1","title":"Title 1"},
-{"author":"Author 2","title":"Title 2"}]
+var myBooks = [];
 }());
 ''')
 }
