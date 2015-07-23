@@ -34,7 +34,6 @@ import ee.mdd.model.component.Facade
  */
 
 templates ('common') {
-
 	//model
 	templates ('modelApi',
 	items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
@@ -126,34 +125,4 @@ templates ('common') {
 		template('Ml', appendName: true, body: '''<% c.className = "${item.name}MlBase" %><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsMl', c)}''')
 		template('MlExtends', appendName: true, body: '''<% c.className = "${item.name}Ml" %><% c.path = "ee-mdd_example-shared/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsMlExtends', c)}''')
 	}
-
-
-
-
-
-	/*
-	 *
-	 * Javascript templates
-	 *
-	 *
-	 *
-	 *
-	 */
-
-	templates ('firstTestWithAngular',
-	items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-	context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
-		template('dings', body: '''<% c.className = "${item.name}.html" %> ${macros.generate('myhtmlheadermacro', c)} ${macros.generate('myhtmlbodymacro', c)} ${macros.generate('myhtmlfootermacro', c)}''')
-		template('dings2', appendName: true,  body: '''<% c.className = "${item.name}.js" %> ${macros.generate('myangularmacro', c)}''')
-		template('dings3', body: '''<% c.className = "${item.name}.css" %> ${macros.generate('mycssmacro', c)}''')
-	}
-
-
-	/*
-	 templates ('taskConstructor',
-	 items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
-	 context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, entity: c.item, subPkg: 'impl' ] ) } ) {
-	 template('dings4', appendName: true,  body: '''<% c.className = "${item.name}task" %> ''')
-	 }
-	 */
 }

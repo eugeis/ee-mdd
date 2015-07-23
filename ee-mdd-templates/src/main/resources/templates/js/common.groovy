@@ -38,4 +38,23 @@ templates ('common') {
 
     template('enum', body: '''${macros.generate('enum', c)}''')
   }
+
+  templates ('firstTestWithAngular',
+	  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+	  context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
+
+		  template('htmlFile', body: '''<% c.path = "${c.filepath}/${item.name}.html" %>
+			${macros.generate('myhtmlheadermacro', c)}
+			${macros.generate('myhtmlbodymacro', c)}
+			${macros.generate('myhtmlfootermacro', c)}''')
+
+		  template('angularFile', appendName: true,  body: '''<% c.path = "${c.filepath}/${item.name}.js" %>
+			${macros.generate('myangularmacro', c)}''')
+
+		  template('cssFile', body: '''<% c.path = "${c.filepath}/${item.name}.css" %>
+			${macros.generate('mycssmacro', c)}''')
+
+		  //		template('javascriptBase', body: '''<% c.path = "${c.filepath}/${item.name}Base.js" %>
+		//			${macros.generate('myjavascriptmacro', c)}''')
+	  }
 }
