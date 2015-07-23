@@ -96,7 +96,7 @@ class GenerateJsTest {
 
         module('ui', namespace: 'ui') {
 
-          view ('TaskEditor') {
+          view ('TaskEditor', main: true) {
             viewRef(view: 'TaskExplorerView') {}
             viewRef(view: 'TaskDetailsView') {}
             presenter {}
@@ -143,3 +143,4 @@ class GenerateJsTest {
     println model
   }
 }
+
