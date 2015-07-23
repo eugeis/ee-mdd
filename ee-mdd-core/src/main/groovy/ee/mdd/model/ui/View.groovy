@@ -46,18 +46,23 @@ class View extends Widget {
   String deriveName() {
     "${domainName}View"
   }
+
   def getMediatorImplements() {
     mediatorDelegates.collect{it.names.eventForwarder}.join(', ')
   }
+
   List<Presenter> getMediatorPresenters() {
     mediatorViews*.presenter
   }
+
   List<ViewModel> getMediatorModels() {
     mediatorViews*.model - null
   }
+
   List<ViewModel> getMediatorDelegates() {
     mediatorPresenters + mediatorModels
   }
+
   List<View> getMediatorViews() {
     def ret = []; views.each{ret.addAll(it.mediatorViews)} ; ret << view ; ret
   }
@@ -65,22 +70,27 @@ class View extends Widget {
   def getViews() {
     viewRefs.views
   }
+
   void add(ViewRef item) {
     if(!viewRefs) {
       viewRefs = []
     }; viewRefs << super.add(item)
   }
+
   void add(Control item) {
     if(!controls) {
       controls = []
     }; controls << super.add(item)
   }
+
   void add(Dialog item) {
     super.add(item); dialog = item
   }
+
   void add(Presenter item) {
     super.add(item); presenter = item
   }
+
   void add(ViewModel item) {
     super.add(item); model = item
   }
