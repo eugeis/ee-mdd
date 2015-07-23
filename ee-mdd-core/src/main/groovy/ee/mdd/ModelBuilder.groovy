@@ -50,11 +50,13 @@ import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Exist
 import ee.mdd.model.component.ExternalModule
 import ee.mdd.model.component.ExternalType
+import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Find
 import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Initializer
+import ee.mdd.model.component.Listener
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Message
@@ -67,11 +69,38 @@ import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Param
 import ee.mdd.model.component.Pojo
 import ee.mdd.model.component.Prop
-import ee.mdd.model.component.Facade
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.ui.Button
+import ee.mdd.model.ui.CheckBox
+import ee.mdd.model.ui.Column
+import ee.mdd.model.ui.ComboBox
+import ee.mdd.model.ui.ContextMenu
+import ee.mdd.model.ui.Control
+import ee.mdd.model.ui.DateField
+import ee.mdd.model.ui.Dialog
+import ee.mdd.model.ui.GroupBoxHeader
+import ee.mdd.model.ui.GroupContentFrame
+import ee.mdd.model.ui.Header
+import ee.mdd.model.ui.Label
+import ee.mdd.model.ui.OnAction
+import ee.mdd.model.ui.OnActivation
+import ee.mdd.model.ui.OnChange
+import ee.mdd.model.ui.OnContextMenuRequest
+import ee.mdd.model.ui.OnItemEditorItemSelect
+import ee.mdd.model.ui.OnSelect
+import ee.mdd.model.ui.Panel
+import ee.mdd.model.ui.Presenter
+import ee.mdd.model.ui.Spinner
+import ee.mdd.model.ui.Table
+import ee.mdd.model.ui.TextField
+import ee.mdd.model.ui.TimeField
+import ee.mdd.model.ui.View
+import ee.mdd.model.ui.ViewModel
+import ee.mdd.model.ui.ViewRef
+import ee.mdd.model.ui.Widget
 
 /**
  *
@@ -117,12 +146,49 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   private ModelFactory model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   private def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
-  private CompositeFactory module = new CompositeFactory(beanClass: Module, childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency'], parent: su)
+
   private def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
   private def prop = new PropFactory(parent: attr)
   private def literal = new CompositeFactory(beanClass: Literal)
   private def facade = new CompositeFactory(beanClass: Facade, parent: cu)
   private def namespace = new MddFactory(beanClass: Namespace)
+
+  //UI
+  private def factoryWidget = new MddFactory(beanClass: Widget)
+  private def factoryControl = new MddFactory(beanClass: Control, parent: factoryWidget)
+  private def factoryListener = new MddFactory(beanClass: Listener, parent: operation)
+
+  private def factoryPresenter = new MddFactory(beanClass: Presenter, parent: factoryControl)
+  private def factoryViewRef = new MddFactory(beanClass: ViewRef)
+  private def factoryDialog = new MddFactory(beanClass: Dialog, parent: factoryWidget)
+  private def factoryComboBox = new MddFactory(beanClass: ComboBox, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryGroupContentFrame = new MddFactory(beanClass: GroupContentFrame, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryContextMenu = new MddFactory(beanClass: ContextMenu, childFactories: ['OnActivation'], parent: factoryControl)
+  private def factoryCheckBox = new MddFactory(beanClass: CheckBox, childFactories: ['onChange'], parent: factoryControl)
+  private def factoryLabel = new MddFactory(beanClass: Label, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryHeader = new MddFactory(beanClass: Header, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryPanel = new MddFactory(beanClass: Panel, childFactories: ['onSelect'], parent: factoryControl)
+  private def factorySpinner = new MddFactory(beanClass: Spinner, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryTextField = new MddFactory(beanClass: TextField, childFactories: ['onChange'], parent: factoryControl)
+  private def factoryGroupBoxHeader = new MddFactory(beanClass: GroupBoxHeader, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryTimeField = new MddFactory(beanClass: TimeField, childFactories: ['onChange'], parent: factoryControl)
+  private def factoryDateField = new MddFactory(beanClass: DateField, childFactories: ['onChange'], parent: factoryControl)
+  private def factoryViewModel = new MddFactory(beanClass: ViewModel, parent: factoryControl)
+  private def factoryTable = new MddFactory(beanClass: Table, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryColumn = new MddFactory(beanClass: Column, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryOnAction = new MddFactory(beanClass: OnAction, childFactories: [], parent: factoryListener)
+  private def factoryOnActivation = new MddFactory(beanClass: OnActivation, childFactories: [], parent: factoryListener)
+  private def factoryOnChange = new MddFactory(beanClass: OnChange, childFactories: [], parent: factoryListener)
+  private def factoryOnContextMenuRequest = new MddFactory(beanClass: OnContextMenuRequest, childFactories: [], parent: factoryListener)
+  private def factoryOnItemEditorItemSelect = new MddFactory(beanClass: OnItemEditorItemSelect, childFactories: [], parent: factoryListener)
+  private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
+  private def factoryButton = new MddFactory(beanClass: Button, childFactories: ['onAction'], parent: factoryControl)
+
+  private def factoryView = new MddFactory(beanClass: View,
+  childFactories: ['dialog', 'viewRef', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
+  private CompositeFactory module = new CompositeFactory(beanClass: Module,
+  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view'], parent: su)
+
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
     super(postInstantiateDelegate)
@@ -148,8 +214,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
 
     typeResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
 
+    typeResolver.addGlobalResolver('view', View)
+
     facets.names.each { facetName -> registerFactory facetName, new FacetFactory(facetName: facetName, facets: facets, parent: facet) }
-    
+
     reg()
   }
 
@@ -191,6 +259,35 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'namespace', namespace
     registerFactory 'channel', channel
     registerFactory 'message', message
+
+    //UI
+    registerFactory 'view', factoryView
+    registerFactory 'viewRef', factoryViewRef
+    registerFactory 'dialog', factoryDialog
+    registerFactory 'button', factoryButton
+    registerFactory 'comboBox', factoryComboBox
+    registerFactory 'groupContentFrame', factoryGroupContentFrame
+    registerFactory 'contextMenu', factoryContextMenu
+    registerFactory 'checkBox', factoryCheckBox
+    registerFactory 'label', factoryLabel
+    registerFactory 'header', factoryHeader
+    registerFactory 'panel', factoryPanel
+    registerFactory 'spinner', factorySpinner
+    registerFactory 'textField', factoryTextField
+    registerFactory 'groupBoxHeader', factoryGroupBoxHeader
+    registerFactory 'timeField', factoryTimeField
+    registerFactory 'dateField', factoryDateField
+    registerFactory 'presenter', factoryPresenter
+    registerFactory 'viewModel', factoryViewModel
+    registerFactory 'table', factoryTable
+    registerFactory 'column', factoryColumn
+    registerFactory 'onAction', factoryOnAction
+    registerFactory 'onActivation', factoryOnActivation
+    registerFactory 'onChange', factoryOnChange
+    registerFactory 'onContextMenuRequest', factoryOnContextMenuRequest
+    registerFactory 'onItemEditorItemSelect', factoryOnItemEditorItemSelect
+    registerFactory 'onSelect', factoryOnSelect
+
   }
 }
 

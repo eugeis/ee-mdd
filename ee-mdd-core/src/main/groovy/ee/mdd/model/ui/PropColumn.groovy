@@ -1,5 +1,10 @@
-package ee.mdd.model.ui;
+package ee.mdd.model.ui
+
+import ee.mdd.model.component.Prop
+
 class PropColumn extends Column {
-  EntityProp prop
-  String deriveName() { prop.name }
+  Prop prop
+  String deriveName() {
+    prop.name
+  }
 }

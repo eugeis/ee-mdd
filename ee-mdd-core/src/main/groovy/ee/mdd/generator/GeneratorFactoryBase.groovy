@@ -16,7 +16,6 @@
 package ee.mdd.generator
 
 import ee.mdd.ModelBuilder
-import ee.mdd.generator.java.ProcessorsForJava
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.OperationRef
@@ -62,14 +61,19 @@ class GeneratorFactoryBase {
     generator.add(templateLoader.loadFacetTemplates(model))
 
     def processorFactory = new ProcessorsFactory()
+
+    extendGenerator(generator, processorFactory, templateLoader)
+
     generator.add(processorFactory.printProcessor())
     generator.add(processorFactory.fileProcessor(target))
 
-    extendGenerator(generator, processorFactory, templateLoader)
 
     Context c = new Context(name: model.name)
     c.model = model
 
     generator.generate(c)
+  }
+
+  void extendGenerator(generator, processorFactory, templateLoader) {
   }
 }

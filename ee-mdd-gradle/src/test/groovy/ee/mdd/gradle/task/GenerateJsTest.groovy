@@ -95,6 +95,37 @@ class GenerateJsTest {
         }
 
         module('ui', namespace: 'ui') {
+
+          view ('TaskEditor') {
+            viewRef(view: 'TaskExplorerView') {}
+            viewRef(view: 'TaskDetailsView') {}
+            presenter {}
+            //model {}
+            button('accept') { onAction(['TaskEditorView.model']) }
+            button('discard') { onAction(['TaskEditorView.model']) }
+          }
+
+          view ('TaskExplorer') {
+            button('addTask') { onAction(['TaskEditorView.model']) }
+            button('deleteTask') { onAction(['TaskEditorView.model']) }
+            table('tasks', type: 'Task') { onSelect(['TaskEditorView.model'], observerRefs:['TaskDetailsView.presenter']) }
+            presenter {}
+          }
+
+          view ('TaskDetails') {
+            textField('taskName') { onChange(['TaskEditorView.model']) }
+            table('actions', type: 'TaskAction') {onSelect()}
+            contextMenu('actionsManagement') {}
+            presenter {}
+          }
+
+          view ('TaskSearch') {
+            textField('name') { onChange() }
+            textField('comment') { onChange() }
+            button('search') { onAction() }
+            presenter {}
+            dialog {}
+          }
         }
       }
     }

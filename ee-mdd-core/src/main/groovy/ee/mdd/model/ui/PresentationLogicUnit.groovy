@@ -8,7 +8,7 @@ class PresentationLogicUnit extends LogicUnit {
 
   boolean init() {
     super.init()
-    addNameBuilder({ names.clazz }, [ eventForwarder: "Events", eventForwarderBase: "Events$basePrefix" ])
+    //addNameBuilder({ names.clazz }, [ eventForwarder: "Events", eventForwarderBase: "Events$basePrefix" ])
     true
   }
 

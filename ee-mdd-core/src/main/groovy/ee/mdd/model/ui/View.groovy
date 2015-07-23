@@ -15,10 +15,75 @@
  */
 package ee.mdd.model.ui
 
+
 /**
  *
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
-class View extends Widget{
+class View extends Widget {
+  String domainName
+  boolean main = false
+  boolean withMediator = false
+  Presenter presenter
+  ViewModel model
+  Dialog dialog
+  List<Control> controls = []
+  List<ViewRef> viewRefs = []
+
+  boolean init() {
+    super.init()
+    //addNameBuilder({ names.clazz }, [ driver: 'Driver', driverBase: "Driver$basePrefix" ])
+    //addNameBuilder({ domainName }, [ mediator: 'Mediator', mediatorBase: "Mediator$basePrefix" ])
+    //    if (!subNamespace) {
+    //      subNamespace = domainName.toLowerCase()
+    //    }
+    true
+  }
+
+  void buildMe() {
+    super.buildMe()
+    if (!views.empty) {
+      view.withMediator = main ; presenter.withMediator = true ; views.each {view -> view.presenter.withMediator = true}
+    }
+  }
+
+  String deriveName() {
+    "${domainName}View"
+  }
+  def getMediatorImplements() {
+    mediatorDelegates.collect{it.names.eventForwarder}.join(', ')
+  }
+  List<Presenter> getMediatorPresenters() {
+    mediatorViews*.presenter
+  }
+  List<ViewModel> getMediatorModels() {
+    mediatorViews*.model - null
+  }
+  List<ViewModel> getMediatorDelegates() {
+    mediatorPresenters + mediatorModels
+  }
+  List<View> getMediatorViews() {
+    def ret = []; views.each{ret.addAll(it.mediatorViews)} ; ret << view ; ret
+  }
+
+  def getViews() {
+    viewRefs.views
+  }
+  void addViewRef(ViewRef item) {
+    viewRefs.add(item)
+    //add(new Panel(name:item))
+  }
+  void add(Control item) {
+    super.add(item); controls << item
+  }
+  void add(Dialog item) {
+    super.add(item); dialog = item
+  }
+  void add(Presenter item) {
+    super.add(item); presenter = item
+  }
+  void add(ViewModel item) {
+    super.add(item); model = item
+  }
 }

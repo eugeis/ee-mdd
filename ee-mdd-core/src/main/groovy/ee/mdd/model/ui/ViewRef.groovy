@@ -15,32 +15,12 @@
  */
 package ee.mdd.model.ui
 
-import ee.mdd.model.component.LogicUnit
-import ee.mdd.model.component.Type
+import ee.mdd.model.Element
 
 
 /**
  * @author Eugen Eisler
- * @author Niklas Cappelmann
  */
-class Widget extends LogicUnit {
-  boolean ml = false
-  boolean _static = false
-  Type type
-
-  View getView() {
-    this instanceof View ? this : parent.view
-  }
-
-  String getWidgetType() {
-    getClass().getSimpleName()
-  }
-
-  String getFieldName() {
-    "$uncap$widgetType"
-  }
-
-  String getGetter() {
-    "get$cap$widgetType"
-  }
+class ViewRef extends Element {
+  View view
 }
