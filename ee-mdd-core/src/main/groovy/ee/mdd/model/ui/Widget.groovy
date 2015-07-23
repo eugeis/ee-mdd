@@ -16,7 +16,9 @@
 package ee.mdd.model.ui
 
 import ee.mdd.model.component.LogicUnit
+import ee.mdd.model.component.Module
 import ee.mdd.model.component.Names
+import ee.mdd.model.component.Namespace
 import ee.mdd.model.component.Type
 
 
@@ -37,12 +39,28 @@ class Widget extends LogicUnit {
     n
   }
 
+  Namespace getNs() {
+    parent.ns
+  }
+
+  Module getModule() {
+    parent.module
+  }
+
   View getView() {
     this instanceof View ? this : parent.view
   }
 
   String getWidgetType() {
     getClass().getSimpleName()
+  }
+
+  String getWidgetTypeShort() {
+    widgetType
+  }
+
+  String getWidgetInterface() {
+    widgetType
   }
 
   String getFieldName() {
