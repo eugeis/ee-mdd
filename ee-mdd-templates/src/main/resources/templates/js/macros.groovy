@@ -61,6 +61,22 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
   $lit.underscored: new $classNameLit($lit.init)${lit == last ? '' : ','}<% } %>
 }''')
 
+  /*
+   *
+   * Entity
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   */
+
+
   template('mycssmacro', body: '''
 #entityTable {
 	width: 800px;
@@ -147,11 +163,6 @@ def it = item.props[i]
 		<input type="button" ng-click="getJSON()" value="Get JSON">
 		<textarea id="json-area"></textarea>
 	</form>
-''')
-
-	  template('myhtmlfootermacro', body: '''
-</body>
-</html>
 ''')
 
 	  template('myangularmacro', body: '''
@@ -252,4 +263,52 @@ app.directive('focusOn', function() {
 });
 }());
 ''')
+
+	  /*
+	   *
+	   *
+	   * Views
+	   *
+	   *
+	   *
+	   *
+	   */
+
+	  template('indexheader', body: '''<!DOCTYPE html>
+<html ng-app="${item.name}">
+  <head>
+    <title>${item.name}</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="${item.name}.css">
+    <script src="angular.js" type="text/javascript"></script>
+    <script src="${item.name}.js" type="text/javascript"></script>
+  </head>
+<body>
+''')
+
+	  template('includedviews', body: '''
+<div ng-include="'${item.viewRefs}.html'"></div>
+
+''')
+
+	  template('html', body: '''
+<% item.controls.each { %>
+  <% if (it.widgetType == "Table") { %>
+    <table><tr><td>$it.name</td></tr></table>
+  <% } %>
+  <% if (it.widgetType == "Button") { %>
+    <input type="button" value="$it.name">
+  <% } %>
+  <% if (it.widgetType == "TextField") { %>
+    <input type="text" value="$it.name">
+  <% } %>
+<% } %>
+''')
+
+	  template('htmlfootermacro', body: '''
+</body>
+</html>
+''')
+
 }
