@@ -1850,4 +1850,24 @@ ${ret-newLine}''')
 	  counter--;
 	}
 	System.out.println(test);''')
+
+
+  // UI
+
+  template('viewInterfaceBase', body: '''
+/** Interface of ${item.name}. */
+public interface $className extends ${className}Base {
+}''')
+
+
+  template('viewInterface', body: '''<% def baseClass = item.dialog ? 'DialogViewInterface' : 'ViewInterface' %>
+/** Base interface of ${item.name}. */
+public interface $className extends $baseClass {<% item.controls.each { def control-> if (!control.static) { %>
+  $control.widgetInterface ${control.getter};
+  <% } } %>
+}''')
+
+
+
+
 }
