@@ -16,6 +16,7 @@
 package ee.mdd.model.ui
 
 import ee.mdd.model.component.LogicUnit
+import ee.mdd.model.component.Names
 import ee.mdd.model.component.Type
 
 
@@ -24,9 +25,17 @@ import ee.mdd.model.component.Type
  * @author Niklas Cappelmann
  */
 class Widget extends LogicUnit {
+  Names n
   boolean ml = false
   boolean _static = false
   Type type
+
+  Names getN() {
+    if (!n) {
+      n = new Names(this, name)
+    }
+    n
+  }
 
   View getView() {
     this instanceof View ? this : parent.view
