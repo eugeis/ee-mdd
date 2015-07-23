@@ -70,12 +70,15 @@ class View extends Widget {
   def getViews() {
     viewRefs.views
   }
-  void addViewRef(ViewRef item) {
-    viewRefs.add(item)
-    //add(new Panel(name:item))
+  void add(ViewRef item) {
+    if(!viewRefs) {
+        viewRefs = []
+    }; viewRefs << super.add(item)
   }
   void add(Control item) {
-    super.add(item); controls << item
+    if(!controls) {
+        controls = []
+    }; controls << super.add(item)
   }
   void add(Dialog item) {
     super.add(item); dialog = item
