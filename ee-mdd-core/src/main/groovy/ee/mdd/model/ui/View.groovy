@@ -33,11 +33,6 @@ class View extends Widget {
 
   boolean init() {
     super.init()
-    //addNameBuilder({ names.clazz }, [ driver: 'Driver', driverBase: "Driver$basePrefix" ])
-    //addNameBuilder({ domainName }, [ mediator: 'Mediator', mediatorBase: "Mediator$basePrefix" ])
-    //    if (!subNamespace) {
-    //      subNamespace = domainName.toLowerCase()
-    //    }
     true
   }
 
@@ -72,12 +67,12 @@ class View extends Widget {
   }
   void add(ViewRef item) {
     if(!viewRefs) {
-        viewRefs = []
+      viewRefs = []
     }; viewRefs << super.add(item)
   }
   void add(Control item) {
     if(!controls) {
-        controls = []
+      controls = []
     }; controls << super.add(item)
   }
   void add(Dialog item) {
