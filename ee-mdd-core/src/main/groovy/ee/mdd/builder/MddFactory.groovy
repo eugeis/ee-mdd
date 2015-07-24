@@ -15,10 +15,7 @@
  */
 package ee.mdd.builder
 
-import java.util.Map;
-
 import ee.mdd.model.Base
-import groovy.util.FactoryBuilderSupport;
 
 /**
  *
@@ -46,7 +43,7 @@ class MddFactory extends AbstractFactory {
 
   Closure childClosure(FactoryBuilderSupport builder, node) {
   }
-  
+
   protected void prepareInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes, fillInstance) {
     if(BuilderAware.isInstance(fillInstance)) {
       fillInstance.builder = builder
@@ -77,10 +74,16 @@ class MddFactory extends AbstractFactory {
   }
 
   public void setChild( FactoryBuilderSupport builder, Object parent, Object child ) {
-    try {
-      parent.add(child)
-    } catch(e) {
-      println "Can't add '$child' to parent '$parent' in '$this' "
+    if(child != null) {
+      try {
+        if(Closure.isInstance(child)) {
+          //child(parent)
+        } else {
+          parent.add(child)
+        }
+      } catch(e) {
+        println "Can't add '$child' to parent '$parent' in '$this' "
+      }
     }
   }
 

@@ -26,6 +26,9 @@ import ee.mdd.model.component.Entity
 
 templates('jpa') {
 
+  useMacros('commonMacros', '/common/macros')
+  useMacros('macros')
+
   templates ('basicType',
   items: { c -> c.model.findAllRecursiveDown( {BasicType.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {

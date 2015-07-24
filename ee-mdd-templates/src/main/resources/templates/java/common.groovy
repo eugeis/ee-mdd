@@ -34,6 +34,10 @@ import ee.mdd.model.component.Facade
  */
 
 templates ('common') {
+
+  useMacros('commonMacros', '/common/macros')
+  useMacros('macros')
+
   //model
   templates ('modelApi',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },

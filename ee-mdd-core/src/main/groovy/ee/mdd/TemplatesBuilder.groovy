@@ -17,6 +17,7 @@ package ee.mdd
 
 import ee.mdd.builder.AbstractFactoryBuilder
 import ee.mdd.builder.CompositeFactory
+import ee.mdd.builder.MethodCallFactory
 import ee.mdd.builder.TemplateGroupFactory
 import ee.mdd.generator.Generator
 import ee.mdd.generator.Processor
@@ -30,25 +31,24 @@ import ee.mdd.model.Body
 class TemplatesBuilder extends AbstractFactoryBuilder {
 
   void registerAll() {
-    def factoryGenerator = new CompositeFactory(beanClass: Generator, childFactories: [
-      'templates',
-      'processor'
-    ])
-    def templates = new TemplateGroupFactory(childFactories: [
-      'templates',
-      'template',
-      'processor'
-    ])
+    def factoryGenerator = new CompositeFactory(beanClass: Generator, childFactories: ['templates', 'processor'])
+
+    def templates = new TemplateGroupFactory(childFactories: ['templates', 'template', 'processor'])
+
     def processor = new CompositeFactory(beanClass: Processor, childFactories: [])
     def template = new CompositeFactory(beanClass: Template, childFactories: ['type', 'processor'])
     def body = new CompositeFactory(beanClass: Body, childFactories: ['type'])
-
+    def methodCall = new MethodCallFactory()
 
     registerFactory 'generator', factoryGenerator
     registerFactory 'templates', templates
     registerFactory 'template', template
     registerFactory 'processor', processor
     registerFactory 'body', body
+  }
+
+  void useMacros(String alias, String fullName = null) {
+    current.useMacros(alias, fullName)
   }
 }
 

@@ -52,7 +52,7 @@ abstract class AbstractGenerator extends Composite {
       }
     }
   }
-  
+
   protected void extendContextOutput(Context c) {
     if(purpose) {
       c.outputPurpose = purpose

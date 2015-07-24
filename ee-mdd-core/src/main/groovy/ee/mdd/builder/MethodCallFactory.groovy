@@ -13,16 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.generator.js
-
-
-
-
-import ee.mdd.generator.FacetTemplateLoader
-import ee.mdd.generator.Generator
-import ee.mdd.generator.GeneratorFactoryBase
-import ee.mdd.generator.ProcessorsFactory
-import ee.mdd.model.component.Model
+package ee.mdd.builder
 
 
 
@@ -30,14 +21,23 @@ import ee.mdd.model.component.Model
  *
  * @author Eugen Eisler
  */
-class GeneratorForJs extends GeneratorFactoryBase {
+class MethodCallFactory extends MddFactory {
 
-  static {
-    EnhancerForJs.enhanceClasses()
-  }
-
-  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader) {
-    def jsProcessorFactory = new ProcessorsForJs()
-    generator.add(jsProcessorFactory.jsPathProcessor())
+  @Override
+  Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
+    def current = builder.current
+    if(value && attributes) {
+      def paramList = attributes.values().toList()
+      current."${name}"(value, *paramList)
+    } else if(value) {
+      current."${name}"(value)
+    } else if(attributes) {
+      def paramList = attributes.values().toList()
+      current."${name}"(*paramList)
+    } else {
+      current."${name}"()
+    }
+    return null
   }
 }
+

@@ -25,6 +25,9 @@ import ee.mdd.model.component.Facade
 
 templates('ejb') {
 
+  useMacros('commonMacros', '/common/macros')
+  useMacros('macros')
+
   templates ('facadeEjbService',
   items: { c -> c.model.findAllRecursiveDown( { Facade.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {

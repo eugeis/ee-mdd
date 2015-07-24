@@ -34,7 +34,6 @@ class GeneratorForJava extends GeneratorFactoryBase {
 
   protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader) {
     def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.typeResolver.refToElement)
-    generator.add(processorFactory.macrosProcessor(templateLoader.load('/java/', 'macros')))
     generator.add(javaProcessorFactory.javaImportsPathProcessor())
   }
 }

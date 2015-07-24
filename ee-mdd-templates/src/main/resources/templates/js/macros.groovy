@@ -22,8 +22,7 @@
 
 templates ('macros') {
 
-  template('header', body: '''/* EE Software */''')
-
+  useMacros('commonMacros', '/common/macros')
 
   template('propsMember', body: '''<% item.props.each { prop -> %>
   this.$prop.uncap;<% } %>''')

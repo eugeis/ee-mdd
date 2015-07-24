@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.generator.js
 
-
-
-
-import ee.mdd.generator.FacetTemplateLoader
-import ee.mdd.generator.Generator
-import ee.mdd.generator.GeneratorFactoryBase
-import ee.mdd.generator.ProcessorsFactory
-import ee.mdd.model.component.Model
-
-
+import static ee.mdd.generator.OutputPurpose.*
+import static ee.mdd.generator.OutputType.*
 
 /**
  *
  * @author Eugen Eisler
  */
-class GeneratorForJs extends GeneratorFactoryBase {
 
-  static {
-    EnhancerForJs.enhanceClasses()
-  }
+templates ('macros') {
 
-  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader) {
-    def jsProcessorFactory = new ProcessorsForJs()
-    generator.add(jsProcessorFactory.jsPathProcessor())
-  }
+  template('header', body: '''/* EE Software */''')
 }

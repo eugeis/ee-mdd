@@ -25,6 +25,9 @@ import ee.mdd.model.ui.View
 
 templates ('common') {
 
+  useMacros('macros')
+  useMacros('commonMacros', '/common/macros')
+
   templates ('api',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
