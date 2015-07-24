@@ -28,19 +28,13 @@ class View extends Widget {
   Presenter presenter
   ViewModel model
   Dialog dialog
-  List<Control> controls = []
-  List<ViewRef> viewRefs = []
+  List<Control> controls
+  List<ViewRef> viewRefs
 
   boolean init() {
     super.init()
+    //view.withMediator = main ; presenter.withMediator = true; viewRefs.each { viewRef -> view.presenter.withMediator = true}
     true
-  }
-
-  void buildMe() {
-    super.buildMe()
-    if (!views.empty) {
-      view.withMediator = main ; presenter.withMediator = true ; views.each {view -> view.presenter.withMediator = true}
-    }
   }
 
   String deriveName() {

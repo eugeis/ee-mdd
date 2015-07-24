@@ -110,17 +110,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private Facets facets = new Facets()
   private def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
   private def channel = new CompositeFactory(beanClass: Channel, childFactories: ['meta', 'message'])
-  private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: [
-    'constr',
-    'prop',
-    'op',
-    'delegate'
-  ], parent: type)
-  private def dataType = new CompositeFactory(beanClass: DataType, childFactories: [
-    'finder',
-    'commands',
-    'index'
-  ], parent: cu)
+  private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate'], parent: type)
+  private def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
   private def typeRef = new CompositeFactory(beanClass: TypeRef)
   private def message = new CompositeFactory(beanClass: Message,  childFactories: ['meta'], parent: typeRef)
   private def basicType = new CompositeFactory(beanClass: BasicType, parent: dataType)
@@ -193,38 +184,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
   private def factoryButton = new MddFactory(beanClass: Button, childFactories: ['onAction'], parent: factoryControl)
 
-  private def factoryView = new MddFactory(beanClass: View,
-  childFactories: [
-    'dialog',
-    'viewRef',
-    'viewModel',
-    'presenter',
-    'button',
-    'comboBox',
-    'contextMenu',
-    'checkBox',
-    'label',
-    'panel',
-    'spinner',
-    'textField',
-    'timeField',
-    'dateField',
-    'table'
-  ], parent: factoryWidget)
+  private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
+  childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
-  childFactories: [
-    'entity',
-    'basicType',
-    'enumType',
-    'pojo',
-    'config',
-    'controller',
-    'facade',
-    'container',
-    'channel',
-    'dependency',
-    'view'
-  ], parent: su)
+  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view'], parent: su)
 
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
@@ -249,13 +212,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     typeResolver.addGlobalResolver('meta', Type, metaAttributeHolder.&forType, true)
     typeResolver.addParentResolver('props', Prop, 2, null, true)
 
-    typeResolver.addGlobalTypes([
-      Model,
-      Module,
-      Component,
-      Type,
-      CompilationUnit
-    ])
+    typeResolver.addGlobalTypes([Model, Module, Component, Type, CompilationUnit])
 
     typeResolver.addGlobalResolver('view', View)
 
