@@ -22,9 +22,14 @@ package ee.mdd.model.ui
  * @author Niklas Cappelmann
  */
 class Button extends Control {
+  OnAction onAction
 
   protected boolean init() {
     ml = true
     super.init();
+  }
+
+  void add(OnAction item) {
+    super.add(item); onAction = item
   }
 }
