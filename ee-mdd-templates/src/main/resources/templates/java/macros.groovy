@@ -1861,10 +1861,10 @@ public interface $className extends ${className}Base {
 }''')
 
 
-  template('viewInterface', body: '''<% def baseClass = item.dialog ? 'DialogViewInterface' : 'ViewInterface' %>
+  template('viewInterface', body: '''<% def baseClass = item.dialog ? 'DialogViewInterface' : 'ViewInterface' %>{{imports}}
 /** Base interface of ${item.name}. */
-public interface $className extends $baseClass {<% item.controls.each { def control-> if (!control.static) { %>
-  $control.widgetInterface ${control.getter};
+public interface $className extends ${c.name(baseClass)} {<% item.controls.each { def control-> if ((control != null) && !control.static) { %>
+  ${c.name(control.widgetInterface)} ${control.getter};
   <% } } %>
 }''')
 

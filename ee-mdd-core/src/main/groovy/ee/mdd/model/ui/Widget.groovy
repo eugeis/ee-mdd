@@ -68,6 +68,6 @@ class Widget extends LogicUnit {
   }
 
   String getGetter() {
-    "get$cap$widgetType"
+    "get$cap$widgetType()"
   }
 }
