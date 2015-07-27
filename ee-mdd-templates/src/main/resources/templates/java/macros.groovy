@@ -26,7 +26,6 @@ import static ee.mdd.generator.OutputType.*
 templates ('macros') {
 
   useMacros('commonMacros', '/common/macros')
-  useMacros('macros')
 
   template('header', body: '''/* EE Software */''')
 
