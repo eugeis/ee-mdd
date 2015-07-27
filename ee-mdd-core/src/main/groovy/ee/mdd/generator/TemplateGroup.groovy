@@ -23,8 +23,12 @@ import groovy.util.logging.Slf4j
  */
 @Slf4j
 class TemplateGroup extends AbstractGenerator {
+  String path
   Map<String, Template> templates = [:]
   Map<String, TemplateGroup> templateGroups = [:]
+  Map<String, String> aliasToMacrosFullName = [:]
+  Map<String, TemplateGroup> aliasToMacros = [:]
+
   Closure onlyIf
   Closure context
 
@@ -76,12 +80,25 @@ class TemplateGroup extends AbstractGenerator {
   }
 
   protected void extendContext(Context c) {
+    //add macros to context
+    if(aliasToMacros) {
+      c.putAll(aliasToMacros)
+    }
+
     extendContextOutput(c)
-    
+
     try {
       context?.call(c)
     } catch (e) {
       log.error "Context can not be extended.", e
+    }
+  }
+
+  void useMacros(String alias, String fullName = null) {
+    if(!fullName && path) {
+      aliasToMacrosFullName[alias] = "$path$alias"
+    } else {
+      aliasToMacrosFullName[alias] = fullName
     }
   }
 

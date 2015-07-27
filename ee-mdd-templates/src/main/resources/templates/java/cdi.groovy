@@ -24,6 +24,9 @@ import ee.mdd.model.component.Channel
 
 templates('cdi') {
 
+  useMacros('commonMacros', '/common/macros')
+  useMacros('macros')
+
   templates ('cdiToJms',
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ/ejb' ] ) } ) {

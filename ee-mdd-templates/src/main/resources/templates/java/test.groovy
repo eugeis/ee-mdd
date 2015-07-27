@@ -28,6 +28,9 @@ import ee.mdd.model.component.EnumType
 
 templates('test', purpose: UNIT_TEST) {
 
+  useMacros('commonMacros', '/common/macros')
+  useMacros('macros')
+
   templates ('modelTest',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
