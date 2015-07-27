@@ -58,11 +58,14 @@ class FacetTemplateLoader {
 
       URL resource = getClass().getResource(fileFullName)
       if(resource) {
+        log.info("Load templates '{}'", fileFullName)
         ret = builder.build(resource.text)
-        ret.path = templatePath
+        if(ret) {
+          ret.path = templatePath
 
-        //load macros
-        loadMacros(ret, fillFullNameToLoadedTemplates)
+          //load macros
+          loadMacros(ret, fillFullNameToLoadedTemplates)
+        }
       } else {
         log.info("Templates not found '{}'", fileFullName)
       }
