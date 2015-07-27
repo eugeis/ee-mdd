@@ -347,12 +347,6 @@ if (iterator.widgetType == "Table") {
 	template('tableControllerBase', body: '''\
 function TableControllerBase(injector) {
 	return function(\\$scope) {
-		if (injector !== undefined) {
-			injector.forEach(function(d) {
-				d(\\$scope);
-			});
-		}
-
 		\\$scope.currentID = 0;
 
 		\\$scope.newEntity = {};
@@ -410,6 +404,12 @@ function TableControllerBase(injector) {
 
 		\\$scope.displayId = function(entity) {
 		  entity.tag = entity.id;
+		}
+
+		if (injector !== undefined) {
+			injector.forEach(function(d) {
+				d(\\$scope);
+			});
 		}
 	}
 }
