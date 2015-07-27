@@ -76,29 +76,6 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
    */
 
 
-  template('mycssmacro', body: '''
-.entityTable {
-  width: 800px;
-}
-
-.entityTable .tableInput {
-    background-color:rgba(0, 0, 0, 0);
-    color:black;
-    border: none;
-    outline:none;
-}
-
-.entityTable .tableSubmit span {
-  padding: 4px 4px 4px 0px;
-  cursor: pointer;
-}
-
-.entityTable .${item.props[0].name}column span:hover {
-  font-weight: bold;
-  cursor: pointer;
-}
-''')
-
     template('myhtmlheadermacro', body: '''
 <!DOCTYPE html>
 <html ng-app="${item.name}">
@@ -274,6 +251,13 @@ app.directive('focusOn', function() {
      *
      */
 
+
+	/*
+	 *
+	 * Index file
+	 *
+	 */
+
     template('indexheader', body: '''\
 <!DOCTYPE html>
 <html ng-app="${item.name}">
@@ -281,7 +265,8 @@ app.directive('focusOn', function() {
 		<title>${item.name}</title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.css">
-		<link rel="stylesheet" href="${item.name}.css">
+		<link rel="stylesheet" href="stylesheet.css">
+		<script src="TableControllerBase.js" type="text/javascript"></script>
 		<script src="angular.js" type="text/javascript"></script>
 		<script src="app.js" type="text/javascript"></script>
 <% item.viewRefs.each { %> \
@@ -294,6 +279,29 @@ app.directive('focusOn', function() {
 	template('htmlfootermacro', body: '''
 	</body>
 </html>
+''')
+
+	template('stylesheet', body: '''
+.entityTable {
+  width: 800px;
+}
+
+.entityTable .tableInput {
+    background-color:rgba(0, 0, 0, 0);
+    color:black;
+    border: none;
+    outline:none;
+}
+
+.entityTable .tableSubmit span {
+  padding: 4px 4px 4px 0px;
+  cursor: pointer;
+}
+
+.entityTable .idcolumn span:hover {
+  font-weight: bold;
+  cursor: pointer;
+}
 ''')
 
 	template('appjs', body: '''\
@@ -318,8 +326,100 @@ if (iterator.widgetType == "Table") {
 	});
 <% } %>\
 <% } %>\
+
+	app.directive('focusOn', function() {
+	  return function(scope, elem, attr) {
+	    scope.\\$on(attr.focusOn, function(e) {
+	      elem[0].focus();
+	    });
+	  };
+	});
+
 }());
 ''')
+
+	template('includedviews', body: '''
+<% item.viewRefs.each { %>\
+<section id="${it.view.name}" ng-include="'${it.view.name}.html'"></section>
+<% } %>\
+''')
+
+	template('tableControllerBase', body: '''\
+function TableControllerBase(injector) {
+	return function(\\$scope) {
+		if (injector !== undefined) {
+			injector.forEach(function(d) {
+				d(\\$scope);
+			});
+		}
+
+		\\$scope.currentID = 0;
+
+		\\$scope.newEntity = {};
+		\\$scope.entities = [];
+
+		\\$scope.init = function() {
+		  //myEntities.forEach(function(entity,index) {
+		  //	\\$scope.add(entity);
+		  //});
+		}
+
+		\\$scope.add = function(entity) {
+		  if (!entity.hasOwnProperty("id") && !entity.hasOwnProperty("tag")) {
+			entity.id = entity.tag = ++\\$scope.currentID;
+		  }
+		  \\$scope.entities.push(entity);
+		  \\$scope.\\$broadcast('newEntityAdded');
+		  \\$scope.resetToId();
+		};
+
+		\\$scope.edit = function(entity) {
+		  if (!\\$scope.tableForm.\\$valid) {
+			\\$scope.newEntity = \\$scope.remove(entity);
+			\\$scope.resetToId();
+		};
+		  }
+
+		\\$scope.promptDelete = function(entity) {
+		  if (window.confirm("Are you sure you want to delete this entry?")) {
+			\\$scope.remove(entity);
+			\\$scope.resetToId();
+		  }
+		}
+
+		\\$scope.remove = function(entity) {
+		  return \\$scope.entities.splice(\\$scope.entities.indexOf(entity),1)[0];
+		}
+
+		\\$scope.submit = function() {
+		  if(\\$scope.tableForm.\\$valid) {
+			\\$scope.add(\\$scope.newEntity);
+			\\$scope.newEntity = {};
+		  }
+		}
+
+		\\$scope.resetToId = function() {
+		  \\$scope.entities.forEach(function(entity) {
+			\\$scope.displayId(entity);
+		  });
+		}
+
+		\\$scope.displayCross = function(entity) {
+		  entity.tag = '×';
+		}
+
+		\\$scope.displayId = function(entity) {
+		  entity.tag = entity.id;
+		}
+	}
+}
+''')
+
+	/*
+	 *
+	 * Modules' files
+	 *
+	 */
 
 	template('modulejs', body: '''\
 (function(){
@@ -329,99 +429,24 @@ if (iterator.widgetType == "Table") {
 item.controls.each { iterator ->
 if (iterator.widgetType == "Table") {
 %>\
-	app.controller("${iterator.type.name}Controller", function(\\$scope) {
 
-    \\$scope.currentID = 0;
+	function ${iterator.type.name}Sorting(\\$scope) {
+	<% for (int i = 0; i < iterator.type.props.size(); i++ ) {
+		def it = iterator.type.props[i] %>\
 
-    \\$scope.newEntity = {};
-    \\$scope.entities = [];
+			\\$scope.sort${it.name} = function() {
+			  \\$scope.entities = \\$scope.entities.sort(function(a,b) {
+				return a.${it.name}.toString().localeCompare(b.${it.name}.toString());
+			  });
+			}
 
-    \\$scope.init = function() {
-      //myEntities.forEach(function(entity,index) {
-      //	\\$scope.add(entity);
-      //});
-    }
+		<% } %>\
+	};
 
-    \\$scope.add = function(entity) {
-      if (!entity.hasOwnProperty("${iterator.type.props[0].name}") && !entity.hasOwnProperty("tag")) {
-        entity.${iterator.type.props[0].name} = entity.tag = ++\\$scope.currentID;
-      }
-      \\$scope.entities.push(entity);
-      \\$scope.\\$broadcast('newEntityAdded');
-      \\$scope.resetTo${iterator.type.props[0].name}();
-    };
-
-    \\$scope.edit = function(entity) {
-      if (!\\$scope.tableForm.\\$valid) {
-        \\$scope.newEntity = \\$scope.remove(entity);
-        \\$scope.resetTo${iterator.type.props[0].name}();
-      }
-    };
-
-    \\$scope.promptDelete = function(entity) {
-      if (window.confirm("Are you sure you want to delete this entry?")) {
-        \\$scope.remove(entity);
-        \\$scope.resetTo${iterator.type.props[0].name}();
-      }
-    }
-
-    \\$scope.remove = function(entity) {
-      return \\$scope.entities.splice(\\$scope.entities.indexOf(entity),1)[0];
-    }
-
-    \\$scope.submit = function() {
-      if(\\$scope.tableForm.\\$valid) {
-        \\$scope.add(\\$scope.newEntity);
-        \\$scope.newEntity = {};
-      }
-    }
-
-    \\$scope.resetTo${iterator.type.props[0].name} = function() {
-      \\$scope.entities.forEach(function(entity) {
-        \\$scope.display${iterator.type.props[0].name}(entity);
-      });
-    }
-
-    \\$scope.displayCross = function(entity) {
-      entity.tag = '\u00D7';
-    }
-
-    \\$scope.display${iterator.type.props[0].name} = function(entity) {
-      entity.tag = entity.${iterator.type.props[0].name};
-    }
-
-<% for (int i = 0; i < iterator.type.props.size(); i++ ) {
-def it = iterator.type.props[i] %>
-
-    \\$scope.sort${it.name} = function() {
-      \\$scope.entities = \\$scope.entities.sort(function(a,b) {
-        return a.${it.name}.toString().localeCompare(b.${it.name}.toString());
-      });
-    }
-
-<% } %>
-
-    \\$scope.getJSON = function() {
-      var retArray = [];
-      \\$scope.entities.forEach(function(d) {
-        retArray.push(new ${iterator.type.name}Entity(<%
-for (int i = 0; i < iterator.type.props.size()-1; i++) {
-def it = iterator.type.props[i];
-%>d.$it.name, <% } %>d.${iterator.type.props[iterator.type.props.size()-1].name}));
-      });
-      \\$("json-area").innerHTML = JSON.stringify(retArray).replace(/({.*?},)/g,"\\$1\\\\n");
-    }
-  });
-
+	app.controller("${iterator.type.name}Controller", ['\\$scope', TableControllerBase([${iterator.type.name}Sorting])]);
 <% } %>\
 <% } %>\
 }());
-''')
-
-    template('includedviews', body: '''
-<% item.viewRefs.each { %>\
-<section id="${it.view.name}" ng-include="'${it.view.name}.html'"></section>
-<% } %>\
 ''')
 
     template('html', body: '''\
@@ -442,7 +467,7 @@ def param = iterator.type
 \
 			</tr>
 			<tr ng-repeat="entity in entities">
-				<td class="${param.props[0].name}column" ng-mouseover="displayCross(entity)" ng-mouseleave="display${param.props[0].name}(entity)">
+				<td class="idcolumn" ng-mouseover="displayCross(entity)" ng-mouseleave="displayId(entity)">
 					<span ng-click="promptDelete(entity)">{{entity.tag}}</span>
 				</td>
 \

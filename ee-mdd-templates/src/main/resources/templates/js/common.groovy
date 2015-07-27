@@ -90,7 +90,9 @@ ${macros.generate('indexheader', c)}\
 ${macros.generate('includedviews', c)}\
 <section id="${c.item.name}">${macros.generate('html',c)}</section>\
 ${macros.generate('htmlfootermacro', c)}''')
+		  template('cssfile', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylesheet', c)} ''')
 		  template('angularFile', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
+		  template('tablejs', body: '''<% c.path = "${c.filepath}/TableControllerBase.js" %>${macros.generate('tableControllerBase', c)}''')
 	}
 
 	templates ('frameViews',
