@@ -1855,20 +1855,28 @@ ${ret-newLine}''')
 
   // UI
 
-  template('viewInterfaceBase', body: '''
+  template('viewInterface', body: '''
 /** Interface of ${item.name}. */
 public interface $className extends ${className}Base {
 }''')
 
 
-  template('viewInterface', body: '''<% def baseClass = item.dialog ? 'DialogViewInterface' : 'ViewInterface' %>{{imports}}
+  template('viewInterfaceBase', body: '''<% def baseClass = item.dialog ? 'DialogViewInterface' : 'ViewInterface' %>{{imports}}
 /** Base interface of ${item.name}. */
 public interface $className extends ${c.name(baseClass)} {<% item.controls.each { def control-> if ((control != null) && !control.static) { %>
   ${c.name(control.widgetInterface)} ${control.getter};
   <% } } %>
 }''')
 
-
+  template('viewModelBase', body: '''<% def model = item.model %>{{imports}}
+/** Base view model implementation for ${item.name}. */
+public abstract class $className extends ${c.name('BaseModel')} { <% def listProps = model.props.findAll { prop -> prop.multi } %>
+  protected $model.n.cap.events forward;
+  ${macros.generate('refsMember', c)}
+  <% model.props.each { prop -> %>protected $prop.computedType $prop.name;<% } %> <% if (listProps) { %>
+  private ObservableFactory observableFactory;
+  <% } %>
+}''')
 
 
 }

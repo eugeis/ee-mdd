@@ -1,5 +1,18 @@
 package ee.mdd.model.ui;
 
+import ee.mdd.model.component.Names
+
 class ViewModel extends PresentationLogicUnit {
-  String deriveName() { "${view.domainName}Model" }
+  Names n
+
+  String deriveName() {
+    "${view.domainName}Model"
+  }
+
+  Names getN() {
+    if (!n) {
+      n = new Names(this, name)
+    }
+    n
+  }
 }
