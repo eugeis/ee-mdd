@@ -37,6 +37,10 @@ class View extends Widget {
     true
   }
 
+  String deriveName() {
+    "${domainName}View"
+  }
+
   def getMediatorImplements() {
     mediatorDelegates.collect{it.names.eventForwarder}.join(', ')
   }
