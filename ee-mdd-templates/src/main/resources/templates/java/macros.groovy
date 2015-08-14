@@ -1875,7 +1875,33 @@ public abstract class $className extends ${c.name('BaseModel')} { <% def listPro
   ${macros.generate('refsMember', c)}
   <% model.props.each { prop -> %>protected $prop.computedType $prop.name;<% } %> <% if (listProps) { %>
   private ObservableFactory observableFactory;
-  <% } %>
+
+  @PostConstruct
+  void postConstruct() { <% listProps.each { prop -> %>
+    $prop.name = observableFactory.newObservableList();<% } %>
+  } <% } %>
+  <% model.props.each { prop ->  %><% if (prop.multi && prop.typeBasicType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $prop.computedType(c) $prop.getter {
+    return <% if (prop.multi && prop.typeBasicType) { %>(List)<% } %>$prop.name;
+  }<% if (prop.multi && prop.typeBasicType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public void $prop.setter<% if (prop.multi && prop.typeBasicType) { %>(List)<% } %> {
+    this.$prop.name = $prop.name;
+  } <% } %>
+  <% model.handlers.each { def op -> if (op.forward) { %>
+  public abstract void $op.handlerName($op.signatureValue);
+  <% } } %>
+  @Inject
+  public void set$model.n.cap.events($model.n.cap.events forward) {
+    this.forward = forward;
+    forward.set$model.cap(($model.cap) this);
+  }
+  <% if (listProps) { %>
+  @Inject
+  public void setObservableFactory(ObservableFactory observableFactory) {
+    this.observableFactory = observableFactory;
+  } <% } %>
 }''')
 
 
