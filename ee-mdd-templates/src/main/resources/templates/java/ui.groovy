@@ -20,6 +20,6 @@ templates('ui') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
     template('viewModel', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.base %> ${macros.generate('viewModelBase', c)}<% } %>''')
-    template('viewModelExtends', appendName: true, body: '''<% if (item.viewModel) { %><% c.className = c.item.cap  %> ${macros.generate('viewModel', c)}<% } %>''')
+    template('viewModelExtends', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.cap  %> ${macros.generate('viewModel', c)}<% } %>''')
   }
 }

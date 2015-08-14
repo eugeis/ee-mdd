@@ -296,7 +296,7 @@ templates ('macros') {
   }<% } } %>''')
 
   template('implControlInjects', body: '''<% item.controls.each { ref -> def uncapName = ref.uncap%>
-  @${c.name('Inject')}
+  @Inject
   public void set${ref.name}($ref.name $uncapName) {
     this.$uncapName = $uncapName;
   }<% } %>''')
@@ -1878,7 +1878,7 @@ public interface $className extends ${c.name(baseClass)} {<% item.controls.each 
 @${c.name('RootScoped')}
 @${c.name('Model')}
 public class $className extends $model.n.cap.base {
-  ${macros.apply('implOperations')}
+  ${macros.generate('implOperations', c)}
 }''')
 
   template('viewModelBase', body: '''<% def model = item.model %>{{imports}}
