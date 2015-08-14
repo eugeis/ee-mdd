@@ -295,25 +295,28 @@ templates ('macros') {
     $op.body
   }<% } } %>''')
 
+  template('implControlInjects', body: '''<% item.controls.each { ref -> def uncapName = ref.uncap%>
+  @${c.name('Inject')}
+  public void set${ref.name}($ref.name $uncapName) {
+    this.$uncapName = $uncapName;
+  }<% } %>''')
 
-  template('ifcMethods', body: '''
 
-<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) {%>
-public ${op.ret.cap} <%} else {%>  public void <% } %>$op.cap(<% op.params.each { ret += separator+"${c.name(it.type)}"+' '+it.uncap}%>${ret-separator});
-<% } %>''')
+  template('ifcMethods', body: '''<% def separator = ', '; c.item.operations.each { op -> String ret = ''; if (op.ret) { %>
+  public ${op.ret.cap}<% } else { %>public void<% } %> $op.cap(<% op.params.each { ret += separator+"${c.name(it.type)}"+' '+it.uncap }%>${ret-separator});<% } %>''')
 
 
   //ifcs
 
 
-  template('ifcService', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}
-<% if (!item.base) { %>
+  template('ifcService', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}<% if (!item.base) { %>
 /**
 * The service provides public operations for '$module.name'.<% if (item.description) { %>
 * <p>
 * $item.description
 * </p><% } %>
-*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+*/<% } else { %>
+/** Base interface of {@link $item.name} */<% } %>
 public interface $className {
   ${macros.generate('interfaceBodyExternal', c)}
 }''')
@@ -330,12 +333,14 @@ public interface $c.className extends $item.n.cap.base {
 
   template('ifcBasicType', body: '''<% if(!c.className) { c.className = item.cap } %> {{imports}}
 ${item.description?"/*** $item.description */":''}
-public interface $className extends <% if (item.superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
+public interface $className extends <% if (item.superUnit) {%>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> {
 ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
   template('ifcContainer', body: '''<% if (!c.className) { c.className = item.n.cap.base } %><% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %>
-<%item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model
+<% item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %>
+<% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} 
+import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model
 <% if (!item.base) { %>
 /**
 * The container is used to transfer bundled data between between server and client.
@@ -362,12 +367,12 @@ public interface $c.className extends ${c.name('Serializable')} {
   void resetTempIds();
 
   /**
-   * Applies all changes from the passed container. In effect, all removes are applied.
-   *
-   * Use this method to update a container which contains all information with a container carrying delta information.
-   *
-   * @param container Delta information (new, updated and deleted deadlocks)
-   */
+  * Applies all changes from the passed container. In effect, all removes are applied.
+  *
+  * Use this method to update a container which contains all information with a container carrying delta information.
+  *
+  * @param container Delta information (new, updated and deleted deadlocks)
+  */
   void synchronize(${item.cap} container);
 
   /**
@@ -378,260 +383,260 @@ public interface $c.className extends ${c.name('Serializable')} {
    * @param container Delta information (new, updated and deleted deadlocks)
    * @return Delta container with all changes
    */
-  $item.n.cap.delta synchronizeWithDelta($item.cap container);
+   $item.n.cap.delta synchronizeWithDelta($item.cap container);
 
-  /**
+   /**
    * Synchronizes only the removes.
    */
-  void synchronize($item.n.cap.removes removes);
+   void synchronize($item.n.cap.removes removes);
 
-  /**
+   /**
    * Merges the changes from the passed container. In effect, all removes are merged as well.
    *
    * Use this method to merge containers containing delta information.
    *
    * @param container Delta information (new, updated and deleted deadlocks)
    */
-  void merge($item.cap container);
+   void merge($item.cap container);
 
-  $item.n.cap.removes get${item.cap}Removes();
+   $item.n.cap.removes get${item.cap}Removes();
 
-  /**
+   /**
    * Clears all data (caches and removes)
    */
-  void clear();
+   void clear();
 
-  /**
+   /**
    * Returns whether the container is empty, i.e. that it contains neither container entries nor removes.
    */
-  boolean isEmpty();
+   boolean isEmpty();
 
-  $item.name buildChangeSet();<% item.props.each { entityProp -> def entity = entityProp.type %>
+   $item.name buildChangeSet();<% item.props.each { entityProp -> def entity = entityProp.type %>
+   
+   $entity.cap get${entity.n.cap.entity}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+   
+   ${c.name('LinkedObjectCache')}<${entity.idProp.computedType(c)}, ${relationIdProp.computedType(c)}, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
 
-  $entity.cap get${entity.n.cap.entity}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+   ${macros.generate('interfaceBody', c)}<% item.props.each { prop -> %>
 
-  ${c.name('LinkedObjectCache')}<${entity.idProp.computedType(c)}, ${relationIdProp.computedType(c)}, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
-
-  ${macros.generate('interfaceBody', c)}<% item.props.each { prop -> %>
-
-  ${prop.computedType(c)} $prop.getter;<% } %>
-  ${macros.generate('propSettersIfc', c)}
+   ${prop.computedType(c)} $prop.getter;<% } %>
+   ${macros.generate('propSettersIfc', c)}
 }''')
 
   template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>{{imports}}
-public interface $c.className extends ${c.name('LogStringProvider')} {
-<% item.props.each { entityProp -> def entity = entityProp.type %>
-  ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
-}''')
+  public interface $c.className extends ${c.name('LogStringProvider')} {
+    <% item.props.each { entityProp -> def entity = entityProp.type %>
+      ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
+  }''')
 
   template('ifcContainerDeltaExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.delta } %><% def superClassName = item.n.cap.deltaBase %>{{imports}}
-public interface $c.className extends $superClassName {
-}''')
+  public interface $c.className extends $superClassName {
+  }''')
 
   template('ifcController', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}
-<% if (!item.base) { %>
-/**
-* The controller $item.name provides internal logic operations for '$module.name'.<% if (item.description) { %>
-* <p>
-* $item.description
-* </p><% } %>
-*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
-public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.cap}<% } %> {
-  ${macros.generate('interfaceBody', c)}
-}''')
+  <% if (!item.base) { %>
+    /**
+     * The controller $item.name provides internal logic operations for '$module.name'.<% if (item.description) { %>
+     * <p>
+     * $item.description
+     * </p><% } %>
+     */<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+  public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.cap}<% } %> {
+    ${macros.generate('interfaceBody', c)}
+  }''')
 
   template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
-${item.description?"/*** $item.description */":''}
-public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
-  /** A unique URI prefix for RESTful services and multi-language support */
-  public static final String URI_PREFIX = "${item.getUri()}";
-${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
-}''')
+  ${item.description?"/*** $item.description */":''}
+  public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
+    /** A unique URI prefix for RESTful services and multi-language support */
+    public static final String URI_PREFIX = "${item.getUri()}";
+    ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
+  }''')
 
   template('ifcExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %><% if (!c.metas) { c.metas = item.metas } %>{{imports}}
-/** Base interface for {@link $item.n.cap.base} */
-public interface $c.className extends $item.n.cap.base {
-}''')
+  /** Base interface for {@link $item.n.cap.base} */
+  public interface $c.className extends $item.n.cap.base {
+  }''')
 
   template('ifcContainerExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>{{imports}}
-/**
-* The container is used to transfer bundled data between server and client.
-* <p>
-* ${item.description?item.description:''}
-* </p>
-*/
-public interface $c.className extends $item.n.cap.base {
-}''')
+  /**
+   * The container is used to transfer bundled data between server and client.
+   * <p>
+   * ${item.description?item.description:''}
+   * </p>
+   */
+  public interface $c.className extends $item.n.cap.base {
+  }''')
 
   template('ifcControllerExtends', body: '''<% c.src = true %><% if(!c.className) { c.className = item.cap } %>{{imports}}
-/**
-* The $item.name controller provides internal logic operations for '$module.name'.<% if (item.description) { %>
-* <p>
-* $item.description
-* </p><% } %>
-*/
-public interface $className extends $item.n.cap.base {
-}''')
+  /**
+   * The $item.name controller provides internal logic operations for '$module.name'.<% if (item.description) { %>
+   * <p>
+   * $item.description
+   * </p><% } %>
+   */
+  public interface $className extends $item.n.cap.base {
+  }''')
 
   template('ifcFinders', body: '''<% if(!c.className) { c.className = item.n.cap.finders } %><% def finders = item.finders; def idProp = item.idProp; %>{{imports}}
-<% if(finders.description) { %>/**
-* $finders.description
-*/<% } else { %>/** The finders provide Find, Count, Exist operations for entity {@link $item.cap}.*/<% } %>
-public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% finders.counters.each { op -> %>
-  ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.finders.each { op -> %>
-  ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.exists.each { op -> %>
-  ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } %>
-}''')
+  <% if(finders.description) { %>/**
+     * $finders.description
+     */<% } else { %>/** The finders provide Find, Count, Exist operations for entity {@link $item.cap}.*/<% } %>
+  public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% finders.counters.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.finders.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.exists.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${op.signature(c)});<% } %>
+  }''')
 
   template('ifcCommands', body: '''<% if(!c.className) { c.className = item.n.cap.commands } %><% def commands = item.commands; def idProp = item.idProp; %>{{imports}}
-<% if(commands.description) { %>/**
-* $commands.description
-*/<% } else { %>/** The commands provide Delete, Update, Create operations for entity {@link $item.cap}.*/<% } %>
-public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% commands.deleters.each { op -> %>
-${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updates.each { op -> %>
-  ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.creates.each { op -> %>
-  ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } %>
-}''')
+  <% if(commands.description) { %>/**
+     * $commands.description
+     */<% } else { %>/** The commands provide Delete, Update, Create operations for entity {@link $item.cap}.*/<% } %>
+  public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% commands.deleters.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updates.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.creates.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${op.signature(c)});<% } %>
+  }''')
 
   template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
-<% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
-<% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
-public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
+  <% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
+  <% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
+  public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
 
-  <% if(op.unique) { %> $idProp.type <% } else { %>${c.name('Set')}<$idProp.type.name><% } %> ${op.name}AsId($op.signature);<% } %>
+          <% if(op.unique) { %> $idProp.type <% } else { %>${c.name('Set')}<$idProp.type.name><% } %> ${op.name}AsId($op.signature);<% } %>
 
-  <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}($op.signature);
+        <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}($op.signature);
 
-  <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}Strict($op.signature);<% } } %><% item.props.each { prop -> if(prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
+        <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}Strict($op.signature);<% } } %><% item.props.each { prop -> if(prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
 
-  ${c.name('Set')} <${c.name(idProp.type)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
+        ${c.name('Set')} <${c.name(idProp.type)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-  ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
+        ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-  List<$type> findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
+        List<$type> findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-  List<$type> findBy${prop.cap}${relationIdProp.cap}s(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);
+        List<$type> findBy${prop.cap}${relationIdProp.cap}s(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);
 
-  List<$type> findBy${prop.cap}${relationIdProp.cap}sStrict(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);<% } else if (prop.type && prop.oneToOne) { def relationIdProp = prop.type.idProp %>
+        List<$type> findBy${prop.cap}${relationIdProp.cap}sStrict(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);<% } else if (prop.type && prop.oneToOne) { def relationIdProp = prop.type.idProp %>
 
-  $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
+        $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-  $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});<% } } %>
+        $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});<% } } %>
 
-  String toStringAsIdAndVersion();
+    String toStringAsIdAndVersion();
 
-  ${macros.generate('interfaceBody', c)}
+    ${macros.generate('interfaceBody', c)}
 
-}''')
+  }''')
 
   template('ifcCacheExtends', body: '''{{imports}}
-public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
-}''')
+  public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
+  }''')
 
 
 
   //classes
 
   template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper%>import static ee.common.util.ComparisonUtils.*;{{imports}}
-<% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
-<% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
-<% } %>
-<% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
-public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
-   private static final long serialVersionUID = 1L;
-  <% singlePropIndexes.each { prop -> if (prop.unique) { %>
-  protected ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
-  protected ${c.name('LinkToSetCache')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToIds = null;<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
-  protected ${c.name('LinkToSetCache')}<${c.name(relationIdProp.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
-  protected ${c.name('Map')}<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
-  protected ${c.name('LinkToSetCache')}<String, ${c.name(idProp.type.name)}> ${key}ToIds = null;<% } %><% } %><% if (c.override && item.virtual) { %>
+  <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
+    <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
+    <% } %>
+  <% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
+  public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
+    private static final long serialVersionUID = 1L;
+    <% singlePropIndexes.each { prop -> if (prop.unique) { %>
+        protected ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
+        protected ${c.name('LinkToSetCache')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToIds = null;<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
+        protected ${c.name('LinkToSetCache')}<${c.name(relationIdProp.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
+        protected ${c.name('Map')}<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
+        protected ${c.name('LinkToSetCache')}<String, ${c.name(idProp.type.name)}> ${key}ToIds = null;<% } %><% } %><% if (c.override && item.virtual) { %>
 
-  public $className(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent) {
-    super(parent);
-  }
+      public $className(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent) {
+        super(parent);
+      }
 
-  public ${className}(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent, boolean threadSafe) {
-    super(parent, threadSafe);
-  }<% } else if (c.override) { %>
+      public ${className}(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent, boolean threadSafe) {
+        super(parent, threadSafe);
+      }<% } else if (c.override) { %>
 
-  public ${className}($item.n.cap.cache parent) {
-    super(parent);
-  }
+      public ${className}($item.n.cap.cache parent) {
+        super(parent);
+      }
 
-  public ${className}($item.n.cap.cache parent, boolean threadSafe) {
-    super(parent, threadSafe);
-  }<% } else { %>
-
-  public $className() {
-    super();
-  }
-
-  public $className(boolean threadSafe) {
-    super(threadSafe);
-  }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %>
-   <% String finderKeyName = op.params.collect { it.prop.uncap }.join('And'); %>
-   <% if (op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) { def param = op.params.get(0); def prop = param.prop; %>
-
-  @Override
-  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
-     checkAndInitPropertyBasedLazyCaches();<% if (param.multi) { %>
-    ${c.name('HashSet')}<${c.name(idProp.type.name)}> ret = new ${c.name('HashSet')}<>();
-    for($prop.type $prop.name : ${prop.name}s) {<% if (prop.unique) { %>
-      if (${prop.uncap}ToId.containsKey($prop.name)) {
-        ret.add(${prop.uncap}ToId.get($prop.name));
-     }<% if (c.override) { %> else if (parent != null) {
-        ${c.name('Set')}<${c.name(idProp.type.name)}> ids = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
-        ids.removeAll(deleted);
-        ret.addAll(ids);
-      }<% } %><% } else { %><% if (op.unique) { %>
-      ${c.name(idProp.type.name)} id = ${prop.uncap}ToId.get($propAttr.paramName);
-      if (id != null) {
-        ret.add(id);
+      public ${className}($item.n.cap.cache parent, boolean threadSafe) {
+        super(parent, threadSafe);
       }<% } else { %>
-      ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($propAttr.paramName);
-      if (ids != null) {
-        ret.addAll(ids.getTo());
-      }<% } %><% if (c.override) { %>
-      ${macros.generate('propToIds', c)}<% } %><% } %>
-    }
-    return ret;<% } else { %><% if (prop.unique) { %>
-    ${c.name(idProp.type.name)} ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { %>
-    ${macros.generate('retNullOrDeleted', c)}
-    <% } %><% } else { %>
-    ${c.name('Set')}<${c.name(idProp.type.name)}> ret = null;
-    ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($prop.name);
-    ${macros.generate('checkIdsNull', c)}<% if (c.override) { c.op = op; %>
-    ${macros.generate('propToIds', c)}<% } %><% } %><% if (item.ordered) { %>
-    sort${c.name(item.cap)}sByOrder(ret);<% } %><% if (op.unique && !prop.unique) { %>
-    if (!ret.isEmpty()) {
-      return ret.iterator().next();
-    } else {
-      return null;
-    }<% } else { %>
-    return ret;<% } %><% } %>
-  }
 
-  @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
-    $idProp.type.name id = ${op.name}AsId($op.signatureName);
-    $type ret = null;
-    if (id != null) {
-      ret = get(id);
-    }<% } else { %>
-    ${c.name('Set')}<${c.name(idProp.type.name)}> ids = ${op.name}AsId($op.signatureName);
-    ${c.name('List')}<$type> ret = getAll(ids);<% } %>
-    return ret;
-  }
+      public $className() {
+        super();
+      }
 
-  @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
-    return strict(${op.name}($op.signatureNames), \"${op.name}\", $op.signatureNames);
+      public $className(boolean threadSafe) {
+        super(threadSafe);
+      }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %>
+        <% String finderKeyName = op.params.collect { it.prop.uncap }.join('And'); %>
+        <% if (op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) { def param = op.params.get(0); def prop = param.prop; %>
+
+          @Override
+          public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
+            checkAndInitPropertyBasedLazyCaches();<% if (param.multi) { %>
+              ${c.name('HashSet')}<${c.name(idProp.type.name)}> ret = new ${c.name('HashSet')}<>();
+              for($prop.type $prop.name : ${prop.name}s) {<% if (prop.unique) { %>
+                  if (${prop.uncap}ToId.containsKey($prop.name)) {
+                    ret.add(${prop.uncap}ToId.get($prop.name));
+                  }<% if (c.override) { %> else if (parent != null) {
+                      ${c.name('Set')}<${c.name(idProp.type.name)}> ids = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+                      ids.removeAll(deleted);
+                      ret.addAll(ids);
+                    }<% } %><% } else { %><% if (op.unique) { %>
+                    ${c.name(idProp.type.name)} id = ${prop.uncap}ToId.get($propAttr.paramName);
+                    if (id != null) {
+                      ret.add(id);
+                    }<% } else { %>
+                    ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($propAttr.paramName);
+                    if (ids != null) {
+                      ret.addAll(ids.getTo());
+                    }<% } %><% if (c.override) { %>
+                    ${macros.generate('propToIds', c)}<% } %><% } %>
+              }
+              return ret;<% } else { %><% if (prop.unique) { %>
+                ${c.name(idProp.type.name)} ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { %>
+                  ${macros.generate('retNullOrDeleted', c)}
+                  <% } %><% } else { %>
+                ${c.name('Set')}<${c.name(idProp.type.name)}> ret = null;
+                ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($prop.name);
+                ${macros.generate('checkIdsNull', c)}<% if (c.override) { c.op = op; %>
+                  ${macros.generate('propToIds', c)}<% } %><% } %><% if (item.ordered) { %>
+                sort${c.name(item.cap)}sByOrder(ret);<% } %><% if (op.unique && !prop.unique) { %>
+                if (!ret.isEmpty()) {
+                  return ret.iterator().next();
+                } else {
+                  return null;
+                }<% } else { %>
+                return ret;<% } %><% } %>
+          }
+
+          @Override
+          public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
+              $idProp.type.name id = ${op.name}AsId($op.signatureName);
+              $type ret = null;
+              if (id != null) {
+                ret = get(id);
+              }<% } else { %>
+              ${c.name('Set')}<${c.name(idProp.type.name)}> ids = ${op.name}AsId($op.signatureName);
+              ${c.name('List')}<$type> ret = getAll(ids);<% } %>
+            return ret;
+          }
+
+          @Override
+          public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
+            return strict(${op.name}($op.signatureNames), \"${op.name}\", $op.signatureNames);
   }
 
   <% } else if (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi }) { def index = keyNameToIndex[finderKeyName]; %>
@@ -1868,6 +1873,14 @@ public interface $className extends ${c.name(baseClass)} {<% item.controls.each 
   <% } } %>
 }''')
 
+  template('viewModel', body: '''<% def model = item.model %>{{imports}}
+/** View model implementation for ${item.name}. */
+@${c.name('RootScoped')}
+@${c.name('Model')}
+public class $className extends $model.n.cap.base {
+  ${macros.apply('implOperations')}
+}''')
+
   template('viewModelBase', body: '''<% def model = item.model %>{{imports}}
 /** Base view model implementation for ${item.name}. */
 public abstract class $className extends ${c.name('BaseModel')} { <% def listProps = model.props.findAll { prop -> prop.multi } %>
@@ -1898,10 +1911,12 @@ public abstract class $className extends ${c.name('BaseModel')} { <% def listPro
     forward.set$model.cap(($model.cap) this);
   }
   <% if (listProps) { %>
-  @Inject
+  @${c.name('Inject')}
   public void setObservableFactory(ObservableFactory observableFactory) {
     this.observableFactory = observableFactory;
   } <% } %>
+  ${macros.generate('implOperationsAndDelegates', c)}
+  ${macros.generate('implControlInjects', c)}
 }''')
 
 
