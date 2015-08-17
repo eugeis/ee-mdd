@@ -40,4 +40,13 @@ templates('ui') {
     template('presenterEventForwarder', appendName: true, body: '''<% if (item.presenter.withMediator) { %><% c.className = item.n.cap.presenterEventsBase-"View" %> ${macros.generate('presenterEventForwarderBase', c)}<% } %>''')
     template('presenterEventForwarderExtends', appendName: true, body: '''<% if (item.presenter.withMediator) { %><% c.className = item.n.cap.presenterEvents-"View" %> ${macros.generate('presenterEventForwarder', c)}<% } %>''')
   }
+  
+  templates ('mediator',
+    items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+    context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
+      
+    template('mediator', appendName: true, body: '''<% if (item.view.withMediator) { %><% c.className = item.n.cap.mediatorBase-"View" %> ${macros.generate('mediatorBase', c)}<% } %>''')
+    template('mediatorExtends', appendName: true, body: '''<% if (item.view.withMediator) { %><% c.className = item.n.cap.mediator-"View" %> ${macros.generate('mediator', c)}<% } %>''')
+  }
+  
 }

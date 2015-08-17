@@ -1970,5 +1970,30 @@ public interface $className {
 public interface $className extends ${className}Base {
 }''')
   
+  template('mediatorBase', body: '''<% def view = item.view %>{{imports}}
+public abstract class $className implements $view.mediatorImplements { <% view.mediatorDelegates.each{ delegate -> %>
+  protected $delegate.cap $delegate.uncap; <% } %>
+  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control -> control.operations.each { def op -> if (op.forward) { %>
+  @Override
+  public void $op.receiverName($op.signatureValue) {<% op.handlers.each{ def handler -> %>
+    $handler.uncap.$op.handlerCall;<% } %>
+  }
+  <% } } } } %><% def model = view.model; if (model) { model.handlers.each { def op -> if (op.forward) { %>
+  @Override
+  public void $op.observerName($op.signatureValue) {<% op.observers.each{ def observer -> %>
+    $observer.uncap.$op.observerCall;<% } %>
+  }
+  <% } } } %><% view.mediatorDelegates.each{ delegate -> %>
+  @Override
+  public void set$delegate.cap($delegate.cap $delegate.uncap) {
+    this.$delegate.uncap= $delegate.uncap;
+  }<% } %>
+}''')
+  
+  template('mediator', body: '''<% def view = item.view %>
+@RootScoped
+public class $className extends ${view.n.cap.mediatorBase-"View"} {
+}
+''')
     
 }
