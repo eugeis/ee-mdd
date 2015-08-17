@@ -1951,5 +1951,24 @@ public abstract class $className extends ${c.name('Presenter')}<${item.cap}> {<%
     forward.set$item.n.cap.presenterEvents(($presenter.cap) this);
   } <% } %>
 }''')
-
+  
+  template('presenter', body: '''<% def presenter = item.presenter %>{{imports}}
+/** Presenter implementation for ${item.name}. */
+@${c.name('RootScoped')}
+public class $className extends ${presenter.cap}Base {
+}''')
+  
+  template('presenterEventForwarderBase', body: '''<% def view = item; def presenter = item.presenter %>
+public interface $className {
+  <% view.controls.each { def control-> control.operations.each { def op -> if (op.forward) { %>
+  void $op.receiverName($op.signatureValue);
+  <% } } } %>
+  void set$presenter.cap($presenter.cap $presenter.uncap);
+}''')
+  
+  template('presenterEventForwarder', body: '''<% def presenter = item.presenter %>
+public interface $className extends ${className}Base {
+}''')
+  
+    
 }
