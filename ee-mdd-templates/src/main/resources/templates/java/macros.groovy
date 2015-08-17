@@ -1929,5 +1929,27 @@ public interface $c.className {
   template('modelEventForwarder', body: '''<% def model = item.model %><% if(!c.className) { c.className = item.n.cap.events } %>
 public interface $className extends ${className}Base {
 }''')
+  
+  template('presenterBase', body: '''<% def presenter = item.presenter %>{{imports}}
+/** Base presenter implementation for ${item.name}. */
+public abstract class $className extends ${c.name('Presenter')}<${item.cap}> {<% if (presenter.withMediator) { %>
+  protected $item.n.cap.presenterEvents forward; <% } %>
+  <% item.controls.each { def control-> control.operations.each { def op -> if (presenter.withMediator && op.forward) { %>
+  <% if (!op.eventValueType) { %>@SuppressWarnings("unused")<% } %>
+  public void $op.receiverName($op.signatureEvent) {
+    forward.$op.receiverCallValue;
+  } <% } else { %>
+  public abstract void $op.receiverName($op.signatureEvent);<% } } } %>
+  <% presenter.handlers.each { def op -> if (presenter.withMediator && op.forward) { %>
+  public abstract void $op.handlerName($op.signatureValue);
+  <% } } %> <% presenter.observers.each { def op -> if (op.forward) { %>
+  public abstract void $op.observerName($op.signatureValue);
+  <% } } %>
+  <% if (presenter.withMediator) { %>@Inject
+  public void set$item.n.cap.presenterEvents($item.n.cap.presenterEvents forward) {
+    this.forward = forward;
+    forward.set$item.n.cap.presenterEvents(($presenter.cap) this);
+  } <% } %>
+}''')
 
 }

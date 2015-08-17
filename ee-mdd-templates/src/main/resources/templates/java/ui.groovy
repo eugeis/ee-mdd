@@ -30,4 +30,12 @@ templates('ui') {
     template('modelEventForwarder', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.eventsBase%> ${macros.generate('modelEventForwarderBase', c)}<% } %>''')
     template('modelEventForwarderExtends', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.events%> ${macros.generate('modelEventForwarder', c)}<% } %>''')
   }
+  
+  templates ('presenter',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
+    
+    template('presenter', appendName: true, body: '''<% c.className = item.model.n.cap.presenterBase %> ${macros.generate('presenterBase', c)}''')
+    //template('presenterExtends', appendName: true, body: '''<% c.className = item.model.n.cap.presenter%> ${macros.generate('presenter', c)}''')
+  }
 }
