@@ -28,6 +28,6 @@ templates('ui') {
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {  
   
     template('modelEventForwarder', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.eventsBase%> ${macros.generate('modelEventForwarderBase', c)}<% } %>''')
-    template('modelEventForwarderExtends', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.base%> ${macros.generate('modelEventForwarder', c)}<% } %>''')
+    template('modelEventForwarderExtends', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.events%> ${macros.generate('modelEventForwarder', c)}<% } %>''')
   }
 }

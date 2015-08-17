@@ -1918,7 +1918,7 @@ public abstract class $className extends ${c.name('BaseModel')} { <% def listPro
   ${macros.generate('implOperationsAndDelegates', c)}
 }''')
   
-  template('modelEventForwarderBase', body: '''<% if(!c.className) { c.className = item.n.cap.eventsBase } %>{{imports}}
+  template('modelEventForwarderBase', body: '''<% def model = item.model %><% if(!c.className) { c.className = item.n.cap.eventsBase } %>
 public interface $c.className {
   <% model.handlers.each { def op -> if (op.forward) { %>
   void $op.observerName($op.signatureValue);
@@ -1926,6 +1926,8 @@ public interface $c.className {
   void set$model.cap($model.cap $model.uncap);
 }''')
   
-
+  template('modelEventForwarder', body: '''<% def model = item.model %><% if(!c.className) { c.className = item.n.cap.events } %>
+public interface $className extends ${className}Base {
+}''')
 
 }
