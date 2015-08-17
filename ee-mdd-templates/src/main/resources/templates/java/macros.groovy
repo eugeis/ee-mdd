@@ -296,8 +296,8 @@ templates ('macros') {
   }<% } } %>''')
 
   template('implControlInjects', body: '''<% item.controls.each { ref -> def uncapName = ref.uncap%>
-  @Inject
-  public void set${ref.name}($ref.name $uncapName) {
+  @${c.name('Inject')}
+  public void set${ref.cap}($ref.cap $uncapName) {
     this.$uncapName = $uncapName;
   }<% } %>''')
 
@@ -1905,7 +1905,7 @@ public abstract class $className extends ${c.name('BaseModel')} { <% def listPro
   <% model.handlers.each { def op -> if (op.forward) { %>
   public abstract void $op.handlerName($op.signatureValue);
   <% } } %>
-  @Inject
+  @${c.name('Inject')}
   public void set$model.n.cap.events($model.n.cap.events forward) {
     this.forward = forward;
     forward.set$model.cap(($model.cap) this);
@@ -1916,8 +1916,16 @@ public abstract class $className extends ${c.name('BaseModel')} { <% def listPro
     this.observableFactory = observableFactory;
   } <% } %>
   ${macros.generate('implOperationsAndDelegates', c)}
-  ${macros.generate('implControlInjects', c)}
 }''')
+  
+  template('modelEventForwarderBase', body: '''<% if(!c.className) { c.className = item.n.cap.eventsBase } %>{{imports}}
+public interface $c.className {
+  <% model.handlers.each { def op -> if (op.forward) { %>
+  void $op.observerName($op.signatureValue);
+  <% } } %>
+  void set$model.cap($model.cap $model.uncap);
+}''')
+  
 
 
 }
