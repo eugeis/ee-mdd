@@ -23,6 +23,7 @@ package ee.mdd.model.component
 class DataTypeOperation extends Operation {
   String nameExternal
   DataType dataType
+  boolean fireEventProp = false
 
   String getNameExternal() {
     if(!nameExternal) {

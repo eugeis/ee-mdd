@@ -2047,5 +2047,31 @@ public class $className extends ${dialog.cap}GuidoBase {
     super.initEventHandling();
   }
 }''')
-    
+  
+  
+  //StateMachine
+  
+  template('moduleEvent', body: '''<% def idProp = module.entity.idProp %>
+/** Base state event interface for all state events of state machine $module.name */
+public interface $className extends Serializable {
+
+  /**
+  * Expected state defines a kind of a limitation of the event. If the value is null, than the limitation will be ignored.
+  * If it is not null, then the event is valid only if the current state of $module.entity.cap is same.
+  * If the expected value is not equal to the current state, then the event will be rejected.
+  */
+  $module.stateProp.type getExpectedState();
+
+  $idProp.type get$idProp.capFullname();
+
+  void set$idProp.capFullname($idProp.type $idProp.uncapFullname);
+
+  void setExpectedState($module.stateProp.type expectedState);
+
+  $module.n.cap.eventType getType();
+
+  void setActor(String actor);
+}''')
+  
+  
 }

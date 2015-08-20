@@ -26,6 +26,7 @@ import ee.mdd.model.Element
 class Entity extends DataType {
   boolean manualId = false
   boolean ordered = false
+  boolean clientCache = false
   String idGeneratorName
   String labelBody
 }

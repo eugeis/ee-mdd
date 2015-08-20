@@ -73,6 +73,7 @@ import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.statemachine.StateMachine
 import ee.mdd.model.ui.Button
 import ee.mdd.model.ui.CheckBox
 import ee.mdd.model.ui.Column
@@ -125,7 +126,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def facet = new FacetFactory(beanClass: Facet, childFactories: ['extModule', 'facet'], facets: facets)
   private def su = new FacetAwareFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'], facets: facets)
   private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update'], parent: controller)
-  private def component = new CompositeFactory(beanClass: Component, childFactories: ['module'], parent: su)
+  private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'stateMachine'], parent: su)
   private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   private def config = new CompositeFactory(beanClass: Config, parent: dataType)
   private def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
@@ -183,6 +184,9 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryOnItemEditorItemSelect = new MddFactory(beanClass: OnItemEditorItemSelect, childFactories: [], parent: factoryListener)
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
   private def factoryButton = new MddFactory(beanClass: Button, childFactories: ['onAction'], parent: factoryControl)
+  
+  //StateMachine
+  private def factoryStateMachine = new MddFactory(beanClass: StateMachine, childFactories: [], parent: module)
 
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
@@ -287,6 +291,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'onContextMenuRequest', factoryOnContextMenuRequest
     registerFactory 'onItemEditorItemSelect', factoryOnItemEditorItemSelect
     registerFactory 'onSelect', factoryOnSelect
+    
+    //StateMachine
+    
+    registerFactory 'stateMachine', factoryStateMachine
 
   }
 }
