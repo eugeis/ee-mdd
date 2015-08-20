@@ -68,6 +68,10 @@ templates ('macros') {
   public $className(${constr.signature(c)}) {
     super($constr.call);
   }<% } %>''')
+  
+  template('superclassConstructor', body: '''public $className() {
+  super();
+ }''')
 
   template('enumConstructor', body: ''' <% item.constructors.each { constr -> %>
 
@@ -257,6 +261,13 @@ templates ('macros') {
   public void setVersion(Long version) {
     this.version = version;
   }''')
+  
+  template('initWidgets', body: '''
+  @Override
+  protected void initWidgets() {
+    super.initWidgets();
+  }''')
+  
 
 
   template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
@@ -1995,5 +2006,46 @@ public abstract class $className implements $view.mediatorImplements { <% view.m
 public class $className extends ${view.n.cap.mediatorBase-"View"} {
 }
 ''')
+  
+  template('dialogGuidoBase', body: '''<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
+/** Base Guido implementation of ${item.name}. */
+public abstract class $c.className extends DialogView {
+  public static final String ID = ${item.dialog.cap}Guido.class.getName();
+
+  protected $contentViewClassName contentView;
+
+  ${macros.generate('superclassConstructor', c)}
+
+  @Override
+  protected void postViewCreated() {
+    super.postViewCreated();
+    initWidgets();
+    initEventHandling();
+  }
+
+  protected void initEventHandling() {
+  }
+
+  @Inject
+  public void setContentView($contentViewClassName contentView) {
+    this.contentView = contentView;
+  }
+}''')
+  
+  template('dialogGuido', body: '''<% def dialog = item.dialog %>{{imports}}
+/** Guido implementation of ${item.name}. */
+@${c.name('RootScoped')}(RootType.NEW)
+@View
+public class $className extends ${dialog.cap}GuidoBase {
+
+  ${macros.generate('superclassConstructor', c)}
+
+  ${macros.generate('initWidgets', c)}
+
+  @Override
+  protected void initEventHandling() {
+    super.initEventHandling();
+  }
+}''')
     
 }

@@ -2,6 +2,7 @@ package templates.java
 
 import ee.mdd.model.ui.View
 
+
 templates('ui') {
 
   useMacros('commonMacros', '/common/macros')
@@ -42,11 +43,18 @@ templates('ui') {
   }
   
   templates ('mediator',
-    items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
-    context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
       
     template('mediator', appendName: true, body: '''<% if (item.view.withMediator) { %><% c.className = item.n.cap.mediatorBase-"View" %> ${macros.generate('mediatorBase', c)}<% } %>''')
     template('mediatorExtends', appendName: true, body: '''<% if (item.view.withMediator) { %><% c.className = item.n.cap.mediator-"View" %> ${macros.generate('mediator', c)}<% } %>''')
   }
-  
+    
+  templates ('dialogGuido',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
+    
+    template('dialogGuido', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guidoBase-"View" %> ${macros.generate('dialogGuidoBase', c)}<% } %>''')
+    template('dialogGuidoExtends', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guido-"View" %> ${macros.generate('dialogGuido', c)}<% } %>''')
+  }
 }
