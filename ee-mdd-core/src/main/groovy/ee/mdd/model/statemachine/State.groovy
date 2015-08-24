@@ -62,7 +62,7 @@ class State extends LogicUnit {
   }
 
   void setTimeout(String timeout) {
-    timeoutInMillis = timeout.duration()
+    timeoutInMillis = timeout.duration(timeout)
   }
 
   boolean isTimeoutEnabled() { stateMachine.timeoutEnabled && timeoutInMillis != null }

@@ -17,10 +17,10 @@ package ee.mdd.generator.java
 
 import ee.mdd.ModelBuilder
 import ee.mdd.generator.Context
-import ee.mdd.model.Body
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Body
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
@@ -44,6 +44,7 @@ import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Type
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -63,6 +64,20 @@ class EnhancerForJava {
     def properties = Collections.synchronizedMap([:])
     Map<String, String> typeToTestValue = [String: '\"TestString\"', Long: 'Long.valueOf(1)', long: '1L',
       Integer: 'Integer.valueOf(1)', int: '1', Date: 'new Date()', boolean: 'true', Boolean: 'Boolean.TRUE']
+    
+    String.metaClass {
+      
+      duration << { String durationAsString ->
+          final def millisFactors = ['min' : 60*1000, 'ms' : 1, 's' : 1000, 'h' : 60*60*1000]
+          final def m = durationAsString =~ /([0-9]*\.?[0-9]*)([a-z]*)/
+          if(!m.matches()) {
+            throw new Runtime("Not possible to parse the duration '$durationAsString' to milli seconds. Supported formats are 'ms, s, min, h'. Floating point is supported.")
+          }
+          //    println "$durationAsString $m"
+          long ret = Float.parseFloat(m[0][1]) * (m[0][2]?millisFactors[m[0][2]]:1)
+          ret
+        }
+    }
 
     Element.metaClass {
 

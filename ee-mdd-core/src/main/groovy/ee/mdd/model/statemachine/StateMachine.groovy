@@ -74,7 +74,7 @@ class StateMachine extends Module {
   }
 
   void setTimeoutCheckInterval(String timeoutCheckInterval) {
-    timeoutCheckIntervalInMillis = timeoutCheckInterval.duration()
+    timeoutCheckIntervalInMillis = timeoutCheckInterval.duration(timeoutCheckInterval)
   }
 
   protected Prop findHistProp() {
@@ -90,7 +90,7 @@ class StateMachine extends Module {
 
     if(isTimeoutEnabled()) {
       startupInitializer = true
-      createStatesTimeoutConfig()
+      //createStatesTimeoutConfig()
       addTimeoutEvent()
     }
 

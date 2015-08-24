@@ -26,10 +26,10 @@ import ee.mdd.builder.MetaAttributeHolder
 import ee.mdd.builder.ModelFactory
 import ee.mdd.builder.OppositeResolveHandler
 import ee.mdd.builder.PropFactory
-import ee.mdd.model.Body
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Body
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
@@ -56,7 +56,6 @@ import ee.mdd.model.component.Find
 import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Initializer
-import ee.mdd.model.component.Listener
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Message
@@ -73,7 +72,14 @@ import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.statemachine.Action
+import ee.mdd.model.statemachine.Condition
+import ee.mdd.model.statemachine.Event
+import ee.mdd.model.statemachine.History
+import ee.mdd.model.statemachine.State
 import ee.mdd.model.statemachine.StateMachine
+import ee.mdd.model.statemachine.StateMachineController
+import ee.mdd.model.statemachine.Transition
 import ee.mdd.model.ui.Button
 import ee.mdd.model.ui.CheckBox
 import ee.mdd.model.ui.Column
@@ -86,6 +92,7 @@ import ee.mdd.model.ui.GroupBoxHeader
 import ee.mdd.model.ui.GroupContentFrame
 import ee.mdd.model.ui.Header
 import ee.mdd.model.ui.Label
+import ee.mdd.model.ui.Listener
 import ee.mdd.model.ui.OnAction
 import ee.mdd.model.ui.OnActivation
 import ee.mdd.model.ui.OnChange
@@ -177,17 +184,24 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryViewModel = new MddFactory(beanClass: ViewModel, parent: factoryControl)
   private def factoryTable = new MddFactory(beanClass: Table, childFactories: ['onSelect'], parent: factoryControl)
   private def factoryColumn = new MddFactory(beanClass: Column, childFactories: ['onSelect'], parent: factoryControl)
+  private def factoryButton = new MddFactory(beanClass: Button, childFactories: ['onAction'], parent: factoryControl)
   private def factoryOnAction = new MddFactory(beanClass: OnAction, childFactories: [], parent: factoryListener)
   private def factoryOnActivation = new MddFactory(beanClass: OnActivation, childFactories: [], parent: factoryListener)
   private def factoryOnChange = new MddFactory(beanClass: OnChange, childFactories: [], parent: factoryListener)
   private def factoryOnContextMenuRequest = new MddFactory(beanClass: OnContextMenuRequest, childFactories: [], parent: factoryListener)
   private def factoryOnItemEditorItemSelect = new MddFactory(beanClass: OnItemEditorItemSelect, childFactories: [], parent: factoryListener)
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
-  private def factoryButton = new MddFactory(beanClass: Button, childFactories: ['onAction'], parent: factoryControl)
   
   //StateMachine
-  private def factoryStateMachine = new MddFactory(beanClass: StateMachine, childFactories: [], parent: module)
-
+  private def factoryStateMachine = new MddFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController'], parent: module)
+  private def factoryAction = new MddFactory(beanClass: Action, childFactories:[], parent: cu)
+  private def factoryCondition = new MddFactory(beanClass: Condition, childFactories:[], parent: cu)
+  private def factoryEvent = new MddFactory(beanClass: Event, childFactories: [], parent: cu)
+  private def factoryState = new MddFactory(beanClass: State, childFactories: ['on'], parent: lu)
+  private def factoryTransition = new MddFactory(beanClass: Transition, childFactories: [])
+  private def factoryHistory = new MddFactory(beanClass: History, childFactories: [], parent: lu)
+  private def factoryStateMachineController = new MddFactory(beanClass: StateMachineController, childFactories: [], parent: controller)
+  
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
@@ -295,7 +309,13 @@ class ModelBuilder extends AbstractFactoryBuilder {
     //StateMachine
     
     registerFactory 'stateMachine', factoryStateMachine
-
+    registerFactory 'action', factoryAction
+    registerFactory 'condition', factoryCondition
+    registerFactory 'event', factoryEvent
+    registerFactory 'state', factoryState
+    registerFactory 'on', factoryTransition
+    registerFactory 'history', factoryHistory
+    registerFactory 'stateMachineController', factoryStateMachineController
   }
 }
 

@@ -31,6 +31,7 @@ class CompilationUnit extends Type {
   List<Constructor> constructors
   List<Operation> operations
   List<String> generics
+  Set types = []
 
   Module getModule() {
     parent.module

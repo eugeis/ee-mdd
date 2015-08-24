@@ -71,4 +71,55 @@ class Element extends Base {
   void fillReference(Map<String, Base> fillRefToResolved) {
     fillRefToResolved[reference] = this
   }
+  
+  def resolve(ref, type = null, assertNotNull = false) {
+    //println "Resolve $ref in '$this, type=$type, assertNotNull=$assertNotNull"
+    def ret = null
+    if(ref) {
+      def tempRet, relRef
+      if(ref.startsWith('//')) {
+        relRef = ref.substring(2)
+        ret = component()
+      } else if(ref.startsWith('/')) {
+        relRef = ref.substring(1)
+        ret = module()
+      } else {
+        relRef = ref
+        ret = this
+      }
+      //println "Resolve $relRef in '$ret"
+      def parts = relRef.split('\\.')
+      def i = 0
+
+      def chain = [] as Set
+      def isTypeOk = { parts.length != i || ( type == null ? true : type.isInstance(it) ) }
+      parts.each { String partRef ->
+        //println "\nTry to resolve '$partRef' in $ret"
+        i++
+        if(ret) {
+          assert !chain.contains(ret), "Recursion detected at resolving of ref='$ref' in this=$this"
+          chain << ret
+
+          tempRet = null
+          try {
+            tempRet = ret."${partRef}"
+            if(!isTypeOk(tempRet)) { tempRet = null }
+          } catch(e) {}
+
+          if(!tempRet) {
+            //check children
+            if(ret.children) { ret = ret.children.find { partRef.equalsIgnoreCase(it.getName()) && isTypeOk(it) }
+            } else { ret = null }
+            if(assertNotNull) { assert ret != null, "Ref='$ref' can't be resolved in this='$this', partRef='$partRef', ret='$ref'" }
+          } else {
+            ret = tempRet
+          }
+        }
+      }
+    }
+    if(assertNotNull) { assert ret != null, "Ref='$ref' can't be resolved in this=$this" }
+    //println "Resolved $ref to '$ret' in '$this, type=$type, assertNotNull=$assertNotNull"
+    ret
+  }
+  
 }
