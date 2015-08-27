@@ -32,7 +32,7 @@ class GenerateJsTest {
 
           entity('Comment', attributeChangeFlag: true) {
             prop('id', type: 'Long',  unique: true, primaryKey: true)
-            prop('testTask', type: 'Task', opposite: 'comment')
+            prop('task', type: 'Task', opposite: 'comments')
             prop('testProp', type: 'Task', multi: true)
             prop('dateOfCreation', type: 'Date')
             prop('newTask', type: 'Task')
@@ -44,13 +44,19 @@ class GenerateJsTest {
             }
           }
 
+		  entity('TaskAction', description: '''The entity that represents the action''') {
+            prop('id', type:'Long', unique:true, primaryKey:true)
+            prop('task', type:'Task', opposite:'actions', description: '')
+            prop('name', type:'String')
+          }
+
           entity('Task', attributeChangeFlag: true, ordered: true) {
             prop('id', type: 'Long', primaryKey: true, unique: true)
-            prop('comment', type: 'Comment', opposite: 'testTask')
+            prop('comments', type: 'Comment', multi: true)
             prop('created', type: 'Date', unique: true)
             prop('closed', type: 'Date', index: true)
             prop('actions', type: 'TaskAction', multi: true )
-            prop('size', type: 'int')
+			prop('size', type: 'int')
             prop('order', type: 'Long', xml: 'false')
 
             constr {}
@@ -71,10 +77,10 @@ class GenerateJsTest {
               param('countdown', type: 'int')
             }
 
-            index( props: ['comment', 'created'])
+            index( props: ['comments', 'created'])
 
             finder {
-              findBy { param(prop: 'comment' ) }
+              findBy { param(prop: 'comments' ) }
               count { param(prop: 'created') }
               exist {
                 param(prop: 'created')
@@ -87,11 +93,7 @@ class GenerateJsTest {
             }
           }
 
-          entity('TaskAction', description: '''The entity that represents the action''') {
-            prop('id', type:'Long', unique:true, primaryKey:true)
-            prop('task', type:'Task', opposite:'actions', description: '')
-            prop('name', type:'String')
-          }
+
         }
 
         module('ui', namespace: 'ui') {
@@ -99,6 +101,7 @@ class GenerateJsTest {
           view ('TaskEditor', main: true) {
             viewRef(view: 'TaskExplorerView') {}
             viewRef(view: 'TaskDetailsView') {}
+            viewRef(view: 'TaskSearchView') {}
             presenter {}
             //model {}
             button('accept') { onAction(['TaskEditorView.model']) }
@@ -115,13 +118,15 @@ class GenerateJsTest {
           view ('TaskDetails') {
             textField('taskName') { onChange(['TaskEditorView.model']) }
             table('actions', type: 'TaskAction') {onSelect()}
-            contextMenu('actionsManagement') {}
+			table('comments', type: 'Comment') {onSelect()}
+			contextMenu('actionsManagement') {}
             presenter {}
           }
 
           view ('TaskSearch') {
-            textField('name') { onChange() }
-            textField('comment') { onChange() }
+            table('actions', type: 'TaskAction') {onSelect()}
+			textField('name') { onChange() }
+            textField('comments') { onChange() }
             button('search') { onAction() }
             presenter {}
             dialog {}
