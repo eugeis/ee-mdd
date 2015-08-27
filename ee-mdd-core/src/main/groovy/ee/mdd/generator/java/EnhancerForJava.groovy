@@ -686,7 +686,24 @@ class EnhancerForJava {
 
 
     Prop.metaClass {
-
+      
+      getUncapFullName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'uncapFullName'
+        if(!properties.containsKey(key)) {
+          properties[key] = "${delegate.parent.uncap}$delegate.cap"
+        }
+        properties[key]
+      }
+      
+      getCapFullName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'capFullName'
+        if(!properties.containsKey(key)) {
+          properties[key] = "${delegate.parent.cap}$delegate.cap"
+        }
+        properties[key]
+      }
 
       getGetter << {
         ->
