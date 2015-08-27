@@ -74,6 +74,7 @@ import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
 import ee.mdd.model.statemachine.Action
 import ee.mdd.model.statemachine.Condition
+import ee.mdd.model.statemachine.Context
 import ee.mdd.model.statemachine.Event
 import ee.mdd.model.statemachine.History
 import ee.mdd.model.statemachine.State
@@ -193,7 +194,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
   
   //StateMachine
-  private def factoryStateMachine = new MddFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController'], parent: module)
+  private def factoryStateMachine = new MddFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController', 'context'], parent: module)
   private def factoryAction = new MddFactory(beanClass: Action, childFactories:[], parent: cu)
   private def factoryCondition = new MddFactory(beanClass: Condition, childFactories:[], parent: cu)
   private def factoryEvent = new MddFactory(beanClass: Event, childFactories: [], parent: cu)
@@ -201,6 +202,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryTransition = new MddFactory(beanClass: Transition, childFactories: [])
   private def factoryHistory = new MddFactory(beanClass: History, childFactories: [], parent: lu)
   private def factoryStateMachineController = new MddFactory(beanClass: StateMachineController, childFactories: [], parent: controller)
+  private def factoryContext = new MddFactory(beanClass: Context, childFactories: [], parent: pojo)
   
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
@@ -316,6 +318,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'on', factoryTransition
     registerFactory 'history', factoryHistory
     registerFactory 'stateMachineController', factoryStateMachineController
+    registerFactory 'context', factoryContext
   }
 }
 
