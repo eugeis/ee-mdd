@@ -392,14 +392,19 @@ section {
 
 		self.columns = [\
 <%
-			for (def i = 0; i < control.type.props.size()-1; i++) {
+			for (def i = 0; i < control.type.props.size(); i++) {
 				def prop = control.type.props[i]
 %>\
-"$prop.name",\
+"$prop.name"\
 <%
+				if(i < control.type.props.size()-1) {
+%>\
+,\
+<%
+				}
 			}
 %>\
-"${control.type.props[control.type.props.size()-1].name}"];
+];
 
 <%
 			if (hasMulti) {
@@ -421,6 +426,22 @@ section {
 			\\$scope.\\$emit("click", {
 				childSource: self,
 				sourceEntity: self.entity,
+				targetView: [\
+<%
+				if (control.onSelect.observerRefs) {
+					for (def i = 0; i < control.onSelect.observerRefs.size(); i++) {
+%>\
+"${control.onSelect.observerRefs[i]}",\
+<%
+						if(i < control.onSelect.observerRefs.size() - 1) {
+%>\
+,\
+<%
+						}
+					}
+				}
+%>\
+],
 				column: column,
 				row: row
 			});
@@ -444,11 +465,16 @@ section {
 <%
 				opposite.each { prop ->
 %>\
-			if (args.sourceEntity === "${prop.type.name}") {
-				if (self.currentRow !== args.row.id) {
-					self.fetchData(args.row.id);
+			console.warn("Temporary fix! .presenter should not be compared");
+			if (args.targetView.some(function(d) {
+				return d === "${item.name}.presenter";
+			})){
+				if (args.sourceEntity === "${prop.type.name}") {
+					if (self.currentRow !== args.row.id) {
+						self.fetchData(args.row.id);
+					}
+					self.currentRow = args.row.id;
 				}
-				self.currentRow = args.row.id;
 			}
 <%
 				}
