@@ -286,15 +286,15 @@ section {
 		if (control.widgetType == "Button") {
 %>\
 \
-		<input type="button" value="$control.name">
+		<input type="button" value="${control.name.capitalize()}">
 \
 <%
 		}
 		if (control.widgetType == "Table") {
 %>\
 \
-	<section id="$item.name-Table-$control.name">
-		<ee-table ng-controller="${item.name}${control.name}Controller as tableCtrl"></ee-table>
+	<section id="$item.name-Table-${control.name.capitalize()}">
+		<ee-table ng-controller="${item.name}${control.name.capitalize()}Controller as tableCtrl"></ee-table>
 	</section>
 \
 <%
@@ -302,7 +302,7 @@ section {
 		if (control.widgetType == "TextField") {
 %>\
 \
-		<label>$control.name</label> <input readonly>
+		<label>${control.name.capitalize()}</label> <input readonly>
 \
 <%
 		}
@@ -380,10 +380,10 @@ section {
 %>\
 
 
-	function ${item.name}${control.name}(\\$scope, \\$http) {
+	function ${item.name}${control.name.capitalize()}(\\$scope, \\$http) {
 		var self = this;
 
-		self.id = "${item.name}${control.name}";
+		self.id = "${item.name}${control.name.capitalize()}";
 		self.entity = "${control.type.name}";
 
 		self.parent = angular.module("Table").baseClass["TableBase"];
@@ -430,7 +430,7 @@ section {
 			if (hasOpposite) {
 %>\
 		self.fetchData = function(id) {
-			self.data = \\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${control.name}')
+			self.data = \\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${control.name.capitalize()}')
 				.success(function(data, status, headers, config) {
 					self.data = data;
 				})
@@ -458,10 +458,10 @@ section {
 			}
 %>\
 
-		manipulator.getInstance("${item.name}${control.name}").inject(self);
+		manipulator.getInstance("${item.name}${control.name.capitalize()}").inject(self);
 	}
-	${item.name}${control.name}.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
-	app.controller("${item.name}${control.name}Controller", ['\\$scope', '\\$http', ${item.name}${control.name}]);
+	${item.name}${control.name.capitalize()}.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
+	app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', ${item.name}${control.name.capitalize()}]);
 <%
 		}
 	}
@@ -482,8 +482,8 @@ section {
 	item.controls.each { control ->
 		if (control.widgetType == "Table") {
 %>
-	var manipulator_${control.name} = angular.module("Manipulator").manipulator.getInstance("${item.name}${control.name}");
-	manipulator_${control.name}.add("functionName", function() {
+	var manipulator_${control.name.capitalize()} = angular.module("Manipulator").manipulator.getInstance("${item.name}${control.name.capitalize()}");
+	manipulator_${control.name.capitalize()}.add("functionName", function() {
 		//This could be your code
 		console.log("bar");
 	});
