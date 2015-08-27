@@ -28,77 +28,36 @@ templates ('common') {
   useMacros('macros')
   useMacros('commonMacros', '/common/macros')
 
-  templates ('api',
-  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-  context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
-
-    template('impl', body: '''<% c.virtual=true; c.serializable=true; c.className="${entity.name}Base" %>${macros.generate('impl', c)}''')
-    template('implExtends', body: '''<% c.serializable=true; c.className="${entity.name}" %>${macros.generate('implExtends', c)}''')
-  }
-
-  templates ('enum',
-  items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
-  context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
-
-    template('enum', body: '''${macros.generate('enum', c)}''')
-  }
-
-//  templates ('firstTestWithAngular',
-//	  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-//	  context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
+//  templates ('api',
+//  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+//  context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
 //
-//		  template('htmlFile', body: '''<% c.path = "${c.filepath}/${item.name}.html" %>
-//			${macros.generate('myhtmlheadermacro', c)}
-//			${macros.generate('myhtmlbodymacro', c)}
-//			${macros.generate('htmlfootermacro', c)}''')
+//    template('impl', body: '''<% c.virtual=true; c.serializable=true; c.className="${entity.name}Base" %>${macros.generate('impl', c)}''')
+//    template('implExtends', body: '''<% c.serializable=true; c.className="${entity.name}" %>${macros.generate('implExtends', c)}''')
+//  }
 //
-//		  template('angularFile', appendName: true,  body: '''<% c.path = "${c.filepath}/${item.name}.js" %>
-//			${macros.generate('myangularmacro', c)}''')
+//  templates ('enum',
+//  items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
+//  context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
 //
-//		  template('cssFile', body: '''<% c.path = "${c.filepath}/${item.name}.css" %>
-//			${macros.generate('mycssmacro', c)}''')
-//
-//		  //		template('javascriptBase', body: '''<% c.path = "${c.filepath}/${item.name}Base.js" %>
-//		//			${macros.generate('myjavascriptmacro', c)}''')
-//	  }
-//
-//	  templates ('experimentalView',
-//		  items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) }) },
-//		  context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
-//			  template('htmlFile', body: '''<% c.path = "${c.filepath}/${item.name}.html" %>
-//			<div id="$c.item.name">
-//	    <% c.item.controls.each { %>
-//			<% if (it.widgetType == "Button") { %>
-//				<input type="button" value="$it.name"></input>
-//			<% } %>
-//			<% if (it.widgetType == "Table") { %>
-//				<table><tr><td>$it.name</td><td>$it.name</td></tr><tr><td>$it.name</td><td>$it.name</td></tr></table>
-//			<% } %>
-//			<% if (it.widgetType == "TextField") { %>
-//				<input id="$it.name" type="text">
-//			<% } %>
-//	    <% } %>
-//			</div>
-//	    ''')
-//		  }
+//    template('enum', body: '''${macros.generate('enum', c)}''')
+//  }
 
-	  templates ('mainView',
-	  items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && it.main}) },
-	  context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
-		  template('htmlFile', body: '''<% c.path = "${c.filepath}/index.html" %>\
-${macros.generate('indexheader', c)}\
-${macros.generate('includedviews', c)}\
-<section id="${c.item.name}">${macros.generate('html',c)}</section>\
-${macros.generate('htmlfootermacro', c)}''')
-		  template('cssfile', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylesheet', c)} ''')
-		  template('angularFile', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
-		  template('tablejs', body: '''<% c.path = "${c.filepath}/TableControllerBase.js" %>${macros.generate('tableControllerBase', c)}''')
-	}
+  	templates ('mainView',
+  		items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && it.main}) },
+  		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
+  			template('indexhtml', body: '''<% c.path = "${c.filepath}/index.html" %>${macros.generate('indexhtml', c)}''')
+  			template('appjs', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
+  			template('stylecss', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylecss', c)}''')
+  			template('tablehtml', body: '''<% c.path = "${c.filepath}/table.html" %>${macros.generate('tablehtml', c)}''')
+  			template('tablejs', body: '''<% c.path = "${c.filepath}/Table.js" %>${macros.generate('tablejs', c)}''')
+  			template('dispatcherjs', body: '''<% c.path = "${c.filepath}/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
+  		}
 
-	templates ('frameViews',
-	items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && !it.main}) },
-	context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
-		  template('htmlFile', body: '''<% c.path = "${c.filepath}/${item.name}.html" %>${macros.generate('html',c)}''')
-		  template('angularFile', body: '''<% c.path = "${c.filepath}/${item.name}.js" %>${macros.generate('modulejs', c)}''')
-	  }
+  	templates ('frameView',
+  		items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it)}) },
+  		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
+ 			template('framehtml', body: '''<% c.path = "${c.filepath}/${item.name}.html" %>${macros.generate('framehtml', c)}''')
+  			template('framejs', body: '''<% c.path = "${c.filepath}/${item.name}.js" %>${macros.generate('framejs', c)}''')
+  		}
 }
