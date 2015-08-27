@@ -31,7 +31,7 @@ class StateMachine extends Module {
 
   Entity getEntity() {
     if(!_entity) {
-      _entity = module().resolve(entityRef, Entity.class, true)
+      _entity = module.resolve(entityRef, Entity.class, true)
     }; _entity
   }
   Prop getStateProp() {
@@ -124,7 +124,7 @@ class StateMachine extends Module {
 
   void createStatesTimeoutConfig() {
     def description = "Stores the defined state timeouts (milliseconds) of the $name state machine"
-    timeouts = new Config(name: "${capShortName}Timeouts", description: description, namespace: component().subPackages.model, event: true)
+    timeouts = new Config(name: "${capShortName}Timeouts", description: description, namespace: component.subPackages.model, event: true)
     add(timeouts)
 
     Prop prop = new Prop(name: "timeoutCheckInterval", type: 'int', defaultValue: timeoutCheckIntervalInMillis)
@@ -136,7 +136,7 @@ class StateMachine extends Module {
         timeouts.add(prop)
       }
     }
-    timeouts.add( new ConfigController(namespace: component().subPackages.core, base:true) )
+    timeouts.add( new ConfigController(namespace: component.subPackages.core, base:true) )
   }
 
   boolean isTimeoutEnabled() { timeoutCheckIntervalInMillis }
