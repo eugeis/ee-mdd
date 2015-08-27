@@ -52,23 +52,37 @@ class StateMachine extends Module {
   }
 
   def add(State item) {
-    super.add(item); states << item
+    if(!states) {
+      states = []
+    }; states << super.add(item)
   }
+  
   def add(Action item) {
-    super.add(item); actions << item
+    if(!actions) {
+      actions = []
+    }; actions << super.add(item)
   }
+  
   def add(Event item) {
-    super.add(item); events << item
+    if(!events) {
+      events = []
+    }; events << super.add(item)
   }
-  def add(Context item) {
-    super.add(item, false); context = item
-  }
-  def add(StateEvent item) {
-    super.add(item, false); stateEvent = item
-  }
+  
   def add(Condition item) {
-    super.add(item); conditions << item
+    if(!conditions) {
+      conditions = []
+    }; conditions << super.add(item)
   }
+
+  def add(Context item) {
+    context = super.add(item)
+  }
+  
+  def add(StateEvent item) {
+    stateEvent = super.add(item);
+  }
+ 
   def add(History item) {
     println "Enabling history tracking for entity $item.entityRef"; super.add(item); history = item
   }
