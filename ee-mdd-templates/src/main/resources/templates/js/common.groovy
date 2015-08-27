@@ -49,15 +49,18 @@ templates ('common') {
   			template('indexhtml', body: '''<% c.path = "${c.filepath}/index.html" %>${macros.generate('indexhtml', c)}''')
   			template('appjs', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
   			template('stylecss', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylecss', c)}''')
-  			template('tablehtml', body: '''<% c.path = "${c.filepath}/table.html" %>${macros.generate('tablehtml', c)}''')
-  			template('tablejs', body: '''<% c.path = "${c.filepath}/Table.js" %>${macros.generate('tablejs', c)}''')
-  			template('dispatcherjs', body: '''<% c.path = "${c.filepath}/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
+  			template('tablehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/table.html" %>${macros.generate('tablehtml', c)}''')
+  			template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/base/Table.js" %>${macros.generate('tablejs', c)}''')
+  			template('dispatcherjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
+  			template('manipulatorjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Manipulator.js" %>${macros.generate('manipulatorjs', c)}''')
+  			template('srcguard', body: '''<% c.path = "${c.filepath}/src/SrcIncludeGuard.js" %>${macros.generate('srcguard', c)}''')
   		}
 
   	templates ('frameView',
   		items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it)}) },
   		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
- 			template('framehtml', body: '''<% c.path = "${c.filepath}/${item.name}.html" %>${macros.generate('framehtml', c)}''')
-  			template('framejs', body: '''<% c.path = "${c.filepath}/${item.name}.js" %>${macros.generate('framejs', c)}''')
+ 			template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
+  			template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/scripts/${item.name}.js" %>${macros.generate('framejs', c)}''')
+  			template('framesrcjs', body: '''<% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
   		}
 }

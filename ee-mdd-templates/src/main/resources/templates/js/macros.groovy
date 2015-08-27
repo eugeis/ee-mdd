@@ -88,15 +88,20 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		<script src="app.js" type="text/javascript"></script>
 
 		<!-- Services -->
-		<script src="Dispatcher.js" type="text/javascript"></script>
+		<script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
+		<script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
+		<script src="src/SrcIncludeGuard.js" type="text/javascript"></script>
 
 		<!-- Table implementation -->
-		<script src="Table.js" type="text/javascript"></script>
+		<script src="src-gen/base/Table.js" type="text/javascript"></script>
 
 		<!-- Include ViewRef-Javascript -->
 <% item.viewRefs.each { viewRef -> %>\
-		<script src="${viewRef.view.name}.js" type="text/javascript"></script>
+		<script src="src-gen/scripts/${viewRef.view.name}.js" type="text/javascript"></script>
 <% } %>\
+
+		<!-- Include ViewRef-Source-Dependencies-Javascript -->
+
 	</body>
 </html>
 ''')
@@ -170,7 +175,7 @@ section {
 	app.directive("eeTable", function() {
 		return {
 			restrict: 'E',
-			templateUrl: "table.html",
+			templateUrl: "src-gen/templates/table.html",
 			replace: true
 		};
 	});
@@ -180,7 +185,7 @@ section {
 			restrict: 'E',
 			controllerAs: 'ctrl',
 			templateUrl: function(elem, attrs) {
-				return attrs.template + ".html";
+				return "src-gen/templates/" + attrs.template + ".html";
 			},
 			replace: true,
 			link: function (scope, element, attrs) {
@@ -239,6 +244,41 @@ section {
 }());
 ''')
 
+	template('manipulatorjs', body: '''\
+(function(){
+	var app = angular.module("Manipulator",[]);
+
+	app.manipulator = new function() {
+		var self = this;
+
+		self.instances = {};
+		self.getInstance = function(id) {
+			if (!self.instances[id]) {
+				self.instances[id] = {
+					injections: [],
+					add: function(name, func) {
+						this.injections.push({name: name, func: func});
+					},
+					inject: function(obj) {
+						this.injections.forEach(function(d,i) {
+							obj[d.name] = d.func;
+						});
+					}
+				}
+			}
+			return self.instances[id];
+		}
+	}
+}());
+''')
+
+	template('srcguard', body: '''\
+(function(){
+	//Add your dependencies here
+	var app = angular.module("SrcIncludeGuard",[]);
+})();
+''')
+
 	template('framehtml', body: '''\
 <section id="${item.name}">
 <%
@@ -273,7 +313,7 @@ section {
 
 	template('framejs', body: '''\
 (function(){
-	var app = angular.module("$item.name",[\
+	var app = angular.module("$item.name",["SrcIncludeGuard",\
 <%
 	def hasControl = [:];
 	item.controls.each { control ->
@@ -289,6 +329,7 @@ section {
 	}
 %>\
 ]);
+	var manipulator = angular.module("Manipulator").manipulator;
 <%
 	if (hasControl["Table"] > 0) {
 %>\
@@ -301,7 +342,7 @@ section {
 	function ${item.name}(\\$scope, \\$dispatcher) {
 		var self = this;
 		\\$dispatcher.subscribe(self);
-		self.id = " ${item.name}";
+		self.id = "${item.name}";
 
 		\\$scope.\\$on("click", function(e, args) {
 			// If the onselect is set add:
@@ -311,6 +352,8 @@ section {
 		self.event = function(args) {
 			\\$scope.\\$broadcast("event", args);
 		}
+
+		manipulator.getInstance("${item.name}").inject(self);
 	}
 	app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher',  ${item.name}]);
 <%
@@ -362,7 +405,7 @@ section {
 			if (hasMulti) {
 				if (!hasOpposite) {
 %>\
-		self.data = \\$http.get('./data/${item.name}.json')
+		self.data = \\$http.get('data/${item.name}.json')
 			.success(function(data, status, headers, config) {
 				self.data = data;
 			})
@@ -387,7 +430,7 @@ section {
 			if (hasOpposite) {
 %>\
 		self.fetchData = function(id) {
-			self.data = \\$http.get('./data/TaskDetailsView.php?id=' + id + '&type=${control.name}')
+			self.data = \\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${control.name}')
 				.success(function(data, status, headers, config) {
 					self.data = data;
 				})
@@ -414,9 +457,36 @@ section {
 <%
 			}
 %>\
+
+		manipulator.getInstance("${item.name}${control.name}").inject(self);
 	}
 	${item.name}${control.name}.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
 	app.controller("${item.name}${control.name}Controller", ['\\$scope', '\\$http', ${item.name}${control.name}]);
+<%
+		}
+	}
+%>\
+}());
+''')
+
+	template('framesrcjs', body: '''\
+(function(){
+	var app = angular.module("${item.name}Injector", ["Manipulator"]);
+
+	var manipulator = angular.module("Manipulator").manipulator.getInstance("${item.name}");
+	manipulator.add("functionName", function() {
+		//This could be your code
+		console.log("bar");
+	});
+<%
+	item.controls.each { control ->
+		if (control.widgetType == "Table") {
+%>
+	var manipulator_${control.name} = angular.module("Manipulator").manipulator.getInstance("${item.name}${control.name}");
+	manipulator_${control.name}.add("functionName", function() {
+		//This could be your code
+		console.log("bar");
+	});
 <%
 		}
 	}
