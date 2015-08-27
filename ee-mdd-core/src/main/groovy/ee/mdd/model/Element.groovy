@@ -79,7 +79,7 @@ class Element extends Base {
       def tempRet, relRef
       if(ref.startsWith('//')) {
         relRef = ref.substring(2)
-        ret = component()
+        ret = component
       } else if(ref.startsWith('/')) {
         relRef = ref.substring(1)
         ret = module()
