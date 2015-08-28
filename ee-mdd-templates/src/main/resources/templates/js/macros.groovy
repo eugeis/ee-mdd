@@ -266,11 +266,13 @@ section {
 					injections: [],
 					add: function(name, func) {
 						this.injections.push({name: name, func: func});
+						return this;
 					},
 					inject: function(obj) {
 						this.injections.forEach(function(d,i) {
 							obj[d.name] = d.func;
 						});
+						return this;
 					}
 				}
 			}
