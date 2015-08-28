@@ -53,42 +53,41 @@ snippet to your index.html.
 # Structure
 
 
-/
---[angular.js](https://code.angularjs.org/1.4.2/angular.js)
---app.js
---index.html
---stylesheet.css
-
-/bootstrap
---[bootstrap.css](http://getbootstrap.com/)
-
-/src
---{SomeViewsName}.js
-
-/src-gen/base
---Dispatcher.js
---Manipulator.js
---Table.js
-
-/src-gen/scripts
---{SomeViewsName}.js
-
-/src-gen/templates
---table.html
---{SomeViewsName}.js
+* /
+  * [angular.js](https://code.angularjs.org/1.4.2/angular.js)
+  * app.js
+  * index.html
+  * stylesheet.css
+* /bootstrap
+  * [bootstrap.css](http://getbootstrap.com/)
+* /src
+  * {SomeViewsName}.js
+* /src-gen/
+  * /base
+      * Dispatcher.js
+      * Manipulator.js
+      * Table.js
+  * /scripts
+      * {SomeViewsName}.js
+  * /templates
+      * table.html
+      * {SomeViewsName}.js
 
 # Troubleshooting
 
-* Anything XAMPP related (installation failed / webserver does not start) 
-  --> see XAMPP FAQ for [Windows](https://www.apachefriends.org/faq_windows.html), [Linux](https://www.apachefriends.org/faq_linux.html) or [OSX](https://www.apachefriends.org/faq_osx.html)
+## Anything XAMPP related (installation failed / webserver does not start) 
 
-* Website is blank
-  --> make sure you are on http://localhost
-  --> make sure you have copied the generated files and the gui-dist
-      into your htdocs-folder
-  --> open developer tools (right-click > inspect element for chrome, firefox)
-      and look for errors in the console
-     
-      ** "Uncaught ReferenceError: angular is not defined"
-        --> make sure you have copied the gui-dist-folder in to htdocs-folder,
-            this is an indicator, that the angular.js-file is not available
+See XAMPP FAQ for [Windows](https://www.apachefriends.org/faq_windows.html), [Linux](https://www.apachefriends.org/faq_linux.html) or [OSX](https://www.apachefriends.org/faq_osx.html)
+
+## Website is blank
+
+* Make sure you are on http://localhost
+* Make sure you have copied the generated files and the gui-dist into your htdocs-folder
+* Open developer tools (right-click > inspect element for chrome, firefox) and look for errors in the console
+
+  ###Possible error-messages:
+
+  ```"Uncaught ReferenceError: angular is not defined"```
+
+  * this is an indicator, that the angular.js-file is not available
+  * make sure you have copied the content of the gui-dist-folder in to htdocs-folder
