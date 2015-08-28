@@ -27,8 +27,8 @@ class Listener extends Operation {
     getClass().simpleName
   }
 
-  void buildMe() {
-    super.buildMe()
+  boolean init() {
+    def ret = super.init()
     receiverName = "on$callbackBaseName"
     receiverCallValue = "$receiverName()"
     handlerName = "handle$callbackBaseName"
@@ -47,13 +47,14 @@ class Listener extends Operation {
     if (!eventTypeRawType) {
       eventTypeRawType = eventType
     }
-    handlers = handlerRefs.collect { new Reference().build(module(), it, true, module()).presentationLogicUnit }
-    if (handlers.isEmpty()) {
-      handlers << presenter
-    }
-    handlers.each{ it.addHandlerFor(this) }
-    observers = observerRefs.collect { new Reference().build(module(), it, true, module()).presentationLogicUnit }
-    observers.each{ it.addObserverFor(this) }
+//    handlers = handlerRefs.collect { new Reference().build(module(), it, true, module()).presentationLogicUnit }
+//    if (handlers.isEmpty()) {
+//      handlers << presenter
+//    }
+//    handlers.each{ it.addHandlerFor(this) }
+//    observers = observerRefs.collect { new Reference().build(module(), it, true, module()).presentationLogicUnit }
+//    observers.each{ it.addObserverFor(this) }
+    ret
   }
 
   Widget getWidget() {

@@ -2051,7 +2051,7 @@ public class $className extends ${dialog.cap}GuidoBase {
   
   //StateMachine
   
-  template('moduleEvent', body: '''<% def idProp = module.entity.idProp %>
+  template('moduleEvent', body: '''<% def entity = module.entity; def idProp = entity.idProp %>
 /** Base state event interface for all state events of state machine $module.name */
 public interface $className extends Serializable {
 
@@ -2060,17 +2060,19 @@ public interface $className extends Serializable {
   * If it is not null, then the event is valid only if the current state of $module.entity.cap is same.
   * If the expected value is not equal to the current state, then the event will be rejected.
   */
-  $module.stateProp.type getExpectedState();
+  $module.stateProp.type.name getExpectedState();
 
-  $idProp.type get$idProp.capFullname();
+  $idProp.type.name get$idProp.capFullName;
 
-  void set$idProp.capFullname($idProp.type $idProp.uncapFullname);
+  void set${idProp.capFullName}($idProp.type.name $idProp.uncapFullName);
 
-  void setExpectedState($module.stateProp.type expectedState);
+  void setExpectedState($module.stateProp.type.name expectedState);
 
   $module.n.cap.eventType getType();
 
   void setActor(String actor);
+
+  String getActor();
 }''')
   
   

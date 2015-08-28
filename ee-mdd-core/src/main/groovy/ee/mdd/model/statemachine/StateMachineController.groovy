@@ -15,14 +15,14 @@ class StateMachineController extends Controller {
 
 // Resolution of property ret (type) does not work here
   
-//  boolean init() {
-//    boolean ret = super.init()
+  boolean init() {
+    boolean ret = super.init()
 //
 //    def op = new Operation(name: 'process', ret: entity.n.cap.entity, parent:this)
 //    op.add(new Param(name: 'event', type: stateMachine.n.cap.event))
 //    add(op, true)
 //    add(new Operation(name: 'findStateMetaModel', ret: stateMachine.names.metaModel, parent:this), true)
 //
-//    ret
-//  }
+    ret
+  }
 }
