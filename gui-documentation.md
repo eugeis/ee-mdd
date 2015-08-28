@@ -38,27 +38,16 @@ Adding a function to inject
 
 ### Extensibility
 
-The controllers defined in /src-gen/scripts are extendable:
+Using the manipulator you can extend the functionality of the generated controllers.
+By convention the views' controllers are manipulated in their complement js-file in
+the src-folder.
 
-In this example we use the "TaskExplorerViewTasks"-Controller. This is a
-table-controller in the "TaskExplorerView", which emits information to its
-parent controller when clicked.
-
-To change this behaviour you can add the snippet below to the TaskExplorerView.js file in /src/, 
-thus logging the column and row in the console.
-
-```javascript
-	var manipulator = angular.module("Manipulator").manipulator.getInstance("TaskExplorerViewTasks");
-	manipulator.add("click", function(column, row) {
-		console.log({column: column, row: row});
-	});
-```
-
-Moreover you have to include the TaskExplorerView.js in the index.html:
+After using the manipulator to add functions to the controller, you need to add this
+snippet to your index.html.
 
 ```html
 	<!-- Include ViewRef-Source-Dependencies-Javascript -->
-	<script src="src/TaskExplorerView.js" type="text/javascript"></script>
+	<script src="src/{InjectionFile}.js" type="text/javascript"></script>
 ```
 	
 # Structure
