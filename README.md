@@ -18,13 +18,11 @@ The software is in alpha development stage, the documentation and examples will 
 
 ## Set up GUI
 * For troubleshooting refer to gui-documentation.txt
+
 1. Install XAMPP (https://www.apachefriends.org/de/) or another webserver of your choice
-   -- If you use a different webserver skip step 2 and replace {YourPathToXampp}/htdocs/ with
-   -- your webserver's document root (e.g. /var/www/ for apache)
-2. Configure it by starting the webserver (e.g. via xampp-control) and
-   navigating to http://localhost (see XAMPP FAQs for help)
+  * If you use a different webserver skip step 2 and replace {YourPathToXampp}/htdocs/ with your webserver's document root (e.g. /var/www/ for apache)
+2. Configure it by starting the webserver (e.g. via xampp-control) and navigating to http://localhost (see XAMPP FAQs for help)
 3. Copy the files from /gui-dist to {YourPathToXampp}/htdocs/
-4. Run GenerateJsTest.groovy (ee-mdd/ee-mdd-gradle/src/test/groovy/ee/mdd/gradle/task/)
-   in eclipse
+4. Run GenerateJsTest.groovy (ee-mdd/ee-mdd-gradle/src/test/groovy/ee/mdd/gradle/task/) in eclipse
 5. Copy the files generated to ee-mdd/ee-mdd-gradle/temp/ee-mdd_example-ui to {YourPathToXampp}/htdocs/
 6. Navigate to http://localhost to see the results
