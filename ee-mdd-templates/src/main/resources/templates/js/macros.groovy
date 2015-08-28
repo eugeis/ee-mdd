@@ -90,7 +90,6 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		<!-- Services -->
 		<script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
 		<script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
-		<script src="src/SrcIncludeGuard.js" type="text/javascript"></script>
 
 		<!-- Table implementation -->
 		<script src="src-gen/base/Table.js" type="text/javascript"></script>
@@ -272,13 +271,6 @@ section {
 }());
 ''')
 
-	template('srcguard', body: '''\
-(function(){
-	//Add your dependencies here
-	var app = angular.module("SrcIncludeGuard",[]);
-})();
-''')
-
 	template('framehtml', body: '''\
 <section id="${item.name}">
 <%
@@ -313,7 +305,7 @@ section {
 
 	template('framejs', body: '''\
 (function(){
-	var app = angular.module("$item.name",["SrcIncludeGuard",\
+	var app = angular.module("$item.name",[\
 <%
 	def hasControl = [:];
 	item.controls.each { control ->
@@ -343,6 +335,9 @@ section {
 		var self = this;
 		\\$dispatcher.subscribe(self);
 		self.id = "${item.name}";
+
+		self.\\$scope = \\$scope;
+		self.\\$dispatcher = \\$dispatcher;
 
 		\\$scope.\\$on("click", function(e, args) {
 			// If the onselect is set add:
@@ -385,6 +380,9 @@ section {
 
 		self.id = "${item.name}${control.name.capitalize()}";
 		self.entity = "${control.type.name}";
+
+		self.\\$scope = \\$scope;
+		self.\\$http = \\$http;
 
 		self.parent = angular.module("Table").baseClass["TableBase"];
 		self.parent.call(this, \\$scope);
@@ -431,7 +429,7 @@ section {
 				if (control.onSelect.observerRefs) {
 					for (def i = 0; i < control.onSelect.observerRefs.size(); i++) {
 %>\
-"${control.onSelect.observerRefs[i]}",\
+"${control.onSelect.observerRefs[i]}"\
 <%
 						if(i < control.onSelect.observerRefs.size() - 1) {
 %>\
@@ -465,12 +463,11 @@ section {
 <%
 				opposite.each { prop ->
 %>\
-			console.warn("Temporary fix! .presenter should not be compared");
 			if (args.targetView.some(function(d) {
 				return d === "${item.name}.presenter";
 			})){
 				if (args.sourceEntity === "${prop.type.name}") {
-					if (self.currentRow !== args.row.id) {
+					if (args.row.id && self.currentRow !== args.row.id) {
 						self.fetchData(args.row.id);
 					}
 					self.currentRow = args.row.id;
@@ -501,8 +498,12 @@ section {
 
 	var manipulator = angular.module("Manipulator").manipulator.getInstance("${item.name}");
 	manipulator.add("functionName", function() {
-		//This could be your code
-		console.log("bar");
+		// This could be your code
+		// Include this file in the index.html
+
+		// To manipulate the object just refer to self
+		var self = this;
+		console.info("This function has been injected");
 	});
 <%
 	item.controls.each { control ->
@@ -510,8 +511,7 @@ section {
 %>
 	var manipulator_${control.name.capitalize()} = angular.module("Manipulator").manipulator.getInstance("${item.name}${control.name.capitalize()}");
 	manipulator_${control.name.capitalize()}.add("functionName", function() {
-		//This could be your code
-		console.log("bar");
+
 	});
 <%
 		}

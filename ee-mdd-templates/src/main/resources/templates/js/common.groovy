@@ -53,7 +53,6 @@ templates ('common') {
   			template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/base/Table.js" %>${macros.generate('tablejs', c)}''')
   			template('dispatcherjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
   			template('manipulatorjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Manipulator.js" %>${macros.generate('manipulatorjs', c)}''')
-  			template('srcguard', body: '''<% c.path = "${c.filepath}/src/SrcIncludeGuard.js" %>${macros.generate('srcguard', c)}''')
   		}
 
   	templates ('frameView',
