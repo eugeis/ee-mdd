@@ -51,6 +51,7 @@ templates ('common') {
   			template('stylecss', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylecss', c)}''')
   			template('tablehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/table.html" %>${macros.generate('tablehtml', c)}''')
   			template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/base/Table.js" %>${macros.generate('tablejs', c)}''')
+  			template('viewjs', body: '''<% c.path = "${c.filepath}/src-gen/base/View.js" %>${macros.generate('viewjs', c)}''')
   			template('dispatcherjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
   			template('manipulatorjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Manipulator.js" %>${macros.generate('manipulatorjs', c)}''')
   		}

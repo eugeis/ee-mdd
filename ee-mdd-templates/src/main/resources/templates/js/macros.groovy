@@ -66,7 +66,7 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 	<head>
 		<title>$item.name</title>
 		<meta charset="UTF-8">
-		<link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.css">
+		<link rel="stylesheet" href="bootstrap/bootstrap.css">
 		<link rel="stylesheet" href="stylesheet.css">
  	</head>
 	<body>
@@ -93,6 +93,9 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 		<!-- Table implementation -->
 		<script src="src-gen/base/Table.js" type="text/javascript"></script>
+
+		<!-- View implementation -->
+		<script src="src-gen/base/View.js" type="text/javascript"></script>
 
 		<!-- Include ViewRef-Javascript -->
 <% item.viewRefs.each { viewRef -> %>\
@@ -179,6 +182,18 @@ section {
 		};
 	});
 
+	app.baseClass = {};
+	app.baseClass["TableBase"] = function (\\$scope) {
+		var self = this;
+		self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
+	}
+}());
+''')
+
+	template('viewjs', body: '''\
+(function(){
+	var app = angular.module("View",[]);
+
 	app.directive("eeView", function() {
 		return {
 			restrict: 'E',
@@ -192,12 +207,6 @@ section {
 			}
 		};
 	});
-
-	app.baseClass = {};
-	app.baseClass["TableBase"] = function (\\$scope) {
-		var self = this;
-		self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
-	}
 }());
 ''')
 
@@ -316,11 +325,11 @@ section {
 	}
 	if (hasControl["Table"] > 0) {
 %>\
-"Table"\
+"Table",\
 <%
 	}
 %>\
-]);
+"View"]);
 	var manipulator = angular.module("Manipulator").manipulator;
 <%
 	if (hasControl["Table"] > 0) {
