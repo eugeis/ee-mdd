@@ -342,22 +342,29 @@ section {
 
 	function ${item.name}(\\$scope, \\$dispatcher) {
 		var self = this;
-		\\$dispatcher.subscribe(self);
 		self.id = "${item.name}";
 
 		self.\\$scope = \\$scope;
 		self.\\$dispatcher = \\$dispatcher;
 
-		\\$scope.\\$on("click", function(e, args) {
-			// If the onselect is set add:
-			\\$dispatcher.dispatch(self,args);
-		});
-
 		self.event = function(args) {
 			\\$scope.\\$broadcast("event", args);
 		}
 
+		self.subscribeToDispatcher = function() {
+			\\$dispatcher.subscribe(self);
+		}
+
+		self.registerClickEvent = function() {
+			\\$scope.\\$on("click", function(e, args) {
+				// If the onselect is set add:
+				\\$dispatcher.dispatch(self,args);
+			});
+		}
+
 		manipulator.getInstance("${item.name}").inject(self);
+		self.subscribeToDispatcher();
+		self.registerClickEvent();
 	}
 	app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher',  ${item.name}]);
 <%
@@ -456,7 +463,7 @@ section {
 <%
 			}
 			if (hasOpposite) {
-%>\
+%>
 		self.fetchData = function(id) {
 			self.data = \\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${control.name.capitalize()}')
 				.success(function(data, status, headers, config) {
@@ -468,29 +475,38 @@ section {
 				});
 		};
 
-		\\$scope.\\$on("event", function(e, args) {
+		self.registerEvent = function() {
+			\\$scope.\\$on("event", function(e, args) {
 <%
 				opposite.each { prop ->
 %>\
-			if (args.targetView.some(function(d) {
-				return d === "${item.name}.presenter";
-			})){
-				if (args.sourceEntity === "${prop.type.name}") {
-					if (args.row.id && self.currentRow !== args.row.id) {
-						self.fetchData(args.row.id);
+				if (args.targetView.some(function(d) {
+					return d === "${item.name}.presenter";
+				})){
+					if (args.sourceEntity === "${prop.type.name}") {
+						if (args.row.id && self.currentRow !== args.row.id) {
+							self.fetchData(args.row.id);
+						}
+						self.currentRow = args.row.id;
 					}
-					self.currentRow = args.row.id;
 				}
-			}
 <%
 				}
 %>\
-		});
+			});
+		}
 <%
-			}
+		}
 %>\
 
 		manipulator.getInstance("${item.name}${control.name.capitalize()}").inject(self);
+<%
+		if (hasOpposite) {
+%>\
+		self.registerEvent();
+<%
+		}
+%>
 	}
 	${item.name}${control.name.capitalize()}.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
 	app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', ${item.name}${control.name.capitalize()}]);
