@@ -486,10 +486,10 @@ section {
 					return d === "${item.name}.presenter";
 				})){
 					if (args.sourceEntity === "${prop.type.name}") {
-						if (args.row.id && self.currentRow !== args.row.id) {
+						if (args.row && self.currentRow !== args.row.id) {
 							self.fetchData(args.row.id);
+							self.currentRow = args.row.id;
 						}
-						self.currentRow = args.row.id;
 					}
 				}
 <%
