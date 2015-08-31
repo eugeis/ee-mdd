@@ -194,7 +194,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
   
   //StateMachine
-  private def factoryStateMachine = new MddFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController', 'context'], parent: module)
+  private def factoryStateMachine = new CompositeFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController', 'context'])
   private def factoryAction = new MddFactory(beanClass: Action, childFactories:[], parent: cu)
   private def factoryCondition = new MddFactory(beanClass: Condition, childFactories:[], parent: cu)
   private def factoryEvent = new MddFactory(beanClass: Event, childFactories: [], parent: cu)
@@ -207,7 +207,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
-  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view'], parent: su)
+  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine'], parent: su)
 
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
