@@ -1,5 +1,23 @@
+### Table of Contents
+[Architecture](#Architecture)
+[View](#View)
+[Directives and Templates](#Directives)
+[Controllers](#Controllers)
+[View-Controllers](#ViewControllers)
+[Sub-Controllers](#SubControllers)
+[Services](#Services)
+[Dispatcher](#Dispatcher)
+[Manipulator](#Manipulator)
+[Extensibility](#Extensibility)
+[Structure](#Structure)
+[Troubleshooting](#Troubleshooting)
+[Anything XAMPP related](#XAMPP)
+[Website is blank](#blank)
+
+<a name="Architecture" />
 # Architecture
 
+<a name="View" />
 ## Views
 
 In the DSL a view is defined as either the main-view (main: true) or
@@ -25,6 +43,7 @@ All views can own controls:
 * textField
 * *See Control.groovy's subclasses*
 
+<a name="Directives" />
 ### Directives and Templates
 
 Angular comes with a handy option for creating custom html-elements called [directive](https://docs.angularjs.org/guide/directive). 
@@ -91,6 +110,7 @@ The table directive (ee-table) is again replaced with the table-template.
 	</table>
 ```
 
+<a name="Controllers" />
 ### Controllers
 
 In AngularJS controllers are used for the business logic in a website. They add behaviour and a state to their
@@ -100,6 +120,7 @@ Currently there are two types of controllers used in the application. For conven
 1. view-controllers
 2. sub-controllers
 
+<a name="ViewControllers" />
 #### View-Controllers
 
 These controllers (e.g. TaskExplorerViewController) are attributed to a view-directive:
@@ -115,6 +136,7 @@ Any view-controller can wrap several sub-controllers forming a parent-child rela
 are usually siblings to each other.
 These relationships are used by the $dispatcher to create a broadcast-system for e.g. event-handling.
 
+<a name="SubControllers" />
 #### Sub-Controllers
 
 A sub-controller manages the view's controls. 
@@ -134,8 +156,10 @@ can then decide whether to react to an event on let it pass.
 
 **Table-Controller** -- *emits* --> **View-Controller** -- *dispatches* --> **View-Controllers** -- *broadcasts* --> **Table-Controllers**
 
+<a name="Services" />
 ## Services
 
+<a name="Dispatcher" />
 ### Dispatcher
 
 The $dispatcher is used to transmit events between view-controllers.
@@ -149,6 +173,7 @@ inside your view.
 	$dispatcher.dispatch(this,args);
 ```
 
+<a name="Manipulator" />
 ### Manipulator
 
 The manipulator ist used to inject and manipulate functions of the
@@ -170,6 +195,7 @@ Adding a function to inject
 	}
 ```
 
+<a name="Extensibility" />
 ### Extensibility
 
 Using the manipulator you can extend the functionality of the generated controllers.
@@ -183,7 +209,8 @@ snippet to your index.html.
 	<!-- Include ViewRef-Source-Dependencies-Javascript -->
 	<script src="src/{InjectionFile}.js" type="text/javascript"></script>
 ```
-	
+
+<a name="Structure" />
 # Structure
 
 * /
@@ -206,12 +233,15 @@ snippet to your index.html.
       * table.html
       * {SomeViewsName}.js
 
+<a name="Troubleshooting" />
 # Troubleshooting
 
+<a name="XAMPP" />
 ## Anything XAMPP related (installation failed / webserver does not start) 
 
 See XAMPP FAQ for [Windows](https://www.apachefriends.org/faq_windows.html), [Linux](https://www.apachefriends.org/faq_linux.html) or [OSX](https://www.apachefriends.org/faq_osx.html)
 
+<a name="blank" />
 ## Website is blank
 
 * Make sure you are on http://localhost or your subfolder's url http://localhost/{subfolder}
