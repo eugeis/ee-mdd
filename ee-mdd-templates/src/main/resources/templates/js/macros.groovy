@@ -99,7 +99,7 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 		<!-- Include ViewRef-Javascript -->
 <% item.viewRefs.each { viewRef -> %>\
-		<script src="src-gen/scripts/${viewRef.view.name}.js" type="text/javascript"></script>
+		<script src="src-gen/views/${viewRef.view.name}.js" type="text/javascript"></script>
 <% } %>\
 
 		<!-- Include ViewRef-Source-Dependencies-Javascript -->

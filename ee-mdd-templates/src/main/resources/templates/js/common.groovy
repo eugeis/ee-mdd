@@ -60,7 +60,7 @@ templates ('common') {
   		items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it)}) },
   		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
  			template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
-  			template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/scripts/${item.name}.js" %>${macros.generate('framejs', c)}''')
+  			template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
   			template('framesrcjs', body: '''<% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
   		}
 }
