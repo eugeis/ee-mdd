@@ -30,9 +30,7 @@ class StructureUnit extends Composite implements BuilderAware {
   AbstractFactoryBuilder builder
   MddFactory factory
 
-  String artifact
-  String key
-  String version
+  String artifact, key, version
   Namespace namespace
   Names n
   Map<String, Facet> facets = [:]
@@ -73,6 +71,21 @@ class StructureUnit extends Composite implements BuilderAware {
         n = new Names(this, name)
     }
     n
+  }
+  
+  String getCapShortName() {
+    underscoreToCamelCase(key).capitalize();
+  }
+  
+  String getUncapShortName() {
+    underscoreToCamelCase(key)[0].toLowerCase();
+  }
+  
+  String underscoreToCamelCase(String underscoreStr) {
+    if(!underscoreStr || underscoreStr.isAllWhitespace()){
+      return ''
+    }
+    return underscoreStr.replaceAll(/_\w/){ it[1].toUpperCase() }
   }
 
   Model getModel() {

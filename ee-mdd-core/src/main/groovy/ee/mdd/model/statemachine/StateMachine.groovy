@@ -50,6 +50,14 @@ class StateMachine extends Composite {
     }
     n
   }
+  
+  String getCapShortName() {
+    underscoreToCamelCase(key).capitalize();
+  }
+  
+  String getUncapShortName() {
+    underscoreToCamelCase(key)[0].toLowerCase();
+  }
 
   Entity getEntity() {
     if(!_entity) {
@@ -111,6 +119,13 @@ class StateMachine extends Composite {
 
   void setTimeoutCheckInterval(String timeoutCheckInterval) {
     timeoutCheckIntervalInMillis = timeoutCheckInterval.duration(timeoutCheckInterval)
+  }
+  
+  String underscoreToCamelCase(String underscoreStr) {
+    if(!underscoreStr || underscoreStr.isAllWhitespace()){
+      return ''
+    }
+    return underscoreStr.replaceAll(/_\w/){ it[1].toUpperCase() }
   }
 
   protected Prop findHistProp() {
