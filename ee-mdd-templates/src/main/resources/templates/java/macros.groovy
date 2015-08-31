@@ -1832,7 +1832,7 @@ ${ret-newLine}''')
   template('buildMlKey', body: '''
   @Override
   public ${c.name('MlKey')} buildMlKey() {
-    return new ${c.name('MlKeyImpl')}(${c.name("${component.nameMl}.ML_BASE", name());
+    return new ${c.name('MlKeyImpl')}(${component.name}Ml.ML_BASE, name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (parent != null) {<% if (op.unique) { %>
@@ -2051,7 +2051,7 @@ public class $className extends ${dialog.cap}GuidoBase {
   
   //StateMachine
   
-  template('stateEvent', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
+  template('event', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
 /** Base state event interface for all state events of state machine $item.name */
 public interface $className extends ${c.name('Serializable')} {
 
@@ -2062,7 +2062,7 @@ public interface $className extends ${c.name('Serializable')} {
   */
   $item.stateProp.type.name getExpectedState();
 
-  $idProp.type.name get$idProp.capFullName;
+  $idProp.type.name get$idProp.capFullName();
 
   void set${idProp.capFullName}($idProp.type.name $idProp.uncapFullName);
 
@@ -2076,6 +2076,7 @@ public interface $className extends ${c.name('Serializable')} {
 }''')
   
   template('eventType', body: '''import static ee.common.statemachine.StateFlowType.*;
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.name}Ml;
 {{imports}}
 /** Events of state machine '$item.name' */
 public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = item.events.collect {
@@ -2099,6 +2100,126 @@ public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = 
   }
 }''')
   
-  
-  
+  template('eventImpl', body: '''<% def idProp = item.entity.idProp %>{{imports}}
+/** Base implementation of {@link ${item.capShortName}StateEvent} */
+public abstract class $className extends ${c.name('Base')} implements ${item.key.capitalize()}StateEvent {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : '' %>
+  private static final long serialVersionUID = 1L;
+
+  protected final ${item.capShortName}StateEventType type;
+  protected $item.stateProp.type.name expectedState;
+  protected $idProp.type.name $idProp.uncapFullName;
+  protected String actor;<% if (module.stateEvent) { module.stateEvent.props.each { prop ->%>
+  protected $prop.type.name $prop.uncap;<% } } %>
+
+  protected $className(${item.capShortName}EventType type) {
+    this.type = type;
+  }
+
+  protected $className(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$extraArgs) {
+    this.type = type;
+    this.$idProp.uncapFullName = $idProp.uncapFullName;<% if (item.stateEvent) { item.stateEvent.props.each { prop ->%>
+    this.$prop.uncap = $prop.uncap;
+    <% } } %>
+  }
+
+  protected $className(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type expectedState) {
+    this.type = type;
+    this.$idProp.uncapFullName = $idProp.uncapFullName;
+    this.expectedState = expectedState;<% if (item.stateEvent) { item.stateEvent.props.each { prop ->%>
+    this.$prop.uncap = $prop.uncap;
+    <% } } %>
+  }
+
+  @Override
+  public $item.stateProp.type.name getExpectedState() {
+    return expectedState;
+  }
+
+  @Override
+  public String getActor() {
+    return actor;
+  }
+
+  @Override
+  public $idProp.type.name get${idProp.capFullName}() {
+    return $idProp.uncapFullName;
+  }
+
+  @Override
+  public void set$idProp.capFullName($idProp.type.name $idProp.uncapFullName) {
+    this.$idProp.uncapFullName = $idProp.uncapFullName;
+  }
+
+  @Override
+  public void setExpectedState($item.stateProp.type.name expectedState) {
+    this.expectedState = expectedState;
+  }
+
+  @Override
+  public void setActor(String actor) {
+    this.actor = actor;
+  }
+
+  @Override
+  public ${item.capShortName}EventType getType() {
+    return type;
+  }<% if (item.stateEvent) { item.stateEvent.props.each { prop ->%>
+
+  @Override
+  public $prop.type.name get$prop.cap() {
+    return $prop.uncap;
+  }
+
+  @Override
+  public void set$prop.cap($prop.type.name $prop.uncap) {
+    this.$prop.uncap = $prop.uncap;
+  }<% } } %>
+
+  @Override
+  protected void fillToString(StringBuffer buffer) {
+    super.fillToString(buffer);
+    buffer.append("type=").append(type).append(SEPARATOR);
+    buffer.append("expectedState=").append(expectedState).append(SEPARATOR);
+    buffer.append("actor=").append(actor).append(SEPARATOR);
+    buffer.append("${idProp.uncapFullName}=").append($idProp.uncapFullName);
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((expectedState == null) ? 0 : expectedState.hashCode());
+    result = prime * result + ((actor == null) ? 0 : actor.hashCode());
+    result = prime * result + ((${idProp.uncapFullName} == null) ? 0 : ${idProp.uncapFullName}.hashCode());
+    result = prime * result + ((type == null) ? 0 : type.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = ($className) obj;
+    if (expectedState != other.expectedState)
+      return false;
+    if (actor == null) {
+      if (other.actor != null)
+        return false;
+    } else if (!actor.equals(other.actor))
+      return false;
+    if (${idProp.uncapFullName} == null) {
+      if (other.${idProp.uncapFullName} != null)
+        return false;
+    } else if (!${idProp.uncapFullName}.equals(other.${idProp.uncapFullName}))
+      return false;
+    if (type != other.type)
+      return false;
+    return true;
+  }
+}''')
+    
 }
