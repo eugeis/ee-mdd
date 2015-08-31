@@ -1,0 +1,12 @@
+<section id="TaskSearchView">
+<!--
+The template for TaskSearchView consists of a table, two labels and a button.
+The tables are built from table.html. The tables' directive is defined in src-gen/base/Table.js.
+-->
+	<section id="TaskSearchView-Table-Actions">
+		<ee-table ng-controller="TaskSearchViewActionsController as tableCtrl"></ee-table>
+	</section>
+		<label>Name</label> <input readonly>
+		<label>Comments</label> <input readonly>
+		<input type="button" value="Search">
+</section>

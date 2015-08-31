@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html ng-app="TaskEditorView">
+	<head>
+		<title>TaskEditorView</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="bootstrap/bootstrap.min.css">
+		<link rel="stylesheet" href="stylesheet.css">
+ 	</head>
+	<body>
+		<!-- Include ViewRefs -->
+		<ee-view template="TaskExplorerView" ng-controller="TaskExplorerViewController"></ee-view>
+		<ee-view template="TaskDetailsView" ng-controller="TaskDetailsViewController"></ee-view>
+		<ee-view template="TaskSearchView" ng-controller="TaskSearchViewController"></ee-view>
+
+		<!-- Include MainView -->
+		<ee-view template="TaskEditorView"></ee-view>
+
+		<!-- Frameworks -->
+		<script src="angular.js" type="text/javascript"></script>
+
+		<!-- Main app -->
+		<script src="app.js" type="text/javascript"></script>
+
+		<!-- Services -->
+		<script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
+		<script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
+
+		<!-- Table implementation -->
+		<script src="src-gen/base/Table.js" type="text/javascript"></script>
+
+		<!-- View implementation -->
+		<script src="src-gen/base/View.js" type="text/javascript"></script>
+
+		<!-- Include ViewRef-Javascript -->
+		<script src="src-gen/views/TaskExplorerView.js" type="text/javascript"></script>
+		<script src="src-gen/views/TaskDetailsView.js" type="text/javascript"></script>
+		<script src="src-gen/views/TaskSearchView.js" type="text/javascript"></script>
+
+		<!-- Include ViewRef-Source-Dependencies-Javascript -->
+
+	</body>
+</html>

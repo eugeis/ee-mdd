@@ -1,0 +1,26 @@
+section {
+	border: 1px solid #000;
+	padding: 25px;
+	margin: 25px;
+}
+
+.entityTable {
+/*  width: 800px; */
+}
+
+.entityTable .tableInput {
+    background-color:rgba(0, 0, 0, 0);
+    color:black;
+    border: none;
+    outline:none;
+}
+
+.entityTable .tableSubmit span {
+  padding: 4px 4px 4px 0px;
+  cursor: pointer;
+}
+
+.entityTable .idcolumn span:hover {
+  font-weight: bold;
+  cursor: pointer;
+}

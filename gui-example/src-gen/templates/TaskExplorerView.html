@@ -1,0 +1,11 @@
+<section id="TaskExplorerView">
+<!--
+The template for TaskExplorerView consists of two buttons and a table.
+The table is built from table.html. The table's directive is defined in src-gen/base/Table.js.
+-->
+		<input type="button" value="AddTask">
+		<input type="button" value="DeleteTask">
+	<section id="TaskExplorerView-Table-Tasks">
+		<ee-table ng-controller="TaskExplorerViewTasksController as tableCtrl"></ee-table>
+	</section>
+</section>
