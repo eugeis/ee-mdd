@@ -1,11 +1,145 @@
 # Architecture
 
+## Views
+
+In the DSL a view is defined as either the main-view (main: true) or
+a referenced view (sub-view):
+
+```
+	view ('TaskEditor', main: true) {
+		viewRef(view: 'TaskExplorerView') {}
+		button('accept') { onAction() }
+		//etc.
+	}
+
+	view ('TaskExplorer') {            
+		button('addTask') { onAction() }
+		table('tasks', type: 'Task') { onSelect() }
+		//etc.
+	}
+```
+
+All views can own controls:
+* button
+* table
+* textField
+* *See Control.groovy's subclasses*
+
+### Directives and Templates
+
+Angular comes with a handy option for creating custom html-elements called [directive](https://docs.angularjs.org/guide/directive). 
+These directives are used to include templates for the views. Each view is represented
+by a <ee-view>-element, which is defined in View.js:
+
+```javascript
+	app.directive("eeView", function() {
+		return {
+			restrict: 'E',
+			controllerAs: 'ctrl',
+			templateUrl: function(elem, attrs) {
+				return "src-gen/templates/" + attrs.template + ".html";
+			},
+			replace: true,
+			link: function (scope, element, attrs) {
+				element.removeAttr('template');
+			}
+		};
+	});
+```
+
+In this example the directive eeView has several properties:
+* "restrict: 'E'" - it is used for an html-element (as opposed to e.g. an attribute)
+* "controllerAs: 'ctrl'" - it uses a controller alias; this reduces scope problems and makes templates more flexible
+* "templateUrl: ..." - the template's url is calculated using the template-attribute of the html-element
+* "replace: true" - the custom directive gets replaced by the root element of the template
+* "link: ..." - the template attribute is removed
+
+The directive could be used like this snippet in the html-file.
+Notice the translation from camelCase to dash-case (eeView -> ee-view).
+
+```html
+	<!-- index.html -->
+	<ee-view template="TaskExplorerView" ng-controller="TaskExplorerViewController"></ee-view>
+```
+
+A typicall view might look like this:
+* two buttons
+* a table
+
+```html
+	<!-- TaskExplorerView.html -->
+	<section id="TaskExplorerView">
+			<input type="button" value="AddTask">
+			<input type="button" value="DeleteTask">
+		<section id="TaskExplorerView-Table-Tasks">
+			<ee-table ng-controller="TaskExplorerViewTasksController as tableCtrl"></ee-table>
+		</section>
+	</section>
+```
+
+The table directive (ee-table) is again replaced with the table-template.
+
+```html
+	<!-- table.html -->
+	<table class="entityTable table table-striped table-bordered">
+		<tr>
+			<th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
+		</tr>
+		<tr ng-repeat="row in tableCtrl.data">
+			<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, row)">{{row[column]}}</td>
+		</tr>
+	</table>
+```
+
+### Controllers
+
+In AngularJS controllers are used for the business logic in a website. They add behaviour and a state to their
+scope.
+
+Currently there are two types of controllers used in the application. For convenience they are called:
+1. view-controllers
+2. sub-controllers
+
+#### View-Controllers
+
+These controllers (e.g. TaskExplorerViewController) are attributed to a view-directive:
+
+```html
+	<!-- index.html -->
+	<ee-view template="TaskExplorerView" ng-controller="TaskExplorerViewController"></ee-view>
+```
+
+On creation they register by default at the $dispatcher.
+
+Any view-controller can wrap several sub-controllers forming a parent-child relationship; view-controllers
+are usually siblings to each other.
+These relationships are used by the $dispatcher to create a broadcast-system for e.g. event-handling.
+
+#### Sub-Controllers
+
+A sub-controller manages the view's controls. 
+
+```html
+	<!-- TaskExplorerView.html -->
+	<section id="TaskExplorerView"> <!-- ngController: TaskExplorerViewController -->
+		<section id="TaskExplorerView-Table-Tasks">
+			<ee-table ng-controller="TaskExplorerViewTasksController as tableCtrl"></ee-table>
+		</section>
+	</section>
+```
+
+When a sub-controller emits an event, the view-controller dispatches the event to all view-controllers.
+These broadcast the event to their sub-controllers resulting in a event-broadcast-system. The sub-controllers
+can then decide whether to react to an event on let it pass.
+
+**Table-Controller** -- *emits* --> **View-Controller** -- *dispatches* --> **View-Controllers** -- *broadcasts* --> **Table-Controllers**
+
 ## Services
 
 ### Dispatcher
 
-The dispatcher is used to transmit events between view-controllers.
-Every controller can subscribe to the dispatcher to receive events
+The $dispatcher is used to transmit events between view-controllers.
+Every controller can subscribe to the $dispatcher to receive events
 from other controllers.
 
 To dispatch an event with arguments (args) use the snippet below
@@ -52,7 +186,6 @@ snippet to your index.html.
 	
 # Structure
 
-
 * /
   * [angular.js](https://code.angularjs.org/1.4.2/angular.js)
   * app.js
@@ -85,7 +218,7 @@ See XAMPP FAQ for [Windows](https://www.apachefriends.org/faq_windows.html), [Li
 * Make sure you have copied the generated files and the gui-dist into your htdocs-folder
 * Open developer tools (right-click > inspect element for chrome, firefox) and look for errors in the console
 
-  ###Possible error-messages:
+  ### Possible error-messages:
 
   ```"Uncaught ReferenceError: angular is not defined"```
 
