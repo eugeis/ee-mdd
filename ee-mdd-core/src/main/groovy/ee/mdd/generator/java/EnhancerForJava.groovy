@@ -16,7 +16,6 @@
 package ee.mdd.generator.java
 
 import ee.mdd.ModelBuilder
-import ee.mdd.generator.Context
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
@@ -42,6 +41,8 @@ import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Type
+import ee.mdd.model.statemachine.Context
+
 
 
 
@@ -139,6 +140,14 @@ class EnhancerForJava {
           }
           delegate.props.each { ret << it }
           properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      signatureFullConstr << { Context c ->
+        def key = System.identityHashCode(delegate) + 'signatureFullConstr'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.props.collect { Prop prop -> "$prop.computedType(c) ${prop.name}" }.join(', ') 
         }
         properties[key]
       }
