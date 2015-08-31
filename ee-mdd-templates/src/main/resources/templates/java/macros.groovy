@@ -1832,7 +1832,7 @@ ${ret-newLine}''')
   template('buildMlKey', body: '''
   @Override
   public ${c.name('MlKey')} buildMlKey() {
-    return new ${c.name('MlKeyImpl')}(${component.name}Ml.ML_BASE, name());
+    return new ${c.name('MlKeyImpl')}(${c.name("${component.nameMl}.ML_BASE", name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (parent != null) {<% if (op.unique) { %>
@@ -2051,9 +2051,9 @@ public class $className extends ${dialog.cap}GuidoBase {
   
   //StateMachine
   
-  template('moduleEvent', body: '''<% def entity = item.entity; def idProp = entity.idProp %>
+  template('stateEvent', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
 /** Base state event interface for all state events of state machine $item.name */
-public interface $className extends Serializable {
+public interface $className extends ${c.name('Serializable')} {
 
   /**
   * Expected state defines a kind of a limitation of the event. If the value is null, than the limitation will be ignored.
@@ -2074,6 +2074,31 @@ public interface $className extends Serializable {
 
   String getActor();
 }''')
+  
+  template('eventType', body: '''import static ee.common.statemachine.StateFlowType.*;
+{{imports}}
+/** Events of state machine '$item.name' */
+public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = item.events.collect {
+  if (it.description) { "   /** it.description */   it.alternative? it.underscored(ALTERNATIVE):it.underscored(NORMAL)" }else { it.alternative ? it.underscored+"(ALTERNATIVE)":it.underscored+"(NORMAL)"} }.join(',   ') %>
+  $literals;
+
+  private ${c.name('StateFlowType')} flowType;
+
+  private $className(StateFlowType flowType) {
+    this.flowType = flowType;
+  }<% item.events.each { event-> %>
+
+  public boolean is${event.cap}() {
+    return this == $event.underscored;
+  }<% } %>
+
+  ${macros.generate('buildMlKey', c)}
+
+  public StateFlowType getFlowType() {
+    return flowType;
+  }
+}''')
+  
   
   
 }
