@@ -9,11 +9,12 @@ templates('sm') {
   useMacros('commonMacros', '/common/macros')
   useMacros('macros')
 
-    templates('moduleEvent',
+    templates('event',
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
-      template('moduleEvent', appendName: true, body: '''<% c.className = "${item.key}StateEvent" %> ${macros.generate('moduleEvent', c)}''')
+      template('stateEvent', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEvent" %> ${macros.generate('stateEvent', c)}''')
+      template('moduleEventType', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventType" %> ${macros.generate('eventType',c)}''')
   
     }
     

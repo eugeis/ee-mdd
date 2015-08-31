@@ -20,7 +20,7 @@
   * @author Niklas Cappelmann
   */
  
-def nameToNamespace = [] as TreeMap
+def nameToNamespace = ['StateFlowType' : 'ee.common.statemachine'] as TreeMap
 
 extModule(name: 'Sm') {
   nameToNamespace.each { n, ns ->

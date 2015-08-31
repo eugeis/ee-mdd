@@ -1,15 +1,19 @@
 package ee.mdd.model.statemachine
 
+import ee.mdd.model.Composite
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.Config
 import ee.mdd.model.component.ConfigController
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Module
+import ee.mdd.model.component.Names
 import ee.mdd.model.component.Prop
 
-class StateMachine extends Module {
+class StateMachine extends Composite {
+  Names n
   boolean generateDefaultImpl = true
   Boolean generatePermissionsForEvents = false
-  String statePropRef, entityRef, stateTimeoutPropRef, logLevel='debug'
+  String statePropRef, entityRef, stateTimeoutPropRef, logLevel='debug', key
   Integer timeoutCheckIntervalInMillis
   Entity _entity
   Context context
@@ -27,6 +31,24 @@ class StateMachine extends Module {
 
   void add(StateMachineController item) {
     super.add(item); controller = item
+  }
+  
+  Module getModule() {
+    parent.module
+  }
+
+  Component getComponent() {
+    parent.component
+  }
+  
+  Names getN() {
+    if (!n) {
+      if(key)
+        n = new Names(this, key)
+      else
+        n = new Names(this, name)
+    }
+    n
   }
 
   Entity getEntity() {
@@ -103,7 +125,6 @@ class StateMachine extends Module {
     boolean ret = super.init()
 
     if(isTimeoutEnabled()) {
-      startupInitializer = true
       //createStatesTimeoutConfig()
       addTimeoutEvent()
     }

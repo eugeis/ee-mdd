@@ -1832,7 +1832,7 @@ ${ret-newLine}''')
   template('buildMlKey', body: '''
   @Override
   public ${c.name('MlKey')} buildMlKey() {
-    return new ${c.name('MlKeyImpl')}(${component.name}Ml.ML_BASE, name());
+    return new ${c.name('MlKeyImpl')}(${c.name("${component.nameMl}.ML_BASE", name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (parent != null) {<% if (op.unique) { %>
@@ -2051,29 +2051,54 @@ public class $className extends ${dialog.cap}GuidoBase {
   
   //StateMachine
   
-  template('moduleEvent', body: '''<% def entity = module.entity; def idProp = entity.idProp %>
-/** Base state event interface for all state events of state machine $module.name */
-public interface $className extends Serializable {
+  template('stateEvent', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
+/** Base state event interface for all state events of state machine $item.name */
+public interface $className extends ${c.name('Serializable')} {
 
   /**
   * Expected state defines a kind of a limitation of the event. If the value is null, than the limitation will be ignored.
-  * If it is not null, then the event is valid only if the current state of $module.entity.cap is same.
+  * If it is not null, then the event is valid only if the current state of $item.entity.cap is same.
   * If the expected value is not equal to the current state, then the event will be rejected.
   */
-  $module.stateProp.type.name getExpectedState();
+  $item.stateProp.type.name getExpectedState();
 
   $idProp.type.name get$idProp.capFullName;
 
   void set${idProp.capFullName}($idProp.type.name $idProp.uncapFullName);
 
-  void setExpectedState($module.stateProp.type.name expectedState);
+  void setExpectedState($item.stateProp.type.name expectedState);
 
-  $module.n.cap.eventType getType();
+  $item.n.cap.eventType getType();
 
   void setActor(String actor);
 
   String getActor();
 }''')
+  
+  template('eventType', body: '''import static ee.common.statemachine.StateFlowType.*;
+{{imports}}
+/** Events of state machine '$item.name' */
+public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = item.events.collect {
+  if (it.description) { "   /** it.description */   it.alternative? it.underscored(ALTERNATIVE):it.underscored(NORMAL)" }else { it.alternative ? it.underscored+"(ALTERNATIVE)":it.underscored+"(NORMAL)"} }.join(',   ') %>
+  $literals;
+
+  private ${c.name('StateFlowType')} flowType;
+
+  private $className(StateFlowType flowType) {
+    this.flowType = flowType;
+  }<% item.events.each { event-> %>
+
+  public boolean is${event.cap}() {
+    return this == $event.underscored;
+  }<% } %>
+
+  ${macros.generate('buildMlKey', c)}
+
+  public StateFlowType getFlowType() {
+    return flowType;
+  }
+}''')
+  
   
   
 }
