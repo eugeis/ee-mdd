@@ -214,8 +214,8 @@ See XAMPP FAQ for [Windows](https://www.apachefriends.org/faq_windows.html), [Li
 
 ## Website is blank
 
-* Make sure you are on http://localhost
-* Make sure you have copied the generated files and the gui-dist into your htdocs-folder
+* Make sure you are on http://localhost or your subfolder's url http://localhost/{subfolder}
+* Make sure you have copied the generated files and the gui-dist into your htdocs-folder. There is supposed to be neither a gui-dist- nor a ee-mdd_example-ui-folder in your htdocs-folder just their contents.
 * Open developer tools (right-click > inspect element for chrome, firefox) and look for errors in the console
 
   ### Possible error-messages:
@@ -224,3 +224,7 @@ See XAMPP FAQ for [Windows](https://www.apachefriends.org/faq_windows.html), [Li
 
   * this is an indicator, that the angular.js-file is not available
   * make sure you have copied the content of the gui-dist-folder in to htdocs-folder
+  
+  ```"Error: [ngRepeat:dupes] Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: row in tableCtrl.data, Duplicate key: string:p, Duplicate value: p"```
+  
+  * most likely your php engine is not running, thus returning "TaskDetailsView.php" uninterpreted 

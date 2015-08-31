@@ -20,9 +20,13 @@ The software is in alpha development stage, the documentation and examples will 
 * For troubleshooting refer to gui-documentation.txt
 
 1. Install [XAMPP](https://www.apachefriends.org/de/) or another webserver of your choice
-  * If you use a different webserver skip step 2 and replace {YourPathToXampp}/htdocs/ with your webserver's document root (e.g. /var/www/ for apache)
+  * If you use a different webserver skip step 2 and replace {YourPathToXampp}/htdocs/ with your webserver's document root (e.g. /var/www/ for apache on linux)
 2. Configure it by starting the webserver (e.g. via xampp-control) and navigating to http://localhost (see XAMPP FAQs for help)
-3. Copy the files from /gui-dist to {YourPathToXampp}/htdocs/
-4. Run GenerateJsTest.groovy (ee-mdd/ee-mdd-gradle/src/test/groovy/ee/mdd/gradle/task/) in eclipse
-5. Copy the files generated to ee-mdd/ee-mdd-gradle/temp/ee-mdd_example-ui to {YourPathToXampp}/htdocs/
-6. Navigate to http://localhost to see the results
+3. After the configuration of xampp is done, it is recommended to backup your current htdocs-content outside the htdocs-folder.
+4. Clear your htdocs-folder (**do not forget to backup** --> Step 3!)
+5. Copy the content of /gui-dist to {YourPathToXampp}/htdocs/ (just the content, not the folder itself)
+6. Run GenerateJsTest.groovy (ee-mdd/ee-mdd-gradle/src/test/groovy/ee/mdd/gradle/task/) in eclipse
+7. Copy the files generated to ee-mdd/ee-mdd-gradle/temp/ee-mdd_example-ui to {YourPathToXampp}/htdocs/ (just the content, not the folder itself)
+8. Navigate to http://localhost to see the results
+9. When working with different versions you might want to create a subfolder in htdocs. You need to include all files (gui-dist + ee-mdd_example-ui) into
+the subfolders! After this go to http://localhost/{subfolder} to inspect it.
