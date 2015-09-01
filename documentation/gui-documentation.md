@@ -37,6 +37,10 @@ a referenced view (sub-view):
 	}
 ```
 
+main-view: 'TaskEditor'
+
+sub-view: 'TaskExplorer'
+
 All views can own controls:
 * button
 * table
@@ -48,7 +52,7 @@ All views can own controls:
 
 Angular comes with a handy option for creating custom html-elements called [directive](https://docs.angularjs.org/guide/directive). 
 These directives are used to include templates for the views. Each view is represented
-by a <ee-view>-element, which is defined in View.js:
+by a ee-view-element, which is defined in View.js:
 
 ```javascript
 	app.directive("eeView", function() {
@@ -117,8 +121,8 @@ In AngularJS controllers are used for the business logic in a website. They add 
 scope.
 
 Currently there are two types of controllers used in the application. For convenience they are called:
-1. view-controllers
-2. sub-controllers
+  1. view-controllers
+  2. sub-controllers
 
 <a name="ViewControllers" />
 #### View-Controllers
