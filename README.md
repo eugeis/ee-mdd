@@ -17,7 +17,7 @@ The software is in alpha development stage, the documentation and examples will 
 * The code will be generated into console and also into folder specified in *fileProcessor* - 'fileProcessor('D:/views/git/ee-mdd/ee-mdd-example')'. Please adjust it to absolute path of 'ee-mdd-example' project on your file system.
 
 ## Set up GUI
-* For troubleshooting refer to [gui-documentation.md](https://github.com/eugeis/ee-mdd/blob/master/gui-documentation.md)
+* For troubleshooting refer to [gui-documentation.md](https://github.com/eugeis/ee-mdd/blob/master/documentation/gui-documentation.md)
 * gui-example provides a generated and commented example - go to step 7 and treat "gui-example" like "ee-mdd_example-ui"
 
 1. Install [XAMPP](https://www.apachefriends.org/de/) or another webserver of your choice
