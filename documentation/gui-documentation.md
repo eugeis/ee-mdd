@@ -173,6 +173,11 @@ inside your view.
 	$dispatcher.dispatch(this,args);
 ```
 
+![The dispatcher creates a broadcast-system](https://github.com/eugeis/ee-mdd/blob/master/documentation/images/dispatcher.png "The dispatcher")
+
+[Click here to see the svg.](https://github.com/eugeis/ee-mdd/blob/master/documentation/images/dispatcher.svg)
+
+
 <a name="Manipulator" />
 ### Manipulator
 

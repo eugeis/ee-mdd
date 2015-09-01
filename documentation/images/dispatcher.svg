@@ -1,0 +1,36 @@
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.0" width="800px" height="600px">
+  <g transform="translate(300,40)"><rect width="200" height="150" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<line x1="0" y1="40" x2="200" y2="40" style="stroke:rgb(0,0,0);stroke-width:2"></line><text x="52" y="24" fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 14pt;
+">$dispatcher</text></g>
+<g transform="translate(10,250)"><rect width="200" height="340" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<line x1="0" y1="40" x2="200" y2="40" style="stroke:rgb(0,0,0);stroke-width:2"></line><text x="46" y="24" fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 14pt;
+">MainViewCtrl</text><g transform="translate(25,90)"><rect width="150" height="80" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<text x="42" y="45" fill="black" style="     font-family: Helvetica, Calibri, Times New Roman, Arial;font-size: 12pt; ">TableCtrl</text></g><line x1="80" y1="90" x2="80" y2="40" style="stroke: rgb(255,0,0);stroke-width:3;stroke-dasharray: 5, 4;"></line><text fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 8pt;
+" x="90" y="69">$emit "click"</text></g><g transform="translate(300,250)"><rect width="200" height="340" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<line x1="0" y1="40" x2="200" y2="40" style="stroke:rgb(0,0,0);stroke-width:2"></line><text x="40" y="24" fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 14pt;
+">FrameViewCtrl</text><g transform="translate(25,90)"><rect width="150" height="80" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<text x="42" y="45" fill="black" style="     font-family: Helvetica, Calibri, Times New Roman, Arial;font-size: 12pt; ">TableCtrl</text></g><g transform="translate(25,200)"><rect width="150" height="80" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<text x="42" y="45" fill="black" style="     font-family: Helvetica, Calibri, Times New Roman, Arial;font-size: 12pt; ">TableCtrl</text></g><line x1="80" y1="90" x2="80" y2="40" style="stroke: rgb(0,132,255);stroke-width:3;stroke-dasharray: 5, 4;"></line><line x1="190" y1="40" x2="190" y2="250" style="stroke: rgb(0,132,255);stroke-width:3;stroke-dasharray: 5, 4;"></line><line x1="190" y1="250" x2="175" y2="250" style="stroke: rgb(0,132,255);stroke-width:3;stroke-dasharray: 5, 4;"></line><text fill="black" style="     font-family: Helvetica, Calibri, Times New Roman, Arial;     font-size: 8pt; " x="90" y="69">$broadcast "event"</text></g><g transform="translate(590,250)"><rect width="200" height="340" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<line x1="0" y1="40" x2="200" y2="40" style="stroke:rgb(0,0,0);stroke-width:2"></line><text x="37" y="24" fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 14pt;
+">WindowViewCtrl</text><g transform="translate(25,90)"><rect width="150" height="80" style="fill:transparent; stroke: rgb(0,0,0);stroke-width: 2px;"></rect>
+  	<text x="42" y="45" fill="black" style="     font-family: Helvetica, Calibri, Times New Roman, Arial;font-size: 12pt; ">TableCtrl</text></g><line x1="80" y1="90" x2="80" y2="40" style="stroke: rgb(0,132,255);stroke-width:3;stroke-dasharray: 5, 4;"></line><text fill="black" style="     font-family: Helvetica, Calibri, Times New Roman, Arial;     font-size: 8pt; " x="90" y="69">$broadcast "event"</text></g><line x1="110" y1="250" x2="300" y2="115" style="stroke: rgb(255,0,0);stroke-width:3;stroke-dasharray: 5, 4;"></line><line x1="690" y1="250" x2="500" y2="115" style="stroke: rgb(0,132,255);stroke-width:3;stroke-dasharray: 5, 4;"></line><line x1="400" y1="190" x2="400" y2="250" style="stroke: rgb(0,132,255);stroke-width:3;stroke-dasharray: 5, 4;"></line><text fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 8pt;
+" x="90" y="220">dispatch</text><text fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 8pt;
+" x="410" y="220">event</text><text fill="black" style="
+    font-family: Helvetica, Calibri, Times New Roman, Arial;
+    font-size: 8pt;
+" x="670" y="220">event</text></svg>
+
