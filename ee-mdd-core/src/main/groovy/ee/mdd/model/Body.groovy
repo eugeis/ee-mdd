@@ -15,13 +15,17 @@
 */
 package ee.mdd.model
 
-import ee.mdd.model.component.Type;
+import ee.mdd.model.component.Type
 
 
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Body extends Composite {
 	String body
+  List<Type> types = []
+  
+  def add(Type child) { types << child; super.add(child) }
 }

@@ -26,10 +26,10 @@ import ee.mdd.builder.MetaAttributeHolder
 import ee.mdd.builder.ModelFactory
 import ee.mdd.builder.OppositeResolveHandler
 import ee.mdd.builder.PropFactory
+import ee.mdd.model.Body
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
-import ee.mdd.model.component.Body
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
