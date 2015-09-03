@@ -2221,5 +2221,21 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
     return true;
   }
 }''')
+  
+  template('eventFactory', body:'''<% def idProp = item.entity.idProp %>{{imports}}
+/** Factory for all state events of state machine $item.name */
+public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr : '' %>
+  ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs);
+
+  ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState);<% item.events.each { event -> %><% if (!event.props) { %>
+
+  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs);<% } %>
+
+  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState);<% if (event.props) { %>
+
+  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $event.signatureFullConstr);
+
+  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type expectedState, $event.signatureFullConstr);<% } %><% } %>
+}''')
     
 }
