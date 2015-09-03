@@ -86,7 +86,7 @@ templates ('macros') {
 
   template('propGettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.readable && !prop.typeEntity && prop.name != 'id' ) { %>
   <% if (prop.description) { %>/** $prop.description */<% } %>
-  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type)}><% } else { %>${c.name(prop.type)}<% } %> $prop.getter;<% } } %>
+  <% if(prop.multi) { %>${c.name('List')}<${c.name(prop.type.name)}><% } else { %>${c.name(prop.type.name)}<% } %> $prop.getter;<% } } %>
 ''')
 
   template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
@@ -765,7 +765,7 @@ public interface $c.className extends ${c.name('Serializable')} {
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public $op.ret ${op.name}($op.signature) {
+  public $op.ret.name ${op.name}($op.signature) {
     $op.body
   }<% } %><% } %><% if (c.override && !item.virtual) { %>
 
@@ -2111,18 +2111,18 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
   protected String actor;<% if (module.stateEvent) { module.stateEvent.props.each { prop ->%>
   protected $prop.type.name $prop.uncap;<% } } %>
 
-  protected $className(${item.capShortName}EventType type) {
+  protected $className(${item.capShortName}StateEventType type) {
     this.type = type;
   }
 
-  protected $className(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$extraArgs) {
+  protected $className(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs) {
     this.type = type;
     this.$idProp.uncapFullName = $idProp.uncapFullName;<% if (item.stateEvent) { item.stateEvent.props.each { prop ->%>
     this.$prop.uncap = $prop.uncap;
     <% } } %>
   }
 
-  protected $className(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type expectedState) {
+  protected $className(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState) {
     this.type = type;
     this.$idProp.uncapFullName = $idProp.uncapFullName;
     this.expectedState = expectedState;<% if (item.stateEvent) { item.stateEvent.props.each { prop ->%>
@@ -2178,9 +2178,9 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
   @Override
   protected void fillToString(StringBuffer buffer) {
     super.fillToString(buffer);
-    buffer.append("type=").append(type).append(SEPARATOR);
-    buffer.append("expectedState=").append(expectedState).append(SEPARATOR);
-    buffer.append("actor=").append(actor).append(SEPARATOR);
+    buffer.append("type=").append(type).append(SEP);
+    buffer.append("expectedState=").append(expectedState).append(SEP);
+    buffer.append("actor=").append(actor).append(SEP);
     buffer.append("${idProp.uncapFullName}=").append($idProp.uncapFullName);
   }
 
