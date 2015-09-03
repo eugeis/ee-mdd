@@ -17,7 +17,7 @@ templates('sm') {
       template('eventImpl', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventImpl" %> ${macros.generate('eventImpl', c)}''')
       template('eventType', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEventType" %> ${macros.generate('eventType',c)}''')
       template('eventFactory', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventFactory" %> ${macros.generate('eventFactory',c)}''')
-      
+      template('eventFactoryImpl', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('eventFactoryImpl', c)}''')
     }
     
 
