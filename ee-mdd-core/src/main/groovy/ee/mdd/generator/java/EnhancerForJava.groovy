@@ -147,7 +147,15 @@ class EnhancerForJava {
       signatureFullConstr << { Context c ->
         def key = System.identityHashCode(delegate) + 'signatureFullConstr'
         if(!properties.containsKey(key)) {
-          properties[key] = delegate.props.collect { Prop prop -> "$prop.computedType(c) ${prop.name}" }.join(', ') 
+          properties[key] = delegate.props.collect { Prop prop -> "${prop.computedType(c)} ${prop.name}" }.join(', ') 
+        }
+        properties[key]
+      }
+      
+      sigantureNamesFullConstr << { Context c ->
+        def key = System.identityHashCode(delegate) + 'signatureNamesFullConstr'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.props.collect { Prop prop -> "${prop.name}" }.join(', ')
         }
         properties[key]
       }
