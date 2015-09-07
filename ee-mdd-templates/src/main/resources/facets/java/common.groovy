@@ -35,7 +35,8 @@ def primitiveTypes = [
 ].sort()
 
 def nameToNamespace = ['Comparator' : 'java.util', 'Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util',
-  'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'ConcurrentHashMap' : 'java.util.concurrent', 'Serializable': 'java.io', 'HashSet' : 'java.util', 'Collections' : 'java.util'] as TreeMap
+  'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'ConcurrentHashMap' : 'java.util.concurrent', 'Serializable': 'java.io', 'HashSet' : 'java.util', 'Collections' : 'java.util',
+  'XLogger' : 'org.slf4j.ext', 'XLoggerFactory' : 'org.slf4j.ext'] as TreeMap
 
 extModule(name: 'Java') {
 

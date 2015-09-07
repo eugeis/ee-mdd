@@ -2235,7 +2235,7 @@ public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateE
 
   ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, ${event.signatureFullConstr(c)});
 
-  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
+  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
 }''')
   
   template('implEventFactory', body: '''<% def idProp = item.entity.idProp %>{{imports}}
@@ -2247,7 +2247,7 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
   }
 
   @Override
-  public ${item.capShortName}Event new${item.capShortName}Event(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type expectedState) {
+  public ${item.capShortName}Event new${item.capShortName}Event(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type.name expectedState) {
     ${item.capShortName}Event ret;
 
     <% item.events.each { def event -> %>if (type.is${event.cap}()) {
@@ -2264,7 +2264,7 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
   }<% } %>
 
   @Override
-  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type expectedState) {
+  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type.name expectedState) {
     return new ${event.cap}Impl($idProp.uncapFullName$args, expectedState);
   }<% if (event.props) { %>
 
@@ -2330,5 +2330,98 @@ public interface $className {
 */<% } else { %>/** The controller is the entry point for state machine $item.name */<% } %>
 public interface $className extends ${item.capShortName}ControllerBase {
 }''')
-    
+  
+  template('implStateMachineController', body: '''<% def controller = item.controller; def idProp = item.entity.idProp; def members = [] %>{{imports}}
+@${c.name('Alternative')}
+public class $className implements ${item.capShortName}Controller {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  <% item.states.each { def state -> %>
+  protected ${state.cap}EventProcessor ${state.uncap}EventProcessor;<% } %>
+  protected ${item.capShortName}StateMetaModel stateMetaModel;
+  protected Provider<${item.capShortName}ContextManager> contextManagerDef;<% controller.operations.each { delegate -> if(delegate.ref) { if(!members.contains(delegate.ref.parent)) { %>
+  protected ${c.name(delegate.ref.parent.name)} $delegate.ref.parent.uncap;<% } %><% members.add(delegate.ref.parent) %><% } } %>
+
+  @Override
+  public $item.entity.cap process(${item.capShortName}StateEvent event) {
+    log.${item.logLevel}("process({})", event);
+    ${item.capShortName}ContextManager contextManager = contextManager();
+    ${item.capShortName}Context context = contextManager.loadContext(event);
+    validateExpectedAndCurrentState(context);
+    process(context);
+    log.${item.logLevel}("completed transition '{}')", context.getCurrentTransition());
+    while (context.redirectEvent()) {
+      log.${item.logLevel}("process redirect event '{}'", context.getEvent());
+      process(context);
+    }
+    return contextManager.storeContext(context);
+  }
+
+  protected void process(${item.capShortName}Context context) {
+    ${item.capShortName}StateEventProcessor stateEventProcessor = findEventProcessorNotNull(context);
+    stateEventProcessor.process(context);
+  }
+
+  @Override
+  public ${item.capShortName}StateMetaModel findStateMetaModel() {
+    return stateMetaModel;
+  }
+
+  @Override
+  public $item.stateProp.type.name findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncapFullName) {
+    return contextManager().findCurrentState($item.entity.idProp.uncapFullName);
+  }
+
+  protected ${item.capShortName}StateEventProcessor findEventProcessorNotNull(${item.capShortName}Context context) {
+    ${item.capShortName}StateEventProcessor ret;
+    ${item.stateProp.type.name} $item.stateProp.name = context.getState();
+
+    <% item.states.each { def state -> %>if (${item.stateProp.name}.is${state.cap}()) {
+      ret = ${state.uncap}EventProcessor;
+    } else <% } %>{
+      throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_UNEXPECTED_EVENT_FOR_STATE, context.getEvent().getType(), context.getState());
+    }
+    return ret;
+  }
+
+  protected void validateExpectedAndCurrentState(${item.capShortName}Context context) {
+    //check if expected state and current state are same
+    ${item.capShortName}StateEvent event = context.getEvent();
+    if (event.getExpectedState() != null) {
+      if (!event.getExpectedState().equals(context.getState())) {
+        throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_EXPECTED_AND_CURRENT_STATE_DIFFERENT,
+            event.getExpectedState(), context.getState());
+      }
+    }
+  }
+
+  protected ${item.capShortName}ContextManager contextManager() {
+    return contextManagerDef.get();
+  }
+
+  @Inject
+  public void set${item.capShortName}StateMetaModel(${item.capShortName}StateMetaModel stateMetaModel) {
+    this.stateMetaModel = stateMetaModel;
+  }
+
+  @Inject
+  public void setContextManagerDef(Provider<${item.capShortName}ContextManager> contextManagerDef) {
+    this.contextManagerDef = contextManagerDef;
+  }<% item.states.each { def state-> %>
+
+  @Inject
+  public void set${state.cap}EventProcessor(${state.cap}EventProcessor ${state.uncap}EventProcessor) {
+    this.${state.uncap}EventProcessor = ${state.uncap}EventProcessor;
+  }<% } %>
+
+}''')
+
+  template('implStateMachineControllerExtends', body: '''<% def controller = item.controller %>{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends ${item.capShortName}ControllerBaseImpl {
+}''')
+
 }
