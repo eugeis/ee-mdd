@@ -8,7 +8,15 @@ templates('sm') {
 
   useMacros('commonMacros', '/common/macros')
   useMacros('macros')
-
+  
+    templates('controller',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+      template('controller', appendName: true, body: '''<% if(item.controller.base) { %><% c.className = "${item.capShortName}Controller" %> ${macros.generate('stateMachineController', c)}<% } %>''')
+    
+    }
+      
+      
     templates('event',
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {

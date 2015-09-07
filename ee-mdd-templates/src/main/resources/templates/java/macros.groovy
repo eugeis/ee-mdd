@@ -2310,5 +2310,12 @@ public enum $className { <% def literals = item.conditions.collect {
 
   ${macros.generate('buildMlKey', c)}
 }''')
+  
+  template('stateMachineController', body: '''
+<% if (item.description) { %>/**
+* $item.description
+*/<% } else { %>/** The controller is the entry point for state machine $item.name */<% } %>
+public interface $className extends ${item.capShortName}ControllerBase {
+}''')
     
 }
