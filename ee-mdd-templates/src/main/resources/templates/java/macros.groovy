@@ -2311,7 +2311,20 @@ public enum $className { <% def literals = item.conditions.collect {
   ${macros.generate('buildMlKey', c)}
 }''')
   
-  template('stateMachineController', body: '''
+  template('stateMachineController', body: '''<% def controller = item.controller %>
+<% if (item.description) { %>/**
+* $item.description
+*/<% } else { %>/** Event processor for state machine $item.name */<% } %>
+public interface $className {
+  $item.entity.cap process(${item.capShortName}StateEvent event);
+  ${item.capShortName}StateMetaModel findStateMetaModel();
+  $item.stateProp.type.name findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncap);<% controller.operations.each { op -> if(!op.override) { %>
+  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>
+  @${c.name('Transactional')}<% } %>
+  $op.ret ${op.name}($op.signature(c));<% } %><% } %>
+}''')
+  
+  template('stateMachineControllerExtends', body: '''
 <% if (item.description) { %>/**
 * $item.description
 */<% } else { %>/** The controller is the entry point for state machine $item.name */<% } %>

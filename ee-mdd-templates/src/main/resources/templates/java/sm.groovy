@@ -12,8 +12,8 @@ templates('sm') {
     templates('controller',
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-      template('controller', appendName: true, body: '''<% if(item.controller.base) { %><% c.className = "${item.capShortName}Controller" %> ${macros.generate('stateMachineController', c)}<% } %>''')
-    
+      template('controller', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerBase" %> ${macros.generate('stateMachineController', c)}''')
+      template('controllerExtends', appendName: true, body: '''<% if(item.controller.base) { %><% c.className = "${item.capShortName}Controller" %> ${macros.generate('stateMachineControllerExtends', c)}<% } %>''')
     }
       
       
