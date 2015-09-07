@@ -2100,7 +2100,7 @@ public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = 
   }
 }''')
   
-  template('eventImpl', body: '''<% def idProp = item.entity.idProp %>{{imports}}
+  template('implEvent', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 /** Base implementation of {@link ${item.capShortName}StateEvent} */
 public abstract class $className extends ${c.name('Base')} implements ${item.key.capitalize()}StateEvent {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : '' %>
   private static final long serialVersionUID = 1L;
@@ -2238,7 +2238,7 @@ public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateE
   ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
 }''')
   
-  template('eventFactoryImpl', body: '''<% def idProp = item.entity.idProp %>{{imports}}
+  template('implEventFactory', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 public abstract class $className implements ${item.capShortName}EventFactory {<% argsConstr = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : ''; args = item.stateEvent ? ', ' + item.stateEvent.signatureNamesFullConstr(c) : ''; %>
 
   @Override
@@ -2274,9 +2274,28 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
   }
 
   @Override
-  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, item.stateProp.type expectedState, ${event.signatureFullConstr(c)}) {
+  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)}) {
     return new ${event.cap}Impl($idProp.uncapFullName$args, expectedState, $event.signatureNamesFullConstr(c));
   }<% } %><% } %>
+}''')
+  
+  template('implEventFactoryExtends', body: '''<% def idProp = item.entity.idProp %>
+@${c.name('ApplicationScoped')}
+@${c.name('Traceable')}
+public class $className extends ${item.capShortName}EventFactoryBaseImpl {
+}''')
+  
+  template('actionType', body: '''
+/** Actions Enum of state machine $item.name */
+public enum $className { <% def literals = item.actions.collect {
+  if (it.description) { "   /** $it.description */   $it.name" } else { it.name } }.join(',   ') %>
+  $literals;<% item.actions.each { action -> %>
+
+  public boolean is${action.cap}() {
+    return this == $action.underscored;
+  }<% } %>
+
+  ${macros.generate('buildMlKey', c)}
 }''')
     
 }
