@@ -2297,5 +2297,18 @@ public enum $className { <% def literals = item.actions.collect {
 
   ${macros.generate('buildMlKey', c)}
 }''')
+  
+  template('conditionType', body: '''
+/** Conditions Enum of state machine $module.name */
+public enum $className { <% def literals = item.conditions.collect {
+  if (it.description) { "   /** $it.description */   $it.name" }else { it.name } }.join(',   ') %>
+  $literals;<% item.conditions.each { cond -> %>
+
+  public boolean is${cond.cap}() {
+    return this == $cond.underscored;
+  }<% } %>
+
+  ${macros.generate('buildMlKey', c)}
+}''')
     
 }
