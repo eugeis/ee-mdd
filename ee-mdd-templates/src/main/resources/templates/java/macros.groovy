@@ -2424,7 +2424,7 @@ public class $className implements ${item.capShortName}Controller {
 public class $className extends ${item.capShortName}ControllerBaseImpl {
 }''')
   
-  template('metaModel', body: '''
+  template('metaModel', body: '''{{imports}}
 /** Meta model for state machine $item.name provides static information of available states, events and actions. */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
@@ -2433,7 +2433,7 @@ public class $className extends ${item.capShortName}ControllerBaseImpl {
 public class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
   <% item.states.each { state -> %>
-  private ${state.capShortName}MetaState ${state.uncap}MetaState;<% } %>
+  private ${item.capShortName}${state.CAP}MetaState ${state.uncap}MetaState;<% } %>
 
   private ${item.capShortName}MetaState[] metaStates;
 
