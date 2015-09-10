@@ -2556,8 +2556,10 @@ public interface $className {
 
   ${c.name('List')}<${item.entity.cap}> findExpired${item.entity.instancesName.capitalize()}();
 
-}
-
-''')
+}''')
+  
+  template('contextManagerExtends', body: '''{{imports}}
+public interface $className extends ${className}Base {
+}''')
 
 }
