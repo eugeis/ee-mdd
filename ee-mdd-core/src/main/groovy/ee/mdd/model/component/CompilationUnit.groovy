@@ -47,6 +47,14 @@ class CompilationUnit extends Type {
     }
     n
   }
+  
+  String getCapShortName() {
+    underscoreToCamelCase(key).capitalize();
+  }
+  
+  String getUncapShortName() {
+    underscoreToCamelCase(key)[0].toLowerCase();
+  }
 
   def add(Prop item) {
     if(!props) {
