@@ -2544,5 +2544,20 @@ public abstract class $className extends ${c.name('Base')} {
     return userInRoleConditionVerifier;
   }
 }''')
+  
+  template('contextManager', body: '''{{imports}}
+public interface $className {
+
+  ${item.context.cap} loadContext(${item.capShortName}StateEvent event);
+
+  $item.entity.cap storeContext(${item.context.cap} context);
+
+  $item.stateProp.type.name findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncapFullName);
+
+  ${c.name('List')}<${item.entity.cap}> findExpired${item.entity.instancesName.capitalize()}();
+
+}
+
+''')
 
 }
