@@ -2270,12 +2270,12 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
 
   @Override
   public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, ${event.signatureFullConstr(c)}) {
-    return new ${event.cap}Impl($idProp.uncapFullName$args, $event.signatureNamesFullConstr(c));
+    return new ${event.cap}Impl($idProp.uncapFullName$args, ${event.signatureNamesFullConstr(c)});
   }
 
   @Override
   public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)}) {
-    return new ${event.cap}Impl($idProp.uncapFullName$args, expectedState, $event.signatureNamesFullConstr(c));
+    return new ${event.cap}Impl($idProp.uncapFullName$args, expectedState, ${event.signatureNamesFullConstr(c)});
   }<% } %><% } %>
 }''')
   
@@ -2422,6 +2422,66 @@ public class $className implements ${item.capShortName}Controller {
     @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
     @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${item.capShortName}ControllerBaseImpl {
+}''')
+  
+  template('metaModel', body: '''
+/** Meta model for state machine $item.name provides static information of available states, events and actions. */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @Environment(executions = { LOCAL, MEMORY, PRODUCTIVE }, runtimes = { CLIENT }) })
+public class $className extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;
+  <% item.states.each { state -> %>
+  private ${state.capShortName}MetaState ${state.uncap}MetaState;<% } %>
+
+  private ${item.capShortName}MetaState[] metaStates;
+
+  ${macros.generate('superclassConstructor', c)}
+
+  protected $className(${item.capShortName}MetaState[] metaStates) {
+    super();
+    this.metaStates = metaStates;
+  }
+
+  @PostConstruct
+  public void postConstruct() {
+    metaStates = new ${item.capShortName}MetaState[] {   <% def metaStates = item.states.collect { state -> "${state.uncap}MetaState" }.join(',\\n      ') %>
+      $metaStates
+    };
+  }
+
+  public $className copy() {
+    return new $className(metaStates);
+  }
+
+  public ${item.capShortName}MetaState[] getMetaStates() {
+    return metaStates;
+  }
+
+  public ${item.capShortName}MetaState findMetaState($item.stateProp.type state) {
+    ${item.capShortName}MetaState ret = null;
+    if (state != null) {
+      for (${item.capShortName}MetaState metaState : metaStates) {
+        if (state.equals(metaState.getState())) {
+          ret = metaState;
+          break;
+        }
+      }
+    }
+    return ret;
+  }
+
+  @Override
+  protected void fillToString(StringBuffer buffer) {
+    super.fillToString(buffer);
+    buffer.append("metaStates=").append(Arrays.toString(metaStates));
+  }<% item.states.each { state -> %>
+
+  @Inject 
+  public void set${state.capShortName}MetaState(${state.capShortName}MetaState ${state.uncap}MetaState) {
+    this.${state.uncap}MetaState = ${state.uncap}MetaState;
+  }<% } %>
 }''')
 
 }
