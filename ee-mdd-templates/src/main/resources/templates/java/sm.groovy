@@ -14,6 +14,7 @@ templates('sm') {
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       template('metaModel', appendName: true, body: '''<% c.className = "${item.capShortName}StateMetaModel" %> ${macros.generate('metaModel', c)}''')
+      template('metaState', appendName: true, body: '''<% c.className = "${item.capShortName}MetaState" %> ${macros.generate('metaState', c)}''')
     }
     
     templates('typeEnums',

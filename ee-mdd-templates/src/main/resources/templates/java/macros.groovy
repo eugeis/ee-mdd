@@ -2483,5 +2483,66 @@ public class $className extends ${c.name('Base')} {
     this.${state.uncap}MetaState = ${state.uncap}MetaState;
   }<% } %>
 }''')
+  
+  template('metaState', body: '''{{imports}}
+/** Static information about events and actions for a state of state machine $module.name */
+@${c.name('Alternative')}
+public abstract class $className extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;
+
+  protected ${item.stateProp.type.name} state;
+  protected ${c.name('List')}<${item.capShortName}StateEventType> events;<% module.notifiables.each { toBeNotified -> %>
+  protected boolean ${toBeNotified}ToBeNotified = false;<% } %>
+  protected Provider<UserInRoleConditionVerifier> userInRoleConditionVerifierDef;
+  protected UserInRoleConditionVerifier userInRoleConditionVerifier;
+
+  // required to be proxyable
+  protected $className() {
+    super();
+  }
+
+  public $className(${item.stateProp.type.name} state, List<${item.capShortName}StateEventType> events) {
+    super();
+    this.state = state;
+    this.events = events;
+  }
+
+  public $item.stateProp.type.name getState() {
+    return state;
+  }
+
+  public List<${item.capShortName}StateEventType> getEvents() {
+    return events;
+  }<% item.notifiables.each { toBeNotified -> %>
+
+  public boolean is${toBeNotified.capitalize()}ToBeNotified() {
+    return ${toBeNotified}ToBeNotified;
+  }<% } %>
+
+  public abstract List<${item.capShortName}StateEventType> findPossibleEvents(${item.context.cap} context);
+
+  @Override
+  protected void fillToString(StringBuffer buffer) {
+    super.fillToString(buffer);
+    buffer.append("state=").append(state).append(SEP);
+    buffer.append("events=").append(events);
+  }
+
+  public void setUserInRoleConditionVerifier(UserInRoleConditionVerifier userInRoleConditionVerifier) {
+    this.userInRoleConditionVerifier = userInRoleConditionVerifier;
+  }
+
+  @Inject
+  public void setUserInRoleConditionVerifierDef(Provider<UserInRoleConditionVerifier> userInRoleConditionVerifierDef) {
+    this.userInRoleConditionVerifierDef = userInRoleConditionVerifierDef;
+  }
+
+  protected UserInRoleConditionVerifier userInRoleConditionVerifier() {
+    if(userInRoleConditionVerifier == null) {
+        userInRoleConditionVerifier = userInRoleConditionVerifierDef.get();
+    }
+    return userInRoleConditionVerifier;
+  }
+}''')
 
 }
