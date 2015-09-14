@@ -3,6 +3,7 @@ package ee.mdd.model.statemachine
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.LogicUnit
+import ee.mdd.model.component.Module
 import ee.mdd.model.component.Prop
 
 class History extends LogicUnit {
@@ -11,17 +12,21 @@ class History extends LogicUnit {
   Prop _oldState, _newState, _actor, _action, _dateOfOccurrence, _reason, _stateMachineEntityHistoryEntriesProp
 
   String deriveName() {
-    "${parent.capName}Manager"
+    "${parent.cap}Manager"
   }
 
   StateMachine getStateMachine() {
     parent
   }
-
+  
+  Module getModule() {
+    parent.module
+  }
+  
   Entity getEntity() {
     if(!_entity) {
       assert entityRef, "entityRef is not defined in '$this'"
-      _entity = module().resolve(entityRef, Entity.class, true)
+      _entity = module.resolve(entityRef, Entity.class, true)
     }; _entity
   }
   Commands getManager() {

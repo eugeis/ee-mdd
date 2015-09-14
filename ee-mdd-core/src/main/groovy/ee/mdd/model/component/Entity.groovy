@@ -16,7 +16,6 @@
 package ee.mdd.model.component
 
 
-import ee.mdd.model.Element
 
 /**
  *
@@ -24,6 +23,7 @@ import ee.mdd.model.Element
  * @author Niklas Cappelmann
  */
 class Entity extends DataType {
+  Cache cache
   boolean manualId = false
   boolean ordered = false
   boolean clientCache = false

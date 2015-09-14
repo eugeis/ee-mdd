@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+
+
 /**
  *
  * @author Eugen Eisler
@@ -27,6 +29,7 @@ class CompilationUnit extends Type {
   boolean singleton = false
   boolean attributeChangeFlag = false
   CompilationUnit superUnit
+  List<String> superGenericRefs
   List<Prop> props
   List<Constructor> constructors
   List<Operation> operations
@@ -46,6 +49,13 @@ class CompilationUnit extends Type {
       n = new Names(this, name)
     }
     n
+  }
+  
+  Prop resolveProp(String propName) {
+    Prop ret = props.find { it.name == propName }
+    if(!ret && superUnit) { ret = superUnit.resolveProp(propName) }
+    if(!ret) { println "Prop '$propName' can't be resolved in $name" }
+    ret
   }
 
   def add(Prop item) {
