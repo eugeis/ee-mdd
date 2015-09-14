@@ -30,6 +30,7 @@ import ee.mdd.model.Body
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Cache
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
@@ -118,8 +119,9 @@ import ee.mdd.model.ui.Widget
 class ModelBuilder extends AbstractFactoryBuilder {
   private Facets facets = new Facets()
   private def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
+  private def cache = new CompositeFactory(beanClass: Cache, parent: cu)
   private def channel = new CompositeFactory(beanClass: Channel, childFactories: ['meta', 'message'])
-  private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate'], parent: type)
+  private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate', 'cache'], parent: type)
   private def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
   private def typeRef = new CompositeFactory(beanClass: TypeRef)
   private def message = new CompositeFactory(beanClass: Message,  childFactories: ['meta'], parent: typeRef)
@@ -245,6 +247,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
 
     registerFactory 'basicType', basicType
     registerFactory 'body', body
+    registerFactory 'cache', cache
     registerFactory 'cond', condition
     registerFactory 'component', component
     registerFactory 'config', config
