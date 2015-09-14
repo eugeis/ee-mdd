@@ -2562,7 +2562,7 @@ public interface $className {
 public interface $className extends ${className}Base {
 }''')
   
-  template('contextManagerImpl', body: '''{{imports}}
+  template('implContextManager', body: '''{{imports}}
 public abstract class $className implements ${item.capShortName}ContextManager {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
 
@@ -2590,6 +2590,75 @@ public abstract class $className implements ${item.capShortName}ContextManager {
   @Inject
   public void setUserInRoleConditionVerifier(UserInRoleConditionVerifier userInRoleConditionVerifier) {
     this.userInRoleConditionVerifier = userInRoleConditionVerifier;
+  }
+}''')
+  
+  template('implContextManagerExtends', body: '''{{imports}}
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends ${item.capShortName}ContextManagerBaseImpl {
+
+  protected ${item.entity.cap}Manager ${item.entity.uncap}Manager;<% if (item.history) { %>
+  protected ${item.history.entity.name}Manager ${item.history.entity.uncap}Manager;<% } %>
+
+  @Override
+  protected ${item.capShortName}Context fillContext(${item.capShortName}Context context) {
+    ${item.entity.cap} entity = ${item.entity.uncap}Manager.findByIdStrict(context.getEvent().get${item.entity.idProp.capFullName}());
+    context.set${item.entity.cap}(entity);
+    context.set${item.stateProp.cap}(entity.get${item.stateProp.cap}());
+    return context;
+  }
+
+  @Override
+  public ${item.entity.cap} storeContext(${item.capShortName}Context context) {
+    log.$item.logLevel("storeContext({})", context);
+    ${item.entity.cap} ${item.entity.uncap} = context.get${item.entity.cap}();
+    if (context.getNewState() != null) {
+      <% if (item.timeoutEnabled) { %>${item.entity.uncap}.${item.stateTimeoutProp.setterMethodName}(context.getNewTimeout());<% } %>
+      ${item.entity.uncap} = ${item.entity.uncap}Manager.update${item.stateProp.cap}($item.entity.uncap, context.getNewState(), true);
+      context.set${item.entity.cap}(${item.entity.uncap});<% if (item.history) { %>
+      create${item.history.entity.name}(context);<% } %>
+    }
+    return ${item.entity.uncap};
+  }
+
+  @Override
+  public $item.stateProp.type.name findCurrentState($item.entity.idProp.type.cap $item.entity.idProp.uncapFullName) {
+    ${item.entity.cap} entity = ${item.entity.uncap}Manager.findByIdStrict($item.entity.idProp.uncapFullName);
+    $item.stateProp.type.name ret = entity.get${item.stateProp.cap}();
+    return ret;
+  }
+
+  @Override
+  public List<$item.entity.cap> findExpired${item.entity.cap}() {
+    return ${item.entity.uncap}Manager.findBy$item.stateTimeoutProp.cap(TimeUtils.now());
+  }<% if (item.history) { def history = item.history; %>
+
+  protected void create$history.entity.name(${item.cap}Context context) {
+    log.$item.logLevel("Creating history entry for state change");
+    $item.entity.cap $item.entity.uncap = context.get${item.entity.cap}();
+    ${history.entity.cap}Entity ret = new ${history.entity.cap}Entity();
+    <% if (history.oldState) { %>ret.set$history.oldState.cap(context.getState());
+    <% }; if (history.newState) { %>ret.set$history.newState.cap(context.getNewState());
+    <% }; if (history.actor) { %>ret.set$history.actor.cap(context.getSessionPrincipal().getUser());
+    <% }; if (history.action) { %>ret.set$history.action.cap(context.getEvent().getType().buildMlKey());
+    <% }; if (history.dateOfOccurrence) { %>ret.set$history.dateOfOccurrence.cap(now());
+    <% }; if (history.reason) { %>ret.set$history.reason.cap(${item.entity.uncap}.get$history.reason.cap());
+    <% }; if (history.stateMachineEntityHistoryEntries) { %>((${item.entity.cao}Entity)${item.entity.uncap}).addTo$history.stateMachineEntityHistoryEntries.cap(ret);
+    <% } %>
+    ${history.uncap}Manager.create(ret, true);
+  }
+
+  @Inject
+  public void set${item.history.cap}Manager(${item.history.cap}Manager ${item.history.uncap}Manager) {
+    this.${item.history.uncap}Manager = ${item.history.uncap}Manager;
+  }<% } %>
+
+  @Inject
+  public void set${item.entity.cap}Manager(${item.entity.cap}Manager ${item.entity.uncap}Manager) {
+    this.${item.entity.uncap}Manager = ${item.entity.uncap}Manager;
   }
 }''')
 
