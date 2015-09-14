@@ -53,5 +53,7 @@ templates('sm') {
     
       template('contextManager', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerBase" %> ${macros.generate('contextManager', c)}''')
       template('contextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManager" %> ${macros.generate('contextManagerExtends', c)}''')
+      template('implContextManager', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerBaseImpl" %> ${macros.generate('implContextManager', c)}''')
+      template('implContextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerImpl" %> ${macros.generate('implContextManagerExtends', c)}''')
     }
 }

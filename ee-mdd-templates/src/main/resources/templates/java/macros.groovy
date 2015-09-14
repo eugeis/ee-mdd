@@ -2561,5 +2561,36 @@ public interface $className {
   template('contextManagerExtends', body: '''{{imports}}
 public interface $className extends ${className}Base {
 }''')
+  
+  template('contextManagerImpl', body: '''{{imports}}
+public abstract class $className implements ${item.capShortName}ContextManager {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+
+  protected SessionPrincipal sessionPrincipal;
+  protected UserInRoleConditionVerifier userInRoleConditionVerifier;
+
+  @Override
+  public ${item.capShortName}Context loadContext( ${item.capShortName}StateEvent event) {
+    log.$item.logLevel("loadContext({})", event);
+    ${item.capShortName}Context context = new ${item.capShortName}Context();
+    context.setEvent(event);
+    context.setSessionPrincipal(sessionPrincipal);
+    context.setUserInRoleConditionVerifier(userInRoleConditionVerifier);
+
+    return fillContext(context);
+  }
+
+  protected abstract ${item.capShortName}Context fillContext(${item.capShortName}Context context);
+
+  @Inject
+  public void setSessionPrincipal(SessionPrincipal sessionPrincipal) {
+    this.sessionPrincipal = sessionPrincipal;
+  }
+
+  @Inject
+  public void setUserInRoleConditionVerifier(UserInRoleConditionVerifier userInRoleConditionVerifier) {
+    this.userInRoleConditionVerifier = userInRoleConditionVerifier;
+  }
+}''')
 
 }
