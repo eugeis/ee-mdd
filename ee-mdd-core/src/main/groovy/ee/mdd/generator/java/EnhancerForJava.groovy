@@ -743,6 +743,15 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getSetterMethodName << { 
+        ->
+        def key = System.identityHashCode(delegate) + 'setterMethodName'
+        if(!properties.containsKey(key)) {
+        properties[key] = "set${delegate.cap}" 
+        }
+        properties[key] 
+      }
 
       computedType << { Context c ->
         def key = System.identityHashCode(delegate) + 'computedType'
