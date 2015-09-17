@@ -29,11 +29,14 @@ templates ('macros') {
 
   template('header', body: '''/* EE Software */''')
 
-  template('propsMember', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %><% if(prop.multi) { %>
+  template('props', body: '''<% item.props.each { prop -> if(!prop.typeEntity) { %><% if(prop.multi) { %>
   protected ${c.name('List')}<${prop.type.name}> $prop.uncap; <% } else { %>
   protected ${c.name(prop.type.name)} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
   protected ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
   protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>''')
+  
+  template('propMembers', body:'''<% item.props.each { prop-> %>
+  protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>''')
 
   template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
   protected ${c.name('List')}<${prop.typeEjbMember(c)}> $prop.uncap;<% } else { %>
@@ -48,6 +51,12 @@ templates ('macros') {
 
   template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>''')
+  
+  template('propsUpdate', body: '''
+  public void update($item.cap $item.uncap) {<% item.props.each { prop-> %><% if (item.propSetters) { %>
+    $prop.setterMethodName(${item.uncap}.${prop.getter});<% } else { %>
+    $prop.uncap = ${item.uncap}.${prop.getter};<% } %><% } %>
+  }''')
 
   template('versionMember', body: '''<% if (!item.superUnit) { %>
   @${c.name('Version')}
@@ -951,7 +960,7 @@ public class $c.className extends $item.n.cap.deltaBaseImpl {
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
 public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('EntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
   private static final long serialVersionUID = 1L;
-  ${macros.generate('propsMember', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+  ${macros.generate('props', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
 
 }''')
 
@@ -1244,7 +1253,7 @@ import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.
 ${item.description?"/*** $item.description */":''}
 public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')} {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
-  ${macros.generate('propsMember', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
+  ${macros.generate('props', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
 
   public boolean $lit.is {
     return this == $lit.underscored;
@@ -1897,7 +1906,7 @@ public class $className extends $model.n.cap.base {
 public abstract class $className extends ${c.name('BaseModel')} { <% def listProps = model.props.findAll { prop -> prop.multi } %>
   protected $model.n.cap.events forward;
   ${macros.generate('refsMember', c)}
-  <% model.props.each { prop -> %>protected $prop.computedType $prop.name;<% } %> <% if (listProps) { %>
+  <% model.props.each { prop -> %>protected $prop.computedType(c) $prop.name;<% } %> <% if (listProps) { %>
   private ObservableFactory observableFactory;
 
   @PostConstruct
@@ -2698,6 +2707,120 @@ public class $className implements ${item.capShortName}StateEventProcessor {
   template('implStateEventProcessorExtends', body: '''{{imports}}
 @${c.name('Traceable')}
 public class $className extends ${item.capShortName}StateEventProcessorBaseImpl {
+}''')
+  
+  template('context', body: '''<% def entity = item.entity; def idProp = entity.idProp; def context = item.context %>{{imports}}
+${context.description?"/*** $context.description */":''}
+public class $className extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;
+  protected transient UserInRoleConditionVerifier userInRoleConditionVerifier;
+  // DEFAULT props for Context cannot be set dynamically because type resolution is missing
+  protected ${c.name('SessionPrincipal')} sessionPrincipal;
+  protected ${item.capShortName}StateEvent event;
+  protected ${item.capShortName}StateEvent redirectEvent;
+  protected ${c.name('RepState')} state;
+  protected ${c.name('RepState')} newState;
+  protected ${c.name('Date')} newTimeout;
+  protected ${item.capShortName}TransitionExecutionResult;<% context.props.each { prop -> %>
+  protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>
+  //cached conditions<% context.conditions.findAll { it.cachedInContext }.each { con -> %>
+  protected Boolean $con.uncap;<% } %><% context.props.each { prop-> %><% if (prop.description) { %>
+  /*** $prop.description */<% } %>
+  public ${prop.computedType(c)} $prop.getter {
+    return $prop.uncap;
+  }<% if (context.propSetters) { %>
+  public void ${prop.setter} {
+    this.$prop.uncap = $prop.uncap;
+  }<% } %><% } %>
+  <% context.operations.each { op -> if(op.body) { %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $op.ret ${op.name}($op.signature) {
+    $op.body
+  }<% } } %><% if(context.propsUpdate) { %>
+  public void update($context.cap $context.uncap) {<% context.props.each { prop-> %><% if (context.propSetters) { %>
+    $prop.setterMethodName(${context.uncap}.${prop.getter});<% } else { %>
+    $prop.uncap = ${context.uncap}.${prop.getter};<% } %><% } %>
+  }<% } %>
+
+  public <E extends ${item.capShortName}StateEvent> ${item.capShortName}TransitionExecutionResult<E> startTransitionTo($item.stateProp.type.name newState) {
+    return startTransitionTo(newState, null);
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public <E extends ${item.capShortName}StateEvent> ${item.capShortName}TransitionExecutionResult<E> startTransitionTo($item.stateProp.type.name newState, ${item.capShortName}StateEvent redirectEvent) {
+    transitions.add(currentTransition = new ${item.capShortName}TransitionExecutionResult<>(state, newState, event, redirectEvent));
+    return (${item.capShortName}TransitionExecutionResult)currentTransition;
+  }
+
+  public boolean redirectEvent() {
+    boolean ret = false;
+    if (redirectEvent != null) {
+      ret = true;
+      event = redirectEvent;
+      redirectEvent = null;
+      state = newState;
+      newState = null;<% if (item.timeoutEnabled) { %>
+      newTimeout = null;<% } %>
+    }
+    return ret;
+  }
+
+  public void completeTransition() {<% if (item.timeoutEnabled) { %>
+    newTimeout = null;<% } %>
+    newState = currentTransition.getToState();
+  }<% if (item.timeoutEnabled) { %>
+
+  public void completeTransition(int timeoutInMillis) {
+    if (timeoutInMillis > 0) {
+      this.newTimeout = createDateAddMillis(now(), timeoutInMillis);
+    } else {
+      this.newTimeout = null;
+    }
+    newState = currentTransition.getToState();
+  }<% } %>
+
+  public void completeTransition(${item.capShortName}StateEvent redirectEvent) {
+    this.redirectEvent = redirectEvent;
+    completeTransition();
+  }
+
+  //handling for cache condition values<% item.conditions.findAll { it.cachedInContext }.each { con -> %>
+
+  /** Set the verification value of the condition $con.name and return it in order to use the method in if statements */
+  public boolean change$con.cap(boolean $con.uncap) {
+    this.$con.uncap = $con.uncap;
+    return $con.uncap;
+  }
+
+  public Boolean is$con.cap() {
+    return $con.uncap;
+  }<% } %>
+
+  public void evaluateUserInRoleStrict(String role) {
+    if(userInRoleConditionVerifier != null) {
+        userInRoleConditionVerifier.evaluateConditionStrict(role);
+    } else {
+        throw new IllegalStateException("userInRoleConditionVerifier", "not_null", "null");
+    }
+  }
+
+  public void setUserInRoleConditionVerifier(UserInRoleConditionVerifier userInRoleConditionVerifier) {
+    this.userInRoleConditionVerifier = userInRoleConditionVerifier;
+  }
+
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);<% item.props.each { prop-> if (!prop.multi && prop.type.name.matches('(String|Boolean|boolean|Long|long|Integer|int)')) { %>
+    b.append("$prop.name=").append($prop.name).append(SEP);<% } } %>
+    b.append($entity.uncap != null ? ${entity.uncap}.${idProp.getter} : null).append(SEP);
+    if (state != null) {
+      b.append(state.name());
+    }
+    if (newState != null) {
+      b.append("->");
+      b.append(newState.name());
+    }
+  }
 }''')
   
 

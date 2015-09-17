@@ -57,6 +57,14 @@ templates('sm') {
       template('implStateEventProcessorExtends', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorImpl" %> ${macros.generate('implStateEventProcessorExtends', c)}''')
     }
     
+    templates('context',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    
+      template('context', appendName: true, body: '''<% c.className = "${item.capShortName}ContextBase" %> ${macros.generate('context', c)}''')
+      //template('contextExtends', appendName: true, body: '''<% c.className = "${item.capShortName}Context" %> ${macros.generate('contextExtends', c)}''')
+    }
+    
     templates('contextManager',
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
