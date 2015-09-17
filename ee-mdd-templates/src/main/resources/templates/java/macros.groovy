@@ -2667,5 +2667,32 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
 public interface $className {
   void process(${item.capShortName}Context context);
 }''')
+  
+  template('implStateEventProcessor', body: '''{{imports}}
+@${c.name('Traceable')}
+public class $className implements ${item.capShortName}StateEventProcessor {
+  protected final @${c.name('XLogger')} log = @${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected final String source = StringUtils.formatSource(this);<% if (module.timeoutEnabled) { %>
+
+  protected ${item.capShortName}Timeouts stateTimeouts;<% } %>
+
+  @Override
+  public void process(${item.capShortName}Context context) {
+    log.warn("Unexpected event type '{}' for current state '{}' - process({})", context.getEvent().getType(), context.getState(), context);
+    throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_UNEXPECTED_EVENT_FOR_STATE,
+        context.getEvent().getType(), context.getState());
+  }
+
+  protected void processNoValidFlow(${item.capShortName}Context context) {
+    log.info("processNoValidFlow({})", context);
+    ${item.capShortName}TransitionExecutionResult<?> lastTransition = context.getCurrentTransition();
+    throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_NO_VALID_FLOW, lastTransition.getFromStateAsMlKey(), lastTransition.getToStateAsMlKey(), lastTransition.getEventTypeAsMlKey(), lastTransition.getFailedConditionAsMlKey());
+  }<% if (item.timeoutEnabled) { %>
+
+  @Inject
+  public void setStateTimeouts(${item.capShortName}Timeouts stateTimeouts) {
+    this.stateTimeouts = stateTimeouts;
+  }<% } %>
+}''')
 
 }

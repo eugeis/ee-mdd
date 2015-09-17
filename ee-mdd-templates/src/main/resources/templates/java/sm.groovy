@@ -42,8 +42,8 @@ templates('sm') {
     
       template('event', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEvent" %> ${macros.generate('event', c)}''')
       template('implEvent', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventImpl" %> ${macros.generate('implEvent', c)}''')
-      template('eventType', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEventType" %> ${macros.generate('eventType',c)}''')
-      template('eventFactory', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventFactory" %> ${macros.generate('eventFactory',c)}''')
+      template('eventType', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEventType" %> ${macros.generate('eventType', c)}''')
+      template('eventFactory', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventFactory" %> ${macros.generate('eventFactory', c)}''')
       template('implEventFactory', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactory', c)}''')
       template('implEventFactoryExtends', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactoryExtends', c)}''')
     }
@@ -53,7 +53,8 @@ templates('sm') {
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
       template('stateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessor" %> ${macros.generate('stateEventProcessor', c)}''')
-      
+      template('implStateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorBaseImpl" %> ${macros.generate('implStateEventProcessor', c)}''')
+      //template('implStateEventProcessorExtends', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorImpl" %> ${macros.generate('implStateEventProcessorExtends', c)}''')
     }
     
     templates('contextManager',
