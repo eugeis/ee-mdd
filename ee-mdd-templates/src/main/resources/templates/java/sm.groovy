@@ -6,6 +6,7 @@ import ee.mdd.model.statemachine.StateMachine
 
 
 
+
 templates('sm') {
 
   useMacros('commonMacros', '/common/macros')
@@ -45,6 +46,14 @@ templates('sm') {
       template('eventFactory', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventFactory" %> ${macros.generate('eventFactory',c)}''')
       template('implEventFactory', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactory', c)}''')
       template('implEventFactoryExtends', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactoryExtends', c)}''')
+    }
+    
+    templates('stateEventProcessor',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    
+      template('stateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessor" %> ${macros.generate('stateEventProcessor', c)}''')
+      
     }
     
     templates('contextManager',

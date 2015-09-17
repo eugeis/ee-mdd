@@ -2661,5 +2661,11 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
     this.${item.entity.uncap}Manager = ${item.entity.uncap}Manager;
   }
 }''')
+  
+  template('stateEventProcessor', body: '''{{imports}}
+/** Event processor for single state of the state machine $item.name */
+public interface $className {
+  void process(${item.capShortName}Context context);
+}''')
 
 }
