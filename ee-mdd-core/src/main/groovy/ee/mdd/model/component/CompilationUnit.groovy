@@ -28,6 +28,7 @@ class CompilationUnit extends Type {
   boolean base = false
   boolean singleton = false
   boolean attributeChangeFlag = false
+  boolean propSetters = true
   CompilationUnit superUnit
   List<String> superGenericRefs
   List<Prop> props
