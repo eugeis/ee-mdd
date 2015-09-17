@@ -54,7 +54,7 @@ templates('sm') {
     
       template('stateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessor" %> ${macros.generate('stateEventProcessor', c)}''')
       template('implStateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorBaseImpl" %> ${macros.generate('implStateEventProcessor', c)}''')
-      //template('implStateEventProcessorExtends', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorImpl" %> ${macros.generate('implStateEventProcessorExtends', c)}''')
+      template('implStateEventProcessorExtends', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorImpl" %> ${macros.generate('implStateEventProcessorExtends', c)}''')
     }
     
     templates('contextManager',

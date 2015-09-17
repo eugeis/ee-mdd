@@ -2694,5 +2694,11 @@ public class $className implements ${item.capShortName}StateEventProcessor {
     this.stateTimeouts = stateTimeouts;
   }<% } %>
 }''')
+  
+  template('implStateEventProcessorExtends', body: '''{{imports}}
+@${c.name('Traceable')}
+public class $className extends ${item.capShortName}StateEventProcessorBaseImpl {
+}''')
+  
 
 }
