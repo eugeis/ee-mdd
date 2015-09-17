@@ -2823,5 +2823,11 @@ public class $className extends ${c.name('Base')} {
   }
 }''')
   
+  template('contextExtends', body: '''<% def context = item.context %>{{imports}}
+${context.description ? "/*** @see ${item.capShortName}ContextBase*/":''}
+public class $className extends $${item.capShortName}ContextBase {
+  private static final long serialVersionUID = 1L;
+}''')
+  
 
 }

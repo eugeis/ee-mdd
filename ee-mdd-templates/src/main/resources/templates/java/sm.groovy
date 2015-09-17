@@ -62,7 +62,7 @@ templates('sm') {
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
       template('context', appendName: true, body: '''<% c.className = "${item.capShortName}ContextBase" %> ${macros.generate('context', c)}''')
-      //template('contextExtends', appendName: true, body: '''<% c.className = "${item.capShortName}Context" %> ${macros.generate('contextExtends', c)}''')
+      template('contextExtends', appendName: true, body: '''<% c.className = "${item.capShortName}Context" %> ${macros.generate('contextExtends', c)}''')
     }
     
     templates('contextManager',
