@@ -62,6 +62,9 @@ templates ('macros') {
   @${c.name('Version')}
   @${c.name('Column')}(name = "VERSION")
   protected Long version;<% } %>''')
+  
+  template('initFullConstructor', body: '''<% item.props.each { prop -> %>
+    this.$prop.name = $prop.name;<% } %>''')
 
   template('defaultConstructor', body:'''
   public $className() {
@@ -1780,6 +1783,38 @@ ${ret-newLine}''')
     b.append("$prop.name=").append($prop.getter).append(SEP);<% } else { %>
     b.append("$prop.name=").append($prop.name).append(SEP);<% } %><% } }%>
   }''')
+  
+  template('hashCodeAndEquals', body: '''<% if (item.propsForHashCode) { %>
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.propsForHashCode.each { prop-> %>
+    result = prime * result + <% if (prop.typeRef.primitive) { %>$prop.name;<% } else { %>(($prop.name == null) ? 0 : ${prop.name}.hashCode());<% } } %>
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;<% if (item.virtual) { %>
+    if (!super.equals(obj))
+      return false;<% } %>
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = (${className}) obj;<% item.propsForHashCode.each { prop-> if (!prop.primitive) { %>
+    if (${prop.name} == null) {
+      if (other.${prop.name} != null)
+        return false;
+    } else if (!${prop.name}.equals(other.${prop.name}))
+      return false;<% } else { %>
+    if (${prop.name} != other.${prop.name})
+      return false;<% } %>
+    <% } %>
+    return true;
+  }<% } %>''')
 
   template('hashCodeAndEqualsEntity', body: '''<% if(item.propsForHashCode) { %>
 
@@ -2954,6 +2989,50 @@ public interface $className extends ${sm.capShortName}StateEvent {
   ${macros.generate('propSettersIfc', c)}
 }''')
   
-  
+  template('implEvent', body: '''<% def sm = item.stateMachine; def idProp = sm.entity.idProp %>{{imports}}
+public class $className extends ${sm.capShortName}StateEventImpl implements ${item.cap}Event { <% def argsConstr = sm.stateEvent ? ', ' + sm.stateEvent.signatureFullConstr(c) : ''; %><% def args = sm.stateEvent ? ', ' + sm.stateEvent.signatureNamesFullConstr(c) : ''; %>
+  private static final long serialVersionUID = 1L;<% item.props.each { prop-> %>
 
+  protected ${prop.computedType(c)} $prop.name;<% } %>
+
+  public $className() {
+    super(${sm.capShortName}StateEventType.${item.underscored});
+  }<% if (!item.props) { %>
+
+  public $className($idProp.type.name $idProp.uncapFullName$argsConstr) {
+    super(${sm.capShortName}StateEventType.${item.underscored}, $idProp.uncapFullName$args);
+  }<% } %>
+
+  public $className($idProp.type.name $idProp.uncapFullName$argsConstr, $sm.stateProp.type.name expectedState) {
+    super(${sm.capShortName}StateEventType.${item.underscored}, $idProp.uncapFullName$args, expectedState);
+  }<% if (item.props) { %>
+
+  public $className($idProp.type.name $idProp.uncapFullName$argsConstr, ${item.signatureFullConstr(c)}) {
+    super(${sm.capShortName}StateEventType.${item.underscored}, $idProp.uncapFullName$args);${macros.generate('initFullConstructor', c)}
+  }
+
+  public $className($idProp.type.name $idProp.uncapFullName$argsConstr, $sm.stateProp.type.name expectedState, ${item.signatureFullConstr(c)}) {
+    super(${sm.capShortName}StateEventType.${item.underscored}, $idProp.uncapFullName$args, expectedState);${macros.generate('initFullConstructor', c)}
+  }<% item.props.each { prop-> %>
+
+  @Override
+  public ${prop.computedType(c)} get${prop.cap}() {
+    return $prop.name;
+  }
+
+  @Override
+  public void set${prop.cap}(${prop.computedType(c)} $prop.name) {
+    this.$prop.name = $prop.name;
+  }<% } }%>
+
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);
+    b.append(SEP);<% item.props.each { prop -> if (prop.type.name.matches('(String|Boolean|Long|Integer)')) { %>
+    b.append("$prop.name=").append($prop.name).append(SEP);<% } } %>
+  }
+  ${macros.generate('hashCodeAndEquals', c)}
+}''')
+  
+  
 }
