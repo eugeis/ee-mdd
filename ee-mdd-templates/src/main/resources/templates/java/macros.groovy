@@ -277,6 +277,13 @@ templates ('macros') {
     super.initWidgets();
   }''')
   
+  template('onEventSuper', body: '''
+  @Override
+  public void onEvent(@Observes(during = AFTER_COMPLETION, notifyObserver = IF_EXISTS)${item.clientCache?' @Internal':''} ${item.cap}Event event) {
+    super.onEvent(event);
+  }''')
+  
+  
 
 
   template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
@@ -2910,6 +2917,13 @@ public class $className extends EventImpl<${sm.entity.cap}> {
       return false;
     return true;
   }
+}''')
+  
+  template('actionEventReceiver', body: '''{{imports}}
+/** Event receiver for JSE environment only of {@link ${item.cap}Event} */
+@${c.name('ApplicationScoped')}
+public class $className extends Receiver<${item.cap}Event> {
+  ${macros.generate('onEventSuper', c)}
 }''')
   
 
