@@ -91,5 +91,6 @@ templates('sm') {
     
       template('actionEvent', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}Event" %> ${macros.generate('actionEvent', c)}<% } %>''')
       template('actionEventReceiver', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}EventReceiver" %> ${macros.generate('actionEventReceiver', c)}<% } %>''')
+      template('executorIfc', appendName: true, body: '''<% if(!item.body && !item.async) { %><% c.className = "${item.cap}Executor" %> ${macros.generate('executorIfc', c)}<% } %>''')
     }
 }

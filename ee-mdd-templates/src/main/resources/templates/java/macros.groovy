@@ -2925,6 +2925,11 @@ public class $className extends EventImpl<${sm.entity.cap}> {
 public class $className extends Receiver<${item.cap}Event> {
   ${macros.generate('onEventSuper', c)}
 }''')
+
+  template('executorIfc', body: '''
+/** Executor for action $item.name of state machine $item.stateMachine.name */
+public interface $className extends ${item.stateMachine.capShortName}ActionExecutor {
+}''')
   
 
 }
