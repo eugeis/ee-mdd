@@ -2926,9 +2926,24 @@ public class $className extends Receiver<${item.cap}Event> {
   ${macros.generate('onEventSuper', c)}
 }''')
 
-  template('executorIfc', body: '''
+  template('executorIfc', body: '''{{imports}}
 /** Executor for action $item.name of state machine $item.stateMachine.name */
 public interface $className extends ${item.stateMachine.capShortName}ActionExecutor {
+}''')
+  
+  template('implExecutor', body: '''<% def sm = item.stateMachine %>{{imports}}
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+public class $className implements ${item.cap}Executor {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+
+  @Override
+  public void execute(${sm.capShortName}Context context) {
+    log.${sm.logLevel}("execute({})", context);
+    //TODO to implement
+  }
 }''')
   
 
