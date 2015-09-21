@@ -2823,10 +2823,21 @@ public class $className extends ${c.name('Base')} {
   }
 }''')
   
-  template('contextExtends', body: '''<% def context = item.context %>{{imports}}
-${context.description ? "/*** @see ${item.capShortName}ContextBase*/":''}
-public class $className extends $${item.capShortName}ContextBase {
+  template('contextExtends', body: '''<% def context = item.context %>{{imports}}<% if(context.description) { %>
+/*** @see ${item.capShortName}ContextBase*/<% } %>
+public class $className extends ${item.capShortName}ContextBase {
   private static final long serialVersionUID = 1L;
+}''')
+  
+  template('actionExecutor', body: '''
+/**
+* An action handler is responsible to execute a transition or state action of for state machine $item.name.
+* The execution result is a boolean value, what is handled as transition condition.
+* If it is false, then the transition can not be applied and the state event handler will proceed with next possible transitions or abort the event processing.
+*/
+public interface $className {
+
+  void execute(${item.capShortName}Context context);
 }''')
   
 

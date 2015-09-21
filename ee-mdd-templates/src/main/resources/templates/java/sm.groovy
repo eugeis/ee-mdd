@@ -7,6 +7,7 @@ import ee.mdd.model.statemachine.StateMachine
 
 
 
+
 templates('sm') {
 
   useMacros('commonMacros', '/common/macros')
@@ -73,5 +74,12 @@ templates('sm') {
       template('contextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManager" %> ${macros.generate('contextManagerExtends', c)}''')
       template('implContextManager', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerBaseImpl" %> ${macros.generate('implContextManager', c)}''')
       template('implContextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerImpl" %> ${macros.generate('implContextManagerExtends', c)}''')
+    }
+    
+    templates('actionExecutor',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    
+      template('actionExecutor', appendName: true, body:'''<% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}''')
     }
 }
