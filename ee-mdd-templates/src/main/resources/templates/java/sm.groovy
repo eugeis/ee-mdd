@@ -1,7 +1,9 @@
 package templates.java
 
 import ee.mdd.model.statemachine.Action
+import ee.mdd.model.statemachine.Event
 import ee.mdd.model.statemachine.StateMachine
+
 
 
 
@@ -39,7 +41,7 @@ templates('sm') {
     }
       
       
-    templates('event',
+    templates('stateMachineEvents',
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
@@ -93,5 +95,11 @@ templates('sm') {
       template('actionEventReceiver', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}EventReceiver" %> ${macros.generate('actionEventReceiver', c)}<% } %>''')
       template('executorIfc', appendName: true, body: '''<% if(!item.body && !item.async) { %><% c.className = "${item.cap}Executor" %> ${macros.generate('executorIfc', c)}<% } %>''')
       template('implExecutor', appendName: true, body: '''<% if (!item.body && !item.async && item.stateMachine.generateDefaultImpl) { %><% c.className = "${item.cap}ExecutorImpl" %> ${macros.generate('implExecutor', c)}<% } %>''')
+    }
+    
+    templates('event',
+    items: { c -> c.model.findAllRecursiveDown( {Event.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+      template('eventIfc', appendName: true, body: '''<% c.className = "${item.cap}Event" %> ${macros.generate('eventIfc', c)}''')
     }
 }

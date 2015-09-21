@@ -2946,5 +2946,14 @@ public class $className implements ${item.cap}Executor {
   }
 }''')
   
+  template('eventIfc', body: '''<% def sm = item.stateMachine %>{{imports}}
+/** $item.cap event interface of state machine $sm.name */
+public interface $className extends ${sm.capShortName}StateEvent {
+  ${macros.generate('propGettersIfc', c)}
+
+  ${macros.generate('propSettersIfc', c)}
+}''')
+  
+  
 
 }
