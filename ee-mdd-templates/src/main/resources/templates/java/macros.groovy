@@ -2840,5 +2840,77 @@ public interface $className {
   void execute(${item.capShortName}Context context);
 }''')
   
+  template('actionEvent', body: '''<% def sm = item.stateMachine %>{{imports}}
+/** Event object for action $item.name */
+public class $className extends EventImpl<${sm.entity.cap}> {
+  private static final long serialVersionUID = 1L;
+  private ${sm.capShortName}StateEvent stateEvent;
+  private $sm.stateProp.type.name oldState;
+  private $sm.stateProp.type.name newState;
+
+  public ${item.cap}Event(${sm.entity.cap} object, ActionType type, String source, ${sm.capShortName}StateEvent stateEvent, $sm.stateProp.type.name oldState, $sm.stateProp.type.name newState) {
+    super(object, type, source, ${sm.entity.cap}.class);
+    this.stateEvent = stateEvent;
+    this.oldState =  oldState;
+    this.newState = newState;
+  }
+
+  public ${sm.capShortName}StateActionType getStateAction() {
+    return ${sm.capShortName}StateActionType.${item.underscored};
+  }
+
+  public $sm.stateProp.type.name getState() {
+    return oldState;
+  }
+
+  public $sm.stateProp.type.name getNewState() {
+    return newState;
+  }
+
+  public ${sm.capShortName}StateEvent getStateEvent() {
+    return stateEvent;
+  }
+
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);
+    b.append(SEP);
+    b.append("stateEvent=").append(stateEvent).append(SEP);
+    b.append("oldState=").append(oldState).append(SEP);
+    b.append("newState=").append(newState);
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((newState == null) ? 0 : newState.hashCode());
+    result = prime * result + ((oldState == null) ? 0 : oldState.hashCode());
+    result = prime * result + ((stateEvent == null) ? 0 : stateEvent.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    $className other = ($className) obj;
+    if (newState != other.newState)
+      return false;
+    if (oldState != other.oldState)
+      return false;
+    if (stateEvent == null) {
+      if (other.stateEvent != null)
+        return false;
+    } else if (!stateEvent.equals(other.stateEvent))
+      return false;
+    return true;
+  }
+}''')
+  
 
 }

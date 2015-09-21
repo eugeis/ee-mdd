@@ -1,6 +1,8 @@
 package templates.java
 
+import ee.mdd.model.statemachine.Action
 import ee.mdd.model.statemachine.StateMachine
+
 
 
 
@@ -80,6 +82,13 @@ templates('sm') {
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
-      template('actionExecutor', appendName: true, body:'''<% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}''')
+      template('actionExecutor', appendName: true, body:'''<% if(item.async) { %><% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}<% } %>''')
+    }
+    
+    templates('actionEvent',
+    items: { c -> c.model.findAllRecursiveDown( {Action.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    
+      template('actionEvent', appendName: true, body: '''<% c.className = "${item.cap}Event" %> ${macros.generate('actionEvent', c)}''')
     }
 }
