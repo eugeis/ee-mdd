@@ -3063,7 +3063,7 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
     } else <% } %>{
       super.process(context);
     }
-  }$item.eventTransitions<% } %><% item.eventTransitions.each { etrs-> %>
+  }<% } %><% item.eventTransitions.each { etrs-> %>
 
   @Override
   public void on${etrs.event.cap}(${etrs.event.cap} event, ${sm.capShortName}Context context) {
