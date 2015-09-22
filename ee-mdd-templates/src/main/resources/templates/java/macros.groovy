@@ -3034,5 +3034,12 @@ public class $className extends ${sm.capShortName}StateEventImpl implements ${it
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
   
+  template('eventProcessor', body: '''<% def sm = item.stateMachine %>
+/** Event processor for state '$item.name' of '$sm.name'. */
+public interface $className extends ${sm.capShortName}StateEventProcessor {<% item.eventTransitions.each { etrs-> def event = etrs.event; %>
+
+  void on$event.cap(${event.cap}Event event, ${sm.capShortName}Context context);<% } %>
+}''')
+  
   
 }
