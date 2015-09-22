@@ -21,29 +21,8 @@ class State extends LogicUnit {
 
     entryActionObjs = entryActions.collect { stateMachine.resolve(it, Action.class, true) }.findAll{ it }
     exitActionObjs = exitActions.collect { stateMachine.resolve(it, Action.class, true) }.findAll{ it }
-
-    ret
-  }
-  
-  Component getComponent() {
-    parent.component
-  }
-
-  Module getModule() {
-    parent.module
-  }
-  
-  StateMachine getStateMachine() {
-    parent
-  }
-
-  def add(Transition item) {
-    super.add(item); transitions << item
-  }
-
-  void buildChildren() {
-    super.buildChildren()
-
+    
+    
     eventTransitions = transitions.findAll { !it.anyEvent }.groupBy { it.event }.collect { event, trs ->
       if(!event) {
         println "Event is null for transition $trs.name"
@@ -69,8 +48,28 @@ class State extends LogicUnit {
     actions.addAll(transitions.findAll { it.state.entryActionObjs }.collectMany { it.state.entryActionObjs })
     actions = actions.toSet() as List
     actions = actions.sort(false) { it.name }
+
+    ret
+  }
+  
+  Component getComponent() {
+    parent.component
   }
 
+  Module getModule() {
+    parent.module
+  }
+  
+  StateMachine getStateMachine() {
+    parent
+  }
+
+  def add(Transition item) {
+    if(!transitions) {
+      transitions = []
+    }; transitions << super.add(item)
+  }
+  
   void setTimeout(String timeout) {
     timeoutInMillis = timeout.duration(timeout)
   }
