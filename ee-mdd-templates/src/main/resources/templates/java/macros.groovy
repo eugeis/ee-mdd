@@ -3041,5 +3041,106 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
   void on$event.cap(${event.cap}Event event, ${sm.capShortName}Context context);<% } %>
 }''')
   
+  template('implEventProcessor', body: '''<% def sm = item.stateMachine %>{{imports}}
+/** Event processor for state '$item.name' of '$sm.name'. */
+@${c.name('Controller')}
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends ${sm.capShortName}StateEventProcessorImpl implements ${sm.capShortName}${item.cap}EventProcessor {<% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
+  protected Event<${action.cap}Event> ${action.uncap}Publisher;<% } else { %>
+  protected $action.cap $action.uncap;<% } %>
+  <% } } %><% item.conditions.each { cond -> %>
+  protected $cond.cap $cond.uncap;<% } %><% if (item.transitions) { %>
+
+  @Override
+  public void process(${sm.capShortName}Context context) {
+    log.${sm.logLevel}("process({})", context);
+    ${sm.capShortName}StateEventType eventType = context.getEvent().getType();
+    <% item.eventTransitions.each { etrs-> def event = etrs.event; %>if (eventType.is${event.cap}()) {
+      on${event.cap}((${event.cap})context.getEvent(), context);
+    } else <% } %>{
+      super.process(context);
+    }
+  }$item.eventTransitions<% } %><% item.eventTransitions.each { etrs-> %>
+
+  @Override
+  public void on${etrs.event.cap}(${etrs.event.cap} event, ${sm.capShortName}Context context) {
+    log.${sm.logLevel}("${etrs.event.uncap}({}, {})", event, context);<%if (sm.generatePermissionsForEvents) { %>
+    context.evaluateUserInRoleStrict(${component.capShortName}RealmConstants.ROLE_${sm.underscored}_${etrs.event.underscored});<% } %>
+    <% if (etrs.conditions) { def elseCase = false; %>
+    ${sm.capShortName}TransitionExecutionResult<${etrs.event.cap}> transition;
+    <% etrs.transitions.each { def tr-> if (tr.conditionObjs || tr.notConditionObjs) { def expr; def exprs = []
+      if (tr.conditionObjs) { exprs.addAll( tr.conditionObjs.collect { cond -> "${cond.uncap}(transition, context)" } ) }
+      if (tr.notConditionObjs) { exprs.addAll( tr.notConditionObjs.collect { cond -> "!${cond.uncap}(transition, context)" } ) }
+      expr = exprs.join(' &&\\n         ')
+    %>if ((transition = context.startTransitionTo($tr.state.underscored)) != null &&
+        $expr) {<% tr.allActions.collect { def action -> if (action.body || action.async) { %>
+      $action.uncap(context);<% } else { %>
+      ${action.uncap}.execute(context);<% } } %><% if (tr.redirect) { %>
+      context.completeTransition(new ${tr.redirect.cap}Impl(context.getEvent().get${sm.entity.idProp.capFullName}()));<% } else { %><% if (tr.state.timeoutEnabled) { %>
+      context.completeTransition(stateTimeouts.get${tr.state.cap}Timeout());<% } else { %>
+      context.completeTransition();<% } } %>
+    } else <% } else { elseCase = true; %>{
+      context.startTransitionTo($tr.state.underscored);<% tr.allActions.collect { def action -> if (action.body || action.async) { %>
+      $action.uncap(context);<% } else { %>
+      ${action.uncap}.execute(context);<% } } %><% if (tr.redirect) { %>
+      context.completeTransition(new ${tr.redirect.cap}EventImpl(context.getEvent().get${sm.entity.idProp.capFullname}()));<% } else { %><% if (tr.state.timeoutEnabled) { %>
+      context.completeTransition(stateTimeouts.get${tr.state.cap}Timeout());<% } else { %>
+      context.completeTransition();<% } } %>
+    }<% } %><% } %><% if (!elseCase) { %>{
+      super.processNoValidFlow(context);
+    }<% } } else { def tr = etrs.transition %>context.startTransitionTo($tr.state.underscored);<% tr.allActions.collect { def action -> if (action.body || action.async) { %>
+    $action.uncap(context);<% } else { %>
+    ${action.uncap}.execute(context);<% } } %><% if (tr.redirect) { %>
+    context.completeTransition(new ${tr.redirect.uncap}Impl(context.getEvent().get${sm.entity.idProp.capFullname}()));<% } else { %><% if (tr.state.timeoutEnabled) { %>
+    context.completeTransition(stateTimeouts.get${tr.state.cap}Timeout());<% } else { %>
+    context.completeTransition();<% } } } %>
+  }<% } %><% item.conditions.each { cond -> %>
+
+  protected boolean $cond.uncap($sm.capShortName}TransitionExecutionResult<?> transition, ${sm.capShortName}Context context) {<% if (cond.cachedInContext) { %>
+    boolean ret = false;
+    if (context.is${cond.cap}() != null) {
+      ret = context.is${cond.cap}();
+    } else {<% if (cond.body) { %>
+      ret = context.change${cond.cap}(${cond.uncap}(context));<% } else { %>
+      ret = context.change${cond.cap}(${cond.uncap}.evaluateCondition(context));<% } %>
+      log.${sm.logLevel}("${cond.uncap}({}) = {}", context, ret);
+    }<% } else { %><% if (cond.body) { %>
+    boolean ret = context.change${cond.cap}(${cond.uncap}(context));<% } else { %>
+    boolean ret = ${cond.uncap}.evaluateCondition(context);<% } %>
+    log.${sm.logLevel}("${cond.uncap}.evaluateCondition({}) = {}", context, ret);<% } %>
+    return transition.add($cond.underscored, ret);
+  }<% } %><% item.actions.each { def action-> if (action.body) { %>
+
+  protected void $action.uncap(${sm.capShortName}Context context) {
+    log.${sm.logLevel}("${action.uncap}({})", context);
+    $action.body
+  }<% } else if (action.async) { %>
+
+  protected void $action.uncap(${sm.capShortName}Context context) {
+    log.${sm.logLevel}("${action.uncap}({})", context);
+    ${action.uncap}Publisher.fire(new ${action.cap}Event(context.get${sm.entity.cap}(), ActionType.TRIGGER, source, context.getEvent(), context.getState(), context.getCurrentTransition().getToState()));
+  }<% } } %><% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
+
+  @Inject
+  public void set${action.cap}Publisher(@${component.capShortName} @Backend Event<${action.cap}Event> ${action.uncap}Publisher) {
+    this.${action.uncap}Publisher = ${action.uncap}Publisher;
+  }<% } else { %>
+
+  @Inject
+  public void set${action.cap}Executor(${action.cap}Executor $action.uncap) {
+    this.$action.uncap = $action.uncap;
+  }<% } } } %><% item.conditions.each { cond -> %>
+
+  @Inject
+  public void set${cond.cap}Verifier(${cond.cap}Verifier $cond.uncap) {
+    this.$cond.uncap = $cond.uncap;
+  }<% } %>
+}
+''')
+  
+  
   
 }

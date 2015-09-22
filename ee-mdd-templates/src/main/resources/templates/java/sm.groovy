@@ -108,7 +108,7 @@ templates('sm') {
       context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       
       template('eventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessor" %> ${macros.generate('eventProcessor', c)}''')
-//      template('implEventProcessor', appendName: true, body: '''''')
+      template('implEventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessorImpl" %> ${macros.generate('implEventProcessor', c)}''')
 //      template('metaState', appendName: true, body: '''''')
     }
 }
