@@ -1,6 +1,8 @@
 package ee.mdd.model.statemachine
 
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.LogicUnit
+import ee.mdd.model.component.Module
 
 class State extends LogicUnit {
   List<String> toBeNotified = []
@@ -22,7 +24,15 @@ class State extends LogicUnit {
 
     ret
   }
+  
+  Component getComponent() {
+    parent.component
+  }
 
+  Module getModule() {
+    parent.module
+  }
+  
   StateMachine getStateMachine() {
     parent
   }
