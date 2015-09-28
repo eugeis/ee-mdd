@@ -27,6 +27,7 @@ class Transition extends Element {
     if(redirectEvent) {
       redirect = stateMachine.resolve(redirectEvent, Event.class, true)
     }
+    conditionObjs = conditions.collect { stateMachine.resolve(it, Condition.class, true) }.findAll { it }
     
     ret
   }
