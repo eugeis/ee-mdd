@@ -18,13 +18,34 @@ class Transition extends Element {
   List<Condition> notConditionObjs
   List<RealmGroup> groupObjs
   boolean fireEvent = true
+  
+  boolean init() {
+    def ret = super.init()
+    if(!anyEvent) {
+      event = stateMachine.resolve(name, Event.class, true)
+    }
+    if(redirectEvent) {
+      redirect = stateMachine.resolve(redirectEvent, Event.class, true)
+    }
+    
+    ret
+  }
 
   State getFromState() {
     parent instanceof State ? parent : null
   }
+  
+  State getState() {
+    if(!to) {
+      to = parent.name
+    }
+    state = stateMachine.resolve(to, State.class, true)
+  }
+  
   StateMachine getStateMachine() {
     parent.parent
   }
+  
   Component getComponent() {
     parent.parent.parent
   }
@@ -37,34 +58,4 @@ class Transition extends Element {
     name == 'any'
   }
 
-  void buildMe() {
-    super.buildMe()
-    if(!anyEvent) {
-      event = stateMachine.resolve(name, Event.class, true)
-    }
-    if(redirectEvent) {
-      redirect = stateMachine.resolve(redirectEvent, Event.class, true)
-    }
-    if(!to) {
-      to = parent.name
-    }
-    state = stateMachine.resolve(to, State.class, true)
-    conditionObjs = conditions.collect { stateMachine.resolve(it, Condition.class, true) }.findAll { it }
-    notConditionObjs = notConditions.collect { stateMachine.resolve(it, Condition.class, true) }.findAll { it }
-    actionObjs = actions.collect { stateMachine.resolve(it, Action.class, true) }.findAll{ it }
-    groupObjs = groups.collect { component.realm.resolve(it, RealmGroup.class, false) }.findAll{ it }
-
-    allActions = []
-    allActions.addAll(fromState.exitActionObjs)
-    for(action in actionObjs) {
-      if(!allActions.contains(action)) {
-        allActions << action
-      }
-    }
-    for(action in state.entryActionObjs) {
-      if(!allActions.contains(action)) {
-        allActions << action
-      }
-    }
-  }
 }

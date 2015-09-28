@@ -73,4 +73,6 @@ class Composite extends Element {
   def propertyMissing(String ref) {
     resolve(ref)
   }
+  
+  void buildChildren() { if(children) { children.clone().each { it.buildMe(); it.buildChildren() } } }
 }
