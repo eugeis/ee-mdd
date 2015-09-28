@@ -3193,7 +3193,77 @@ public class $className extends ${sm.capShortName}MetaState {
   }<% } } %>
 }''')
   
-  
+  template('controllerBootstrapBase', body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
+public class $className implements Closeable {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected boolean wrapForThreadBound = true;
+  protected String threadName;
+  protected ${controller.cap}FactoryBase factory;
+  protected ${controller.cap} instance;
+  protected ThreadBoundProxyHandler<$controller.cap> threadBoudHandler;<% if (item.timeoutEnabled) { %>
+  protected ${item.capShortName}StateTimeoutHandler timeoutHandler;<% } %>
+
+  protected $className() {
+  }
+
+  protected $className(${controller.cap}FactoryBase factory, boolean wrapForThreadBound, String threadName) {
+    this.factory = factory;
+    this.wrapForThreadBound = wrapForThreadBound;
+    this.threadName = threadName;
+  }
+
+  public $controller.cap start() {
+    log.info("start()");
+    if (instance == null) {
+      $controller.cap controller = factory.get$controller.cap();
+      if (wrapForThreadBound) {
+        instance = wrapForThreadBound(controller);
+      } else {
+        instance = controller;
+      }<% if (module.timeoutEnabled) { %>
+      timeoutHandler = get${item.capShortName}StateTimeoutHandler();
+      timeoutHandler.registerTimer();<% } %>
+    }
+    JmxUtils.deployMBean(this);
+    return instance;
+  }
+
+  protected $controller.cap wrapForThreadBound($controller.cap controller) {
+    threadBoudHandler = new ThreadBoundProxyHandler<$controller.cap>(controller, 1, SingletonContainer.getSingleton(NamedThreadFactoryHolderByPrefix.class).getNamedThreadFactory(threadName)) {
+      @Override
+      protected boolean isThreadBound(final Method method) throws NoSuchMethodException {
+        return method.getName() == "process";
+      }
+    };
+    return ($controller.cap) Proxy.newProxyInstance(controller.getClass().getClassLoader(), new Class[] { ${controller.cap}.class }, threadBoudHandler);
+  }<% if (module.timeoutEnabled) { %>
+
+  protected ${item.capShortName}StateTimeoutHandler get${item.capShortName}StateTimeoutHandler() {
+    ${item.capShortName}StateTimeoutHandlerImpl ret = new ${item.capShortName}StateTimeoutHandlerMem();
+    return wire(ret);
+  }
+
+  protected $module.names.stateTimeoutHandler wire(${item.capShortName}StateTimeoutHandlerImpl item) {
+    item.setStateTimeouts(factory.getStateTimeouts());
+    item.setContextManager(factory.getContextManager());
+    item.set$controller.cap(instance);
+    item.setEventFactory(factory.getEventFactory());
+    return item;
+  }<% } %>
+
+  @Override
+  public void close() {
+    log.info("close()");<% if (item.timeoutEnabled) { %>
+    if (timeoutHandler instanceof Closeable) {
+      ((Closeable)timeoutHandler).close();
+    }<% } %>
+
+    if (threadBoudHandler != null) {
+      threadBoudHandler.close();
+    }
+    JmxUtils.undeployMBean(this);
+  }
+}''')
   
   
 }
