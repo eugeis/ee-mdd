@@ -110,6 +110,6 @@ templates('sm') {
       
       template('eventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessor" %> ${macros.generate('eventProcessor', c)}''')
       template('implEventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessorImpl" %> ${macros.generate('implEventProcessor', c)}''')
-//      template('metaState', appendName: true, body: '''''')
+      template('stateMetaState', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}MetaState" %> ${macros.generate('stateMetaState', c)}''')
     }
 }

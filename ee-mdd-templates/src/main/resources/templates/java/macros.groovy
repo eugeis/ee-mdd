@@ -3141,6 +3141,59 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
 }
 ''')
   
+  template('stateMetaState', body: '''<% def sm = item.stateMachine %>{{imports}}
+/** Static information of state $item.name of state machine $sm.name */
+@${c.name('ApplicationScoped')}
+public class $className extends ${sm.capShortName}MetaState {
+  private static final long serialVersionUID = 1L;
+  <% def conditions = item.eventTransitions.collect { etrs -> etrs.transition.conditionObjs }.flatten() as Set
+  conditions.each { cond -> if (cond.toShared) { %>
+  private transient ${cond.cap}Verifier ${cond.uncap}Verifier;<% } } %>
+
+  public $className() {
+    super(${sm.stateProp.type.name}.$item.underscored, findStateEvents());<% item.toBeNotified.each { toBeNotified ->%>
+    ${toBeNotified}ToBeNotified = true;<% } %>
+  }
+
+  private static List<${sm.capShortName}StateEventType> findStateEvents() {
+    List<${sm.capShortName}StateEventType> ret = new ArrayList<${sm.capShortName}StateEventType>();
+    <% item.eventTransitions.each { %>
+    ret.add($it.event.underscored);<% } %>
+    return ret;
+  }
+
+  @Override
+  public List<${sm.capShortName}StateEventType> findPossibleEvents(${sm.capShortName}Context context) {
+    List<${sm.capShortName}StateEventType> ret = new ArrayList<${sm.capShortName}StateEventType>();
+    <% item.eventTransitions.each { etrs ->
+      def condStr
+      def groupStr
+      if (etrs.transition.conditionObjs) {
+        condStr = etrs.transition.conditionObjs.findAll { it.toShared }.collect { cond -> "${cond.uncap}Verifier.evaluateCondition(context)" }.unique().join(' &&\\n        ')
+      }
+      if (etrs.transition.groupObjs) {
+        groupStr = etrs.transition.groupObjs.collect { group -> "userInRoleConditionVerifier().evaluateCondition(${component.capShortName}RealmConstants.ROLE_${item.parent.underscoredName}_${etrs.event.underscored})" }.unique().join(' &&\\n        ')
+      }
+
+      def strList = [groupStr, condStr]
+      def str = strList.findAll().join(' &&\\n        ')
+
+      if (str) {
+    %>
+    if ($str) {
+      ret.add($etrs.event.underscored);
+    }<% } else { %>
+    ret.add($etrs.event.underscored);<% } } %>
+    return ret;
+  }<% conditions.each { cond -> if (cond.toShared) { %>
+
+  @Inject
+  public void set${cond.cap}Verifier(${cond.cap}Verifier ${cond.uncap}Verifier) {
+    this.${cond.uncap}Verifier = ${cond.uncap}Verifier;
+  }<% } } %>
+}''')
+  
+  
   
   
 }
