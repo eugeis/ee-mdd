@@ -36,6 +36,12 @@ class State extends LogicUnit {
   StateMachine getStateMachine() {
     parent
   }
+  
+  List<EventTransitions> getEventTransitions() {
+    eventTransitions = transitions.findAll { !it.anyEvent }.groupBy { it.event }.collect { event, trs ->
+      if(!event) { println "Event is null for transition $trs.name" }
+      new EventTransitions(event: event, transitions: trs) }
+  }
 
   def add(Transition item) {
     if(!transitions) {
@@ -51,10 +57,6 @@ class State extends LogicUnit {
   
   void buildChildren() {
     super.buildChildren()
-
-    eventTransitions = transitions.findAll { !it.anyEvent }.groupBy { it.event }.collect { event, trs ->
-      if(!event) { println "Event is null for transition $trs.name" }
-      new EventTransitions(event: event, transitions: trs) }
 
     transitions.findAll { it.anyEvent }.reverse().each { tr -> eventTransitions.each { etrs -> etrs.transitions.add(0, tr) } }
 
