@@ -3265,5 +3265,121 @@ public class $className implements Closeable {
   }
 }''')
   
-  
+  template('controllerFactoryBase', body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
+public abstract class $className {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected boolean wrapForThreadBound = true;
+  protected ${controller.cap}FactoryBase delegate;
+
+  protected $className() {
+    super();
+    this.delegate = this;
+  }
+
+  protected $className(${controller.cap}FactoryBase delegate) {
+    this.delegate = delegate;
+  }
+
+  protected ${controller.cap} get${controller.cap}() {
+    ${controller.cap}Impl ret = new ${controller.cap}Impl();
+    return wire(ret);
+  }
+
+  protected ${controller.cap} wire(${controller.cap}Impl item) {
+    item.set${item.capShortName}StateMetaModel(delegate.getStateMetaModel());
+    item.setContextManagerDef(new HolderImpl(delegate.getContextManager()));<% item.states.each { def state-> %>
+    item.set${item.capShortName}${state.cap}EventProcessor(delegate.get${item.capShortName}${state.cap}EventProcessor());<% } %><% controller.operations.each { ref-> def uncapName = ref.name.uncapitalize() %>
+    item.set${ref.name}(delegate.get$ref.name());<% } %><% controller.containers.each { ref -> %>
+    item.set${ref.names.clazz}(delegate.get$ref.cap());<% } %>
+    return item;
+  }
+
+  protected ${item.capShortName}EventFactory getEventFactory() {
+    ${item.capShortName}EventFactoryImpl ret = new ${item.capShortName}EventFactoryImpl();
+    return wire(ret);
+  }
+
+  protected ${item.capShortName}EventFactory wire(${item.capShortName}EventFactoryImpl item) {
+    return item;
+  }<% if (item.timeoutEnabled) { %>
+
+  protected ${item.capShortName}Timeouts getStateTimeouts() {
+    ${item.capShortName}Timeouts ret = new ${item.capShortName}Timeouts();
+    return wire(ret);
+  }
+
+  protected ${item.capShortName}Timeouts wire(${item.capShortName}Timeouts item) {
+    return item;
+  }<% } %><% item.states.each { def state-> %>
+
+  protected ${item.capShortName}${state.cap}EventProcessor get${item.capShortName}${state.cap}EventProcessor() {
+    ${item.capShortName}${state.cap}EventProcessorImpl ret = new ${item.capShortName}${state.cap}EventProcessorImpl();
+    return wire(ret);
+  }
+
+  protected ${item.capShortName}${state.cap}EventProcessor wire(${item.capShortName}${state.cap}EventProcessorImpl item) {<% state.actions.each { def action-> if (!action.body) { if (action.async) { %>
+    item.set${action.cap}Publisher(delegate.get${action.cap}Publisher());<% } else { %>
+    item.set$action.cap(delegate.get$action.cap());<% } } } %><% state.conditions.each { cond -> %>
+    item.set$cond.cap(delegate.get$cond.cap());<% } %><% if (module.timeoutEnabled) { %>
+    item.setStateTimeouts(delegate.getStateTimeouts());<% } %>
+    return item;
+  }<% } %>
+
+  protected ${item.capShortName}ContextManager getContextManager() {
+    ${item.capShortName}ContextManager ret = new ${item.capShortName}ContextManagerImpl();
+    return wire(ret);
+  }
+
+  protected ${item.capShortName}ContextManager wire(${item.capShortName}ContextManager item) {
+    return item;
+  }<% controller.operations.each { ref -> def uncap = ref.name.uncapitalize() %>
+
+  protected $ref.cap get$ref.cap() {
+    ${ref.cap}Impl ret = ${ref.cap}Impl();
+    return wire(ret);
+  }
+
+  protected ${ref.cap} wire(${ref.cap}Impl item) {
+    return item;
+  }
+
+  protected ${item.capShortName}MetaModel getStateMetaModel() {
+    ${item.capShortName}MetaModel ret = new ${item.capShortName}MetaModel();
+    return wire(ret);
+  }<% } %>
+
+  protected ${item.capShortName}MetaModel wire(${item.capShortName}MetaModel item) {<% item.states.each { state -> %>
+    item.set${item.capShortName}${state.cap}MetaState(delegate.get${item.capShortName}${state.cap}MetaState());<% } %>
+    return item;
+  }<% item.states.each { state -> %>
+
+  protected ${item.capShortName}${state.cap}MetaState get${item.capShortName}${state.cap}MetaState() {
+    ${item.capShortName}${state.cap}MetaState ret = new ${item.capShortName}${state.cap}MetaState();
+    return wire(ret);
+  }
+
+  protected ${item.capShortName}${state.cap}MetaState wire(${item.capShortName}${state.cap}MetaState item) {
+    return item;
+  }<% } %><% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
+
+  protected Event<${action.cap}Event> get${action.cap}Publisher() {
+    return new PublisherEmpty<${action.cap}Event>() {
+
+      @Override
+      public void fire(${action.cap}Event event) {
+        fire${action.cap}Event(event);
+      }
+    };
+  }
+
+  protected abstract void fire${action.cap}Event(${action.cap}Event event);
+  <% } else { %>
+
+  protected abstract ${action.cap} get${action.cap}();<% } } } %><% item.conditions.each { cond -> %>
+
+  protected abstract $cond.cap get$cond.cap();<% } %>
+
+  protected abstract SessionPrincipal getSessionPrincipal();
+}''')
+ 
 }

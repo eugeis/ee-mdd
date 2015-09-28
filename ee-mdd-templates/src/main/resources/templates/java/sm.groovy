@@ -38,6 +38,7 @@ templates('sm') {
 //      template('implStateMachineController', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerBaseImpl" %> ${macros.generate('implStateMachineController', c)}''')
 //      template('implStateMachineControllerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerImpl" %> ${macros.generate('implStateMachineControllerExtends', c)}''')
       template('controllerBootstrapBase', appendName: true, body: '''<% c.className = "${item.controller.cap}BootstrapBase" %> ${macros.generate('controllerBootstrapBase', c)}''')
+      template('controllerFactoryBase', appendName: true, body: '''<% c.className = "${item.controller.cap}FactoryBase" %> ${macros.generate('controllerFactoryBase', c)}''')
     }
 //      
 //      
