@@ -3631,6 +3631,24 @@ public abstract class $className extends ${sm.capShortName}ConditionVerifier imp
   }
 }''')
   
+  template('implConditionVerifier', body: '''<% def sm = item.stateMachine %>{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('Controller')}
+public class $className extends ${item.cap}VerifierBase {
+
+  @Override
+  public boolean evaluateCondition(${sm.capShortName}Context context) {
+    log.debug("evaluateCondition({})", context);
+
+    // TODO implement me
+    boolean ret = false;
+    if (context != null) {
+      ret = true;
+    }
+    return ret;
+  }
+}''')
+  
   
   
 }

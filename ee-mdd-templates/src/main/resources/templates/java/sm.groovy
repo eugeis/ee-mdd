@@ -142,6 +142,7 @@ templates('sm') {
     
       template('conditionVerifierIfc', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}Verifier" %> ${macros.generate('conditionVerifierIfc', c)}<% } %>''')
       template('conditionVerifier', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}VerifierBase" %> ${macros.generate('conditionVerifier', c)}<% } %>''')
+      template('implConditionVerifier', appendName: true, body: '''<% if(!item.body && item.parent.generateDefaultImpl) { %><% c.className = "${item.cap}VerifierImpl" %> ${macros.generate('implConditionVerifier', c)}<% } %>''')
     }
     
     
