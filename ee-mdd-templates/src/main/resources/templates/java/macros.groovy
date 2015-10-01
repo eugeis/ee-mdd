@@ -3602,4 +3602,25 @@ public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${
   }
 }''')
   
+  template('condVerifier', body: '''{{imports}}
+/**
+* A condition verifier is responsible to evaluate a transition condition for state machine $item.name.
+* The logic must not change any state, but shall be 'readonly'
+* If it is false, then the transition can not be applied and the state event handler will proceed with next possible transitions or abort the event processing.
+*/
+@${c.name('Controller')}
+public abstract class $className extends ConditionVerifierAbstract<${item.capShortName}Context > {
+
+  @Override
+  protected String getMlBase() {
+    return ${component.capShortName}Ml.ML_BASE;
+  }
+}''')
+  
+  template('conditionVerifierIfc', body: '''<% def sm = item.stateMachine %>
+public interface $className extends ConditionVerifier<${sm.capShortName}Context> {
+}''')
+  
+  
+  
 }
