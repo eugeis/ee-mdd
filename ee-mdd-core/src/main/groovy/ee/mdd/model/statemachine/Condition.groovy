@@ -6,4 +6,7 @@ class Condition extends CompilationUnit {
   boolean cachedInContext = true
   boolean toShared = true
   String body
+  
+  StateMachine getStateMachine() { parent }
+  
 }
