@@ -17,6 +17,8 @@ package ee.mdd.model
 
 import java.beans.Introspector
 
+import ee.mdd.model.component.Component
+
 
 
 /**
@@ -28,6 +30,8 @@ class Element extends Base {
   String desc
   String uncap, cap, underscored, sqlName, xmlValue, description, uri
   boolean xml = true;
+  
+  Component component() { (this instanceof Component) ? this : parent.component() }
 
   String getSqlName() {
     if(sqlName == null) {

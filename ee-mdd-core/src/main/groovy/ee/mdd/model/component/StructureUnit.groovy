@@ -29,6 +29,8 @@ import ee.mdd.model.Composite
 class StructureUnit extends Composite implements BuilderAware {
   AbstractFactoryBuilder builder
   MddFactory factory
+  
+  static final sameNamespaceModules = ['shared', 'client', 'backend', 'ejb', 'facade', 'cfg'] as Set
 
   String artifact, key, version
   Namespace namespace
@@ -38,6 +40,7 @@ class StructureUnit extends Composite implements BuilderAware {
   protected boolean init() {
     super.init()
     initArtifact()
+    initKey()
     true
   }
 
@@ -47,6 +50,16 @@ class StructureUnit extends Composite implements BuilderAware {
         artifact = "${parent.artifact}-${key ? key : name}"
       } else {
         artifact = key ? key : name
+      }
+    }
+  }
+  
+  protected initKey() {
+    if(!key) {
+      if(!sameNamespaceModules.contains(name)) {
+        key = name
+      } else {
+        key = component().key
       }
     }
   }
