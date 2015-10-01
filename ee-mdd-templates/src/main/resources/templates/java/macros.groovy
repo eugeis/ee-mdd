@@ -3621,6 +3621,16 @@ public abstract class $className extends ConditionVerifierAbstract<${item.capSho
 public interface $className extends ConditionVerifier<${sm.capShortName}Context> {
 }''')
   
+  template('conditionVerifier', body: '''<% def sm = item.stateMachine %>
+${item.description?"/*** $item.description */":''}
+public abstract class $className extends ${sm.capShortName}ConditionVerifier implements ${item.cap}Verifier {
+
+  @Override
+  protected String getExceptionKey() {
+    return ${component.capShortName}Ml.${item.underscored}_FAIL;
+  }
+}''')
+  
   
   
 }

@@ -141,6 +141,7 @@ templates('sm') {
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
       template('conditionVerifierIfc', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}Verifier" %> ${macros.generate('conditionVerifierIfc', c)}<% } %>''')
+      template('conditionVerifier', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}VerifierBase" %> ${macros.generate('conditionVerifier', c)}<% } %>''')
     }
     
     
