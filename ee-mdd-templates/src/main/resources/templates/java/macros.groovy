@@ -3381,5 +3381,15 @@ public abstract class $className {
 
   protected abstract SessionPrincipal getSessionPrincipal();
 }''')
+  
+  template('stateTimeoutHandler', body: '''
+public interface $className {
+
+  void registerTimer();
+
+  void unregisterTimer();
+
+  void processExpired${item.instancesName.capitalize()}();
+}''')
  
 }
