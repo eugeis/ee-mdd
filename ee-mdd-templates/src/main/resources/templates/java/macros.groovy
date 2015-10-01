@@ -3391,5 +3391,53 @@ public interface $className {
 
   void processExpired${item.instancesName.capitalize()}();
 }''')
+  
+  template('stateTimeoutHandlerBean', body: '''{{imports}}
+@${c.name('Stateless')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }))
+@${c.name('Controller')}<% if (item.generatePermissionsForEvents) { %>
+@${c.name('RunAs')}(${component.capShortName}RealmConstants.ROLE_${module.underscored}_TIMEOUT)<%}%>
+@${c.name('Local')}(${item.capShortName}StateTimeoutHandler.class)
+public class $className extends ${item.capShortName}StateTimeoutHandlerImpl {
+  @${c.name('Resource')}
+  protected TimerService timerService;
+
+  @Override
+  public void registerTimer() {
+    Timer existingTimer = findExistingTimer();
+    if (existingTimer == null) {
+      TimerConfig timerConfig = new TimerConfig(source, false);
+      timerConfig.setPersistent(false);
+      timerService.createIntervalTimer(0, stateTimeouts.getTimeoutCheckInterval(), timerConfig);
+    }
+  }
+
+  @Override
+  public void unregisterTimer() {
+    Timer existingTimer = findExistingTimer();
+    if (existingTimer != null) {
+      existingTimer.cancel();
+    }
+  }
+
+  protected Timer findExistingTimer() {
+    Timer ret = null;
+    if (timerService.getTimers() != null) {
+      for (Timer timer : timerService.getTimers()) {
+        if (source.equals(timer.getInfo())) {
+          ret = timer;
+          break;
+        }
+      }
+    }
+    return ret;
+  }
+
+  @Override
+  @${c.name('Timeout')}
+  public void processExpired${item.entity.instancesName.capitalize()}() {
+    super.processExpired${item.entity.instancesName.capitalize()}();
+  }
+}''')
  
 }

@@ -117,9 +117,10 @@ templates('sm') {
     }
     
       templates('stateTimeoutHandler',
-        items: { c -> c.model.findAllRecursiveDown( {State.isInstance(it) }) },
+        items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
         context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
         
         template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
+        template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerBean" %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
       }
 }
