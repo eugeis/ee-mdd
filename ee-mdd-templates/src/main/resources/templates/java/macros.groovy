@@ -1723,6 +1723,143 @@ public class ${className} extends BaseTestCase {
     constructorTester.verifyDefaultConstructor(${item.n.cap.eventToCdi}.class);
   }
 }''')
+  
+  template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
+@${c.name('ApplicationScoped')}
+public abstract class $className {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected final static int MAX_STATE_OCCURENCES = 3;
+
+  protected $item.entity.finders.cap $item.entity.finders.uncap;
+  protected $item.entity.commands.cap $item.entity.commands.uncap;
+  protected $controller.cap $controller.uncap;
+  protected ${item.entity.module.capShortName}DataFactoryBase dataFactory;
+
+  protected $item.entity.cap $item.entity.uncap;
+  protected ${item.capShortName}StateMetaModel stateMetaModel;
+  protected ${item.capShortName}EventFactory eventFactory;<% if (item.history) { %>
+  protected UmTestUtils umTestUtils;<% } %>
+
+  protected HashMap<$item.stateProp.type.name, Integer> stateOccurences = new HashMap<>();
+
+  @Before
+  public void before() {
+    $item.entity.uncap = ${item.entity.commands.uncap}.create(dataFactory.new${item.entity.cap}(1));
+    assertNotNull("$item.entity.cap object is null.", $item.entity.uncap);
+    stateMetaModel = ${controller.uncap}.findStateMetaModel();
+    assertNotNull("State meta model is null.", stateMetaModel);<% if (item.history) { %>
+    assertNotNull(umTestUtils.loginUserWithAllGroups(UmTestUtils.ADMINISTRATOR_NAME));<% } %>
+
+    for ($item.stateProp.type.name state : ${item.stateProp.type.name}.values()) {
+      stateOccurences.put(state, 0);
+    }
+  }
+
+  @After
+  public void after() {<% if (item.history) { %>
+    umTestUtils.logout();<% } %>
+    try {
+      ${item.entity.commands.uncap}.delete(${item.entity.uncap}.$idProp.getter);
+    } catch (Exception e) {
+      log.error("Exception in after {}", e);
+    }
+  }
+
+  @Test
+  @Ignore
+  public void testProcessNormalFlow() {
+    testProcess(StateFlowType.NORMAL);
+  }
+
+    public void testProcess(StateFlowType flowType) {
+    boolean run = true;<% if (item.history) { %>
+    long count = 0;<% } %>
+    while (run) {
+      $item.stateProp.type.name startState = ${item.entity.uncap}.$item.stateProp.getter;
+      log.info("Processing with state {} and $item.entity.uncap {}", startState, ${item.entity.uncap});
+      ${item.capShortName}MetaState metaState = stateMetaModel.findMetaState(startState);
+      if (metaState != null && metaState.getEvents().size() > 0) {
+
+        for (${item.capShortName}StateEventType eventType : metaState.getEvents()) {
+          if (flowType.equals(eventType.getFlowType())) {
+            ${item.capShortName}StateEvent event = eventFactory.new${item.capShortName}StateEvent(eventType, ${item.entity.uncap}.getId()<%if (item.stateEvent) { item.stateEvent.props.size().times {%>, null<% } } %>, metaState.getState());
+            fillEvent(event);
+            log.info("Send event {}", event);
+
+            ${item.entity.uncap} = ${controller.uncap}.process(event);<% if (item.history) { %>
+            count++;
+            assertEquals(((${item.entity.cap}Bean) $item.entity.uncap).getHistoryEntries().size(), count);<% } %>
+
+            log.info("Result state {} and $item.entity.uncap {}", ${item.entity.uncap}.getState(), $item.entity.uncap);
+            if (!startState.equals(${item.entity.uncap}.getState())) {
+              break;
+            }
+          }
+        }
+
+        $item.stateProp.type.name currentState = ${item.entity.uncap}.getState();
+        int stateOccurence = stateOccurences.get(currentState) + 1;
+        stateOccurences.put(currentState, stateOccurence);
+
+        //check if transitions for given flow type changed the state, if not exit.
+        if (startState.equals(currentState)) {
+          fail(String.format("Exit after state %s, because the state did not change after transition. Workflow might not be fully tested.", currentState));
+        }
+
+        //to avoid a infinite loop in workflow a certain state can only be passed a 'MAX_STATE_OCCURENCES' times
+        if (stateOccurence > MAX_STATE_OCCURENCES) {
+          String msg = String.format("Exit after %s times for same state %s. Following states are tested %s.",
+              stateOccurence, currentState, stateOccurences);
+          log.info(msg);
+          if (stateMetaModel.getMetaStates().length > stateOccurences.size()) {
+            fail("Count of tested states is %s, but there are %s states available. Workflow might not be fully tested.");
+          } else {
+            run = false;
+          }
+        }
+
+      } else {
+        run = false;
+      }
+    }
+    log.info("End processing with state {} and $item.entity.uncap {}", ${item.entity.uncap}.getState(), $item.entity.uncap);
+  }
+
+  /** Fill event event in sub class with additional event parameters */
+  protected void fillEvent(${item.capShortName}StateEvent event) {
+    log.debug("fillEvent({})", event);
+  }
+
+  @Inject
+  public void set$controller.cap($controller.cap $controller.uncap) {
+    this.$controller.uncap = $controller.uncap;
+  }
+
+  @Inject
+  public void set$item.entity.commands.name($item.entity.commands.cap $item.entity.commands.uncap) {
+    this.$item.entity.commands.uncap = $item.entity.commands.uncap;
+  }
+
+  @Inject
+  public void set$item.entity.finders.name($item.entity.finders.cap $item.entity.finders.uncap) {
+    this.$item.entity.finders.uncap = $item.entity.finders.uncap;
+  }
+
+  @Inject
+  public void setDataFactory(@Internal ${item.entity.module.capShortName}DataFactoryBase dataFactory) {
+    this.dataFactory = dataFactory;
+  }
+
+  @Inject
+  public void setEventFactory(${item.capShortName}EventFactory eventFactory) {
+    this.eventFactory = eventFactory;
+  }<% if (item.history) { %>
+
+  @Inject
+  public void setUmTestUtils(UmTestUtils umTestUtils) {
+    this.umTestUtils = umTestUtils;
+  }<% } %>
+}''')
 
 
   //metaAttributes
@@ -3288,7 +3425,7 @@ public abstract class $className {
   protected ${controller.cap} wire(${controller.cap}Impl item) {
     item.set${item.capShortName}StateMetaModel(delegate.getStateMetaModel());
     item.setContextManagerDef(new HolderImpl(delegate.getContextManager()));<% item.states.each { def state-> %>
-    item.set${item.capShortName}${state.cap}EventProcessor(delegate.get${item.capShortName}${state.cap}EventProcessor());<% } %><% controller.operations.each { ref-> def uncapName = ref.name.uncapitalize() %>
+    item.set${item.capShortName}${state.cap}EventProcessor(delegate.get${item.capShortName}${state.cap}EventProcessor());<% } %><% controller.operations.each { ref-> def uncapName = ref.uncap %>
     item.set${ref.name}(delegate.get$ref.name());<% } %><% controller.containers.each { ref -> %>
     item.set${ref.names.clazz}(delegate.get$ref.cap());<% } %>
     return item;
@@ -3332,7 +3469,7 @@ public abstract class $className {
 
   protected ${item.capShortName}ContextManager wire(${item.capShortName}ContextManager item) {
     return item;
-  }<% controller.operations.each { ref -> def uncap = ref.name.uncapitalize() %>
+  }<% controller.operations.each { ref -> def uncap = ref.uncap %>
 
   protected $ref.cap get$ref.cap() {
     ${ref.cap}Impl ret = ${ref.cap}Impl();
@@ -3648,6 +3785,8 @@ public class $className extends ${item.cap}VerifierBase {
     return ret;
   }
 }''')
+  
+ 
   
   
   

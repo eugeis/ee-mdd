@@ -16,9 +16,9 @@
 
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
-import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.statemachine.Condition
+import ee.mdd.model.statemachine.StateMachine
 
 /**
  *
@@ -56,4 +56,17 @@ templates('test', purpose: UNIT_TEST) {
     template('testEnum', appendName: true, body: '''<% c.className = "${item.n.cap.test}Base" %>${macros.generate('testEnum', c)}''')
     template('testEnumExtends', appendName: true, body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
   }
+  
+    templates('stateMachineTests',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    
+      template('stateMachineControllerBaseTest', appendName: true,  body: '''<% if(!item.entity.virtual) { %><% c.className = item.controller.base ? "${item.controller.cap}Base" : "${item.controller.cap}" %> ${macros.generate('stateMachineControllerBaseTest', c)} <% } %>''')
+    }
+    
+    templates('stateMachineConditionTests',
+      items: { c -> c.model.findAllRecursiveDown( {Condition.isInstance(it) }) },
+      context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+      
+    }
 }
