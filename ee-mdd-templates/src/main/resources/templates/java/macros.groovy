@@ -3450,7 +3450,7 @@ public abstract class $className implements ${item.capShortName}.stateTimeoutHan
   protected ${item.capShortName}EventFactory eventFactory;
 
   @Override
-  public void processExpired${item.entity.instancesName.capitalize}() {
+  public void processExpired${item.entity.instancesName.capitalize()}() {
     List<$item.entity.cap> expired${item.entity.instancesName.capitalize()} = contextManager.findExpired${item.entity.instancesName.capitalize()}();
     for ($item.entity.cap $item.entity.uncap : expired${item.entity.instancesName.capitalize()}) {
       ${controller.uncap}.process(eventFactory.newTimeoutEvent(${item.entity.uncap}.${item.entity.idProp.getter}$extraArgs, ${item.entity.uncap}.${item.stateProp.getter}));
@@ -3475,6 +3475,47 @@ public abstract class $className implements ${item.capShortName}.stateTimeoutHan
   @Inject
   public void setEventFactory(${item.capShortName}EventFactory eventFactory) {
     this.eventFactory = eventFactory;
+  }
+}''')
+  
+  template('stateTimeoutHandlerMem', body: '''{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { LOCAL, MEMORY }))
+@${c.name('Controller')}
+public class $className extends ${item.capShortName}StateTimeoutHandlerImpl implements ${c.name('Closeable')} {
+  protected ${c.name('ScheduledExecutorService')} scheduler;
+  protected ${c.name('ScheduledFuture')}<?> timer;
+
+  @Override
+  public void registerTimer() {
+    close();
+    final Runnable timeout = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          processExpired${item.entity.instancesName.capitalize()}();
+        } catch(Exception e) {
+          log.error("Exception occured durring precessing of expired timers: {}", StringUtils.formatExceptionCauseHierarchy(e));
+        }
+      }
+    };
+    scheduler = Executors.newScheduledThreadPool(1, SingletonContainer.getSingleton(NamedThreadFactoryHolderByPrefix.class).getNamedThreadFactory("$className"));
+    timer = scheduler.scheduleAtFixedRate(timeout, 0, stateTimeouts.getTimeoutCheckInterval(), TimeUnit.MILLISECONDS);
+  }
+
+  @Override
+  public void unregisterTimer() {
+    if (timer != null) {
+      timer.cancel(true);
+    }
+  }
+
+  @Override
+  @${c.name('PreDestroy')}
+  public void close() {
+    if (scheduler != null) {
+      scheduler.shutdownNow();
+    }
   }
 }''')
  
