@@ -122,5 +122,6 @@ templates('sm') {
         
         template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
         template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerBean" %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
+        template('stateTimeoutHandlerImpl', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerImpl %> ${macros.generate('stateTimeoutHandlerImpl', c)}''')
       }
 }

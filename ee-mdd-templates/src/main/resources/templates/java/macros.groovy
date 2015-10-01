@@ -3439,5 +3439,43 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl {
     super.processExpired${item.entity.instancesName.capitalize()}();
   }
 }''')
+  
+  template('stateTimeoutHandlerImpl', body: '''<% def controller = item.controller %>{{imports}}
+public abstract class $className implements ${item.capShortName}.stateTimeoutHandler {<% extraArgs = ''; if (item.stateEvent) { item.stateEvent.props.each { prop -> extraArgs += ", ${item.entity.uncap}.${prop.getter}" } }; %>
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected final String source = StringUtils.formatSource(${className}.class);
+  protected ${item.capShortName}Timeouts stateTimeouts;
+  protected ${item.capShortName}ContextManager contextManager;
+  protected $controller.cap $controller.uncap;
+  protected ${item.capShortName}EventFactory eventFactory;
+
+  @Override
+  public void processExpired${item.entity.instancesName.capitalize}() {
+    List<$item.entity.cap> expired${item.entity.instancesName.capitalize()} = contextManager.findExpired${item.entity.instancesName.capitalize()}();
+    for ($item.entity.cap $item.entity.uncap : expired${item.entity.instancesName.capitalize()}) {
+      ${controller.uncap}.process(eventFactory.newTimeoutEvent(${item.entity.uncap}.${item.entity.idProp.getter}$extraArgs, ${item.entity.uncap}.${item.stateProp.getter}));
+    }
+  }
+
+  @Inject
+  public void setStateTimeouts(${item.capShortName}Timeouts stateTimeouts) {
+    this.stateTimeouts = stateTimeouts;
+  }
+
+  @Inject
+  public void setContextManager(${item.capShortName}ContextManager contextManager) {
+    this.contextManager = contextManager;
+  }
+
+  @Inject
+  public void set$controller.cap($controller.cap $controller.uncap) {
+    this.$controller.uncap = $controller.uncap;
+  }
+
+  @Inject
+  public void setEventFactory(${item.capShortName}EventFactory eventFactory) {
+    this.eventFactory = eventFactory;
+  }
+}''')
  
 }
