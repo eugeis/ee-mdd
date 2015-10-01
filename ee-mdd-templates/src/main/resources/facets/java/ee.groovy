@@ -36,7 +36,7 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'IntegerCacheOverride' : 'ee.common.cache', 'LongCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
   'TempIdCache' : 'ee.common.cache', 'Cache' : 'ee.common.cache', 'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model', 'Model' : 'ee.common.annotation',
   'RootScoped' : 'ee.common.cdi', 'Presenter' : 'ee.common.ui', 'Controller' : 'ee.common.annotation', 'WorkstationType' : 'ee.common.integ', 'SessionPrincipal' : 'ee.common.model',
-  'RepState' : 'ee.common.model'].each { n, ns ->
+  'RepState' : 'ee.common.model', 'Closeable' : 'ee.common.base', 'Initializable' : 'ee.common.base'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
