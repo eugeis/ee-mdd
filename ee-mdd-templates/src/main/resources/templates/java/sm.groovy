@@ -83,12 +83,13 @@ templates('sm') {
 //      template('implContextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerImpl" %> ${macros.generate('implContextManagerExtends', c)}''')
 //    }
 //    
-//    templates('actionExecutor',
-//    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
-//    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-//    
-//      template('actionExecutor', appendName: true, body:'''<% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}''')
-//    }
+    templates('Execution',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    
+      template('actionExecutor', appendName: true, body:'''<% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}''')
+      template('transitionExecutionResult', appendName: true, body: '''<% c.className = "${item.capShortName}TransitionExecutionResult" %> ${macros.generate('transitionExecutionResult', c)}''')
+    }
 //    
 //    templates('action',
 //    items: { c -> c.model.findAllRecursiveDown( {Action.isInstance(it) }) },
@@ -108,21 +109,28 @@ templates('sm') {
 //    }
     
     templates('state',
-      items: { c -> c.model.findAllRecursiveDown( {State.isInstance(it) }) },
-      context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    items: { c -> c.model.findAllRecursiveDown( {State.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       
       template('eventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessor" %> ${macros.generate('eventProcessor', c)}''')
       template('implEventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessorImpl" %> ${macros.generate('implEventProcessor', c)}''')
       template('stateMetaState', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}MetaState" %> ${macros.generate('stateMetaState', c)}''')
     }
     
-      templates('stateTimeoutHandler',
-        items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
-        context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    templates('stateTimeoutHandler',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
         
-        template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
-        template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerBean" %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
-        template('stateTimeoutHandlerImpl', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerImpl" %> ${macros.generate('stateTimeoutHandlerImpl', c)}''')
-        template('stateTimeoutHandlerMem', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerMem" %> ${macros.generate('stateTimeoutHandlerMem', c)}''')
-      }
+      template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
+      template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerBean" %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
+      template('stateTimeoutHandlerImpl', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerImpl" %> ${macros.generate('stateTimeoutHandlerImpl', c)}''')
+      template('stateTimeoutHandlerMem', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerMem" %> ${macros.generate('stateTimeoutHandlerMem', c)}''')
+    }
+    
+    
+    
+    
+    
+    
+    
 }

@@ -3519,4 +3519,87 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl impl
   }
 }''')
  
+  template('transitionExecutionResult', body: '''{{imports}}
+/** Result object for procession of a transition in state machine $item.name. The object provides especially results action executions bound to a transition. */
+public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;
+
+  protected $item.stateProp.type.name fromState;
+  protected $item.stateProp.type.name toState;
+  protected EVENT event;
+  protected ${item.capShortName}StateEvent redirectEvent;
+  protected ArrayList<Link<${item.capShortName}StateConditionType, Boolean>> conditionResults = new ArrayList<>();
+  protected ${item.capShortName}StateConditionType failedCondition = null;
+
+  public $className($item.stateProp.type.name fromState, $item.stateProp.type.name toState, EVENT event, ${item.capShortName}StateEvent redirectEvent) {
+    this.fromState = fromState;
+    this.toState = toState;
+    this.event = event;
+    this.redirectEvent = redirectEvent;
+  }
+
+  /** Add condition result and return boolean result value in order to use the method in condition line */
+  public boolean add(${item.capShortName}StateConditionType conditionType, boolean successfully) {
+    conditionResults.add(new Link<${item.capShortName}StateConditionType, Boolean>(conditionType, successfully));
+    if (!successfully) {
+      this.failedCondition = conditionType;
+    }
+    return successfully;
+  }
+
+  public $item.stateProp.type.name getFromState() {
+    return fromState;
+  }
+
+  public ${c.name('MlKey')} getFromStateAsMlKey() {
+    return fromState != null ? fromState.buildMlKey() : null;
+  }
+
+  public $item.stateProp.type.name getToState() {
+    return toState;
+  }
+
+  public MlKey getToStateAsMlKey() {
+    return toState != null ? toState.buildMlKey() : null;
+  }
+
+  public EVENT getEvent() {
+    return event;
+  }
+
+  public MlKey getEventTypeAsMlKey() {
+    return event != null ? event.getType().buildMlKey() : null;
+  }
+
+  public List<Link<${item.capShortName}StateConditionType, Boolean>> getConditionResults() {
+    return conditionResults;
+  }
+
+  public boolean isSuccessfully() {
+    return failedCondition == null;
+  }
+
+  public ${item.capShortName}StateConditionType getFailedCondition() {
+    return failedCondition;
+  }
+
+  public MlKey getFailedConditionAsMlKey() {
+    return failedCondition != null ? failedCondition.buildMlKey() : null;
+  }
+
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);
+    b.append("event=").append(event).append(SEP);
+    b.append("fromState=").append(fromState).append(SEP);
+    b.append("toState=").append(toState);
+    if (redirectEvent != null) {
+      b.append(SEP).append("redirectEvent=").append(redirectEvent);
+    }
+    if (failedCondition != null) {
+      b.append(SEP).append("failedCondition=").append(failedCondition);
+    }
+  }
+}''')
+  
 }
