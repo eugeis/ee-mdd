@@ -3441,7 +3441,7 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl {
 }''')
   
   template('stateTimeoutHandlerImpl', body: '''<% def controller = item.controller %>{{imports}}
-public abstract class $className implements ${item.capShortName}.stateTimeoutHandler {<% extraArgs = ''; if (item.stateEvent) { item.stateEvent.props.each { prop -> extraArgs += ", ${item.entity.uncap}.${prop.getter}" } }; %>
+public abstract class $className implements ${item.capShortName}StateTimeoutHandler {<% extraArgs = ''; if (item.stateEvent) { item.stateEvent.props.each { prop -> extraArgs += ", ${item.entity.uncap}.${prop.getter}" } }; %>
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   protected final String source = StringUtils.formatSource(${className}.class);
   protected ${item.capShortName}Timeouts stateTimeouts;
