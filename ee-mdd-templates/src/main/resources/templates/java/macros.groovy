@@ -2957,8 +2957,8 @@ public class $className extends ${c.name('Base')} {
   protected ${c.name('SessionPrincipal')} sessionPrincipal;
   protected ${item.capShortName}StateEvent event;
   protected ${item.capShortName}StateEvent redirectEvent;
-  protected ${c.name('RepState')} state;
-  protected ${c.name('RepState')} newState;
+  protected ${c.name(item.stateProp.type.name)} state;
+  protected ${c.name(item.stateProp.type.name)} newState;
   protected ${c.name('Date')} newTimeout;
   protected ${item.capShortName}TransitionExecutionResult;<% context.props.each { prop -> %>
   protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>
@@ -3270,18 +3270,18 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
     log.${sm.logLevel}("process({})", context);
     ${sm.capShortName}StateEventType eventType = context.getEvent().getType();
     <% item.eventTransitions.each { etrs-> def event = etrs.event; %>if (eventType.is${event.cap}()) {
-      on${event.cap}((${event.cap})context.getEvent(), context);
+      on${event.cap}((${event.cap}Event)context.getEvent(), context);
     } else <% } %>{
       super.process(context);
     }
   }<% } %><% item.eventTransitions.each { etrs-> %>
 
   @Override
-  public void on${etrs.event.cap}(${etrs.event.cap} event, ${sm.capShortName}Context context) {
+  public void on${etrs.event.cap}(${etrs.event.cap}Event event, ${sm.capShortName}Context context) {
     log.${sm.logLevel}("${etrs.event.uncap}({}, {})", event, context);<%if (sm.generatePermissionsForEvents) { %>
     context.evaluateUserInRoleStrict(${component.capShortName}RealmConstants.ROLE_${sm.underscored}_${etrs.event.underscored});<% } %>
     <% if (etrs.conditions) { def elseCase = false; %>
-    ${sm.capShortName}TransitionExecutionResult<${etrs.event.cap}> transition;
+    ${sm.capShortName}TransitionExecutionResult<${etrs.event.cap}Event> transition;
     <% etrs.transitions.each { def tr-> if (tr.conditionObjs || tr.notConditionObjs) { def expr; def exprs = []
       if (tr.conditionObjs) { exprs.addAll( tr.conditionObjs.collect { cond -> "${cond.uncap}(transition, context)" } ) }
       if (tr.notConditionObjs) { exprs.addAll( tr.notConditionObjs.collect { cond -> "!${cond.uncap}(transition, context)" } ) }
