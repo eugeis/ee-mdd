@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.statemachine.StateMachine
+
 
 /**
  *
@@ -24,4 +26,15 @@ package ee.mdd.model.component
 class Controller extends CompilationUnit {
   boolean importChanges = false
   boolean cache = false
+  
+  String deriveName() {
+    if(!parent) {
+      getClass().simpleName
+    } else if (parent instanceof StructureUnit || parent instanceof StateMachine) {
+      "${parent.capShortName}Controller"
+    } else { 
+      "${parent.cap}Controller"
+    }
+  }
+  
 }
