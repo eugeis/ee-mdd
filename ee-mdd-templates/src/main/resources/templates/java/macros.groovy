@@ -2844,7 +2844,7 @@ public abstract class $className implements ${item.capShortName}ContextManager {
   template('implContextManagerExtends', body: '''{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
-    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${item.capShortName}ContextManagerBaseImpl {
 
@@ -2919,8 +2919,8 @@ public interface $className {
   template('implStateEventProcessor', body: '''{{imports}}
 @${c.name('Traceable')}
 public class $className implements ${item.capShortName}StateEventProcessor {
-  protected final @${c.name('XLogger')} log = @${c.name('XLoggerFactory')}.getXLogger(getClass());
-  protected final String source = StringUtils.formatSource(this);<% if (module.timeoutEnabled) { %>
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected final String source = ${c.name('StringUtils')}.formatSource(this);<% if (module.timeoutEnabled) { %>
 
   protected ${item.capShortName}Timeouts stateTimeouts;<% } %>
 
@@ -2971,6 +2971,21 @@ public class $className extends ${c.name('Base')} {
   public void ${prop.setter} {
     this.$prop.uncap = $prop.uncap;
   }<% } %><% } %>
+  public ${item.capShortName}StateEvent getEvent() {
+    return event;
+  }
+
+  public void setEvent(${item.capShortName}StateEvent event) {
+    this.event = event;
+  }
+  
+  public ${item.stateProp.type.name} getState() {
+    return state;
+  }
+
+  public void setState(${item.stateProp.type.name} state) {
+    this.state = state;
+  }
   <% context.operations.each { op -> if(op.body) { %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public $op.ret ${op.name}($op.signature) {
@@ -3242,7 +3257,7 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
 @${c.name('Controller')}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
-    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${sm.capShortName}StateEventProcessorImpl implements ${sm.capShortName}${item.cap}EventProcessor {<% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
   protected Event<${action.cap}Event> ${action.uncap}Publisher;<% } else { %>
