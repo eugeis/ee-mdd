@@ -6,7 +6,7 @@ import ee.mdd.model.component.Prop
 class Context extends Pojo {
 
   String deriveName() {
-    "${module.cap}Context"
+    "${parent.capShortName}Context"
   }
 
   boolean init() {
