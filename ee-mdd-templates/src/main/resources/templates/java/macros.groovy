@@ -2294,7 +2294,7 @@ public class $className extends ${dialog.cap}GuidoBase {
   
   //StateMachine
   
-  template('event', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
+  template('eventStateMachine', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
 /** Base state event interface for all state events of state machine $item.name */
 public interface $className extends ${c.name('Serializable')} {
 
@@ -2343,7 +2343,7 @@ public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = 
   }
 }''')
   
-  template('implEvent', body: '''<% def idProp = item.entity.idProp %>{{imports}}
+  template('implEventStateMachine', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 /** Base implementation of {@link ${item.capShortName}StateEvent} */
 public abstract class $className extends ${c.name('Base')} implements ${item.key.capitalize()}StateEvent {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : '' %>
   private static final long serialVersionUID = 1L;
