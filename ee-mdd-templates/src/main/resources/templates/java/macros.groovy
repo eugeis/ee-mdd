@@ -1861,18 +1861,22 @@ public abstract class $className {
   }<% } %>
 }''')
   
-  template('controllerLocalTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>
+  template('controllerLocalTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 // TODO: Migrate Weld test classes
 // @${c.name('RunWith')}(LocalWeldRunner.class)
 @${c.name('SupportsEnvironments')}(@Environment(executions = { LOCAL }))
 public class $className extends ${controller.cap}TestImpl {
 }''')
   
-  template('controllerMemoryTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>
+  template('controllerMemoryTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 // TODO: Migrate Weld test classes
 // @${c.name('RunWith')}(MemoryWeldRunner.class)
 @${c.name('SupportsEnvironments')}(@Environment(executions = { MEMORY }))
 public class $className extends ${controller.cap}TestImpl {
+}''')
+  
+  template('controllerTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
+public abstract class $className extends ${controller.cap}BaseTestImpl {
 }''')
   
 

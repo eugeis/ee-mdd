@@ -66,6 +66,7 @@ templates('test', purpose: UNIT_TEST) {
       template('stateMachineControllerBaseTest', appendName: true,  body: '''<% if(!item.entity.virtual) { %><% c.className = item.controller.base ? "${item.controller.cap}Base" : "${item.controller.cap}" %> ${macros.generate('stateMachineControllerBaseTest', c)} <% } %>''')
       template('controllerLocalTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.localTestInteg %> ${macros.generate('controllerLocalTestInteg', c)} <% } %>''')
       template('controllerMemoryTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.memoryTestInteg %> ${macros.generate('controllerMemoryTestInteg', c)} <% } %>''')
+      template('controllerTest', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.testImpl %> ${macros.generate('controllerTest', c)} <% } %>''')
     }
     
     templates('stateMachineConditionTests',
