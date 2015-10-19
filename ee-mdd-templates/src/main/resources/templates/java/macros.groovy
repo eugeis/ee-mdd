@@ -296,6 +296,11 @@ templates ('macros') {
   public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
   ${op.resolveBody(c)}
   }<% } %>''')
+  
+  template('operationRawType', body: '''public $op.ret ${op.name}($op.signature) {
+    $op.body
+  }
+''')
 
   template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
@@ -1270,7 +1275,7 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
   }<% } %><% item.operations.each { op -> if(op.body) { %>
   <% if (op.override) { %>@Override<% } %><% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  ${macros.generate('methods', c)}<% } } %>
+  ${macros.generate('operationRawType', c)}<% } } %>
   ${macros.generate('buildMlKey', c)}
 
   @Override
@@ -2303,7 +2308,7 @@ public interface $className extends ${c.name('Serializable')} {
   * If it is not null, then the event is valid only if the current state of $item.entity.cap is same.
   * If the expected value is not equal to the current state, then the event will be rejected.
   */
-  $item.stateProp.type.name getExpectedState();
+  ${c.name(item.stateProp.type.name)} getExpectedState();
 
   $idProp.type.name get$idProp.capFullName();
 
@@ -2311,7 +2316,7 @@ public interface $className extends ${c.name('Serializable')} {
 
   void setExpectedState($item.stateProp.type.name expectedState);
 
-  $item.n.cap.eventType getType();
+  $item.n.cap.stateEventType getType();
 
   void setActor(String actor);
 
@@ -2349,7 +2354,7 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
   private static final long serialVersionUID = 1L;
 
   protected final ${item.capShortName}StateEventType type;
-  protected $item.stateProp.type.name expectedState;
+  protected ${c.name(item.stateProp.type.name)} expectedState;
   protected $idProp.type.name $idProp.uncapFullName;
   protected String actor;<% if (module.stateEvent) { module.stateEvent.props.each { prop ->%>
   protected $prop.type.name $prop.uncap;<% } } %>
@@ -2404,7 +2409,7 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
   }
 
   @Override
-  public ${item.capShortName}EventType getType() {
+  public ${item.capShortName}StateEventType getType() {
     return type;
   }<% if (item.stateEvent) { item.stateEvent.props.each { prop ->%>
 
@@ -3177,7 +3182,6 @@ public class $className implements ${item.cap}Executor {
 /** $item.cap event interface of state machine $sm.name */
 public interface $className extends ${sm.capShortName}StateEvent {
   ${macros.generate('propGettersIfc', c)}
-
   ${macros.generate('propSettersIfc', c)}
 }''')
   
@@ -3195,7 +3199,7 @@ public class $className extends ${sm.capShortName}StateEventImpl implements ${it
     super(${sm.capShortName}StateEventType.${item.underscored}, $idProp.uncapFullName$args);
   }<% } %>
 
-  public $className($idProp.type.name $idProp.uncapFullName$argsConstr, $sm.stateProp.type.name expectedState) {
+  public $className($idProp.type.name $idProp.uncapFullName$argsConstr, ${c.name(sm.stateProp.type.name)} expectedState) {
     super(${sm.capShortName}StateEventType.${item.underscored}, $idProp.uncapFullName$args, expectedState);
   }<% if (item.props) { %>
 
