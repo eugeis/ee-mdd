@@ -59,19 +59,20 @@ templates('test', purpose: UNIT_TEST) {
     template('testEnumExtends', appendName: true, body: '''<% c.className = item.n.cap.test %>${macros.generate('testExtends', c)}''')
   }
   
-    templates('stateMachineTests',
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+  templates('stateMachineTests',
+  items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
-      template('stateMachineControllerBaseTest', appendName: true,  body: '''<% if(!item.entity.virtual) { %><% c.className = item.controller.base ? "${item.controller.cap}Base" : "${item.controller.cap}" %> ${macros.generate('stateMachineControllerBaseTest', c)} <% } %>''')
-      template('controllerLocalTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.localTestInteg %> ${macros.generate('controllerLocalTestInteg', c)} <% } %>''')
-      template('controllerMemoryTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.memoryTestInteg %> ${macros.generate('controllerMemoryTestInteg', c)} <% } %>''')
-      template('controllerTest', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.testImpl %> ${macros.generate('controllerTest', c)} <% } %>''')
-    }
+    template('stateMachineControllerBaseTest', appendName: true,  body: '''<% if(!item.entity.virtual) { %><% c.className = item.controller.base ? "${item.controller.cap}Base" : "${item.controller.cap}" %> ${macros.generate('stateMachineControllerBaseTest', c)} <% } %>''')
+    template('controllerLocalTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.localTestInteg %> ${macros.generate('controllerLocalTestInteg', c)} <% } %>''')
+    template('controllerMemoryTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.memoryTestInteg %> ${macros.generate('controllerMemoryTestInteg', c)} <% } %>''')
+    template('controllerTest', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.testImpl %> ${macros.generate('controllerTest', c)} <% } %>''')
+  }
     
-    templates('stateMachineConditionTests',
-      items: { c -> c.model.findAllRecursiveDown( {Condition.isInstance(it) }) },
-      context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-      
-    }
+  templates('stateMachineConditionTests',
+  items: { c -> c.model.findAllRecursiveDown( {Condition.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    template('conditionHandlerTestBase', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.testBase %> ${macros.generate('conditionHandlerTestBase', c)} <% } %>''')
+  }
+  
 }

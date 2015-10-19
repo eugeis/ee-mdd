@@ -1879,6 +1879,26 @@ public class $className extends ${controller.cap}TestImpl {
 public abstract class $className extends ${controller.cap}BaseTestImpl {
 }''')
   
+  template('conditionHandlerTestBase', purpose: UNIT_TEST, body: '''
+public abstract class $className {
+
+  protected ${item.cap}VerifierImpl verifier;
+
+  public void setUp() {
+    verifier = new ${item.cap}Impl();
+  }
+
+  @Test
+  public void testEvaluateConditionStrictForEmptyContext() {
+    try {
+      verifier.evaluateConditionStrict(($item.stateMachine.context.name)null);
+      fail("Exception expected.");
+    } catch(Exception e) {
+      //ignore
+    }
+  }
+}''')
+  
 
 
   //metaAttributes
