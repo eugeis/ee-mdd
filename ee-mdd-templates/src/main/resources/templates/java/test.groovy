@@ -16,6 +16,8 @@
 
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
+import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.StateMachine
@@ -62,7 +64,8 @@ templates('test', purpose: UNIT_TEST) {
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
       template('stateMachineControllerBaseTest', appendName: true,  body: '''<% if(!item.entity.virtual) { %><% c.className = item.controller.base ? "${item.controller.cap}Base" : "${item.controller.cap}" %> ${macros.generate('stateMachineControllerBaseTest', c)} <% } %>''')
-      template('controllerLocaltestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.localTestInteg %> ${macros.generate('controllerLocalTestInteg', c)} <% } %>''')
+      template('controllerLocalTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.localTestInteg %> ${macros.generate('controllerLocalTestInteg', c)} <% } %>''')
+      template('controllerMemoryTestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.memoryTestInteg %> ${macros.generate('controllerMemoryTestInteg', c)} <% } %>''')
     }
     
     templates('stateMachineConditionTests',

@@ -1866,9 +1866,15 @@ public abstract class $className {
 // @${c.name('RunWith')}(LocalWeldRunner.class)
 @${c.name('SupportsEnvironments')}(@Environment(executions = { LOCAL }))
 public class $className extends ${controller.cap}TestImpl {
-}
-
-''')
+}''')
+  
+  template('controllerMemoryTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>
+// TODO: Migrate Weld test classes
+// @${c.name('RunWith')}(MemoryWeldRunner.class)
+@${c.name('SupportsEnvironments')}(@Environment(executions = { MEMORY }))
+public class $className extends ${controller.cap}TestImpl {
+}''')
+  
 
 
   //metaAttributes
