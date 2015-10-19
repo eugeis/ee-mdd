@@ -62,6 +62,7 @@ templates('test', purpose: UNIT_TEST) {
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
       template('stateMachineControllerBaseTest', appendName: true,  body: '''<% if(!item.entity.virtual) { %><% c.className = item.controller.base ? "${item.controller.cap}Base" : "${item.controller.cap}" %> ${macros.generate('stateMachineControllerBaseTest', c)} <% } %>''')
+      template('controllerLocaltestInteg', appendName: true, body: '''<% if(!item.entity.virtual) { %><% c.className = c.item.controller.n.cap.localTestInteg %> ${macros.generate('controllerLocalTestInteg', c)} <% } %>''')
     }
     
     templates('stateMachineConditionTests',
