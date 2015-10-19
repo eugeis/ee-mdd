@@ -72,7 +72,8 @@ templates('test', purpose: UNIT_TEST) {
   templates('stateMachineConditionTests',
   items: { c -> c.model.findAllRecursiveDown( {Condition.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-    template('conditionHandlerTestBase', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.testBase %> ${macros.generate('conditionHandlerTestBase', c)} <% } %>''')
+    template('conditionHandlerTest', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.testBase %> ${macros.generate('conditionHandlerTest', c)} <% } %>''')
+    template('conditionHandlerTestExtends', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.test %> ${macros.generate('conditionHandlerTestExtends', c)} <% } %>''')
   }
   
 }

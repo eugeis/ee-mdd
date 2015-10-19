@@ -1879,7 +1879,7 @@ public class $className extends ${controller.cap}TestImpl {
 public abstract class $className extends ${controller.cap}BaseTestImpl {
 }''')
   
-  template('conditionHandlerTestBase', purpose: UNIT_TEST, body: '''
+  template('conditionHandlerTest', purpose: UNIT_TEST, body: '''
 public abstract class $className {
 
   protected ${item.cap}VerifierImpl verifier;
@@ -1897,6 +1897,22 @@ public abstract class $className {
       //ignore
     }
   }
+}''')
+  
+  template('conditionHandlerTestExtends', purpose: UNIT_TEST, body: '''
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@${c.name('RunWith')}(MockitoJUnitRunner.class)
+public class $className extends ${item.cap}TestBase {
+
+  @Override
+  @Before
+  public void setUp() {
+    super.setUp();
+    // additional setup
+  }
+
+  // tests
 }''')
   
 
