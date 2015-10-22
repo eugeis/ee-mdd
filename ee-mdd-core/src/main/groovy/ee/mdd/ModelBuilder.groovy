@@ -73,6 +73,10 @@ import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.realm.Realm
+import ee.mdd.model.realm.RealmGroup
+import ee.mdd.model.realm.RealmRole
+import ee.mdd.model.realm.RealmUser
 import ee.mdd.model.statemachine.Action
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.Context
@@ -136,7 +140,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def facet = new FacetFactory(beanClass: Facet, childFactories: ['extModule', 'facet'], facets: facets)
   private def su = new FacetAwareFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'], facets: facets)
   private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update'], parent: controller)
-  private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'stateMachine'], parent: su)
+  private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'realm'], parent: su)
   private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   private def config = new CompositeFactory(beanClass: Config, parent: dataType)
   private def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
@@ -157,6 +161,11 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   private ModelFactory model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   private def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
+  
+  private def realm = new CompositeFactory(beanClass: Realm, childFactories: ['group', 'role', 'user'])
+  private def realmGroup = new CompositeFactory(beanClass: RealmGroup)
+  private def realmRole = new CompositeFactory(beanClass: RealmRole)
+  private def realmUser = new CompositeFactory(beanClass: RealmUser)
 
   private def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
   private def prop = new PropFactory(parent: attr)
@@ -282,6 +291,11 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'namespace', namespace
     registerFactory 'channel', channel
     registerFactory 'message', message
+    
+    registerFactory 'realm' , realm
+    registerFactory 'group', realmGroup
+    registerFactory 'role', realmRole
+    registerFactory 'user', realmUser
 
     //UI
     registerFactory 'view', factoryView

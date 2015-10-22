@@ -15,6 +15,8 @@
 */
 package ee.mdd.model.component
 
+import ee.mdd.model.realm.Realm
+
 
 
 /**
@@ -24,6 +26,7 @@ package ee.mdd.model.component
 class Component extends StructureUnit {
 	List<Module> modules = []
   Module shared
+  Realm realm
   
 	protected boolean init() {
 		if(!namespace) { namespace = new Namespace(name: key ?: name); namespace.checkAndInit(this) }
@@ -35,6 +38,12 @@ class Component extends StructureUnit {
 	def add(Module child) {
 		modules << child; super.add(child)
 	}
+  
+  def add(Realm item) {
+    realm = super.add(item)
+    if(!realm)
+      realm = item
+  }
   
   Module getModule() {
     if(!shared && modules) {
