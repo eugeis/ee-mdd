@@ -28,6 +28,8 @@ class Transition extends Element {
       redirect = stateMachine.resolve(redirectEvent, Event.class, true)
     }
     conditionObjs = conditions.collect { stateMachine.resolve(it, Condition.class, true) }.findAll { it }
+    notConditionObjs = notConditions.collect { stateMachine.resolve(it, Condition.class, true) }.findAll { it }
+    actionObjs = actions.collect  { stateMachine.resolve(it, Action.class, true) }.findAll { it }
     
     ret
   }

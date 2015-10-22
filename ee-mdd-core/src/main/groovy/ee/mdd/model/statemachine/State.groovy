@@ -42,6 +42,21 @@ class State extends LogicUnit {
       if(!event) { println "Event is null for transition $trs.name" }
       new EventTransitions(event: event, transitions: trs) }
   }
+  
+  List<Action> getActions() {
+    actions = transitions.collectMany  { it.actionObjs }
+    actions.addAll(exitActionObjs)
+    actions.addAll(transitions.findAll { it.state.entryActionObjs }.collectMany { it.state.entryActionObjs })
+    actions = actions.toSet() as List
+    actions = actions.sort(false) { it.name }
+  }
+  
+  List<Condition> getConditions() {
+    conditions = transitions.collectMany { it.conditionObjs }
+    conditions.addAll(transitions.collectMany { it.notConditionObjs })
+    conditions = conditions.toSet() as List
+    conditions = conditions.sort(false) { it.name }
+  }
 
   def add(Transition item) {
     if(!transitions) {
@@ -60,18 +75,6 @@ class State extends LogicUnit {
 
     transitions.findAll { it.anyEvent }.reverse().each { tr -> eventTransitions.each { etrs -> etrs.transitions.add(0, tr) } }
 
-    //do not add entry actions in the all action lists, because they are needed in the prev. state processor only
-    //but add entry action of all next states instead
-    actions = transitions.collectMany { it.actionObjs }
-    conditions = transitions.collectMany { it.conditionObjs }
-    conditions.addAll(transitions.collectMany { it.notConditionObjs })
-    conditions = conditions.toSet() as List
-    conditions = conditions.sort(false) { it.name }
-
-    actions.addAll(exitActionObjs)
-    actions.addAll(transitions.findAll { it.state.entryActionObjs }.collectMany { it.state.entryActionObjs })
-    actions = actions.toSet() as List
-    actions = actions.sort(false) { it.name }
   }
   
 }
