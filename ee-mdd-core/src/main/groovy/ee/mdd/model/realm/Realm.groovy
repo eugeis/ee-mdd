@@ -8,13 +8,13 @@ class Realm extends Composite {
   List<RealmRole> roles = []
 
   void add(RealmUser item) {
-    super.add(item); users<<item
+    super.add(item); users << item
   }
   void add(RealmGroup item) {
-    super.add(item); groups<<item
+    super.add(item); groups << item
   }
   void add(RealmRole item) {
-    super.add(item); roles<<item
+    super.add(item); roles << item
   }
 
   boolean isEmpty() {

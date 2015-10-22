@@ -1539,10 +1539,10 @@ public class $className {
   public static final String GROUP_${group.underscored} = "${group.cap}";<% } %>
   // roles<% component.realm.roles.each { role -> %>
   public static final String ROLE_${role.underscored} = "${item.uncapShortName}_${role.name}";<% } %>
-  // roles generated out from state machines<% def stateMachines = item.children.findAll{it.generatePermissionsForEvents} %><% stateMachines.each { stateMachine -> def eventsMap = [:];
-  stateMachine.events.flatten().each{ event-> eventsMap.put(event.name, event)}; eventsMap.each { eventEntry-> %>
-  public static final String ROLE_${stateMachine.underscored}_${eventEntry.value.underscored} = "${component.uncapShortName}_${stateMachine.uncapShortName}_${eventEntry.key}";<% }} %>
-}<% } %>''')
+  // roles generated out from state machines<% def sm = []; item.children.each { it.children.each { if (it.generatePermissionsForEvents) { sm.add(it) }}} %><% if (sm != []) { %>
+  <% sm.each { stateMachine -> def eventsMap = [:]; stateMachine.events.flatten().each{ event-> eventsMap.put(event.name, event)}; eventsMap.each { eventEntry-> %>
+  public static final String ROLE_${stateMachine.underscored}_${eventEntry.value.underscored} = "${component.uncapShortName}_${stateMachine.uncapShortName}_${eventEntry.key}";<% } } } %>
+}<% }%>''')
 
   template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
@@ -3267,6 +3267,7 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
 }''')
   
   template('implEventProcessor', body: '''<% def sm = item.stateMachine %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.realmConstants};
 import javax.enterprise.event.Event;{{imports}}
 /** Event processor for state '$item.name' of '$sm.name'. */
 @${c.name('Controller')}
