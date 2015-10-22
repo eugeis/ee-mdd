@@ -1528,7 +1528,21 @@ public class $className {
 /** Multi language constants for '${c.item.name}' */
 public class $className extends ${className}Base {
 }''')
-
+  
+  template('constantsRealm', body: '''<% if (item.realm && !item.realm.empty) { %>
+/** Role related constants for '$item.name' */
+public class $className {
+  // users<% component.realm.users.each { user -> %>
+  public static final String USER_${user.underscored} = "${user.uncap}";
+  public static final String PASS_${user.underscored} = "${user.pass}";<% } %>
+  // groups<% component.realm.groups.each { group -> %>
+  public static final String GROUP_${group.underscored} = "${group.cap}";<% } %>
+  // roles<% component.realm.roles.each { role -> %>
+  public static final String ROLE_${role.underscored} = "${item.uncapShortName}_${role.name}";<% } %>
+  // roles generated out from state machines<% def stateMachines = item.children.findAll{it.generatePermissionsForEvents} %><% stateMachines.each { stateMachine -> def eventsMap = [:];
+  stateMachine.events.flatten().each{ event-> eventsMap.put(event.name, event)}; eventsMap.each { eventEntry-> %>
+  public static final String ROLE_${stateMachine.underscored}_${eventEntry.value.underscored} = "${component.uncapShortName}_${stateMachine.uncapShortName}_${eventEntry.key}";<% }} %>
+}<% } %>''')
 
   template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
@@ -3252,7 +3266,8 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
   void on$event.cap(${event.cap}Event event, ${sm.capShortName}Context context);<% } %>
 }''')
   
-  template('implEventProcessor', body: '''<% def sm = item.stateMachine %>{{imports}}
+  template('implEventProcessor', body: '''<% def sm = item.stateMachine %>
+import javax.enterprise.event.Event;{{imports}}
 /** Event processor for state '$item.name' of '$sm.name'. */
 @${c.name('Controller')}
 @${c.name('ApplicationScoped')}
@@ -3261,9 +3276,9 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
     @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${sm.capShortName}StateEventProcessorImpl implements ${sm.capShortName}${item.cap}EventProcessor {<% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
   protected Event<${action.cap}Event> ${action.uncap}Publisher;<% } else { %>
-  protected $action.cap $action.uncap;<% } %>
+  protected $action.cap ${action.uncap};<% } %>
   <% } } %><% item.conditions.each { cond -> %>
-  protected $cond.cap $cond.uncap;<% } %><% if (item.transitions) { %>
+  protected $cond.n.cap.verifier $cond.uncap;<% } %><% if (item.transitions) { %>
 
   @Override
   public void process(${sm.capShortName}Context context) {
