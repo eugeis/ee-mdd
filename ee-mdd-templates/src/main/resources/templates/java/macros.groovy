@@ -3887,23 +3887,38 @@ public class $className extends ${item.cap}VerifierBase {
   }
 }''')
   
-  template('timeoutsConfig', body: '''{{imports}}
+  template('timeoutsConfig', body: '''<% def props = []; item.states.each { if(it.timeoutInMillis) { props.add(it) } } %> {{imports}}
 @${c.name('ApplicationScoped')}
-@Config<% if (item.onlyInClient) { %>
+@${c.name('Config')}<% if (item.onlyInClient) { %>
 @SupportsEnvironments(@Environment(executions = { PRODUCTIVE }, runtimes = { CLIENT }))<% } %>
-public<% if (item.base) { %> abstract<% } %> class $className extends Base {
+public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
   /** A unique URI prefix for RESTful services and multi-language support */
   public static final String URI_PREFIX = "$item.uri";
-  <% item.props.each { prop -> %>  <% if (prop.description) { %>
+  <% if(item.timeoutCheckIntervalInMillis) { %>
+  protected int timeoutCheckInterval = $item.timeoutCheckIntervalInMillis;<% } %>
+  <% props.each { prop -> %>  <% if (prop.description) { %>/*** $prop.description */<% } %>
+  protected int ${prop.uncap}Timeout = ${prop.timeoutInMillis};<% } %>
+  ${macros.generate('baseConstructor', c)}  <% if(item.timeoutCheckIntervalInMillis) { %>
+  public int getTimeoutCheckInterval() {
+    return timeoutCheckInterval;
+  }
+
+  public void setTimeoutCheckInterval(int timeoutCheckInterval)  {
+    this.timeoutCheckInterval = timeoutCheckInterval;
+  }<% } %><% props.each { prop-> %>
+  <% if (prop.description) { %>
   /*** $prop.description */<% } %>
-  protected $prop.computedType(c) $prop.name<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<%if (type == 'Long' || type == 'long') { %>L<% } %><% } %>;<% } %>
-  ${macros.generate('baseConstructor', c)}
-  ${macros.generate('propMethods', c)}
+  public int get${prop.cap}Timeout() {
+    return ${prop.uncap}Timeout;
+  }
+  public void set${prop.cap}Timeout(int ${prop.uncap}Timeout) {
+    this.${prop.uncap}Timeout = ${prop.uncap}Timeout;
+  }<% } %>
   ${macros.generate('implOperationsAndDelegates', c)}
-  public void update(${item.capShortName}Timeouts ${item.uncapShortName}Timeouts) {<% item.props.each { prop-> %><% if (item.propSetters) { %>
-    set$prop.cap(${item.uncapShortName}Timeouts.$prop.getter);<% } else { %>
-    $prop.uncap = ${item.uncapShortName}Timeouts.$prop.getter;<% } %><% } %>
+  public void update(${item.capShortName}Timeouts ${item.uncapShortName}Timeouts) {<% if(item.timeoutCheckIntervalInMillis) { %>
+    setTimeoutCheckInterval(${item.uncapShortName}Timeouts.getTimeoutCheckInterval());<% } %><% props.each { prop-> %>
+    set${prop.cap}Timeout(${item.uncapShortName}Timeouts.get${prop.cap}Timeout());<% } %>
   }
   ${macros.generate('hashCodeAndEquals', c)}
 }''')

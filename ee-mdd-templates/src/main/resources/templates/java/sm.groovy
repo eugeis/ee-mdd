@@ -7,19 +7,6 @@ import ee.mdd.model.statemachine.State
 import ee.mdd.model.statemachine.StateMachine
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 templates('sm') {
 
   useMacros('commonMacros', '/common/macros')
@@ -49,7 +36,6 @@ templates('sm') {
       template('controllerBootstrapBase', appendName: true, body: '''<% c.className = "${item.controller.cap}BootstrapBase" %> ${macros.generate('controllerBootstrapBase', c)}''')
       template('controllerFactoryBase', appendName: true, body: '''<% c.className = "${item.controller.cap}FactoryBase" %> ${macros.generate('controllerFactoryBase', c)}''')
     }
-      
       
     templates('stateMachineEvents',
     items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
@@ -150,8 +136,10 @@ templates('sm') {
       template('implConditionVerifier', appendName: true, body: '''<% if(!item.body && item.parent.generateDefaultImpl) { %><% c.className = "${item.cap}VerifierImpl" %> ${macros.generate('implConditionVerifier', c)}<% } %>''')
     }
     
+    templates('timeoutsConfig',
+    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     
-    
-    
-    
-}
+      template('timeoutsConfig', appendName: true, body: '''<% c.className = "${item.capShortName}Timeouts" %> ${macros.generate('timeoutsConfig', c)}''')
+    }
+   }
