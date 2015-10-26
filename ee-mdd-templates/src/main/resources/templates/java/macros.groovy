@@ -297,7 +297,7 @@ templates ('macros') {
   ${op.resolveBody(c)}
   }<% } %>''')
   
-  template('operationRawType', body: '''public $op.ret ${op.name}($op.signature) {
+  template('operationRawType', body: '''<% def op = c.op %>public $op.ret ${op.name}($op.signature) {
     $op.body
   }
 ''')
@@ -1272,7 +1272,7 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
 
   public boolean $lit.is {
     return this == $lit.underscored;
-  }<% } %><% item.operations.each { op -> if(op.body) { %>
+  }<% } %><% item.operations.each { op -> if(op.body) { c.op = op %>
   <% if (op.override) { %>@Override<% } %><% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   ${macros.generate('operationRawType', c)}<% } } %>
@@ -3267,6 +3267,7 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
 }''')
   
   template('implEventProcessor', body: '''<% def sm = item.stateMachine %>
+import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${sm.stateProp.type.name}.*;
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.realmConstants};
 import javax.enterprise.event.Event;{{imports}}
 /** Event processor for state '$item.name' of '$sm.name'. */
