@@ -90,8 +90,8 @@ class StructureUnit extends Composite implements BuilderAware {
     underscoreToCamelCase(key).capitalize();
   }
   
-  String getUncapShortName() {
-    underscoreToCamelCase(key)[0].toLowerCase();
+  String getUncapShortName() { 
+    underscoreToCamelCase(key).toLowerCase();
   }
   
   String underscoreToCamelCase(String underscoreStr) {

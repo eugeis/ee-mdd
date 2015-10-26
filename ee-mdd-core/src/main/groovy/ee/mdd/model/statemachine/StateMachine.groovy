@@ -56,7 +56,7 @@ class StateMachine extends Composite {
   }
   
   String getUncapShortName() {
-    underscoreToCamelCase(key)[0].toLowerCase();
+    underscoreToCamelCase(key).toLowerCase();
   }
 
   Entity getEntity() {
