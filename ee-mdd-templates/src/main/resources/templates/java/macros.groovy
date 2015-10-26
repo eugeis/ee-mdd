@@ -3278,8 +3278,9 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
   
   template('implEventProcessor', body: '''<% def sm = item.stateMachine %>
 import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${sm.stateProp.type.name}.*;
+import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.statemachine.${sm.capShortName}StateConditionType.*;{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.realmConstants};
-import javax.enterprise.event.Event;{{imports}}
+import javax.enterprise.event.Event;
 /** Event processor for state '$item.name' of '$sm.name'. */
 @${c.name('Controller')}
 @${c.name('ApplicationScoped')}
@@ -3855,8 +3856,8 @@ public abstract class $className extends ConditionVerifierAbstract<${item.capSho
   }
 }''')
   
-  template('conditionVerifierIfc', body: '''<% def sm = item.stateMachine %>
-public interface $className extends ConditionVerifier<${sm.capShortName}Context> {
+  template('conditionVerifierIfc', body: '''<% def sm = item.stateMachine %>{{imports}}
+public interface $className extends ${c.name('ConditionVerifier')}<${sm.capShortName}Context> {
 }''')
   
   template('conditionVerifier', body: '''<% def sm = item.stateMachine %>
