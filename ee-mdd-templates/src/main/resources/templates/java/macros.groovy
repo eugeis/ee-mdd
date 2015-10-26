@@ -297,6 +297,16 @@ templates ('macros') {
   ${op.resolveBody(c)}
   }<% } %>''')
   
+  template('propMethods', body: '''<% item.props.each { prop-> %>
+  <% if (prop.description) { %>
+  /*** $prop.description */<% } %>
+  public $prop.computedType(c) $prop.getter {
+    return $prop.uncap;
+  }<% if (item.propSetters) { %>
+  public void ${prop.getSetter()} {
+    this.$prop.uncap= $prop.uncap;
+  }<% } %><% } %>''')
+  
   template('operationRawType', body: '''<% def op = c.op %>public $op.ret ${op.name}($op.signature) {
     $op.body
   }
@@ -2934,7 +2944,7 @@ public interface $className {
 @${c.name('Traceable')}
 public class $className implements ${item.capShortName}StateEventProcessor {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
-  protected final String source = ${c.name('StringUtils')}.formatSource(this);<% if (module.timeoutEnabled) { %>
+  protected final String source = ${c.name('StringUtils')}.formatSource(this);<% if (item.timeoutEnabled) { %>
 
   protected ${item.capShortName}Timeouts stateTimeouts;<% } %>
 
@@ -3327,7 +3337,7 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
     context.completeTransition();<% } } } %>
   }<% } %><% item.conditions.each { cond -> %>
 
-  protected boolean $cond.uncap($sm.capShortName}TransitionExecutionResult<?> transition, ${sm.capShortName}Context context) {<% if (cond.cachedInContext) { %>
+  protected boolean $cond.uncap(${sm.capShortName}TransitionExecutionResult<?> transition, ${sm.capShortName}Context context) {<% if (cond.cachedInContext) { %>
     boolean ret = false;
     if (context.is${cond.cap}() != null) {
       ret = context.is${cond.cap}();
@@ -3875,6 +3885,27 @@ public class $className extends ${item.cap}VerifierBase {
     }
     return ret;
   }
+}''')
+  
+  template('timeoutsConfig', body: '''{{imports}}
+@${c.name('ApplicationScoped')}
+@Config<% if (item.onlyInClient) { %>
+@SupportsEnvironments(@Environment(executions = { PRODUCTIVE }, runtimes = { CLIENT }))<% } %>
+public<% if (item.base) { %> abstract<% } %> class $className extends Base {
+  private static final long serialVersionUID = 1L;
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final String URI_PREFIX = "$item.uri";
+  <% item.props.each { prop -> %>  <% if (prop.description) { %>
+  /*** $prop.description */<% } %>
+  protected $prop.computedType(c) $prop.name<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<%if (type == 'Long' || type == 'long') { %>L<% } %><% } %>;<% } %>
+  ${macros.generate('baseConstructor', c)}
+  ${macros.generate('propMethods', c)}
+  ${macros.generate('implOperationsAndDelegates', c)}
+  public void update(${item.capShortName}Timeouts ${item.uncapShortName}Timeouts) {<% item.props.each { prop-> %><% if (item.propSetters) { %>
+    set$prop.cap(${item.uncapShortName}Timeouts.$prop.getter);<% } else { %>
+    $prop.uncap = ${item.uncapShortName}Timeouts.$prop.getter;<% } %><% } %>
+  }
+  ${macros.generate('hashCodeAndEquals', c)}
 }''')
   
  
