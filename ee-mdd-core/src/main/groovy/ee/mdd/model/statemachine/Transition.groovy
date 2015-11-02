@@ -45,6 +45,14 @@ class Transition extends Element {
     state = stateMachine.resolve(to, State.class, true)
   }
   
+  List<Action> getAllActions() {
+    allActions = []
+    allActions.addAll(fromState.exitActionObjs);
+    for(action in actionObjs) { if(!allActions.contains(action)) { allActions << action } }
+    for(action in state.entryActionObjs) { if(!allActions.contains(action)) { allActions << action } }
+    allActions
+  }
+  
   StateMachine getStateMachine() {
     parent.parent
   }
