@@ -548,6 +548,20 @@ public interface $c.className extends ${c.name('Serializable')} {
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${op.signature(c)});<% } %>
   }''')
+  
+  template('ifcCommandsExtends', body: '''<% def commands = item.commands %>
+<% if (commands.description) { %>/**
+* $commands.description
+*/<% } else { %>/** The commands provide CRUD operations for entity {@link $item.cap} */<% } %>
+public interface $className extends $item.n.cap.commandsBase {
+}''')
+  
+  template('ifcFindersExtends', body: '''<% def finders = item.finders %>
+<% if (finders.description) { %>/**
+* $finders.description
+*/<% } else { %>/** The finders provides CRUD operations for entity {@link $item.cap} */<% } %>
+public interface $className extends $item.n.cap.findersBase {
+}''')
 
   template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
   <% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
@@ -1351,7 +1365,7 @@ public class $c.className extends ${c.name('SingleTypeEventListenerBridgeByJms')
 ${macros.generate('metaAttributesBridge', c)}
 public class $className extends ${c.name('JmsSender')} {
 
-  @Inject
+  @${c.name('Inject')}
   protected ${module.n.cap.moduleFactory} modelFactory;
 
   public $className () {
@@ -1402,16 +1416,16 @@ public abstract class $className extends ${c.name('MultiTypeCdiEventListener')} 
   @${component.cap}
   protected Event<${c.name('ConnectionMetaEvent')}> connectionMetaEventPublisher;<% module.entities.each { entity -> if(entity.event && !entity.virtual) { %>
 
-  @Inject
+  @${c.name('Inject')}
   @${component.cap}
   protected Event<${entity.n.cap.event}> ${entity.uncap}Publisher;<% } } %><% module.configs.each { config-> if (config.event) { %>
 
-  @Inject
+  @${c.name('Inject')}
   @${component.cap}
   @${c.name('Backend')}
   protected Event<${config.n.cap.event}> ${config.uncap}Publisher;<% } } %><% module.containers.each { container-> %>
 
-  @Inject
+  @${c.name('Inject')}
   @${component.cap}
   @${c.name('Backend')}
   protected Event<${container.n.cap.event}> ${container.uncap}Publisher;<% } %>
@@ -1487,11 +1501,11 @@ public class $className extends PluginActivator {
     ${m.name}JmsToCdi.close();<% } } %>
   }<% modules.each { m -> %><% if(m.name == 'backend') {%>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${m.parent.key.capitalize()}JmsToCdi(${m.parent.key.capitalize()}JmsToCdi ${m.parent.key}JmsToCdi) {
     this.${m.parent.key}JmsToCdi = ${m.parent.key}JmsToCdi;
   }<% } else { %>
-  @Inject
+  @${c.name('Inject')}
   public void set${m.nam.capitalize()}JmsToCdi(${m.parent.key.capitalize()}JmsToCdi ${m.parent.key}JmsToCdi) {
     this.${m.parent.key}JmsToCdi = ${m.parent.key}JmsToCdi;
   }<% } } %>
@@ -1534,7 +1548,7 @@ public class $className {
   public static final String ${config.underscored}_UPDATED = "${config.underscored.toLowerCase()}_updated";<% } } %>
 }''')
 
-  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = "${item.name}Ml" } %>
+  template('constantsMlExtends', body: '''<% if (!c.className) { c.className = "${item.key.capitalize()}Ml" } %>
 /** Multi language constants for '${c.item.name}' */
 public class $className extends ${className}Base {
 }''')
@@ -1859,32 +1873,32 @@ public abstract class $className {
     log.debug("fillEvent({})", event);
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void set$controller.cap($controller.cap $controller.uncap) {
     this.$controller.uncap = $controller.uncap;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void set$item.entity.commands.name($item.entity.commands.cap $item.entity.commands.uncap) {
     this.$item.entity.commands.uncap = $item.entity.commands.uncap;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void set$item.entity.finders.name($item.entity.finders.cap $item.entity.finders.uncap) {
     this.$item.entity.finders.uncap = $item.entity.finders.uncap;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setDataFactory(@Internal ${item.entity.module.capShortName}DataFactoryBase dataFactory) {
     this.dataFactory = dataFactory;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setEventFactory(${item.capShortName}EventFactory eventFactory) {
     this.eventFactory = eventFactory;
   }<% if (item.history) { %>
 
-  @Inject
+  @${c.name('Inject')}
   public void setUmTestUtils(UmTestUtils umTestUtils) {
     this.umTestUtils = umTestUtils;
   }<% } %>
@@ -2228,7 +2242,7 @@ public abstract class $className extends ${c.name('Presenter')}<${item.cap}> {<%
   <% } } %> <% presenter.observers.each { def op -> if (op.forward) { %>
   public abstract void $op.observerName($op.signatureValue);
   <% } } %>
-  <% if (presenter.withMediator) { %>@Inject
+  <% if (presenter.withMediator) { %>@${c.name('Inject')}
   public void set$item.n.cap.presenterEvents($item.n.cap.presenterEvents forward) {
     this.forward = forward;
     forward.set$item.n.cap.presenterEvents(($presenter.cap) this);
@@ -2298,7 +2312,7 @@ public abstract class $c.className extends DialogView {
   protected void initEventHandling() {
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setContentView($contentViewClassName contentView) {
     this.contentView = contentView;
   }
@@ -2670,17 +2684,17 @@ public class $className implements ${item.capShortName}Controller {
     return contextManagerDef.get();
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void set${item.capShortName}StateMetaModel(${item.capShortName}StateMetaModel stateMetaModel) {
     this.stateMetaModel = stateMetaModel;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setContextManagerDef(Provider<${item.capShortName}ContextManager> contextManagerDef) {
     this.contextManagerDef = contextManagerDef;
   }<% item.states.each { def state-> %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${state.cap}EventProcessor(${state.cap}EventProcessor ${state.uncap}EventProcessor) {
     this.${state.uncap}EventProcessor = ${state.uncap}EventProcessor;
   }<% } %>
@@ -2750,7 +2764,7 @@ public class $className extends ${c.name('Base')} {
     buffer.append("metaStates=").append(Arrays.toString(metaStates));
   }<% item.states.each { state -> %>
 
-  @Inject 
+  @${c.name('Inject')} 
   public void set${state.capShortName}MetaState(${state.capShortName}MetaState ${state.uncap}MetaState) {
     this.${state.uncap}MetaState = ${state.uncap}MetaState;
   }<% } %>
@@ -2762,11 +2776,11 @@ public class $className extends ${c.name('Base')} {
 public abstract class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
 
-  protected ${item.stateProp.type.name} state;
+  protected ${c.name(item.stateProp.type.name)} state;
   protected ${c.name('List')}<${item.capShortName}StateEventType> events;<% module.notifiables.each { toBeNotified -> %>
   protected boolean ${toBeNotified}ToBeNotified = false;<% } %>
-  protected Provider<UserInRoleConditionVerifier> userInRoleConditionVerifierDef;
-  protected UserInRoleConditionVerifier userInRoleConditionVerifier;
+  protected ${c.name('Provider')}<UserInRoleConditionVerifier> userInRoleConditionVerifierDef;
+  protected ${c.name(UserInRoleConditionVerifier')} userInRoleConditionVerifier;
 
   // required to be proxyable
   protected $className() {
@@ -2804,7 +2818,7 @@ public abstract class $className extends ${c.name('Base')} {
     this.userInRoleConditionVerifier = userInRoleConditionVerifier;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setUserInRoleConditionVerifierDef(Provider<UserInRoleConditionVerifier> userInRoleConditionVerifierDef) {
     this.userInRoleConditionVerifierDef = userInRoleConditionVerifierDef;
   }
@@ -2820,11 +2834,11 @@ public abstract class $className extends ${c.name('Base')} {
   template('contextManager', body: '''{{imports}}
 public interface $className {
 
-  ${item.context.cap} loadContext(${item.capShortName}StateEvent event);
+  ${c.name(item.context.cap)} loadContext(${item.capShortName}StateEvent event);
 
-  $item.entity.cap storeContext(${item.context.cap} context);
+  ${c.name(item.entity.cap)} storeContext(${item.context.cap} context);
 
-  $item.stateProp.type.name findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncapFullName);
+  ${c.name(item.stateProp.type.name)} findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncapFullName);
 
   ${c.name('List')}<${item.entity.cap}> findExpired${item.entity.instancesName.capitalize()}();
 
@@ -2838,8 +2852,8 @@ public interface $className extends ${className}Base {
 public abstract class $className implements ${item.capShortName}ContextManager {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
 
-  protected SessionPrincipal sessionPrincipal;
-  protected UserInRoleConditionVerifier userInRoleConditionVerifier;
+  protected ${c.name('SessionPrincipal')} sessionPrincipal;
+  protected ${c.name('UserInRoleConditionVerifier')} userInRoleConditionVerifier;
 
   @Override
   public ${item.capShortName}Context loadContext( ${item.capShortName}StateEvent event) {
@@ -2854,12 +2868,12 @@ public abstract class $className implements ${item.capShortName}ContextManager {
 
   protected abstract ${item.capShortName}Context fillContext(${item.capShortName}Context context);
 
-  @Inject
+  @${c.name('Inject')}
   public void setSessionPrincipal(SessionPrincipal sessionPrincipal) {
     this.sessionPrincipal = sessionPrincipal;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setUserInRoleConditionVerifier(UserInRoleConditionVerifier userInRoleConditionVerifier) {
     this.userInRoleConditionVerifier = userInRoleConditionVerifier;
   }
@@ -2872,7 +2886,8 @@ public abstract class $className implements ${item.capShortName}ContextManager {
     @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${item.capShortName}ContextManagerBaseImpl {
 
-  protected ${item.entity.cap}Manager ${item.entity.uncap}Manager;<% if (item.history) { %>
+  protected ${c.name(item.entity.n.cap.commands)} ${item.entity.uncap}Commands;
+  protected ${c.name(item.entity.n.cap.finders)} ${item.entity.uncap}Finder;<% if (item.history) { %>
   protected ${item.history.entity.name}Manager ${item.history.entity.uncap}Manager;<% } %>
 
   @Override
@@ -2904,7 +2919,7 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
   }
 
   @Override
-  public List<$item.entity.cap> findExpired${item.entity.cap}() {
+  public ${c.name('List')}<$item.entity.cap> findExpired${item.entity.cap}() {
     return ${item.entity.uncap}Manager.findBy$item.stateTimeoutProp.cap(TimeUtils.now());
   }<% if (item.history) { def history = item.history; %>
 
@@ -2923,12 +2938,12 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
     ${history.uncap}Manager.create(ret, true);
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void set${item.history.cap}Manager(${item.history.cap}Manager ${item.history.uncap}Manager) {
     this.${item.history.uncap}Manager = ${item.history.uncap}Manager;
   }<% } %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${item.entity.cap}Manager(${item.entity.cap}Manager ${item.entity.uncap}Manager) {
     this.${item.entity.uncap}Manager = ${item.entity.uncap}Manager;
   }
@@ -2961,7 +2976,7 @@ public class $className implements ${item.capShortName}StateEventProcessor {
     throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_NO_VALID_FLOW, lastTransition.getFromStateAsMlKey(), lastTransition.getToStateAsMlKey(), lastTransition.getEventTypeAsMlKey(), lastTransition.getFailedConditionAsMlKey());
   }<% if (item.timeoutEnabled) { %>
 
-  @Inject
+  @${c.name('Inject')}
   public void setStateTimeouts(${item.capShortName}Timeouts stateTimeouts) {
     this.stateTimeouts = stateTimeouts;
   }<% } %>
@@ -2972,36 +2987,55 @@ public class $className implements ${item.capShortName}StateEventProcessor {
 public class $className extends ${item.capShortName}StateEventProcessorBaseImpl {
 }''')
   
-  template('context', body: '''<% def entity = item.entity; def idProp = entity.idProp; def context = item.context %>{{imports}}
+  template('context', body: '''<% def entity = item.entity; def idProp = entity.idProp; def context = item.context %>import static com.siemens.ra.cg.pl.common.base.util.TimeUtils.*;
+{{imports}}
 ${context.description?"/*** $context.description */":''}
 public class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
-  protected transient UserInRoleConditionVerifier userInRoleConditionVerifier;
-  // DEFAULT props for Context cannot be set dynamically because type resolution is missing
+  protected transient ${c.name('UserInRoleConditionVerifier')} userInRoleConditionVerifier;
+  // DEFAULT props for Context cannot be set dynamically yet because type resolution is missing
   protected ${c.name('SessionPrincipal')} sessionPrincipal;
   protected ${item.capShortName}StateEvent event;
   protected ${item.capShortName}StateEvent redirectEvent;
-  protected ${c.name(item.stateProp.type.name)} state;
-  protected ${c.name(item.stateProp.type.name)} newState;
+  protected ${c.name('List')}<${item.capShortName}TransitionExecutionResult<?>> transitions = new ${c.name('ArrayList')}<>();
+  protected ${item.capShortName}TransitionExecutionResult<?> currentTransition;
+  protected ${c.name('Date')} timeout;
   protected ${c.name('Date')} newTimeout;
   protected ${c.name(entity.cap)} $entity.uncap;
-  protected ${item.capShortName}TransitionExecutionResult currentTransition;<% context.props.each { prop -> %>
+  protected ${c.name(item.stateProp.type.name)} state;
+  protected ${c.name(item.stateProp.type.name)} newState;<% context.props.each { prop -> %>
   protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>
-  //cached conditions<% context.conditions.findAll { it.cachedInContext }.each { con -> %>
+  //cached conditions<% item.conditions.findAll { it.cachedInContext }.each { con -> %>
   protected Boolean $con.uncap;<% } %><% context.props.each { prop-> %><% if (prop.description) { %>
+
   /*** $prop.description */<% } %>
   public ${prop.computedType(c)} $prop.getter {
     return $prop.uncap;
   }<% if (context.propSetters) { %>
   public void ${prop.setter} {
     this.$prop.uncap = $prop.uncap;
-  }<% } %><% } %>
+  }<% } %><% } %>public SessionPrincipal getSessionPrincipal() {
+    return sessionPrincipal;
+  }
+  
+  public void setSessionPrincipal(SessionPrincipal sessionPrincipal) {
+    this.sessionPrincipal = sessionPrincipal;
+  }
+
   public ${item.capShortName}StateEvent getEvent() {
     return event;
   }
 
-  public void setEvent(${item.capShortName}StateEvent event) {
-    this.event = event;
+  public void setEvent(${item.capShortName}StateEvent redirectEvent) {
+    this.redirectEvent = redirectEvent;
+  }
+
+  public ${item.capShortName}StateEvent getRedirectEvent() {
+    return redirectEvent;
+  }
+
+  public void setRedirectEvent(${item.capShortName}StateEvent redirectEvent) {
+    this.redirectEvent = redirectEvent;
   }
   
   public ${item.stateProp.type.name} getState() {
@@ -3020,11 +3054,11 @@ public class $className extends ${c.name('Base')} {
     this.$entity.uncap = $entity.uncap;
   }
 
-  public ${item.capShortName}TransitionExecutionResult getCurrentTransition() {
+  public ${item.capShortName}TransitionExecutionResult<?> getCurrentTransition() {
     return currentTransition;
   }
 
-  public void setCurrentTransition(${item.capShortName}TransitionExecutionResult currentTransition) {
+  public void setCurrentTransition(${item.capShortName}TransitionExecutionResult<?> currentTransition) {
     this.currentTransition = currentTransition;
   }
   
@@ -3096,7 +3130,7 @@ public class $className extends ${c.name('Base')} {
     if(userInRoleConditionVerifier != null) {
         userInRoleConditionVerifier.evaluateConditionStrict(role);
     } else {
-        throw new IllegalStateException("userInRoleConditionVerifier", "not_null", "null");
+        throw new ${c.name('IllegalStateException')}("userInRoleConditionVerifier", "not_null", "null");
     }
   }
 
@@ -3399,7 +3433,8 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
 }
 ''')
   
-  template('stateMetaState', body: '''<% def sm = item.stateMachine %>{{imports}}
+  template('stateMetaState', body: '''<% def sm = item.stateMachine %>import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.statemachine.${sm.capShortName}StateEventType.*;
+{{imports}}
 /** Static information of state $item.name of state machine $sm.name */
 @${c.name('ApplicationScoped')}
 public class $className extends ${sm.capShortName}MetaState {
@@ -3409,20 +3444,20 @@ public class $className extends ${sm.capShortName}MetaState {
   private transient ${cond.cap}Verifier ${cond.uncap}Verifier;<% } } %>
 
   public $className() {
-    super(${sm.stateProp.type.name}.$item.underscored, findStateEvents());<% item.toBeNotified.each { toBeNotified ->%>
+    super(${c.name(sm.stateProp.type.name)}.$item.underscored, findStateEvents());<% item.toBeNotified.each { toBeNotified ->%>
     ${toBeNotified}ToBeNotified = true;<% } %>
   }
 
-  private static List<${sm.capShortName}StateEventType> findStateEvents() {
-    List<${sm.capShortName}StateEventType> ret = new ArrayList<${sm.capShortName}StateEventType>();
+  private static ${c.name('List')}<${sm.capShortName}StateEventType> findStateEvents() {
+    ${c.name('List')}<${sm.capShortName}StateEventType> ret = new ${c.name('ArrayList')}<${sm.capShortName}StateEventType>();
     <% item.eventTransitions.each { %>
     ret.add($it.event.underscored);<% } %>
     return ret;
   }
 
   @Override
-  public List<${sm.capShortName}StateEventType> findPossibleEvents(${sm.capShortName}Context context) {
-    List<${sm.capShortName}StateEventType> ret = new ArrayList<${sm.capShortName}StateEventType>();
+  public ${c.name('List')}<${sm.capShortName}StateEventType> findPossibleEvents(${sm.capShortName}Context context) {
+    ${c.name('List')}<${sm.capShortName}StateEventType> ret = new ArrayList<${sm.capShortName}StateEventType>();
     <% item.eventTransitions.each { etrs ->
       def condStr
       def groupStr
@@ -3445,7 +3480,7 @@ public class $className extends ${sm.capShortName}MetaState {
     return ret;
   }<% conditions.each { cond -> if (cond.toShared) { %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${cond.cap}Verifier(${cond.cap}Verifier ${cond.uncap}Verifier) {
     this.${cond.uncap}Verifier = ${cond.uncap}Verifier;
   }<% } } %>
@@ -3715,22 +3750,22 @@ public abstract class $className implements ${item.capShortName}StateTimeoutHand
     }
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setStateTimeouts(${item.capShortName}Timeouts stateTimeouts) {
     this.stateTimeouts = stateTimeouts;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setContextManager(${item.capShortName}ContextManager contextManager) {
     this.contextManager = contextManager;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void set$controller.cap($controller.cap $controller.uncap) {
     this.$controller.uncap = $controller.uncap;
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setEventFactory(${item.capShortName}EventFactory eventFactory) {
     this.eventFactory = eventFactory;
   }
@@ -3871,7 +3906,7 @@ public abstract class $className extends ConditionVerifierAbstract<${item.capSho
 
   @Override
   protected String getMlBase() {
-    return ${component.capShortName}Ml.ML_BASE;
+    return ${c.name(component.capShortName)}Ml.ML_BASE;
   }
 }''')
   
