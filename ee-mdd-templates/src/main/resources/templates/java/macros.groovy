@@ -2560,7 +2560,7 @@ public class $className extends ${item.capShortName}EventFactoryBaseImpl {
   template('actionType', body: '''
 /** Actions Enum of state machine $item.name */
 public enum $className { <% def literals = item.actions.collect {
-  if (it.description) { "   /** $it.description */   $it.name" } else { it.name } }.join(',   ') %>
+  if (it.description) { "   /** $it.description */   $it.underscored" } else { it.underscored} }.join(',   ') %>
   $literals;<% item.actions.each { action -> %>
 
   public boolean is${action.cap}() {
@@ -2573,7 +2573,7 @@ public enum $className { <% def literals = item.actions.collect {
   template('conditionType', body: '''
 /** Conditions Enum of state machine $module.name */
 public enum $className { <% def literals = item.conditions.collect {
-  if (it.description) { "   /** $it.description */   $it.name" }else { it.name } }.join(',   ') %>
+  if (it.description) { "   /** $it.description */   $it.name" }else { it.underscored } }.join(',   ') %>
   $literals;<% item.conditions.each { cond -> %>
 
   public boolean is${cond.cap}() {
@@ -2984,7 +2984,8 @@ public class $className extends ${c.name('Base')} {
   protected ${c.name(item.stateProp.type.name)} state;
   protected ${c.name(item.stateProp.type.name)} newState;
   protected ${c.name('Date')} newTimeout;
-  protected ${item.capShortName}TransitionExecutionResult;<% context.props.each { prop -> %>
+  protected ${c.name(entity.cap)} $entity.uncap;
+  protected ${item.capShortName}TransitionExecutionResult currentTransition;<% context.props.each { prop -> %>
   protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>
   //cached conditions<% context.conditions.findAll { it.cachedInContext }.each { con -> %>
   protected Boolean $con.uncap;<% } %><% context.props.each { prop-> %><% if (prop.description) { %>
@@ -3010,6 +3011,23 @@ public class $className extends ${c.name('Base')} {
   public void setState(${item.stateProp.type.name} state) {
     this.state = state;
   }
+
+  public ${entity.cap} get${entity.cap}() {
+    return $entity.uncap;
+  }
+
+  public void set${entity.cap}($entity.cap $entity.uncap) {
+    this.$entity.uncap = $entity.uncap;
+  }
+
+  public ${item.capShortName}TransitionExecutionResult getCurrentTransition() {
+    return currentTransition;
+  }
+
+  public void setCurrentTransition(${item.capShortName}TransitionExecutionResult currentTransition) {
+    this.currentTransition = currentTransition;
+  }
+  
   <% context.operations.each { op -> if(op.body) { %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public $op.ret ${op.name}($op.signature) {
@@ -3120,13 +3138,13 @@ public interface $className {
   
   template('actionEvent', body: '''<% def sm = item.stateMachine %>{{imports}}
 /** Event object for action $item.name */
-public class $className extends EventImpl<${sm.entity.cap}> {
+public class $className extends ${c.name('EventImpl')}<${sm.entity.cap}> {
   private static final long serialVersionUID = 1L;
   private ${sm.capShortName}StateEvent stateEvent;
-  private $sm.stateProp.type.name oldState;
-  private $sm.stateProp.type.name newState;
+  private ${c.name(sm.stateProp.type.name)} oldState;
+  private ${c.name(sm.stateProp.type.name)} newState;
 
-  public ${item.cap}Event(${sm.entity.cap} object, ActionType type, String source, ${sm.capShortName}StateEvent stateEvent, $sm.stateProp.type.name oldState, $sm.stateProp.type.name newState) {
+  public ${item.cap}Event(${c.name(sm.entity.cap)} object, ${c.name('ActionType')} type, String source, ${sm.capShortName}StateEvent stateEvent, $sm.stateProp.type.name oldState, $sm.stateProp.type.name newState) {
     super(object, type, source, ${sm.entity.cap}.class);
     this.stateEvent = stateEvent;
     this.oldState =  oldState;
@@ -3280,6 +3298,7 @@ public interface $className extends ${sm.capShortName}StateEventProcessor {<% it
 import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${sm.stateProp.type.name}.*;
 import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.statemachine.${sm.capShortName}StateConditionType.*;{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.realmConstants};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()};
 import javax.enterprise.event.Event;
 /** Event processor for state '$item.name' of '$sm.name'. */
 @${c.name('Controller')}
@@ -3289,7 +3308,7 @@ import javax.enterprise.event.Event;
     @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${sm.capShortName}StateEventProcessorImpl implements ${sm.capShortName}${item.cap}EventProcessor {<% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
   protected Event<${action.cap}Event> ${action.uncap}Publisher;<% } else { %>
-  protected $action.cap ${action.uncap};<% } %>
+  protected ${action.cap}Executor ${action.uncap};<% } %>
   <% } } %><% item.conditions.each { cond -> %>
   protected $cond.n.cap.verifier $cond.uncap;<% } %><% if (item.transitions) { %>
 
@@ -3310,7 +3329,7 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
     context.evaluateUserInRoleStrict(${component.capShortName}RealmConstants.ROLE_${sm.underscored}_${etrs.event.underscored});<% } %>
     <% if (etrs.conditions) { def elseCase = false; %>
     ${sm.capShortName}TransitionExecutionResult<${etrs.event.cap}Event> transition;
-    <% etrs.transitions.each { def tr-> if (tr.conditionObjs || tr.notConditionObjs) { def expr; def exprs = []
+    <% etrs.transitions.each { tr -> if (tr.conditionObjs || tr.notConditionObjs) { def expr; def exprs = []
       if (tr.conditionObjs) { exprs.addAll( tr.conditionObjs.collect { cond -> "${cond.uncap}(transition, context)" } ) }
       if (tr.notConditionObjs) { exprs.addAll( tr.notConditionObjs.collect { cond -> "!${cond.uncap}(transition, context)" } ) }
       expr = exprs.join(' &&\\n         ')
@@ -3360,20 +3379,20 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
 
   protected void $action.uncap(${sm.capShortName}Context context) {
     log.${sm.logLevel}("${action.uncap}({})", context);
-    ${action.uncap}Publisher.fire(new ${action.cap}Event(context.get${sm.entity.cap}(), ActionType.TRIGGER, source, context.getEvent(), context.getState(), context.getCurrentTransition().getToState()));
+    ${action.uncap}Publisher.fire(new ${action.cap}Event(context.get${sm.entity.cap}(), ${c.name('ActionType')}.TRIGGER, source, context.getEvent(), context.getState(), context.getCurrentTransition().getToState()));
   }<% } } %><% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
 
-  @Inject
-  public void set${action.cap}Publisher(@${component.capShortName} @Backend Event<${action.cap}Event> ${action.uncap}Publisher) {
+  @${c.name('Inject')}
+  public void set${action.cap}Publisher(@${component.capShortName} @${c.name('Backend')} Event<${action.cap}Event> ${action.uncap}Publisher) {
     this.${action.uncap}Publisher = ${action.uncap}Publisher;
   }<% } else { %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${action.cap}Executor(${action.cap}Executor $action.uncap) {
     this.$action.uncap = $action.uncap;
   }<% } } } %><% item.conditions.each { cond -> %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${cond.cap}Verifier(${cond.cap}Verifier $cond.uncap) {
     this.$cond.uncap = $cond.uncap;
   }<% } %>
@@ -3763,11 +3782,11 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl impl
 public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
 
-  protected $item.stateProp.type.name fromState;
-  protected $item.stateProp.type.name toState;
+  protected ${c.name(item.stateProp.type.name)} fromState;
+  protected ${c.name(item.stateProp.type.name)} toState;
   protected EVENT event;
   protected ${item.capShortName}StateEvent redirectEvent;
-  protected ArrayList<Link<${item.capShortName}StateConditionType, Boolean>> conditionResults = new ArrayList<>();
+  protected ${c.name('ArrayList')}<Link<${item.capShortName}StateConditionType, Boolean>> conditionResults = new ArrayList<>();
   protected ${item.capShortName}StateConditionType failedCondition = null;
 
   public $className($item.stateProp.type.name fromState, $item.stateProp.type.name toState, EVENT event, ${item.capShortName}StateEvent redirectEvent) {
@@ -3924,7 +3943,17 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
   
- 
+ template('qualifier', body: '''{{imports}}
+/**
+* The qualifier of '$item.name' what can be used in artifacts at dependency management and event messaging.
+* The qualifier allows to select correct implementation of the common/generic interfaces.
+*/
+@${c.name('Qualifier')}
+@${c.name('Retention')}(${c.name('RetentionPolicy')}.RUNTIME)
+@${c.name('Target')}({ ${c.name('ElementType')}.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.CONSTRUCTOR })
+@${c.name('DependsOnExecutionType')}
+public @interface $className {
+}''')
   
   
   

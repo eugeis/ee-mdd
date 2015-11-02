@@ -37,7 +37,8 @@ def primitiveTypes = [
 def nameToNamespace = ['Comparator' : 'java.util', 'Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util',
   'ArrayList' : 'java.util', 'HashMap' : 'java.util' , 'ConcurrentHashMap' : 'java.util.concurrent', 'Serializable': 'java.io', 'HashSet' : 'java.util', 'Collections' : 'java.util',
   'XLogger' : 'org.slf4j.ext', 'XLoggerFactory' : 'org.slf4j.ext', 'RunAs' : 'javax.annotation.security', 'PreDestroy' : 'javax.annotation', 'Executors' : 'java.util.concurrent',
-  'ScheduledExecutorService' : 'java.util.concurrent' , 'ScheduledFuture' : 'java.util.concurrent', 'TimeUnit' : 'java.util.concurrent'] as TreeMap
+  'ScheduledExecutorService' : 'java.util.concurrent' , 'ScheduledFuture' : 'java.util.concurrent', 'TimeUnit' : 'java.util.concurrent', 'ElementType' : 'java.lang.annotation',
+  'Retention' : 'java.lang.annotation', 'RetentionPolicy' : 'java.lang.annotation', 'Target' : 'java.lang.annotation', 'Qualifier' : 'javax.inject'] as TreeMap
 
 extModule(name: 'Java') {
 

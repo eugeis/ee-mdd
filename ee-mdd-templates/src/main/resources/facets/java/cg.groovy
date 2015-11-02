@@ -20,11 +20,11 @@
  * @author Niklas Cappelmann
  */
 
-def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
-  'ConnectionMetaEvent' : 'com.siemens.ra.cg.pl.common.base.model.event',
-  'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model',
-  'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception',
-  'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
+def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
+  'ConnectionMetaEvent' : 'com.siemens.ra.cg.pl.common.base.model.event', 'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model',
+  'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model', 'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception',
+  'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'ActionType' : 'com.siemens.ra.cg.pl.common.base.model',
+  'DependsOnExecutionType' : 'com.siemens.ra.cg.pl.common.base.cdi'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
