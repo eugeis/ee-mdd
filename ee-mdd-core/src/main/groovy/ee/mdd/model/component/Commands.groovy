@@ -22,17 +22,24 @@ import ee.mdd.model.Element
  * @author Niklas Cappelmann
  */
 class Commands extends Controller {
+  
+  Entity getEntity() { parent }
+  
+  Finders getSuperCommands() { entity.superUnit?.commands}
 
   List<Delete> getDeleters() {
     operations?.findAll { Delete.isInstance(it) }
+    superCommands.operations?.findAll { Delete.isInstance(it) }
   }
 
   List<Delete> getUpdates() {
     operations?.findAll { Update.isInstance(it) }
+    superCommands.operations?.findAll { Update.isInstance(it) }
   }
 
   List<Delete> getCreates() {
     operations?.findAll { Create.isInstance(it) }
+    superCommands.operations?.findAll { Create.isInstance(it) }
   }
 
   void fillReference(Map<String, Element> refToMe) {

@@ -23,16 +23,23 @@ import ee.mdd.model.Element
  */
 class Finders extends Controller {
 
+  Entity getEntity() { parent }
+  
+  Finders getSuperFinders() { entity.superUnit?.finders}
+  
   List<Find> getFinders() {
     operations?.findAll { Find.isInstance(it) }
+    superFinders.operations?.findAll { Find.isInstance(it) }
   }
 
   List<Count> getCounters() {
     operations?.findAll { Count.isInstance(it) }
+    superFinders.operations?.findAll { Count.isInstance(it) }
   }
 
   List<Exist> getExists() {
     operations?.findAll { Exist.isInstance(it) }
+    superFinders.operations?.findAll { Exist.isInstance(it) }
   }
 
   void fillReference(Map<String, Element> refToMe) {
