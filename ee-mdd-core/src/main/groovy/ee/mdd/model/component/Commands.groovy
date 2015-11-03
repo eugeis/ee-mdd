@@ -25,23 +25,26 @@ class Commands extends Controller {
   
   Entity getEntity() { parent }
   
-  Finders getSuperCommands() { entity.superUnit?.commands}
+  Commands getSuperCommands() { entity.superUnit?.commands}
 
   List<Delete> getDeleters() {
     def ret = operations?.findAll { Delete.isInstance(it) }
-    ret.addAll(superCommands.operations?.findAll { Delete.isInstance(it) })
+    if (superCommands)
+      ret.addAll(superCommands.operations?.findAll { Delete.isInstance(it) })
     ret
   }
 
   List<Delete> getUpdates() {
     def ret = operations?.findAll { Update.isInstance(it) }
-    ret.addAll(superCommands.operations?.findAll { Update.isInstance(it) })
+    if (superCommands)
+      ret.addAll(superCommands.operations?.findAll { Update.isInstance(it) })
     ret
   }
 
   List<Delete> getCreates() {
     def ret = operations?.findAll { Create.isInstance(it) }
-    ret.addAll(superCommands.operations?.findAll { Create.isInstance(it) })
+    if (superCommands)
+      ret.addAll(superCommands.operations?.findAll { Create.isInstance(it) })
     ret
   }
 
