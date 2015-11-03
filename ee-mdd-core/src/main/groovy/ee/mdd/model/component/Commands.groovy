@@ -31,6 +31,8 @@ class Commands extends Controller {
     def ret = operations?.findAll { Delete.isInstance(it) }
     if (superCommands)
       ret.addAll(superCommands.operations?.findAll { Delete.isInstance(it) })
+    if(!ret)
+      ret = []
     ret
   }
 
@@ -38,6 +40,8 @@ class Commands extends Controller {
     def ret = operations?.findAll { Update.isInstance(it) }
     if (superCommands)
       ret.addAll(superCommands.operations?.findAll { Update.isInstance(it) })
+    if(!ret)
+      ret = []
     ret
   }
 
@@ -45,6 +49,8 @@ class Commands extends Controller {
     def ret = operations?.findAll { Create.isInstance(it) }
     if (superCommands)
       ret.addAll(superCommands.operations?.findAll { Create.isInstance(it) })
+    if(!ret)
+      ret = []
     ret
   }
 

@@ -31,6 +31,8 @@ class Finders extends Controller {
     def ret = operations?.findAll { Find.isInstance(it) }
     if (superFinders)
       ret.addAll(superFinders.operations?.findAll { Find.isInstance(it) })
+    if(!ret)
+      ret = []
     ret
   }
 
@@ -38,6 +40,8 @@ class Finders extends Controller {
     def ret = operations?.findAll { Count.isInstance(it) }
     if (superFinders)
       ret.addAll(superFinders.operations?.findAll { Count.isInstance(it) })
+    if (!ret)
+      ret = []
     ret
   }
 
@@ -45,6 +49,8 @@ class Finders extends Controller {
     def ret = operations?.findAll { Exist.isInstance(it) }
     if (superFinders)
       ret.addAll(superFinders.operations?.findAll { Exist.isInstance(it) })
+    if (!ret)
+      ret = []
     ret
   }
 

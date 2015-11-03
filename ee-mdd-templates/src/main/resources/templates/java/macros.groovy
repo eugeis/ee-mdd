@@ -527,26 +527,37 @@ public interface $c.className extends ${c.name('Serializable')} {
   <% if(finders.description) { %>/**
      * $finders.description
      */<% } else { %>/** The finders provide Find, Count, Exist operations for entity {@link $item.cap}.*/<% } %>
-  public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% finders.counters.each { op -> %>
+  public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> {  <% finders.counters.each { op -> %>
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.finders.each { op -> %>
       ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.exists.each { op -> %>
+      ${op.returnTypeExternal(c)} ${op.name}(${op.signature(c)});
+      
+      ${op.returnTypeExternal(c)} ${op.name}Strict(${op.signature(c)});
+      <% } %><% finders.exists.each { op -> %>
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${op.signature(c)});<% } %>
-  }''')
+}''')
 
   template('ifcCommands', body: '''<% if(!c.className) { c.className = item.n.cap.commands } %><% def commands = item.commands; def idProp = item.idProp; %>{{imports}}
   <% if(commands.description) { %>/**
      * $commands.description
      */<% } else { %>/** The commands provide Delete, Update, Create operations for entity {@link $item.cap}.*/<% } %>
-  public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> { <% commands.deleters.each { op -> %>
-      ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updates.each { op -> %>
+  public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> {<% commands.deleters.each { op -> %>
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.creates.each { op -> %>
       ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}(${op.signature(c)});<% } %>
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updates.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${idProp.computedType(c)} $idProp.name, ${op.signature(c)});
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}($item.cap entity, ${op.signature(c)});
+      <% if (op.fireEventProp) { %>
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}(${idProp.computedType(c)} $idProp.name, ${op.signature(c)}, boolean fireEvent);
+      ${op.description?"   /** $op.description */":''}
+      ${op.return} ${op.name}($item.cap entity, ${op.signature(c)}, boolean fireEvent);
+<% } } %>
   }''')
   
   template('ifcCommandsExtends', body: '''<% def commands = item.commands %>
@@ -2780,7 +2791,7 @@ public abstract class $className extends ${c.name('Base')} {
   protected ${c.name('List')}<${item.capShortName}StateEventType> events;<% module.notifiables.each { toBeNotified -> %>
   protected boolean ${toBeNotified}ToBeNotified = false;<% } %>
   protected ${c.name('Provider')}<UserInRoleConditionVerifier> userInRoleConditionVerifierDef;
-  protected ${c.name(UserInRoleConditionVerifier')} userInRoleConditionVerifier;
+  protected ${c.name('UserInRoleConditionVerifier')} userInRoleConditionVerifier;
 
   // required to be proxyable
   protected $className() {
@@ -2879,20 +2890,26 @@ public abstract class $className implements ${item.capShortName}ContextManager {
   }
 }''')
   
-  template('implContextManagerExtends', body: '''{{imports}}
+  template('implContextManagerExtends', body: '''{{imports}}//Manual imports because c.name() does not resolve these interfaces
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.commands};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.finders};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.history.entity.n.cap.commands};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.history.entity.n.cap.finders};
+
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className extends ${item.capShortName}ContextManagerBaseImpl {
 
-  protected ${c.name(item.entity.n.cap.commands)} ${item.entity.uncap}Commands;
-  protected ${c.name(item.entity.n.cap.finders)} ${item.entity.uncap}Finder;<% if (item.history) { %>
-  protected ${item.history.entity.name}Manager ${item.history.entity.uncap}Manager;<% } %>
+  protected ${item.entity.n.cap.commands} ${item.entity.uncap}Commands;
+  protected ${item.entity.n.cap.finders} ${item.entity.uncap}Finders;<% if (item.history) { %>
+  protected ${item.history.entity.n.cap.finders} ${item.history.entity.uncap}Finders;
+  protected ${item.history.entity.n.cap.commands} ${item.history.entity.uncap}Commands;<% } %>
 
   @Override
   protected ${item.capShortName}Context fillContext(${item.capShortName}Context context) {
-    ${item.entity.cap} entity = ${item.entity.uncap}Manager.findByIdStrict(context.getEvent().get${item.entity.idProp.capFullName}());
+    ${c.name(item.entity.cap)} entity = ${item.entity.uncap}Finders.findByIdStrict(context.getEvent().get${item.entity.idProp.capFullName}());
     context.set${item.entity.cap}(entity);
     context.set${item.stateProp.cap}(entity.get${item.stateProp.cap}());
     return context;
@@ -2904,7 +2921,7 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
     ${item.entity.cap} ${item.entity.uncap} = context.get${item.entity.cap}();
     if (context.getNewState() != null) {
       <% if (item.timeoutEnabled) { %>${item.entity.uncap}.${item.stateTimeoutProp.setterMethodName}(context.getNewTimeout());<% } %>
-      ${item.entity.uncap} = ${item.entity.uncap}Manager.update${item.stateProp.cap}($item.entity.uncap, context.getNewState(), true);
+      ${item.entity.uncap} = ${item.entity.uncap}Commands.update${item.stateProp.cap}($item.entity.uncap, context.getNewState(), true);
       context.set${item.entity.cap}(${item.entity.uncap});<% if (item.history) { %>
       create${item.history.entity.name}(context);<% } %>
     }
@@ -2912,18 +2929,18 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
   }
 
   @Override
-  public $item.stateProp.type.name findCurrentState($item.entity.idProp.type.cap $item.entity.idProp.uncapFullName) {
-    ${item.entity.cap} entity = ${item.entity.uncap}Manager.findByIdStrict($item.entity.idProp.uncapFullName);
+  public ${c.name(item.stateProp.type.name)} findCurrentState($item.entity.idProp.type.cap $item.entity.idProp.uncapFullName) {
+    ${item.entity.cap} entity = ${item.entity.uncap}Finders.findByIdStrict($item.entity.idProp.uncapFullName);
     $item.stateProp.type.name ret = entity.get${item.stateProp.cap}();
     return ret;
   }
 
   @Override
-  public ${c.name('List')}<$item.entity.cap> findExpired${item.entity.cap}() {
-    return ${item.entity.uncap}Manager.findBy$item.stateTimeoutProp.cap(TimeUtils.now());
+  public ${c.name('List')}<$item.entity.cap> findExpired${item.entity.instancesName.capitalize()}() {
+    return ${item.entity.uncap}Finders.findBy$item.stateTimeoutProp.cap(${c.name('TimeUtils')}.now());
   }<% if (item.history) { def history = item.history; %>
 
-  protected void create$history.entity.name(${item.cap}Context context) {
+  protected void create$history.entity.name(${item.capShortName}Context context) {
     log.$item.logLevel("Creating history entry for state change");
     $item.entity.cap $item.entity.uncap = context.get${item.entity.cap}();
     ${history.entity.cap}Entity ret = new ${history.entity.cap}Entity();
@@ -2935,7 +2952,7 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
     <% }; if (history.reason) { %>ret.set$history.reason.cap(${item.entity.uncap}.get$history.reason.cap());
     <% }; if (history.stateMachineEntityHistoryEntries) { %>((${item.entity.cao}Entity)${item.entity.uncap}).addTo$history.stateMachineEntityHistoryEntries.cap(ret);
     <% } %>
-    ${history.uncap}Manager.create(ret, true);
+    ${history.uncap}Commands.create(ret, true);
   }
 
   @${c.name('Inject')}
@@ -3037,6 +3054,22 @@ public class $className extends ${c.name('Base')} {
   public void setRedirectEvent(${item.capShortName}StateEvent redirectEvent) {
     this.redirectEvent = redirectEvent;
   }
+
+  public Date getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Date timeout) {
+    this.timeout = timeout;
+  }
+
+  public Date getNewTimeout() {
+    return newTimeout;
+  }
+
+  public void setNewTimeout(Date newTimeout) {
+    this.newTimeout = newTimeout;
+  }
   
   public ${item.stateProp.type.name} getState() {
     return state;
@@ -3044,6 +3077,14 @@ public class $className extends ${c.name('Base')} {
 
   public void setState(${item.stateProp.type.name} state) {
     this.state = state;
+  }
+
+  public ${item.stateProp.type.name} getNewState() {
+    return newState;
+  }
+
+  public void setNewState(${item.stateProp.type.name} newState) {
+    this.newState = newState;
   }
 
   public ${entity.cap} get${entity.cap}() {
