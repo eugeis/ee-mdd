@@ -28,18 +28,21 @@ class Finders extends Controller {
   Finders getSuperFinders() { entity.superUnit?.finders}
   
   List<Find> getFinders() {
-    operations?.findAll { Find.isInstance(it) }
-    superFinders.operations?.findAll { Find.isInstance(it) }
+    def ret = operations?.findAll { Find.isInstance(it) }
+    ret.addAll(superFinders.operations?.findAll { Find.isInstance(it) })
+    ret
   }
 
   List<Count> getCounters() {
-    operations?.findAll { Count.isInstance(it) }
-    superFinders.operations?.findAll { Count.isInstance(it) }
+    def ret = operations?.findAll { Count.isInstance(it) }
+    ret.addAll(superFinders.operations?.findAll { Count.isInstance(it) })
+    ret
   }
 
   List<Exist> getExists() {
-    operations?.findAll { Exist.isInstance(it) }
-    superFinders.operations?.findAll { Exist.isInstance(it) }
+    def ret = operations?.findAll { Exist.isInstance(it) }
+    ret.addAll(superFinders.operations?.findAll { Exist.isInstance(it) })
+    ret
   }
 
   void fillReference(Map<String, Element> refToMe) {

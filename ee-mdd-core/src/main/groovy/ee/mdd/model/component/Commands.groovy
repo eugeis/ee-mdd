@@ -28,18 +28,21 @@ class Commands extends Controller {
   Finders getSuperCommands() { entity.superUnit?.commands}
 
   List<Delete> getDeleters() {
-    operations?.findAll { Delete.isInstance(it) }
-    superCommands.operations?.findAll { Delete.isInstance(it) }
+    def ret = operations?.findAll { Delete.isInstance(it) }
+    ret.addAll(superCommands.operations?.findAll { Delete.isInstance(it) })
+    ret
   }
 
   List<Delete> getUpdates() {
-    operations?.findAll { Update.isInstance(it) }
-    superCommands.operations?.findAll { Update.isInstance(it) }
+    def ret = operations?.findAll { Update.isInstance(it) }
+    ret.addAll(superCommands.operations?.findAll { Update.isInstance(it) })
+    ret
   }
 
   List<Delete> getCreates() {
-    operations?.findAll { Create.isInstance(it) }
-    superCommands.operations?.findAll { Create.isInstance(it) }
+    def ret = operations?.findAll { Create.isInstance(it) }
+    ret.addAll(superCommands.operations?.findAll { Create.isInstance(it) })
+    ret
   }
 
   void fillReference(Map<String, Element> refToMe) {
