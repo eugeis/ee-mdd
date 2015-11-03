@@ -660,6 +660,19 @@ class EnhancerForJava {
     }
 
     DataTypeOperation.metaClass {
+      
+      returnTypeExternal << { Context c ->
+        def key = System.identityHashCode(delegate) + 'returnTypeExternal'
+        if(!properties.containsKey(key)) {
+          if(Find.isInstance(delegate) && !delegate.unique) {
+            properties[key] = "${c.name('List')}<$delegate.parent.entity.cap>"
+          } else {
+            properties[key] = "$delegate.parent.entity.cap"
+          }
+        }
+        properties[key]
+        
+      }
 
       getPropWhere << {
         ->

@@ -28,13 +28,6 @@ class Attribute extends Element {
   def value
   boolean multi = false
   boolean generic = false
-  
-  Type getType() {
-    if(!type) {
-      return new Type(name: 'String')
-    }
-    type
-  }
 
   def add(MetaAttribute item) {
     if(!metas) {
