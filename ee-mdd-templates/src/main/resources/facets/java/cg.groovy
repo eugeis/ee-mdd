@@ -25,7 +25,9 @@ def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.commo
   'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model', 'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception',
   'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'ActionType' : 'com.siemens.ra.cg.pl.common.base.model',
   'DependsOnExecutionType' : 'com.siemens.ra.cg.pl.common.base.cdi', 'UserInRoleConditionVerifier' : 'com.siemens.ra.cg.pl.common.ejb.cond', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util',
-  'IllegalStateException' : 'com.siemens.ra.cg.pl.common.base.exception', 'now' : 'static com.siemens.ra.cg.pl.common.base.util.TimeUtils.*', 'CommonConstants' : 'com.siemens.ra.cg.pl.common.base.integ'] as TreeMap
+  'IllegalStateException' : 'com.siemens.ra.cg.pl.common.base.exception', 'now' : 'static com.siemens.ra.cg.pl.common.base.util.TimeUtils.*', 'CommonConstants' : 'com.siemens.ra.cg.pl.common.base.integ',
+  'ThreadBoundProxyHandler' : 'com.siemens.ra.cg.pl.common.base.integ', 'JmxUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'SingletonContainer' : 'com.siemens.ra.cg.pl.common.base.integ',
+  'NamedThreadFactoryHolderByPrefix' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

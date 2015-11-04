@@ -3540,13 +3540,13 @@ public class $className extends ${sm.capShortName}MetaState {
 }''')
   
   template('controllerBootstrapBase', body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
-public class $className implements Closeable {
+public class $className implements ${c.name('Closeable')} {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   protected boolean wrapForThreadBound = true;
   protected String threadName;
   protected ${controller.cap}FactoryBase factory;
   protected ${controller.cap} instance;
-  protected ThreadBoundProxyHandler<$controller.cap> threadBoudHandler;<% if (item.timeoutEnabled) { %>
+  protected ${c.name('ThreadBoundProxyHandler')}<$controller.cap> threadBoundHandler;<% if (item.timeoutEnabled) { %>
   protected ${item.capShortName}StateTimeoutHandler timeoutHandler;<% } %>
 
   protected $className() {
@@ -3570,18 +3570,18 @@ public class $className implements Closeable {
       timeoutHandler = get${item.capShortName}StateTimeoutHandler();
       timeoutHandler.registerTimer();<% } %>
     }
-    JmxUtils.deployMBean(this);
+    ${c.name('JmxUtils')}.deployMBean(this);
     return instance;
   }
 
   protected $controller.cap wrapForThreadBound($controller.cap controller) {
-    threadBoudHandler = new ThreadBoundProxyHandler<$controller.cap>(controller, 1, SingletonContainer.getSingleton(NamedThreadFactoryHolderByPrefix.class).getNamedThreadFactory(threadName)) {
+    threadBoundHandler = new ThreadBoundProxyHandler<$controller.cap>(controller, 1, ${c.name('SingletonContainer')}.getSingleton(${c.name('NamedThreadFactoryHolderByPrefix')}.class).getNamedThreadFactory(threadName)) {
       @Override
-      protected boolean isThreadBound(final Method method) throws NoSuchMethodException {
+      protected boolean isThreadBound(final ${c.name('Method')} method) throws NoSuchMethodException {
         return method.getName() == "process";
       }
     };
-    return ($controller.cap) Proxy.newProxyInstance(controller.getClass().getClassLoader(), new Class[] { ${controller.cap}.class }, threadBoudHandler);
+    return ($controller.cap) ${c.name('Proxy')}.newProxyInstance(controller.getClass().getClassLoader(), new Class[] { ${controller.cap}.class }, threadBoundHandler);
   }<% if (module.timeoutEnabled) { %>
 
   protected ${item.capShortName}StateTimeoutHandler get${item.capShortName}StateTimeoutHandler() {
@@ -3604,8 +3604,8 @@ public class $className implements Closeable {
       ((Closeable)timeoutHandler).close();
     }<% } %>
 
-    if (threadBoudHandler != null) {
-      threadBoudHandler.close();
+    if (threadBoundHandler != null) {
+      threadBoundHandler.close();
     }
     JmxUtils.undeployMBean(this);
   }
