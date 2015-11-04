@@ -19,10 +19,8 @@
  */
 
 extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
-  ['Base' : 'ee.common.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model',
-  'Factory' : 'ee.common.model',
-  'Labeled' : 'ee.common.model', 'Event' : 'ee.common.model',
-  'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
+  ['Base' : 'ee.common.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model', 'Factory' : 'ee.common.model',
+  'Labeled' : 'ee.common.model', 'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
   'Finder' : 'ee.common.core', 'Manager' : 'ee.common.core', 'EventListener' : 'ee.common.core',
   'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
   'MlKey' : 'ee.common.ml', 'MlKeyBuilder' : 'ee.common.ml' , 'MlKeyImpl' : 'ee.common.ml',

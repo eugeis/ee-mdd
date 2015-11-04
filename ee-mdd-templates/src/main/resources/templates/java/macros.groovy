@@ -2730,7 +2730,7 @@ public class $className extends ${item.capShortName}ControllerBaseImpl {
 public class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
   <% item.states.each { state -> %>
-  private ${item.capShortName}${state.CAP}MetaState ${state.uncap}MetaState;<% } %>
+  private ${item.capShortName}${state.cap}MetaState ${state.uncap}MetaState;<% } %>
 
   private ${item.capShortName}MetaState[] metaStates;
 
@@ -2776,7 +2776,7 @@ public class $className extends ${c.name('Base')} {
   }<% item.states.each { state -> %>
 
   @${c.name('Inject')} 
-  public void set${state.capShortName}MetaState(${state.capShortName}MetaState ${state.uncap}MetaState) {
+  public void set${item.capShortName}${state.cap}MetaState(${item.capShortName}${state.cap}MetaState ${state.uncap}MetaState) {
     this.${state.uncap}MetaState = ${state.uncap}MetaState;
   }<% } %>
 }''')
@@ -3633,7 +3633,7 @@ public abstract class $className {
 
   protected ${controller.cap} wire(${controller.cap}Impl item) {
     item.set${item.capShortName}StateMetaModel(delegate.getStateMetaModel());
-    item.setContextManagerDef(new HolderImpl(delegate.getContextManager()));<% item.states.each { def state-> %>
+    item.setContextManagerDef(new ${c.name('HolderImpl')}(delegate.getContextManager()));<% item.states.each { def state-> %>
     item.set${item.capShortName}${state.cap}EventProcessor(delegate.get${item.capShortName}${state.cap}EventProcessor());<% } %><% controller.operations.each { ref-> def uncapName = ref.uncap %>
     item.set${ref.name}(delegate.get$ref.name());<% } %><% controller.containers.each { ref -> %>
     item.set${ref.names.clazz}(delegate.get$ref.cap());<% } %>
@@ -3665,8 +3665,8 @@ public abstract class $className {
 
   protected ${item.capShortName}${state.cap}EventProcessor wire(${item.capShortName}${state.cap}EventProcessorImpl item) {<% state.actions.each { def action-> if (!action.body) { if (action.async) { %>
     item.set${action.cap}Publisher(delegate.get${action.cap}Publisher());<% } else { %>
-    item.set$action.cap(delegate.get$action.cap());<% } } } %><% state.conditions.each { cond -> %>
-    item.set$cond.cap(delegate.get$cond.cap());<% } %><% if (module.timeoutEnabled) { %>
+    item.set${action.cap}Executor(delegate.get${action.cap}Executor());<% } } } %><% state.conditions.each { cond -> %>
+    item.set${cond.cap}Verifier(delegate.get${cond.cap}Verifier());<% } %><% if (module.timeoutEnabled) { %>
     item.setStateTimeouts(delegate.getStateTimeouts());<% } %>
     return item;
   }<% } %>
@@ -3687,14 +3687,14 @@ public abstract class $className {
 
   protected ${ref.cap} wire(${ref.cap}Impl item) {
     return item;
-  }
-
-  protected ${item.capShortName}MetaModel getStateMetaModel() {
-    ${item.capShortName}MetaModel ret = new ${item.capShortName}MetaModel();
-    return wire(ret);
   }<% } %>
 
-  protected ${item.capShortName}MetaModel wire(${item.capShortName}MetaModel item) {<% item.states.each { state -> %>
+  protected ${item.capShortName}StateMetaModel getStateMetaModel() {
+    ${item.capShortName}StateMetaModel ret = new ${item.capShortName}StateMetaModel();
+    return wire(ret);
+  }
+
+  protected ${item.capShortName}StateMetaModel wire(${item.capShortName}StateMetaModel item) {<% item.states.each { state -> %>
     item.set${item.capShortName}${state.cap}MetaState(delegate.get${item.capShortName}${state.cap}MetaState());<% } %>
     return item;
   }<% item.states.each { state -> %>
@@ -3708,24 +3708,24 @@ public abstract class $className {
     return item;
   }<% } %><% item.actions.each { def action-> if (!action.body) { if (action.async) { %>
 
-  protected Event<${action.cap}Event> get${action.cap}Publisher() {
-    return new PublisherEmpty<${action.cap}Event>() {
+  protected ${c.name('Event')}<${action.cap}Event> get${action.cap}Publisher() {
+    return new ${c.name('PublisherEmpty')}<${action.cap}Event>() {
 
       @Override
-      public void fire(${action.cap}Event event) {
+      public void fire(${action.cap}${c.name('Event')} event) {
         fire${action.cap}Event(event);
       }
     };
   }
 
-  protected abstract void fire${action.cap}Event(${action.cap}Event event);
+  protected abstract void fire${action.cap}${c.name('Event')}(${action.cap}Event event);
   <% } else { %>
 
-  protected abstract ${action.cap} get${action.cap}();<% } } } %><% item.conditions.each { cond -> %>
+  protected abstract ${action.cap}Executor get${action.cap}Executor();<% } } } %><% item.conditions.each { cond -> %>
 
-  protected abstract $cond.cap get$cond.cap();<% } %>
+  protected abstract ${cond.cap}Verifier get${cond.cap}Verifier();<% } %>
 
-  protected abstract SessionPrincipal getSessionPrincipal();
+  protected abstract ${c.name('SessionPrincipal')} getSessionPrincipal();
 }''')
   
   template('stateTimeoutHandler', body: '''

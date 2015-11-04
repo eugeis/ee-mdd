@@ -27,7 +27,7 @@ def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.commo
   'DependsOnExecutionType' : 'com.siemens.ra.cg.pl.common.base.cdi', 'UserInRoleConditionVerifier' : 'com.siemens.ra.cg.pl.common.ejb.cond', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'IllegalStateException' : 'com.siemens.ra.cg.pl.common.base.exception', 'now' : 'static com.siemens.ra.cg.pl.common.base.util.TimeUtils.*', 'CommonConstants' : 'com.siemens.ra.cg.pl.common.base.integ',
   'ThreadBoundProxyHandler' : 'com.siemens.ra.cg.pl.common.base.integ', 'JmxUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'SingletonContainer' : 'com.siemens.ra.cg.pl.common.base.integ',
-  'NamedThreadFactoryHolderByPrefix' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
+  'NamedThreadFactoryHolderByPrefix' : 'com.siemens.ra.cg.pl.common.base.util', 'HolderImpl' : 'com.siemens.ra.cg.pl.common.base', 'PublisherEmpty' : 'com.siemens.ra.cg.pl.common.base.cdi'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
