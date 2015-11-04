@@ -2524,15 +2524,15 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
 public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : '' %>
   ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs);
 
-  ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState);<% item.events.each { event -> %><% if (!event.props) { %>
+  ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$extraArgs, ${c.name(item.stateProp.type.name)} expectedState);<% item.events.each { event -> %><% if (!event.props) { %>
 
-  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs);<% } %>
+  ${event.cap}Event new${event.cap}Event($idProp.type.name $idProp.uncapFullName$extraArgs);<% } %>
 
-  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState);<% if (event.props) { %>
+  ${event.cap}Event new${event.cap}Event($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState);<% if (event.props) { %>
 
-  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, ${event.signatureFullConstr(c)});
+  ${event.cap}Event new${event.cap}Event($idProp.type.name $idProp.uncapFullName$extraArgs, ${event.signatureFullConstr(c)});
 
-  ${event.cap}Event new${event.cap}($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
+  ${event.cap}Event new${event.cap}Event($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
 }''')
   
   template('implEventFactory', body: '''<% def idProp = item.entity.idProp %>{{imports}}
@@ -2556,23 +2556,23 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
   }<% item.events.each { event-> %><% if (!event.props) { %>
 
   @Override
-  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr) {
-    return new ${event.cap}Impl($idProp.uncapFullName$args);
+  public ${event.n.cap.event} new${event.n.cap.event}($idProp.type.name $idProp.uncapFullName$argsConstr) {
+    return new ${event.n.cap.eventImpl}($idProp.uncapFullName$args);
   }<% } %>
 
   @Override
-  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type.name expectedState) {
-    return new ${event.cap}Impl($idProp.uncapFullName$args, expectedState);
+  public ${event.n.cap.event} new${event.n.cap.event}($idProp.type.name $idProp.uncapFullName$argsConstr, ${c.name(item.stateProp.type.name)} expectedState) {
+    return new ${event.n.cap.eventImpl}($idProp.uncapFullName$args, expectedState);
   }<% if (event.props) { %>
 
   @Override
-  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, ${event.signatureFullConstr(c)}) {
-    return new ${event.cap}Impl($idProp.uncapFullName$args, ${event.signatureNamesFullConstr(c)});
+  public ${event.n.cap.event} new${event.n.cap.event}($idProp.type.name $idProp.uncapFullName$argsConstr, ${event.signatureFullConstr(c)}) {
+    return new ${event.n.cap.eventImpl}($idProp.uncapFullName$args, ${event.signatureNamesFullConstr(c)});
   }
 
   @Override
-  public ${event.cap} new${event.cap}($idProp.type.name $idProp.uncapFullName$argsConstr, item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)}) {
-    return new ${event.cap}Impl($idProp.uncapFullName$args, expectedState, ${event.signatureNamesFullConstr(c)});
+  public ${event.n.cap.event} new${event.n.cap.event}($idProp.type.name $idProp.uncapFullName$argsConstr, ${c.name(item.stateProp.type.name)} expectedState, ${event.signatureFullConstr(c)}) {
+    return new ${event.n.cap.eventImpl}($idProp.uncapFullName$args, expectedState, ${event.signatureNamesFullConstr(c)});
   }<% } %><% } %>
 }''')
   
@@ -2716,8 +2716,8 @@ public class $className implements ${item.capShortName}Controller {
 @${c.name('ApplicationScoped')}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
-    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
-    @${c.name('Environment')}(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
 public class $className extends ${item.capShortName}ControllerBaseImpl {
 }''')
   
