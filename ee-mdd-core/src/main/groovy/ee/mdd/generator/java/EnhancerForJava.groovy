@@ -184,7 +184,10 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret = "${delegate.cap}"
           if(Entity.isInstance(delegate)) {
-            ret = "${delegate.n.cap.entity}"
+            if(delegate.base)
+              ret = "${delegate.n.cap.baseEntity}"
+            else
+              ret = "${delegate.n.cap.entity}"
           } else if (BasicType.isInstance(delegate)) {
             ret = "${delegate.n.cap.embeddable}"
           }

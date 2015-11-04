@@ -490,9 +490,9 @@ public interface $c.className extends ${c.name('Serializable')} {
     ${macros.generate('interfaceBody', c)}
   }''')
 
-  template('ifcEntity', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
-  public interface $c.className extends<% if (item.superUnit) { %> ${item.superUnit.name} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
+  public interface $c.className extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
     /** A unique URI prefix for RESTful services and multi-language support */
     public static final String URI_PREFIX = "${item.getUri()}";
     ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -1020,7 +1020,7 @@ public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}Bas
 }''')
 
   template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
-public ${item.virtual || item.base ? 'abstract ':''}class $c.className extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('EntityJpa')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
+public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('EntityJpa')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
   private transient boolean attributesChanged = false;<% } %>
@@ -2890,11 +2890,12 @@ public abstract class $className implements ${item.capShortName}ContextManager {
   }
 }''')
   
-  template('implContextManagerExtends', body: '''{{imports}}//Manual imports because c.name() does not resolve these interfaces
+  template('implContextManagerExtends', body: '''{{imports}}//Manual imports because c.name() does not resolve these classes
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.commands};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.finders};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.history.entity.n.cap.commands};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.history.entity.n.cap.finders};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.ejb.${item.history.entity.n.cap.entity};
 
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -2904,8 +2905,8 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
 
   protected ${item.entity.n.cap.commands} ${item.entity.uncap}Commands;
   protected ${item.entity.n.cap.finders} ${item.entity.uncap}Finders;<% if (item.history) { %>
-  protected ${item.history.entity.n.cap.finders} ${item.history.entity.uncap}Finders;
-  protected ${item.history.entity.n.cap.commands} ${item.history.entity.uncap}Commands;<% } %>
+  protected ${item.history.entity.n.cap.commands} ${item.history.entity.uncap}Commands;
+  protected ${item.history.entity.n.cap.finders} ${item.history.entity.uncap}Finders;<% } %>
 
   @Override
   protected ${item.capShortName}Context fillContext(${item.capShortName}Context context) {
@@ -2943,26 +2944,37 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
   protected void create$history.entity.name(${item.capShortName}Context context) {
     log.$item.logLevel("Creating history entry for state change");
     $item.entity.cap $item.entity.uncap = context.get${item.entity.cap}();
-    ${history.entity.cap}Entity ret = new ${history.entity.cap}Entity();
-    <% if (history.oldState) { %>ret.set$history.oldState.cap(context.getState());
-    <% }; if (history.newState) { %>ret.set$history.newState.cap(context.getNewState());
-    <% }; if (history.actor) { %>ret.set$history.actor.cap(context.getSessionPrincipal().getUser());
-    <% }; if (history.action) { %>ret.set$history.action.cap(context.getEvent().getType().buildMlKey());
-    <% }; if (history.dateOfOccurrence) { %>ret.set$history.dateOfOccurrence.cap(now());
-    <% }; if (history.reason) { %>ret.set$history.reason.cap(${item.entity.uncap}.get$history.reason.cap());
-    <% }; if (history.stateMachineEntityHistoryEntries) { %>((${item.entity.cao}Entity)${item.entity.uncap}).addTo$history.stateMachineEntityHistoryEntries.cap(ret);
-    <% } %>
-    ${history.uncap}Commands.create(ret, true);
+    ${history.entity.n.cap.entity} ret = new ${history.entity.cap}Entity();
+    /** TODO: Generic types must be resolvable in model in order to make this part compilable. We replaced generic types by String for now.
+    *<% if (history.oldState) { %>ret.set$history.oldState.cap(context.getState());
+    *<% }; if (history.newState) { %>ret.set$history.newState.cap(context.getNewState());
+    *<% }; if (history.actor) { %>ret.set$history.actor.cap(context.getSessionPrincipal().getUser());
+    *<% }; if (history.action) { %>ret.set$history.action.cap(context.getEvent().getType().buildMlKey());
+    *<% }; if (history.dateOfOccurrence) { %>ret.set$history.dateOfOccurrence.cap(${c.name('now')}());
+    *<% }; if (history.reason) { %>ret.set$history.reason.cap(${item.entity.uncap}.get$history.reason.cap());
+    *<% }; if (history.stateMachineEntityHistoryEntries) { %>((${item.entity.cao}Entity)${item.entity.uncap}).addTo$history.stateMachineEntityHistoryEntries.cap(ret);
+    <% } %>*/
+    ${history.entity.uncap}Commands.create(ret, true);
   }
 
   @${c.name('Inject')}
-  public void set${item.history.cap}Manager(${item.history.cap}Manager ${item.history.uncap}Manager) {
-    this.${item.history.uncap}Manager = ${item.history.uncap}Manager;
+  public void set${item.history.entity.cap}Commands(${item.history.entity.cap}Commands ${item.history.entity.uncap}Commands) {
+    this.${item.history.entity.uncap}Commands = ${item.history.entity.uncap}Commands;
+  }
+
+  @${c.name('Inject')}
+  public void set${item.history.entity.cap}Finders(${item.history.entity.cap}Finders ${item.history.entity.uncap}Finders) {
+    this.${item.history.entity.uncap}Finders = ${item.history.entity.uncap}Finders;
   }<% } %>
 
   @${c.name('Inject')}
-  public void set${item.entity.cap}Manager(${item.entity.cap}Manager ${item.entity.uncap}Manager) {
-    this.${item.entity.uncap}Manager = ${item.entity.uncap}Manager;
+  public void set${item.entity.cap}Commands(${item.entity.cap}Commands ${item.entity.uncap}Commands) {
+    this.${item.entity.uncap}Commands = ${item.entity.uncap}Commands;
+  }
+
+  @${c.name('Inject')}
+  public void set${item.entity.cap}Finders(${item.entity.cap}Finders ${item.entity.uncap}Finders) {
+    this.${item.entity.uncap}Finders = ${item.entity.uncap}Finders;
   }
 }''')
   
