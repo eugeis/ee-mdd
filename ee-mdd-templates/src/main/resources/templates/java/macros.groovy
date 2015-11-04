@@ -2608,14 +2608,14 @@ public enum $className { <% def literals = item.conditions.collect {
   ${macros.generate('buildMlKey', c)}
 }''')
   
-  template('stateMachineController', body: '''<% def controller = item.controller %>
+  template('stateMachineController', body: '''<% def controller = item.controller %>{{imports}}
 <% if (item.description) { %>/**
 * $item.description
 */<% } else { %>/** Event processor for state machine $item.name */<% } %>
 public interface $className {
-  $item.entity.cap process(${item.capShortName}StateEvent event);
+  ${c.name(item.entity.cap)} process(${item.capShortName}StateEvent event);
   ${item.capShortName}StateMetaModel findStateMetaModel();
-  $item.stateProp.type.name findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncap);<% controller.operations.each { op -> if(!op.override) { %>
+  ${c.name(item.stateProp.type.name)} findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncap);<% controller.operations.each { op -> if(!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>
   @${c.name('Transactional')}<% } %>
   $op.ret ${op.name}($op.signature(c));<% } %><% } %>
@@ -2633,13 +2633,13 @@ public interface $className extends ${item.capShortName}ControllerBase {
 public class $className implements ${item.capShortName}Controller {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   <% item.states.each { def state -> %>
-  protected ${state.cap}EventProcessor ${state.uncap}EventProcessor;<% } %>
+  protected ${item.capShortName}${state.cap}EventProcessor ${state.uncap}EventProcessor;<% } %>
   protected ${item.capShortName}StateMetaModel stateMetaModel;
-  protected Provider<${item.capShortName}ContextManager> contextManagerDef;<% controller.operations.each { delegate -> if(delegate.ref) { if(!members.contains(delegate.ref.parent)) { %>
+  protected ${c.name('Provider')}<${item.capShortName}ContextManager> contextManagerDef;<% controller.operations.each { delegate -> if(delegate.ref) { if(!members.contains(delegate.ref.parent)) { %>
   protected ${c.name(delegate.ref.parent.name)} $delegate.ref.parent.uncap;<% } %><% members.add(delegate.ref.parent) %><% } } %>
 
   @Override
-  public $item.entity.cap process(${item.capShortName}StateEvent event) {
+  public ${c.name(item.entity.cap)} process(${item.capShortName}StateEvent event) {
     log.${item.logLevel}("process({})", event);
     ${item.capShortName}ContextManager contextManager = contextManager();
     ${item.capShortName}Context context = contextManager.loadContext(event);
@@ -2664,7 +2664,7 @@ public class $className implements ${item.capShortName}Controller {
   }
 
   @Override
-  public $item.stateProp.type.name findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncapFullName) {
+  public ${c.name(item.stateProp.type.name)} findCurrentState($item.entity.idProp.type.name $item.entity.idProp.uncapFullName) {
     return contextManager().findCurrentState($item.entity.idProp.uncapFullName);
   }
 
@@ -2675,7 +2675,7 @@ public class $className implements ${item.capShortName}Controller {
     <% item.states.each { def state -> %>if (${item.stateProp.name}.is${state.cap}()) {
       ret = ${state.uncap}EventProcessor;
     } else <% } %>{
-      throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_UNEXPECTED_EVENT_FOR_STATE, context.getEvent().getType(), context.getState());
+      throw new ${c.name('IllegalStateException')}(${c.name('CommonConstants')}.ML_BASE, CommonConstants.ML_KEY_UNEXPECTED_EVENT_FOR_STATE, context.getEvent().getType(), context.getState());
     }
     return ret;
   }
@@ -2685,7 +2685,7 @@ public class $className implements ${item.capShortName}Controller {
     ${item.capShortName}StateEvent event = context.getEvent();
     if (event.getExpectedState() != null) {
       if (!event.getExpectedState().equals(context.getState())) {
-        throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_EXPECTED_AND_CURRENT_STATE_DIFFERENT,
+        throw new ${c.name('IllegalStateException')}(${c.name('CommonConstants')}.ML_BASE, CommonConstants.ML_KEY_EXPECTED_AND_CURRENT_STATE_DIFFERENT,
             event.getExpectedState(), context.getState());
       }
     }
@@ -2706,7 +2706,7 @@ public class $className implements ${item.capShortName}Controller {
   }<% item.states.each { def state-> %>
 
   @${c.name('Inject')}
-  public void set${state.cap}EventProcessor(${state.cap}EventProcessor ${state.uncap}EventProcessor) {
+  public void set${item.capShortName}${state.cap}EventProcessor(${item.capShortName}${state.cap}EventProcessor ${state.uncap}EventProcessor) {
     this.${state.uncap}EventProcessor = ${state.uncap}EventProcessor;
   }<% } %>
 
