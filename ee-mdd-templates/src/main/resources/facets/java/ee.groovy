@@ -27,7 +27,7 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'Backend' : 'ee.common.annotation', 'Service' : 'ee.common.annotation', 'Environment' : 'ee.common.annotation', 
   'External' : 'ee.common.annotation', 'SupportsEnvironments' : 'ee.common.annotation', 'Traceable' : 'ee.common.annotation',
   'SERVER' : 'static ee.common.integ.RuntimeType.*', 'CLIENT' : 'static ee.common.integ.RuntimeType.*', 'LOCAL' : 'static ee.common.integ.ExecutionType.*', 'MEMORY' : 'static ee.common.integ.ExecutionType.*', 
-  'PRODUCTIVE' : 'static ee.common.integ.ExecutionType.*', 'StringUtils' : 'ee.common.util', 'CollectionUtils' : 'ee.common.util', 'ComparisonUtils' : 'ee.common.util',
+  'PRODUCTIVE' : 'static ee.common.integ.ExecutionType.*', 'CollectionUtils' : 'ee.common.util', 'ComparisonUtils' : 'ee.common.util',
   'AssertionUtils' : 'ee.common.util', 'LogStringProvider' : 'ee.common.util', 'LogStringBuilder' : 'ee.common.util',
   'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
   'NotFoundException' : 'ee.common.exception', 'LongEntityCache' : 'ee.common.cache', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',

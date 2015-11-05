@@ -282,7 +282,7 @@ templates ('macros') {
   
   template('onEventSuper', body: '''
   @Override
-  public void onEvent(@Observes(during = AFTER_COMPLETION, notifyObserver = IF_EXISTS)${item.clientCache?' @Internal':''} ${item.cap}Event event) {
+  public void onEvent(@${c.name('Observes')}(during = ${c.name('AFTER_COMPLETION')}, notifyObserver = ${c.name('IF_EXISTS')})${item.clientCache?' @Internal':''} ${item.cap}Event event) {
     super.onEvent(event);
   }''')
   
@@ -1540,8 +1540,7 @@ public class $className {
   template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
 /** Constants for '$item.name' */
 public class $className extends ${item.n.cap.constantsBase} {
-}
-''')
+}''')
 
   template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %>
 /** Multi language constants for '${c.item.name}' */
@@ -1557,6 +1556,9 @@ public class $className {
   <% depModule.configs.each { def config -> %>
   public static final String $config.underscored = "${config.underscored.toLowerCase()};
   public static final String ${config.underscored}_UPDATED = "${config.underscored.toLowerCase()}_updated";<% } } %>
+//StateMachine constants 
+  <% item.modules.each { depModule -> depModule.stateMachines.each { sm -> sm.conditions.collect { cond -> cond.underscored+"_FAIL" }.each { failMl -> %> 
+  public static final String ${failMl} = "${failMl.toLowerCase()}";<% } } }%>
 }''')
 
   template('constantsMlExtends', body: '''<% if (!c.className) { c.className = "${item.key.capitalize()}Ml" } %>
@@ -2127,9 +2129,8 @@ ${ret-newLine}''')
   }''')
 
   template('buildMlKey', body: '''
-  @Override
   public ${c.name('MlKey')} buildMlKey() {
-    return new ${c.name('MlKeyImpl')}(${component.name}Ml.ML_BASE, name());
+    return new ${c.name('MlKeyImpl')}(${component.capShortName}Ml.ML_BASE, name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (parent != null) {<% if (op.unique) { %>
@@ -2373,7 +2374,7 @@ public interface $className extends ${c.name('Serializable')} {
 }''')
   
   template('eventType', body: '''import static ee.common.statemachine.StateFlowType.*;
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.name}Ml;
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.capShortName}Ml;
 {{imports}}
 /** Events of state machine '$item.name' */
 public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = item.events.collect {
@@ -2389,7 +2390,8 @@ public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = 
   public boolean is${event.cap}() {
     return this == $event.underscored;
   }<% } %>
-
+  
+  @Override
   ${macros.generate('buildMlKey', c)}
 
   public StateFlowType getFlowType() {
@@ -2535,22 +2537,23 @@ public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateE
   ${event.cap}Event new${event.cap}Event($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
 }''')
   
-  template('implEventFactory', body: '''<% def idProp = item.entity.idProp %>{{imports}}
+  template('implEventFactory', body: '''<% def idProp = item.entity.idProp %>import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
+{{imports}}
 public abstract class $className implements ${item.capShortName}EventFactory {<% argsConstr = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : ''; args = item.stateEvent ? ', ' + item.stateEvent.signatureNamesFullConstr(c) : ''; %>
 
   @Override
-  public ${item.capShortName}Event new${item.capShortName}Event(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$argsConstr) {
-    return new${item.capShortName}Event(type, $idProp.uncapFullName$args, null);
+  public ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$argsConstr) {
+    return new${item.capShortName}StateEvent(type, $idProp.uncapFullName$args, null);
   }
 
   @Override
-  public ${item.capShortName}Event new${item.capShortName}Event(${item.capShortName}EventType type, $idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type.name expectedState) {
-    ${item.capShortName}Event ret;
+  public ${item.capShortName}StateEvent new${item.capShortName}StateEvent(${item.capShortName}StateEventType type, $idProp.type.name $idProp.uncapFullName$argsConstr, $item.stateProp.type.name expectedState) {
+    ${item.capShortName}StateEvent ret;
 
     <% item.events.each { def event -> %>if (type.is${event.cap}()) {
-      ret = new${event.cap}($idProp.uncapFullName$args, expectedState);
+      ret = new${event.cap}Event($idProp.uncapFullName$args, expectedState);
     } else <% } %>{
-      //throw new IllegalStateException()
+       throw new ${c.name('IllegalStateException')}(${component.capShortName}Ml.ML_BASE, "no_state_event", type);
     }
     return ret;
   }<% item.events.each { event-> %><% if (!event.props) { %>
@@ -2576,13 +2579,14 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
   }<% } %><% } %>
 }''')
   
-  template('implEventFactoryExtends', body: '''<% def idProp = item.entity.idProp %>
+  template('implEventFactoryExtends', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('Traceable')}
 public class $className extends ${item.capShortName}EventFactoryBaseImpl {
 }''')
   
-  template('actionType', body: '''
+  template('actionType', body: '''import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
+{{imports}}
 /** Actions Enum of state machine $item.name */
 public enum $className { <% def literals = item.actions.collect {
   if (it.description) { "   /** $it.description */   $it.underscored" } else { it.underscored} }.join(',   ') %>
@@ -2595,7 +2599,8 @@ public enum $className { <% def literals = item.actions.collect {
   ${macros.generate('buildMlKey', c)}
 }''')
   
-  template('conditionType', body: '''
+  template('conditionType', body: '''import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
+{{imports}}
 /** Conditions Enum of state machine $module.name */
 public enum $className { <% def literals = item.conditions.collect {
   if (it.description) { "   /** $it.description */   $it.name" }else { it.underscored } }.join(',   ') %>
@@ -2725,7 +2730,7 @@ public class $className extends ${item.capShortName}ControllerBaseImpl {
 /** Meta model for state machine $item.name provides static information of available states, events and actions. */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
-    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL, MEMORY, PRODUCTIVE }, runtimes = { CLIENT }) })
 public class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;
@@ -2741,7 +2746,7 @@ public class $className extends ${c.name('Base')} {
     this.metaStates = metaStates;
   }
 
-  @PostConstruct
+  @${c.name('PostConstruct')}
   public void postConstruct() {
     metaStates = new ${item.capShortName}MetaState[] {   <% def metaStates = item.states.collect { state -> "${state.uncap}MetaState" }.join(',\\n      ') %>
       $metaStates
@@ -2756,7 +2761,7 @@ public class $className extends ${c.name('Base')} {
     return metaStates;
   }
 
-  public ${item.capShortName}MetaState findMetaState($item.stateProp.type state) {
+  public ${item.capShortName}MetaState findMetaState(${c.name(item.stateProp.type.name)} state) {
     ${item.capShortName}MetaState ret = null;
     if (state != null) {
       for (${item.capShortName}MetaState metaState : metaStates) {
@@ -2772,7 +2777,7 @@ public class $className extends ${c.name('Base')} {
   @Override
   protected void fillToString(StringBuffer buffer) {
     super.fillToString(buffer);
-    buffer.append("metaStates=").append(Arrays.toString(metaStates));
+    buffer.append("metaStates=").append(${c.name('Arrays')}.toString(metaStates));
   }<% item.states.each { state -> %>
 
   @${c.name('Inject')} 
@@ -2995,14 +3000,14 @@ public class $className implements ${item.capShortName}StateEventProcessor {
   @Override
   public void process(${item.capShortName}Context context) {
     log.warn("Unexpected event type '{}' for current state '{}' - process({})", context.getEvent().getType(), context.getState(), context);
-    throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_UNEXPECTED_EVENT_FOR_STATE,
+    throw new ${c.name('IllegalStateException')}(${c.name('CommonConstants')}.ML_BASE, CommonConstants.ML_KEY_UNEXPECTED_EVENT_FOR_STATE,
         context.getEvent().getType(), context.getState());
   }
 
   protected void processNoValidFlow(${item.capShortName}Context context) {
     log.info("processNoValidFlow({})", context);
     ${item.capShortName}TransitionExecutionResult<?> lastTransition = context.getCurrentTransition();
-    throw new IllegalStateException(CommonConstants.ML_BASE, CommonConstants.ML_KEY_NO_VALID_FLOW, lastTransition.getFromStateAsMlKey(), lastTransition.getToStateAsMlKey(), lastTransition.getEventTypeAsMlKey(), lastTransition.getFailedConditionAsMlKey());
+    throw new ${c.name('IllegalStateException')}(${c.name('CommonConstants')}.ML_BASE, CommonConstants.ML_KEY_NO_VALID_FLOW, lastTransition.getFromStateAsMlKey(), lastTransition.getToStateAsMlKey(), lastTransition.getEventTypeAsMlKey(), lastTransition.getFailedConditionAsMlKey());
   }<% if (item.timeoutEnabled) { %>
 
   @${c.name('Inject')}
@@ -3257,9 +3262,9 @@ public class $className extends ${c.name('EventImpl')}<${sm.entity.cap}> {
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);
-    b.append(SEP);
-    b.append("stateEvent=").append(stateEvent).append(SEP);
-    b.append("oldState=").append(oldState).append(SEP);
+    b.append(SEPARATOR);
+    b.append("stateEvent=").append(stateEvent).append(SEPARATOR);
+    b.append("oldState=").append(oldState).append(SEPARATOR);
     b.append("newState=").append(newState);
   }
 
@@ -3298,7 +3303,7 @@ public class $className extends ${c.name('EventImpl')}<${sm.entity.cap}> {
   template('actionEventReceiver', body: '''{{imports}}
 /** Event receiver for JSE environment only of {@link ${item.cap}Event} */
 @${c.name('ApplicationScoped')}
-public class $className extends Receiver<${item.cap}Event> {
+public class $className extends ${c.name('Receiver')}<${item.cap}Event> {
   ${macros.generate('onEventSuper', c)}
 }''')
 
@@ -3310,7 +3315,7 @@ public interface $className extends ${item.stateMachine.capShortName}ActionExecu
   template('implExecutor', body: '''<% def sm = item.stateMachine %>{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
-    @${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }),
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
 public class $className implements ${item.cap}Executor {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -3735,24 +3740,25 @@ public interface $className {
 
   void unregisterTimer();
 
-  void processExpired${item.instancesName.capitalize()}();
+  void processExpired${item.entity.instancesName.capitalize()}();
 }''')
   
   template('stateTimeoutHandlerBean', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.realmConstants};
 @${c.name('Stateless')}
-@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { PRODUCTIVE }, runtimes = { SERVER }))
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
 @${c.name('Controller')}<% if (item.generatePermissionsForEvents) { %>
-@${c.name('RunAs')}(${component.capShortName}RealmConstants.ROLE_${module.underscored}_TIMEOUT)<%}%>
+@${c.name('RunAs')}(${component.capShortName}RealmConstants.ROLE_${item.underscored}_TIMEOUT)<%}%>
 @${c.name('Local')}(${item.capShortName}StateTimeoutHandler.class)
 public class $className extends ${item.capShortName}StateTimeoutHandlerImpl {
   @${c.name('Resource')}
-  protected TimerService timerService;
+  protected ${c.name('TimerService')} timerService;
 
   @Override
   public void registerTimer() {
-    Timer existingTimer = findExistingTimer();
+    ${c.name('Timer')} existingTimer = findExistingTimer();
     if (existingTimer == null) {
-      TimerConfig timerConfig = new TimerConfig(source, false);
+      ${c.name('TimerConfig')} timerConfig = new TimerConfig(source, false);
       timerConfig.setPersistent(false);
       timerService.createIntervalTimer(0, stateTimeouts.getTimeoutCheckInterval(), timerConfig);
     }
@@ -3789,7 +3795,7 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl {
   template('stateTimeoutHandlerImpl', body: '''<% def controller = item.controller %>{{imports}}
 public abstract class $className implements ${item.capShortName}StateTimeoutHandler {<% extraArgs = ''; if (item.stateEvent) { item.stateEvent.props.each { prop -> extraArgs += ", ${item.entity.uncap}.${prop.getter}" } }; %>
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
-  protected final String source = StringUtils.formatSource(${className}.class);
+  protected final String source = ${c.name('StringUtils')}.formatSource(${className}.class);
   protected ${item.capShortName}Timeouts stateTimeouts;
   protected ${item.capShortName}ContextManager contextManager;
   protected $controller.cap $controller.uncap;
@@ -3797,7 +3803,7 @@ public abstract class $className implements ${item.capShortName}StateTimeoutHand
 
   @Override
   public void processExpired${item.entity.instancesName.capitalize()}() {
-    List<$item.entity.cap> expired${item.entity.instancesName.capitalize()} = contextManager.findExpired${item.entity.instancesName.capitalize()}();
+    ${c.name('List')}<${c.name(item.entity.cap)}> expired${item.entity.instancesName.capitalize()} = contextManager.findExpired${item.entity.instancesName.capitalize()}();
     for ($item.entity.cap $item.entity.uncap : expired${item.entity.instancesName.capitalize()}) {
       ${controller.uncap}.process(eventFactory.newTimeoutEvent(${item.entity.uncap}.${item.entity.idProp.getter}$extraArgs, ${item.entity.uncap}.${item.stateProp.getter}));
     }
@@ -3826,7 +3832,7 @@ public abstract class $className implements ${item.capShortName}StateTimeoutHand
   
   template('stateTimeoutHandlerMem', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
-@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { LOCAL, MEMORY }))
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }))
 @${c.name('Controller')}
 public class $className extends ${item.capShortName}StateTimeoutHandlerImpl implements ${c.name('Closeable')} {
   protected ${c.name('ScheduledExecutorService')} scheduler;
@@ -3841,12 +3847,12 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl impl
         try {
           processExpired${item.entity.instancesName.capitalize()}();
         } catch(Exception e) {
-          log.error("Exception occured durring precessing of expired timers: {}", StringUtils.formatExceptionCauseHierarchy(e));
+          log.error("Exception occured durring precessing of expired timers: {}", ${c.name('StringUtils')}.formatExceptionCauseHierarchy(e));
         }
       }
     };
-    scheduler = Executors.newScheduledThreadPool(1, SingletonContainer.getSingleton(NamedThreadFactoryHolderByPrefix.class).getNamedThreadFactory("$className"));
-    timer = scheduler.scheduleAtFixedRate(timeout, 0, stateTimeouts.getTimeoutCheckInterval(), TimeUnit.MILLISECONDS);
+    scheduler = ${c.name('Executors')}.newScheduledThreadPool(1, ${c.name('SingletonContainer')}.getSingleton(${c.name('NamedThreadFactoryHolderByPrefix')}.class).getNamedThreadFactory("$className"));
+    timer = scheduler.scheduleAtFixedRate(timeout, 0, stateTimeouts.getTimeoutCheckInterval(), ${c.name('TimeUnit')}.MILLISECONDS);
   }
 
   @Override
@@ -3874,7 +3880,7 @@ public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${
   protected ${c.name(item.stateProp.type.name)} toState;
   protected EVENT event;
   protected ${item.capShortName}StateEvent redirectEvent;
-  protected ${c.name('ArrayList')}<Link<${item.capShortName}StateConditionType, Boolean>> conditionResults = new ArrayList<>();
+  protected ${c.name('ArrayList')}<${c.name('Link')}<${item.capShortName}StateConditionType, Boolean>> conditionResults = new ArrayList<>();
   protected ${item.capShortName}StateConditionType failedCondition = null;
 
   public $className($item.stateProp.type.name fromState, $item.stateProp.type.name toState, EVENT event, ${item.capShortName}StateEvent redirectEvent) {
@@ -3917,7 +3923,7 @@ public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${
     return event != null ? event.getType().buildMlKey() : null;
   }
 
-  public List<Link<${item.capShortName}StateConditionType, Boolean>> getConditionResults() {
+  public ${c.name('List')}<Link<${item.capShortName}StateConditionType, Boolean>> getConditionResults() {
     return conditionResults;
   }
 
@@ -3948,18 +3954,19 @@ public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${
   }
 }''')
   
-  template('condVerifier', body: '''{{imports}}
+  template('condVerifier', body: '''import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
+{{imports}}
 /**
 * A condition verifier is responsible to evaluate a transition condition for state machine $item.name.
 * The logic must not change any state, but shall be 'readonly'
 * If it is false, then the transition can not be applied and the state event handler will proceed with next possible transitions or abort the event processing.
 */
 @${c.name('Controller')}
-public abstract class $className extends ConditionVerifierAbstract<${item.capShortName}Context > {
+public abstract class $className extends ${c.name('ConditionVerifierAbstract')}<${item.capShortName}Context > {
 
   @Override
   protected String getMlBase() {
-    return ${c.name(component.capShortName)}Ml.ML_BASE;
+    return ${component.capShortName}Ml.ML_BASE;
   }
 }''')
   
@@ -3967,7 +3974,7 @@ public abstract class $className extends ConditionVerifierAbstract<${item.capSho
 public interface $className extends ${c.name('ConditionVerifier')}<${sm.capShortName}Context> {
 }''')
   
-  template('conditionVerifier', body: '''<% def sm = item.stateMachine %>
+  template('conditionVerifier', body: '''<% def sm = item.stateMachine %>import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
 ${item.description?"/*** $item.description */":''}
 public abstract class $className extends ${sm.capShortName}ConditionVerifier implements ${item.cap}Verifier {
 

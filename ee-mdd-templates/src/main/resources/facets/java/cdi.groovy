@@ -22,7 +22,8 @@
  
 def nameToNamespace = ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject.Produces',
   'Alternative' : 'javax.enterprise.inject', 'Event' : 'javax.enterprise.event', 'Observes' : 'javax.enterprise.event', 'Reception' : 'javax.enterprise.event',
-  'Resource' : 'javax.annotation', 'PostConstruct' : 'javax.annotation', 'Inject' : 'javax.inject', 'Provider' : 'javax.inject'] as TreeMap
+  'Resource' : 'javax.annotation', 'PostConstruct' : 'javax.annotation', 'Inject' : 'javax.inject', 'Provider' : 'javax.inject', 'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*',
+  'IF_EXISTS' : 'static javax.enterprise.event.Reception.*'] as TreeMap
 
 extModule(name: 'Cdi') {
   nameToNamespace.each { n, ns ->
