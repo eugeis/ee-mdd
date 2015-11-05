@@ -15,6 +15,8 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.statemachine.StateMachine
+
 /**
  *
  * @author Eugen Eisler
@@ -35,6 +37,7 @@ class Module extends StructureUnit {
   List<Module> dependencies = []
   List<Config> configs = []
   List<Container> containers = []
+  List<StateMachine> stateMachines = []
 
   Component getComponent() {
     parent.component
@@ -76,5 +79,8 @@ class Module extends StructureUnit {
   }
   def add(Container child) {
     containers << child; super.add(child)
+  }
+  def add(StateMachine child) {
+    stateMachines << child; super.add(child)
   }
 }
