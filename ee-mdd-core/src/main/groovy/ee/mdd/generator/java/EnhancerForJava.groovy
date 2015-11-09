@@ -47,6 +47,7 @@ import ee.mdd.model.component.Type
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -251,6 +252,20 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      isSuperHierarchyComplete << {
+        ->
+        def key = System.identityHashCode(delegate) + 'superHierarchyComplete'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          if(!delegate.superUnit || delegate.superUnit.superHierarchyComplete) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+      
     }
 
     Component.metaClass {
@@ -487,8 +502,7 @@ class EnhancerForJava {
         metaIndex
       }
     }
-
-
+    
 
     Commands.metaClass {
 
