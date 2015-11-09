@@ -196,6 +196,19 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getBaseGenericName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'baseGenericName'
+        if(!properties.containsKey(key)) {
+          def ret = "${delegate.cap}"
+          if(delegate.base)
+            ret = "${delegate.n.cap.base}"
+          ret += delegate.genericSgn
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       getGenericsName << {
         ->
