@@ -47,6 +47,7 @@ import ee.mdd.model.component.Type
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -195,6 +196,19 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getBaseGenericName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'baseGenericName'
+        if(!properties.containsKey(key)) {
+          def ret = "${delegate.cap}"
+          if(delegate.base)
+            ret = "${delegate.n.cap.base}"
+          ret += delegate.genericSgn
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       getGenericsName << {
         ->
@@ -251,6 +265,20 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      isSuperHierarchyComplete << {
+        ->
+        def key = System.identityHashCode(delegate) + 'superHierarchyComplete'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          if(!delegate.superUnit || delegate.superUnit.superHierarchyComplete) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+      
     }
 
     Component.metaClass {
@@ -487,8 +515,7 @@ class EnhancerForJava {
         metaIndex
       }
     }
-
-
+    
 
     Commands.metaClass {
 

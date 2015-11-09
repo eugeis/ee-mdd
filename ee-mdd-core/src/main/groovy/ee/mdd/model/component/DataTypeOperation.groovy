@@ -16,6 +16,7 @@
 package ee.mdd.model.component
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -23,6 +24,7 @@ package ee.mdd.model.component
 class DataTypeOperation extends Operation {
   String nameExternal
   DataType dataType
+  Entity getEntity() { parent.entity }
   boolean fireEventProp = false
 
   String getNameExternal() {
