@@ -18,7 +18,9 @@ package ee.mdd.model.component
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 
 class Config extends DataType {
+  Controller controller
 }
