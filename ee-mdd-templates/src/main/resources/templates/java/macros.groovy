@@ -615,97 +615,93 @@ public interface $className extends $item.n.cap.findersBase {
 
   template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>import static ee.common.util.ComparisonUtils.*;{{imports}}
   <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
-    <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
-    <% } %>
-  <% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
-  public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
-    private static final long serialVersionUID = 1L;
-    <% singlePropIndexes.each { prop -> if (prop.unique) { %>
-        protected ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
-        protected ${c.name('LinkToSetCache')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToIds = null;<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
-        protected ${c.name('LinkToSetCache')}<${c.name(relationIdProp.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
-        protected ${c.name('Map')}<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
-        protected ${c.name('LinkToSetCache')}<String, ${c.name(idProp.type.name)}> ${key}ToIds = null;<% } %><% } %><% if (c.override && item.virtual) { %>
+  <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
+  <% } %><% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
+public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
+  private static final long serialVersionUID = 1L;
+  <% singlePropIndexes.each { prop -> if (prop.unique) { %>
+  protected ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
+  protected ${c.name('LinkToSetCache')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToIds = null;<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
+  protected ${c.name('LinkToSetCache')}<${c.name(relationIdProp.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
+  protected ${c.name('Map')}<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
+  protected ${c.name('LinkToSetCache')}<String, ${c.name(idProp.type.name)}> ${key}ToIds = null;<% } %><% } %><% if (c.override && item.virtual) { %>
 
-      public $className(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent) {
-        super(parent);
-      }
+  public $className(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent) {
+    super(parent);
+  }
 
-      public ${className}(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent, boolean threadSafe) {
-        super(parent, threadSafe);
-      }<% } else if (c.override) { %>
-      public ${className}($item.n.cap.cache parent) {
-        super(parent);
-      }
+  public ${className}(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent, boolean threadSafe) {
+    super(parent, threadSafe);
+  }<% } else if (c.override) { %>
+  public ${className}($item.n.cap.cache parent) {
+    super(parent);
+  }
 
-      public ${className}($item.n.cap.cache parent, boolean threadSafe) {
-        super(parent, threadSafe);
+  public ${className}($item.n.cap.cache parent, boolean threadSafe) {
+    super(parent, threadSafe);
+  }<% } else { %>
+  public $className() {
+    super();
+  }
+
+  public $className(boolean threadSafe) {
+    super(threadSafe);
+  }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> String finderKeyName = op.params.collect { it.prop?.uncap }.join('And'); %><% if (op.params.size() == 1 && singlePropIndexes.contains(op.params[0].prop)) { def param = op.params[0]; def prop = param.prop; %>
+
+  @Override
+  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
+    checkAndInitPropertyBasedLazyCaches();<% if (param.multi) { %>
+    ${c.name('HashSet')}<${c.name(idProp.type.name)}> ret = new ${c.name('HashSet')}<>();
+    for($prop.type $prop.name : ${prop.name}s) {<% if (prop.unique) { %>
+      if (${prop.uncap}ToId.containsKey($prop.name)) {
+        ret.add(${prop.uncap}ToId.get($prop.name));
+      }<% if (c.override) { %> else if (parent != null) {
+        ${c.name('Set')}<${c.name(idProp.type.name)}> ids = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+        ids.removeAll(deleted);
+        ret.addAll(ids);
+      }<% } %><% } else { %><% if (op.unique) { %>
+      ${c.name(idProp.type.name)} id = ${prop.uncap}ToId.get($propAttr.paramName);
+      if (id != null) {
+        ret.add(id);
       }<% } else { %>
+      ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($propAttr.paramName);
+      if (ids != null) {
+        ret.addAll(ids.getTo());
+      }<% } %><% if (c.override) { %>
+      ${macros.generate('propToIds', c)}<% } %><% } %>
+    }
+    return ret;<% } else { %><% if (prop.unique) { %>
+    ${c.name(idProp.type.name)} ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { c.op = op %>
+    ${macros.generate('retNullOrDeleted', c)}
+    <% } %><% } else { %>
+    ${c.name('Set')}<${c.name(idProp.type.name)}> ret = null;
+    ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($prop.name);
+    ${macros.generate('checkIdsNull', c)}<% if (c.override) { c.op = op; %>
+    ${macros.generate('propToIds', c)}<% } %><% } %><% if (item.ordered) { %>
+    sort${c.name(item.cap)}sByOrder(ret);<% } %><% if (op.unique && !prop.unique) { %>
+    if (!ret.isEmpty()) {
+      return ret.iterator().next();
+    } else {
+      return null;
+    }<% } else { %>
+      return ret;<% } %><% } %>
+  }
 
-      public $className() {
-        super();
-      }
+  @Override
+  public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
+      $idProp.type.name id = ${op.name}AsId($op.signatureName);
+      $type ret = null;
+      if (id != null) {
+        ret = get(id);
+      }<% } else { %>
+      ${c.name('Set')}<${c.name(idProp.type.name)}> ids = ${op.name}AsId($op.signatureName);
+      ${c.name('List')}<$type> ret = getAll(ids);<% } %>
+    return ret;
+  }
 
-      public $className(boolean threadSafe) {
-        super(threadSafe);
-      }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %>
-        <% String finderKeyName = op.params.collect { it.prop.uncap }.join('And'); %>
-        <% if (op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) { def param = op.params.get(0); def prop = param.prop; %>
-
-          @Override
-          public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
-            checkAndInitPropertyBasedLazyCaches();<% if (param.multi) { %>
-              ${c.name('HashSet')}<${c.name(idProp.type.name)}> ret = new ${c.name('HashSet')}<>();
-              for($prop.type $prop.name : ${prop.name}s) {<% if (prop.unique) { %>
-                  if (${prop.uncap}ToId.containsKey($prop.name)) {
-                    ret.add(${prop.uncap}ToId.get($prop.name));
-                  }<% if (c.override) { %> else if (parent != null) {
-                      ${c.name('Set')}<${c.name(idProp.type.name)}> ids = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
-                      ids.removeAll(deleted);
-                      ret.addAll(ids);
-                    }<% } %><% } else { %><% if (op.unique) { %>
-                    ${c.name(idProp.type.name)} id = ${prop.uncap}ToId.get($propAttr.paramName);
-                    if (id != null) {
-                      ret.add(id);
-                    }<% } else { %>
-                    ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($propAttr.paramName);
-                    if (ids != null) {
-                      ret.addAll(ids.getTo());
-                    }<% } %><% if (c.override) { %>
-                    ${macros.generate('propToIds', c)}<% } %><% } %>
-              }
-              return ret;<% } else { %><% if (prop.unique) { %>
-                ${c.name(idProp.type.name)} ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { c.op = op %>
-                  ${macros.generate('retNullOrDeleted', c)}
-                  <% } %><% } else { %>
-                ${c.name('Set')}<${c.name(idProp.type.name)}> ret = null;
-                ${c.name('LinkToSet')}<?, ${c.name(idProp.type.name)}> ids = ${prop.uncap}ToIds.get($prop.name);
-                ${macros.generate('checkIdsNull', c)}<% if (c.override) { c.op = op; %>
-                  ${macros.generate('propToIds', c)}<% } %><% } %><% if (item.ordered) { %>
-                sort${c.name(item.cap)}sByOrder(ret);<% } %><% if (op.unique && !prop.unique) { %>
-                if (!ret.isEmpty()) {
-                  return ret.iterator().next();
-                } else {
-                  return null;
-                }<% } else { %>
-                return ret;<% } %><% } %>
-          }
-
-          @Override
-          public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
-              $idProp.type.name id = ${op.name}AsId($op.signatureName);
-              $type ret = null;
-              if (id != null) {
-                ret = get(id);
-              }<% } else { %>
-              ${c.name('Set')}<${c.name(idProp.type.name)}> ids = ${op.name}AsId($op.signatureName);
-              ${c.name('List')}<$type> ret = getAll(ids);<% } %>
-            return ret;
-          }
-
-          @Override
-          public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
-            return strict(${op.name}($op.signatureNames), \"${op.name}\", $op.signatureNames);
+  @Override
+  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
+    return strict(${op.name}($op.signatureNames), \"${op.name}\", $op.signatureNames);
   }
 
   <% } else if (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi }) { def index = keyNameToIndex[finderKeyName]; %>
@@ -836,6 +832,12 @@ public interface $className extends $item.n.cap.findersBase {
   public String toStringAsIdAndVersion() {
     String content = ${c.name('CollectionUtils')}.resolveAndJoinIdAndNaturalKeyAndVersion(data.values());
     return toString(content);
+  }
+
+  @Override
+  public String toStingAsIdAndNaturalKeyAndVersion() {
+    String content = CollectionUtils.resolveAndJoinIdAndNaturalKeyAndVersion(data.values());
+    return toString(content);
   }<% if (item.ordered) { %>
 
   protected void sort${item.cap}sByOrder(List<$item.cap> items) {
@@ -895,6 +897,15 @@ public interface $className extends $item.n.cap.findersBase {
     return $ret;
   }<% } %><% } %>
 
+  @Override
+  public ${item.deltaCache.names.clazz} synchronizeWithDelta(Cache<$idProp.type, $type> update, Collection<$idProp.type> removedKeys) {
+    return (${item.deltaCache.names.clazz}) super.synchronizeWithDelta(update, removedKeys);
+  }
+
+  @Override
+  public ${item.deltaCache.names.clazz} synchronizeWithDelta(Cache<$idProp.type, $type> update) {
+    return (${item.deltaCache.names.clazz}) super.synchronizeWithDelta(update);
+  }
 }''')
 
   template('implCacheExtends', body: '''{{imports}}

@@ -28,29 +28,29 @@ class Finders extends Controller {
   Finders getSuperFinders() { entity.superUnit?.finders}
   
   List<Find> getFinders() {
-    def ret = operations?.findAll { Find.isInstance(it) }
-    if (superFinders)
-      ret.addAll(superFinders.operations?.findAll { Find.isInstance(it) })
-    if(!ret)
-      ret = []
+    def ret = []
+    if(operations)
+      ret = operations.findAll { Find.isInstance(it) }
+    if (superFinders && superFinders.operations)
+      ret.addAll(superFinders.operations.findAll { Find.isInstance(it) })
     ret
   }
 
   List<Count> getCounters() {
-    def ret = operations?.findAll { Count.isInstance(it) }
-    if (superFinders)
-      ret.addAll(superFinders.operations?.findAll { Count.isInstance(it) })
-    if (!ret)
-      ret = []
+    def ret = []
+    if(operations)
+      ret = operations.findAll { Count.isInstance(it) }
+    if (superFinders && superFinders.operations)
+      ret.addAll(superFinders.operations.findAll { Count.isInstance(it) })
     ret
   }
 
   List<Exist> getExists() {
-    def ret = operations?.findAll { Exist.isInstance(it) }
-    if (superFinders)
-      ret.addAll(superFinders.operations?.findAll { Exist.isInstance(it) })
-    if (!ret)
-      ret = []
+    def ret = []
+    if(operations)
+      ret = operations.findAll { Exist.isInstance(it) }
+    if (superFinders && superFinders.operations)
+      ret.addAll(superFinders.operations.findAll { Exist.isInstance(it) })
     ret
   }
 
