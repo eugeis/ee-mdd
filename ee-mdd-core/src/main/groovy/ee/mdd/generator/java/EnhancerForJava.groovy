@@ -243,6 +243,18 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getSuperGenericSgn << {
+        ->
+        def key = System.identityHashCode(delegate) + 'superGenericSgn'
+        if(!properties.containsKey(key)) {
+          def ret = ''
+          if(delegate.superGeneric)
+            ret = "<${delegate.superGenericRefs.join(', ')}>"
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       getPropsForHashCode << {
         ->
@@ -261,6 +273,18 @@ class EnhancerForJava {
           def ret = false
           if(delegate.generics)
             ret = (!delegate.generics.empty ? true : false)
+          properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      isSuperGeneric << {
+        ->
+        def key = System.identityHashCode(delegate) + 'superGeneric'
+        if(!properties.containsKey(key)) {
+          def ret = false
+          if(delegate.superGenericRefs && !delegate.superGenericRefs.empty)
+            ret = true
           properties[key] = ret
         }
         properties[key]

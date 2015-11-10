@@ -318,7 +318,7 @@ templates ('macros') {
 
   template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  $op.ret ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  ${op.return} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
   ${op.ref.return} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
@@ -492,7 +492,7 @@ public interface $c.className extends ${c.name('Serializable')} {
 
   template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
-  public interface $c.className extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
+  public interface $item.baseGenericName extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
     /** A unique URI prefix for RESTful services and multi-language support */
     public static final String URI_PREFIX = "${item.getUri()}";
     ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -613,7 +613,7 @@ public interface $className extends $item.n.cap.findersBase {
 
   //classes
 
-  template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper%>import static ee.common.util.ComparisonUtils.*;{{imports}}
+  template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>import static ee.common.util.ComparisonUtils.*;{{imports}}
   <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
     <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
     <% } %>
@@ -634,7 +634,6 @@ public interface $className extends $item.n.cap.findersBase {
       public ${className}(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent, boolean threadSafe) {
         super(parent, threadSafe);
       }<% } else if (c.override) { %>
-
       public ${className}($item.n.cap.cache parent) {
         super(parent);
       }
@@ -676,7 +675,7 @@ public interface $className extends $item.n.cap.findersBase {
                     ${macros.generate('propToIds', c)}<% } %><% } %>
               }
               return ret;<% } else { %><% if (prop.unique) { %>
-                ${c.name(idProp.type.name)} ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { %>
+                ${c.name(idProp.type.name)} ret = ${prop.uncap}ToId.get($prop.name);<% if (c.override) { c.op = op %>
                   ${macros.generate('retNullOrDeleted', c)}
                   <% } %><% } else { %>
                 ${c.name('Set')}<${c.name(idProp.type.name)}> ret = null;
@@ -714,7 +713,7 @@ public interface $className extends $item.n.cap.findersBase {
   @Override
   public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.name}AsId($op.signature) {
     checkAndInitPropertyBasedLazyCaches();<% if (index.unique) { %>
-    ${c.name(idProp.type.name)} ret = ${finderKeyName}ToId.get(${finderKeyName}Key($op.signatureName));<% if (c.override) { %>
+    ${c.name(idProp.type.name)} ret = ${finderKeyName}ToId.get(${finderKeyName}Key($op.signatureName));<% if (c.override) { c.op = op %>
     ${macros.generate('retNullOrDeleted', c)}
     <% } %><% } else { %>
     ${c.name('Set')}<$idProp.type.name> ret = null;
@@ -824,7 +823,7 @@ public interface $className extends $item.n.cap.findersBase {
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public $op.ret.name ${op.name}($op.signature) {
+  public $op.ret ${op.name}($op.signature) {
     $op.body
   }<% } %><% } %><% if (c.override && !item.virtual) { %>
 
@@ -1920,14 +1919,14 @@ public abstract class $className {
   template('controllerLocalTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 // TODO: Migrate Weld test classes
 // @${c.name('RunWith')}(LocalWeldRunner.class)
-@${c.name('SupportsEnvironments')}(@Environment(executions = { LOCAL }))
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')} }))
 public class $className extends ${controller.cap}TestImpl {
 }''')
   
   template('controllerMemoryTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 // TODO: Migrate Weld test classes
 // @${c.name('RunWith')}(MemoryWeldRunner.class)
-@${c.name('SupportsEnvironments')}(@Environment(executions = { MEMORY }))
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
 public class $className extends ${controller.cap}TestImpl {
 }''')
   
