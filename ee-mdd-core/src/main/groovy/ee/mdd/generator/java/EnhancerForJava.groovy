@@ -1322,13 +1322,13 @@ class EnhancerForJava {
           metasForBridge << builder.meta(type: 'ApplicationScoped' )
           def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
           def environment = builder.meta(type: 'Environment', value: [:])
-          environment.value['executions'] = '{ PRODUCTIVE }'
+          environment.value['executions'] = "{ ${c.name('PRODUCTIVE')} }"
           if(c.className.contains('EventToCdi'))
-            environment.value['runtimes'] = '{ CLIENT, SERVER }'
+            environment.value['runtimes'] = "{ ${c.name('CLIENT')}, SERVER }"
           else if(c.className.contains('External'))
-            environment.value['runtimes'] = '{ SERVER }'
+            environment.value['runtimes'] = "{ ${c.name('SERVER')} }"
           else
-            environment.value['runtimes'] = '{ CLIENT }'
+            environment.value['runtimes'] = "{ ${c.name('CLIENT')} }"
           supportsEnvironments.value.add(environment)
           metasForBridge << supportsEnvironments
           metasForBridge << builder.meta(type: 'Traceable')
