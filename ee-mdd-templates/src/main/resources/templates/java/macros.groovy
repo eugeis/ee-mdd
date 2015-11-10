@@ -649,7 +649,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(op.entity.name == item.name) { String finderKeyName = op.params.collect { it.prop?.uncap }.join('And'); %><% if (op.params.size() == 1 && singlePropIndexes.contains(op.params[0].prop)) { def param = op.params[0]; def prop = param.prop; %>
 
   @Override
-  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
+  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId(${op.signature(c)}) {
     checkAndInitPropertyBasedLazyCaches();<% if (param.multi) { %>
     ${c.name('HashSet')}<${c.name(idProp.type.name)}> ret = new ${c.name('HashSet')}<>();
     for($prop.type $prop.name : ${prop.name}s) {<% if (prop.unique) { %>
@@ -688,7 +688,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }
 
   @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
+  public ${op.unique?"$type":"List<$type>"} ${op.name}(${op.signature(c)}) {<% if (op.unique) { %>
       $idProp.type.name id = ${op.name}AsId($op.signatureName);
       $type ret = null;
       if (id != null) {
@@ -700,14 +700,14 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }
 
   @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
+  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict(${op.signature(c)}) {
     return strict(${op.name}($op.signatureNames), \"${op.name}\", $op.signatureNames);
   }
 
   <% } else if (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi }) { def index = keyNameToIndex[finderKeyName]; %>
 
   @Override
-  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.name}AsId($op.signature) {
+  public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.name}AsId(${op.signature(c)}) {
     checkAndInitPropertyBasedLazyCaches();<% if (index.unique) { %>
     ${c.name(idProp.type.name)} ret = ${finderKeyName}ToId.get(${finderKeyName}Key($op.signatureName));<% if (c.override) { c.op = op %>
     ${macros.generate('retNullOrDeleted', c)}
@@ -726,7 +726,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }
 
   @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}($op.signature) {<% if (op.unique) { %>
+  public ${op.unique?"$type":"List<$type>"} ${op.name}(${op.signature(c)}) {<% if (op.unique) { %>
     $idProp.type id = ${op.name}AsId($op.signatureName);
     $type ret = null;
     if (id != null) {
@@ -738,12 +738,12 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }
 
   @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
+  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict(${op.signature(c)}) {
     return strict(${op.name}($op.signatureNames), \"${op.name}\", $op.signatureNames);
   }<% } else { %>
 
    @Override
-  public<% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}($op.signature) {
+  public<% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}(${op.signature(c)}) {
     <% if(op.unique) { %>$type ret = null;<% } else { %>${c.name('ArrayList')}<$type> ret = new ArrayList<>();<% } %><% if (!c.override) { %>
     for (${c.name('Map')}.Entry<${c.name(idProp.type.name)}, $type> entry : data.entrySet())<% } else { %>for (${c.name('Map')}.Entry<${c.name(idProp.type.name)}, $type> entry : merged().entrySet())<% } %> {
       $type entity = entry.getValue();
@@ -753,7 +753,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }
 
   @Override
-  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
+  public ${op.unique?"$type":"List<$type>"} ${op.name}Strict(${op.signature(c)}) {
     return strict(${op.name}($op.signatureName), "\${op.name}\", $op.signatureName);
   }<% } } } } %><% relationIdPropIndexes.each { prop-> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
 
@@ -819,7 +819,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public $op.ret ${op.name}($op.signature) {
+  public $op.ret ${op.name}(${op.signature(c)}) {
     $op.body
   }<% } %><% } %><% if (c.override && !item.virtual) { %>
 
