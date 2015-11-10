@@ -17,6 +17,7 @@ package ee.mdd.model.component
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -24,9 +25,25 @@ package ee.mdd.model.component
  */
 class Entity extends DataType {
   Cache cache
+  DeltaCache deltaCache
   boolean manualId = false
   boolean ordered = false
   boolean clientCache = false
   String idGeneratorName
   String labelBody
+  
+  protected boolean init() {
+    if(deltaCache == null) { add( new DeltaCache(base: true)) }
+    super.init()
+  }
+  
+  def add(Cache item) {
+    if(virtual) { item.virtual = true }
+    cache = super.add(item)
+  }
+  
+  void add(DeltaCache item) {
+    if(virtual) { item.virtual = true }
+    deltaCache = super.add(item)
+  }
 }
