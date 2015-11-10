@@ -646,7 +646,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
 
   public $className(boolean threadSafe) {
     super(threadSafe);
-  }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> String finderKeyName = op.params.collect { it.prop?.uncap }.join('And'); %><% if (op.params.size() == 1 && singlePropIndexes.contains(op.params[0].prop)) { def param = op.params[0]; def prop = param.prop; %>
+  }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(op.entity.name == item.name) { String finderKeyName = op.params.collect { it.prop?.uncap }.join('And'); %><% if (op.params.size() == 1 && singlePropIndexes.contains(op.params[0].prop)) { def param = op.params[0]; def prop = param.prop; %>
 
   @Override
   public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId($op.signature) {
@@ -755,7 +755,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   @Override
   public ${op.unique?"$type":"List<$type>"} ${op.name}Strict($op.signature) {
     return strict(${op.name}($op.signatureName), "\${op.name}\", $op.signatureName);
-  }<% } } } %><% relationIdPropIndexes.each { prop-> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
+  }<% } } } } %><% relationIdPropIndexes.each { prop-> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
 
    @Override
   public Set<${c.name(idProp.type.name)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap}) {
@@ -898,13 +898,13 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }<% } %><% } %>
 
   @Override
-  public ${item.deltaCache.names.clazz} synchronizeWithDelta(Cache<$idProp.type, $type> update, Collection<$idProp.type> removedKeys) {
-    return (${item.deltaCache.names.clazz}) super.synchronizeWithDelta(update, removedKeys);
+  public ${item.deltaCache.cap} synchronizeWithDelta(Cache<$idProp.type.name, $type> update, Collection<$idProp.type.name> removedKeys) {
+    return (${item.deltaCache.cap}) super.synchronizeWithDelta(update, removedKeys);
   }
 
   @Override
-  public ${item.deltaCache.names.clazz} synchronizeWithDelta(Cache<$idProp.type, $type> update) {
-    return (${item.deltaCache.names.clazz}) super.synchronizeWithDelta(update);
+  public ${item.deltaCache.cap} synchronizeWithDelta(Cache<$idProp.type.name, $type> update) {
+    return (${item.deltaCache.cap}) super.synchronizeWithDelta(update);
   }
 }''')
 
