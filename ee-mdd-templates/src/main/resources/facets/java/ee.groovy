@@ -27,12 +27,12 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'Backend' : 'ee.common.annotation', 'Service' : 'ee.common.annotation', 'Environment' : 'ee.common.annotation', 
   'External' : 'ee.common.annotation', 'SupportsEnvironments' : 'ee.common.annotation', 'Traceable' : 'ee.common.annotation',
   'SERVER' : 'static ee.common.integ.RuntimeType.*', 'CLIENT' : 'static ee.common.integ.RuntimeType.*', 'LOCAL' : 'static ee.common.integ.ExecutionType.*', 'MEMORY' : 'static ee.common.integ.ExecutionType.*', 
-  'PRODUCTIVE' : 'static ee.common.integ.ExecutionType.*', 'CollectionUtils' : 'ee.common.util', 'ComparisonUtils' : 'ee.common.util',
+  'PRODUCTIVE' : 'static ee.common.integ.ExecutionType.*', 'ComparisonUtils' : 'ee.common.util',
   'AssertionUtils' : 'ee.common.util', 'LogStringProvider' : 'ee.common.util', 'LogStringBuilder' : 'ee.common.util',
   'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
-  'NotFoundException' : 'ee.common.exception', 'LongEntityCache' : 'ee.common.cache', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',
+  'NotFoundException' : 'ee.common.exception', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',
   'IntegerCacheOverride' : 'ee.common.cache', 'LongCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
-  'TempIdCache' : 'ee.common.cache', 'Cache' : 'ee.common.cache', 'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model', 'Model' : 'ee.common.annotation',
+  'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model', 'Model' : 'ee.common.annotation',
   'RootScoped' : 'ee.common.cdi', 'Presenter' : 'ee.common.ui', 'Controller' : 'ee.common.annotation', 'WorkstationType' : 'ee.common.integ', 'SessionPrincipal' : 'ee.common.model',
   'RepState' : 'ee.common.model', 'Closeable' : 'ee.common.base', 'Initializable' : 'ee.common.base', 'Config' : 'ee.common.config', 'ConditionVerifier' : 'ee.common.cond', 'StateFlowType' : 'ee.common.statemachine'].each { n, ns ->
     extType(name: n, namespace: ns)
