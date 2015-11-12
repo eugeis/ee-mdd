@@ -492,7 +492,7 @@ public interface $c.className extends ${c.name('Serializable')} {
 
   template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
-  public interface $item.baseGenericName extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('EntityIfc')}<${item.idProp.type.name}><% } %>{
+  public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type}><% } %>{
     /** A unique URI prefix for RESTful services and multi-language support */
     public static final String URI_PREFIX = "${item.getUri()}";
     ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -577,13 +577,13 @@ public interface $className extends $item.n.cap.findersBase {
   template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
   <% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
   <% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
-  public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
+  public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(!op.originalParent(c)) { %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
 
-  <% if(op.unique) { %> $idProp.type <% } else { %>${c.name('Set')}<$idProp.type.name><% } %> ${op.name}AsId($op.signature);<% } %>
+  <% if(op.unique) { %> $idProp.type <% } else { %>${c.name('Set')}<$idProp.type.name><% } %> ${op.name}AsId(${op.signature(c)});<% } %>
 
-  <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}($op.signature);
+  <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}(${op.signature(c)});
 
-  <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}Strict($op.signature);<% } } %><% item.props.each { prop -> if(prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
+  <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}Strict(${op.signature(c)});<% } } } %><% item.props.each { prop -> if(prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
 
     ${c.name('Set')} <${c.name(idProp.type)}> findBy${prop.cap}${relationIdProp.cap}AsId(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
@@ -597,24 +597,59 @@ public interface $className extends $item.n.cap.findersBase {
 
     $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-    $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});<% } } %>
+    $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});<% } } %><% if (!superUnit) { %>
+
+    ${c.name('Map')}<${idProp.computedType(c)}, Long> buildVersions();
+
+    List<$type> findNew();
+
+    List<$type> findModified();<% } %>
+
+    List<$idProp.type.name> findOutOfSync(${c.name('Map')}<$idProp.type.name, Long> versionsInDb);
 
     String toStringAsIdAndVersion();
 
-    ${macros.generate('interfaceBody', c)}
+    String toStingAsIdAndNaturalKeyAndVersion();
 
-  }''')
+    @Override
+    ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update, ${c.name('Collection')}<$idProp.type.name> removedKeys);
+
+    @Override
+    ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update);
+
+    ${macros.generate('interfaceBody', c)}
+}''')
 
   template('ifcCacheExtends', body: '''{{imports}}
   public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
   }''')
+  
+  template('ifcDeltaCache', body: '''<% def superUnit = item.superUnit; def cacheClass = item.n.cap.cache; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
+<% if (superUnit) { cacheSuper = "$superUnit.n.cap.deltaCache<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "${c.name('DeltaCache')}<$idProp.type.name, $type>" }%>
+public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {
+  @Override
+  public $cacheClass getNew();
+
+  @Override
+  public $cacheClass getNewModified();
+
+  @Override
+  public $cacheClass getOldModified();
+
+  @Override
+  public $cacheClass getRemoved();
+}''')
+  
+  template('ifcDeltaCacheExtends', body: '''{{imports}}
+public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${item.deltaCache.n.cap.base}<${item.simpleGenericSgn}E><% } else { %>$className extends ${item.deltaCache.n.cap.base}<% } %> {
+}''')
 
 
 
   //classes
 
   template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>import static ee.common.util.ComparisonUtils.*;{{imports}}
-  <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
+  <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
   <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
   <% } %><% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
 public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
@@ -898,12 +933,12 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }<% } %><% } %>
 
   @Override
-  public ${item.deltaCache.cap} synchronizeWithDelta(Cache<$idProp.type.name, $type> update, Collection<$idProp.type.name> removedKeys) {
+  public ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update, ${c.name('Collection')}<$idProp.type.name> removedKeys) {
     return (${item.deltaCache.cap}) super.synchronizeWithDelta(update, removedKeys);
   }
 
   @Override
-  public ${item.deltaCache.cap} synchronizeWithDelta(Cache<$idProp.type.name, $type> update) {
+  public ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update) {
     return (${item.deltaCache.cap}) super.synchronizeWithDelta(update);
   }
 }''')

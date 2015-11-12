@@ -7,13 +7,6 @@ import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Facade
 
-
-
-
-
-
-
-
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -69,6 +62,8 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'cache']) } ) {
     template('ifcCache', appendName: true, body: '''<% c.className = item.n.cap.cacheBase %> ${macros.generate('ifcCache', c)}''')
     template('ifcCacheExtends', appendName: true, body: '''<% c.className = item.n.cap.cache %> ${macros.generate('ifcCacheExtends', c)}''')
+    template('ifcDeltaCache', appendName: true, body: '''<% c.className = item.n.cap.deltaCacheBase %> ${macros.generate('ifcDeltaCache', c)}''')
+    template('ifcDeltaCacheExtends', appendName: true, body: '''<% c.className = item.n.cap.deltaCache %> ${macros.generate('ifcDeltaCacheExtends', c)}''')
   }
 
   templates('implCache',
