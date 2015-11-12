@@ -202,8 +202,9 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'baseGenericName'
         if(!properties.containsKey(key)) {
           def ret = "${delegate.cap}"
-          if(delegate.base)
+          if(delegate.base) {
             ret = "${delegate.n.cap.base}"
+          }
           ret += delegate.genericSgn
           properties[key] = ret
         }
@@ -251,6 +252,18 @@ class EnhancerForJava {
           def ret = ''
           if(delegate.superGeneric)
             ret = "<${delegate.superGenericRefs.join(', ')}>"
+          properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      getSimpleSuperGenericSgn << {
+        ->
+        def key = System.identityHashCode(delegate) + 'simpleSuperGenericSgn'
+        if(!properties.containsKey(key)) {
+          def ret = ''
+          if(delegate.superGeneric)
+            ret = "${delegate.superGenericRefs.join(', ')}, "
           properties[key] = ret
         }
         properties[key]
@@ -711,6 +724,17 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      
+      originalParent { Context c ->
+        def ret = true
+        def op = delegate
+        if(op.entity.name == c.item.name) {
+          ret = false
+        }
+        ret
+      }
+      
     }
 
     DataTypeOperation.metaClass {
@@ -830,7 +854,7 @@ class EnhancerForJava {
           def prop = delegate
           def ret
           ret = prop.multi ? "List<${prop.type.name}>" : "${prop.type.name}"
-          c.name("${prop.type.name}")
+          c.name(prop.type.name)
           properties[key] = ret
         }
         properties[key]
