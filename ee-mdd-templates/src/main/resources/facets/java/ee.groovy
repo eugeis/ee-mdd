@@ -21,7 +21,7 @@
 extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   ['Base' : 'ee.common.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model', 'Factory' : 'ee.common.model',
   'Labeled' : 'ee.common.model', 'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
-  'Finder' : 'ee.common.core', 'Manager' : 'ee.common.core', 'EventListener' : 'ee.common.core',
+  'Finder' : 'ee.common.core', 'EventListener' : 'ee.common.core',
   'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
   'MlKey' : 'ee.common.ml', 'MlKeyBuilder' : 'ee.common.ml' , 'MlKeyImpl' : 'ee.common.ml',
   'Backend' : 'ee.common.annotation', 'Service' : 'ee.common.annotation', 'Environment' : 'ee.common.annotation', 
@@ -31,7 +31,7 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'AssertionUtils' : 'ee.common.util', 'LogStringProvider' : 'ee.common.util', 'LogStringBuilder' : 'ee.common.util',
   'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
   'NotFoundException' : 'ee.common.exception', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',
-  'IntegerCacheOverride' : 'ee.common.cache', 'LongCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
+  'IntegerCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
   'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model', 'Model' : 'ee.common.annotation',
   'RootScoped' : 'ee.common.cdi', 'Presenter' : 'ee.common.ui', 'Controller' : 'ee.common.annotation', 'WorkstationType' : 'ee.common.integ', 'SessionPrincipal' : 'ee.common.model',
   'RepState' : 'ee.common.model', 'Closeable' : 'ee.common.base', 'Initializable' : 'ee.common.base', 'Config' : 'ee.common.config', 'ConditionVerifier' : 'ee.common.cond', 'StateFlowType' : 'ee.common.statemachine'].each { n, ns ->

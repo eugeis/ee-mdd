@@ -307,7 +307,7 @@ templates ('macros') {
     this.$prop.uncap= $prop.uncap;
   }<% } %><% } %>''')
   
-  template('operationRawType', body: '''<% def op = c.op %>public $op.ret ${op.name}($op.signature) {
+  template('operationRawType', body: '''<% def op = c.op %>public $op.ret.name ${op.name}($op.signature) {
     $op.body
   }
 ''')
@@ -492,7 +492,7 @@ public interface $c.className extends ${c.name('Serializable')} {
 
   template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
-  public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type}><% } %>{
+  public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}><% } %>{
     /** A unique URI prefix for RESTful services and multi-language support */
     public static final String URI_PREFIX = "${item.getUri()}";
     ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -589,11 +589,11 @@ public interface $className extends $item.n.cap.findersBase {
 
     ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-    List<$type> findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
+    ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
-    List<$type> findBy${prop.cap}${relationIdProp.cap}s(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);
+    ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}s(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);
 
-    List<$type> findBy${prop.cap}${relationIdProp.cap}sStrict(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);<% } else if (prop.type && prop.oneToOne) { def relationIdProp = prop.type.idProp %>
+    ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}sStrict(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s);<% } else if (prop.type && prop.oneToOne) { def relationIdProp = prop.type.idProp %>
 
     $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap});
 
@@ -601,11 +601,11 @@ public interface $className extends $item.n.cap.findersBase {
 
     ${c.name('Map')}<${idProp.computedType(c)}, Long> buildVersions();
 
-    List<$type> findNew();
+    ${c.name('List')}<$type> findNew();
 
-    List<$type> findModified();<% } %>
+    ${c.name('List')}<$type> findModified();<% } %>
 
-    List<$idProp.type.name> findOutOfSync(${c.name('Map')}<$idProp.type.name, Long> versionsInDb);
+    ${c.name('List')}<$idProp.type.name> findOutOfSync(${c.name('Map')}<$idProp.type.name, Long> versionsInDb);
 
     String toStringAsIdAndVersion();
 
@@ -692,7 +692,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
         ret.add(${prop.uncap}ToId.get($prop.name));
       }<% if (c.override) { %> else if (parent != null) {
         ${c.name('Set')}<${c.name(idProp.type.name)}> ids = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
-        ids.removeAll(deleted);
+        ids.removeAll(getRemoved());
         ret.addAll(ids);
       }<% } %><% } else { %><% if (op.unique) { %>
       ${c.name(idProp.type.name)} id = ${prop.uncap}ToId.get($propAttr.paramName);
@@ -801,7 +801,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
     if (parent != null) {
       ret = new ${c.name('HashSet')}<>(ret);
       ret.addAll((($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).findBy${prop.cap}${relationIdProp.cap}AsId(${prop.uncap}${relationIdProp.cap}));
-      ret.removeAll(deleted);
+      ret.removeAll(getRemoved());
     }<% } %>
     return ret;
   }
@@ -1053,7 +1053,7 @@ public class $c.className extends $item.n.cap.deltaBaseImpl {
 }''')
 
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
-public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('EntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)} {
+public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)}${item.genericSgn} {
   private static final long serialVersionUID = 1L;
   ${macros.generate('props', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
 
@@ -1064,8 +1064,8 @@ public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}Bas
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-  template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
-public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}<% } else { %> ${c.name('EntityJpa')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)} {
+  template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %><% item.superGenericRefs.each { c.name(it) } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
+public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
   private transient boolean attributesChanged = false;<% } %>
@@ -1080,7 +1080,7 @@ public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} e
 }''')
 
   template('entityBean', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
-public ${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
+public${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
@@ -1344,7 +1344,7 @@ public class $className extends $item.n.cap.baseImpl {
 ''')
 
   template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.name}Ml;{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.key.capitalize()}Ml;{{imports}}
 ${item.description?"/*** $item.description */":''}
 public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')} {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
@@ -1356,6 +1356,8 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
   <% if (op.override) { %>@Override<% } %><% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   ${macros.generate('operationRawType', c)}<% } } %>
+
+  @Override
   ${macros.generate('buildMlKey', c)}
 
   @Override
@@ -2072,9 +2074,9 @@ ${ret-newLine}''')
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% if (idProp && !item.virtual) { %>
-    b.append("$idProp.name=").append($idProp.name).append(SEP);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
-    b.append("$prop.name=").append($prop.getter).append(SEP);<% } else { %>
-    b.append("$prop.name=").append($prop.name).append(SEP);<% } %><% } }%>
+    b.append("$idProp.name=").append($idProp.name).append(SEPARATOR);<% } %><% props.each { prop -> if(!prop.typeEntity && prop.type.cap.matches('(String|Boolean|Long|Integer)')) { %><% if (prop.multi) { %>
+    b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
   }''')
   
   template('hashCodeAndEquals', body: '''<% if (item.propsForHashCode) { %>

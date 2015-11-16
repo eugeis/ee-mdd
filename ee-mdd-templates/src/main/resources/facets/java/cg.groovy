@@ -21,7 +21,7 @@
  */
 
 def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
-  'ConnectionMetaEvent' : 'com.siemens.ra.cg.pl.common.base.model.event', 'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model',
+  'ConnectionMetaEvent' : 'com.siemens.ra.cg.pl.common.base.model.event', 'Base' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model',
   'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model', 'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception',
   'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'ActionType' : 'com.siemens.ra.cg.pl.common.base.model',
   'DependsOnExecutionType' : 'com.siemens.ra.cg.pl.common.base.cdi', 'UserInRoleConditionVerifier' : 'com.siemens.ra.cg.pl.common.ejb.cond', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util',
@@ -30,7 +30,8 @@ def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.commo
   'NamedThreadFactoryHolderByPrefix' : 'com.siemens.ra.cg.pl.common.base.util', 'HolderImpl' : 'com.siemens.ra.cg.pl.common.base', 'PublisherEmpty' : 'com.siemens.ra.cg.pl.common.base.cdi',
   'ConditionVerifierAbstract' : 'com.siemens.ra.cg.pl.common.base.cond', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Link' : 'com.siemens.ra.cg.pl.common.base.model',
   'Receiver' : 'com.siemens.ra.cg.pl.common.base.cdi', 'Cache' : 'com.siemens.ra.cg.pl.common.base.cache', 'DeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
-  'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
+  'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
+  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

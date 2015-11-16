@@ -250,8 +250,9 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'superGenericSgn'
         if(!properties.containsKey(key)) {
           def ret = ''
-          if(delegate.superGeneric)
+          if(delegate.superGeneric) {
             ret = "<${delegate.superGenericRefs.join(', ')}>"
+          }
           properties[key] = ret
         }
         properties[key]
