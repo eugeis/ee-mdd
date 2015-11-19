@@ -1352,7 +1352,7 @@ class EnhancerForJava {
           ret = ''
         } else {
           if(delegate.body[0].equals('#')) {
-            resolveMacro(c, body)
+            ret = resolveMacro(c, body)
           } else {
             ret = body
           }

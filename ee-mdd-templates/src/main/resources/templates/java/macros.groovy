@@ -575,7 +575,7 @@ public interface $className extends $item.n.cap.findersBase {
 }''')
 
   template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
-  <% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
+  <% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
   <% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
   public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(!op.originalParent(c)) { %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
 
@@ -653,13 +653,12 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
   <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
   <% } %><% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
 public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
-  private static final long serialVersionUID = 1L;
-  <% singlePropIndexes.each { prop -> if (prop.unique) { %>
-  protected ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
-  protected ${c.name('LinkToSetCache')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToIds = null;<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
-  protected ${c.name('LinkToSetCache')}<${c.name(relationIdProp.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
-  protected ${c.name('Map')}<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
-  protected ${c.name('LinkToSetCache')}<String, ${c.name(idProp.type.name)}> ${key}ToIds = null;<% } %><% } %><% if (c.override && item.virtual) { %>
+  private static final long serialVersionUID = 1L;<% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
+  protected LinkToSetCache<$relationIdProp.type.name, $idProp.type.name> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% singlePropIndexes.each { prop -> if (prop.unique) { %>
+  protected transient ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
+  protected transient ${c.name('LinkToSetCache')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToIds = null;<% } %><% } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
+  protected transient ${c.name('Map')}<String, $idProp.type.name> ${key}ToId = null;<% } else { %>
+  protected transient ${c.name('LinkToSetCache')}<String, ${c.name(idProp.type.name)}> ${key}ToIds = null;<% } %><% } %><% if (c.override && item.virtual) { %>
 
   public $className(${item.n.cap.cache}<${item.simpleGenericSgn}E> parent) {
     super(parent);
@@ -832,7 +831,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   @Override
   public ${c.name('List')}<$type> findBy${prop.cap}${relationIdProp.cap}sStrict(List<${relationIdProp.computedType(c)}> ${prop.uncap}${relationIdProp.cap}s) {
     return strict(findBy${prop.cap}${relationIdProp.cap}s(${prop.uncap}${relationIdProp.cap}s), \"findBy${prop.cap}${relationIdProp.cap}s\", ${prop.uncap}${relationIdProp.cap}s);
-  }<% } } %><% item.props.each { prop -> if (prop.typeEl && prop.oneToOne) { def relationIdProp = prop.type.idProp %>
+  }<% } } %><% item.props.each { prop -> if (prop.typeEl && prop.oneToOne) { def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
 
    @Override
   public $type findBy${prop.cap}${relationIdProp.cap}(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap}) {
@@ -850,12 +849,12 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   @Override
   public $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap}) {
     return strict(findBy${prop.cap}${relationIdProp.cap}(${prop.uncap}${relationIdProp.cap}), \"findBy${prop.cap}${relationIdProp.cap}\", ${prop.uncap}${relationIdProp.cap});
-  } <% } } %><% item.operations.each { op -> if (op.body) { %>
+  } <% } } } %><% item.operations.each { op -> if (op.body) { %>
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public $op.ret ${op.name}(${op.signature(c)}) {
-    $op.body
+  public ${op.return} ${op.name}(${op.signature(c)}) {
+    ${op.resolveBody(c)}
   }<% } %><% } %><% if (c.override && !item.virtual) { %>
 
   @Override
@@ -876,7 +875,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }<% if (item.ordered) { %>
 
   protected void sort${item.cap}sByOrder(List<$item.cap> items) {
-    Collections.sort(items, new ${c.name('Comparator')}<$item.cap>() {
+    ${c.name('Collections')}.sort(items, new ${c.name('Comparator')}<$item.cap>() {
       @Override
       public int compare($item.cap o1, $item.name o2) {
         return o1.getOrder().compareTo(o2.getOrder());
@@ -898,7 +897,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   @Override
   protected void preInitPropertyBasedLazyCaches() {
     super.preInitPropertyBasedLazyCaches();<% singlePropIndexes.each { prop -> if (prop.unique) { %>
-    ${prop.uncap}ToId = !threadSafe ? new ${c.name('HashMap')}<$prop.type, $idProp.type>() : new ${c.name('ConcurrentHashMap')}<$prop.type, $idProp.type>();<% } else { %>
+    ${prop.uncap}ToId = !threadSafe ? new ${c.name('HashMap')}<$prop.type.name, $idProp.type>() : new ${c.name('ConcurrentHashMap')}<$prop.type, $idProp.type>();<% } else { %>
     ${prop.uncap}ToIds = new ${c.name('LinkToSetCache')}<>(threadSafe);<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
     ${prop.uncap}${relationIdProp.cap}ToIds = new ${c.name('LinkToSetCache')}<>(threadSafe);<% } } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
     ${key}ToId = !threadSafe ? ${c.name('HashMap')}<String, $idProp.type>() : new ${c.name('ConcurrentHashMap')}<String, $idProp.type>();<% } else { %>
@@ -910,7 +909,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
     super.addToPropertyBasedLazyCaches(id, entity, oldEntity);<% singlePropIndexes.each { prop -> if (prop.unique) { %>
     ${prop.uncap}ToId.put(entity.$prop.getter, id);<% } else { %>
     ${prop.uncap}ToIds.add(entity.$prop.getter, id);<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
-    ${prop.uncap}${relationIdProp.cap}ToIds.add(entity.get${prop.cap}${relationIdProp.cap}(), id);<% } } %><% keyNameToIndex.each { key, index -> def call = index.props.collect { prop -> (prop.typeEl && prop.manyToOne) ? "entity.get${prop.cap}${relationIdProp.cap}()" : "entity.$prop.getter" }.join (', '); if (index.unique) { %>
+    ${prop.uncap}${relationIdProp.cap}ToIds.add(entity.get${prop.cap}${relationIdProp.cap}(), id);<% } } %><% keyNameToIndex.each { key, index -> def call = index.props.collect { prop -> (prop.typeEl && prop.manyToOne && relationIdProp) ? "entity.get${prop.cap}${relationIdProp.cap}()" : "entity.$prop.getter" }.join (', '); if (index.unique) { %>
     ${key}ToId.put(${key}Key($call), id);<% } else { %>
     ${key}ToIds.add(${key}Key($call), id);<% } %><% } %>
   }
@@ -920,12 +919,12 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
     super.removeFromPropertyBasedLazyCaches(id, entity);<% singlePropIndexes.each { prop -> if (prop.unique) { %>
     ${prop.uncap}ToId.remove(entity.$prop.getter);<% } else { %>
     ${prop.uncap}ToIds.removeTo(entity.$prop.getter, id);<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
-    ${prop.uncap}${relationIdProp.cap}ToIds.removeTo(entity.get${prop.cap}${relationIdProp.cap}(), id);<% } } %><% keyNameToIndex.each { key, index -> def call = index.props.collect { prop -> (prop.typeEl && prop.manyToOne) ? "entity.get${prop.cap}${relationIdProp.cap}()" : "entity.$prop.getter" }.join (', '); if (index.unique) { %>
+    ${prop.uncap}${relationIdProp.cap}ToIds.removeTo(entity.get${prop.cap}${relationIdProp.cap}(), id);<% } } %><% keyNameToIndex.each { key, index -> def call = index.props.collect { prop -> (prop.typeEl && prop.manyToOne && relationIdProp) ? "entity.get${prop.cap}${relationIdProp.cap}()" : "entity.$prop.getter" }.join (', '); if (index.unique) { %>
     ${key}ToId.remove(${key}Key($call));<% } else { %>
     ${key}ToIds.removeTo(${key}Key($call), id);<% } %><% } %>
   }
 
-<% keyNameToIndex.each { key, index -> def signature = index.props.collect { prop -> (prop.typeEl && prop.manyToOne) ? "$relationIdProp.type ${prop.uncap}${relationIdProp.cap}" : "$prop.type $prop.uncap" }.join (', '); %>
+<% keyNameToIndex.each { key, index -> def signature = index.props.collect { prop -> (prop.typeEl && prop.manyToOne) ? "$relationIdProp.type.name ${prop.uncap}${relationIdProp.cap}" : "$prop.type.name $prop.uncap" }.join (', '); %>
 <% def ret = index.props.collect { prop -> if (prop.typeEl && prop.manyToOne) { "${prop.uncap}${relationIdProp.cap}" } else if (prop.typeDate) { "${prop.uncap}.getTime()" } else { "$prop.uncap" } }.join (' + SEPARATOR_FOR_PROPERTY_KEYS + '); %>
 
   protected String ${key}Key($signature) {
@@ -1080,7 +1079,7 @@ public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} e
 }''')
 
   template('entityBean', body: ''' <% c.src = true %><% if(!c.className) { c.className = item.n.cap.entity } %>{{imports}}${macros.generate('metaAttributesEntity', c)}
-public${c.item.virtual?'abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
+public${c.item.virtual?' abstract':''} class $c.className extends ${item.n.cap.baseEntity} {
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
@@ -2207,11 +2206,11 @@ ${ret-newLine}''')
   template('newDate', body: '''<% def ret = 'new Date();' %>$ret''')
 
   template('testBody', body: '''  int counter = countdown;
-	while (counter!=0) {
-	  System.out.println(counter+"...");
-	  counter--;
-	}
-	System.out.println(test);''')
+	  while (counter!=0) {
+	    System.out.println(counter+"...");
+	    counter--;
+	  }
+	  System.out.println(test);''')
 
 
   // UI
