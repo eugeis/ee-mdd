@@ -418,7 +418,7 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'jpaConstants'
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
-          def ret = newLine
+          def ret = ''
           def finder = delegate.finders
           def commands = delegate.commands
 
@@ -862,8 +862,6 @@ class EnhancerForJava {
       }
 
       relTypeEjb << { Context c ->
-        def key = System.identityHashCode(delegate) + 'relTypeEjb'
-        if(!properties.containsKey(key)) {
           def prop = delegate
           def ret
           if(Entity.isInstance(prop.type)) {
@@ -873,9 +871,6 @@ class EnhancerForJava {
             //register usage of the type, in order to calculate imports, etc.
             c.name(ret)
           }
-          properties[key] = ret
-        }
-        properties[key]
       }
 
       typeEjbMember << { Context c ->
@@ -1049,7 +1044,7 @@ class EnhancerForJava {
                 association.value = ['mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite.name\"", 'orphanRemoval' : true]
               }
               metas << association
             } else {
@@ -1235,7 +1230,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
-          if(Entity.isInstance(prop.type) && prop.multi) {
+          if(!Entity.isInstance(prop.type) && prop.multi) {
             ret = true
           }
           properties[key] = ret

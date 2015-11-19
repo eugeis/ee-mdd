@@ -38,7 +38,7 @@ templates ('macros') {
   template('propMembers', body:'''<% item.props.each { prop-> %>
   protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>''')
 
-  template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
+  template('jpaPropsMember', body: '''<% item.props.each { prop -> c.prop = prop; if(!prop.primaryKey && (!c.item.virtual || c.item.virtual && !prop.multi)) { %>${macros.generate('metaAttributesProp', c)}<% if (prop.multi) { %>
   protected ${c.name('List')}<${prop.typeEjbMember(c)}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
@@ -58,7 +58,7 @@ templates ('macros') {
     $prop.uncap = ${item.uncap}.${prop.getter};<% } %><% } %>
   }''')
 
-  template('versionMember', body: '''<% if (!item.superUnit) { %>
+  template('versionMember', body: '''<% if (!c.item.superUnit) { %>
   @${c.name('Version')}
   @${c.name('Column')}(name = "VERSION")
   protected Long version;<% } %>''')
@@ -156,7 +156,7 @@ templates ('macros') {
   }<% } } %>''')
 
 
-  template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) {%>
+  template('jpaPropGetters', body: '''<% item.props.each { prop -> if (!item.virtual || (item.virtual && !prop.elementCollection)) { if (prop.readable && !prop.primaryKey) { %>
   ${!prop.typeEntity?'@Override':''}<% if(prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% if(item.virtual && prop.multi) { %>
   public abstract ${c.name('List')}<${prop.relTypeEjb(c)}> $prop.getter;<% } else { %>
@@ -264,15 +264,15 @@ templates ('macros') {
   }<% } } %>
 ''')
 
-  template('getSetVersion', body: '''
+  template('getSetVersion', body: '''<% if(!c.item.superUnit) { %>
   @Override
   public Long getVersion() {
     return version;
   }
-  ${item.superUnit ? '@Override':''}
+  @Override
   public void setVersion(Long version) {
     this.version = version;
-  }''')
+  }<% } %>''')
   
   template('initWidgets', body: '''
   @Override
@@ -293,7 +293,7 @@ templates ('macros') {
   <% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   @Override
-  public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
+  public ${op.return} $op.name(${op.signature(c)}) {
   ${op.resolveBody(c)}
   }<% } %>''')
   
@@ -1071,7 +1071,8 @@ public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} e
   ${c.item.jpaConstants(c)}${macros.generate('idProp', c)}${macros.generate('versionMember', c)}${macros.generate('multiSuperProps', c)}${macros.generate('jpaPropsMember', c)}${macros.generate('baseConstructor', c)}
   ${macros.generate('idPropGetter', c)}${macros.generate('idPropSetter', c)}
   ${macros.generate('getSetVersion', c)}${macros.generate('jpaMultiSuperPropGetters', c)}${macros.generate('jpaMultiSuperPropSetters', c)}
-  ${macros.generate('jpaPropGetters', c)}${macros.generate('jpaPropSetters', c)}
+  ${macros.generate('jpaPropGetters', c)}
+  ${macros.generate('jpaPropSetters', c)}
   ${macros.generate('relationIdPropGetter', c)}${macros.generate('relationIdPropSetter', c)}
   ${macros.generate('labelBody',c)}${macros.generate('attributesChanged', c)}
   ${macros.generate('methods', c)}${macros.generate('propsToString', c)}
@@ -2056,7 +2057,7 @@ ${ret-newLine}''')
 
   template('labelBody', body: '''<% if(item.labelBody) { %>
   @Override
-  public String naturalKey() {
+  public String getNaturalKey() {
     return $item.labelBody;
   }<% } %>''')
   template('attributesChanged', body: '''<% if(item.attributeChangeFlag) { %>
