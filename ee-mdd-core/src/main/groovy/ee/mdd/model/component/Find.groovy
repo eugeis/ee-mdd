@@ -30,6 +30,9 @@ class Find extends DataTypeOperation {
     if(!ret) {
       ret = parent.parent
     }
+    if(!unique) {
+      this.rawType = true
+    }
     super.init()
   }
 }

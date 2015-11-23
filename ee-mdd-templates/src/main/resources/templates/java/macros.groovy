@@ -318,9 +318,9 @@ templates ('macros') {
 
   template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  ${op.returnTypeExternal(c)} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.ref.return} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
+  ${op.ref.returnTypeExternal(c)} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
   template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
@@ -478,7 +478,7 @@ public interface $c.className extends ${c.name('Serializable')} {
   public interface $c.className extends $superClassName {
   }''')
 
-  template('ifcController', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}
+  template('ifcController', body: '''{{imports}}
   <% if (!item.base) { %>
     /**
      * The controller $item.name provides internal logic operations for '$module.name'.<% if (item.description) { %>
@@ -1112,13 +1112,13 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.return} $op.name($op.signature) {
+  public ${op.return} $op.name(${op.signature(c)}) {
     ${op.resolveBody(c)}
-  }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = op.rawType || (ref.resultExpression && ref.ret.multi && ref.ret.typeEntity) %>
+  }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = ref.rawType || (ref.resultExpression && ref.ret.multi && ref.ret.typeEntity) %>
 
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${ref.return} $ref.name(${ref.signature(c)}) {<% if(ref.void) { %>
+  public ${ref.returnTypeExternal(c)} $ref.name(${ref.signature(c)}) {<% if(ref.void) { %>
     ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% } else { %><% if (ref.resultExpression) { %>
     ${ref.return} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);
     if (ret !=null) {
@@ -1131,7 +1131,7 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
     } else {
       return null;
     }<% } else { %>
-    ${c.name(ref.return)} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
+    ${ref.returnTypeRaw} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
     ret = converter.toExternal(ret);<% } %>
     return ret;<% } %><% } %>
   }<% } %><% } %>
@@ -1631,7 +1631,7 @@ public class $className {
   template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> if(opRef.ref) { def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
   @${c.name('Inject')}
-  public void set${ref.cap}($ref.name $ref.uncap) {
+  public void set${ref.cap}(${c.name(ref.name)} $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
   }<% op << ref %><% } } } %>''')
 

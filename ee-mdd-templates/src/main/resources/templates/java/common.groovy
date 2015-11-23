@@ -86,14 +86,14 @@ templates ('common') {
   templates ('service',
   items: { c -> c.model.findAllRecursiveDown( { Facade.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-    template('ifcService', appendName: true, body: '''<% c.className = item.n.cap.base %>${macros.generate('ifcService', c)}''')
-    template('ifcServiceExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcServiceExtends', c)}<% } %>''')
+    template('ifcService', appendName: true, body: '''<%  if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap }%>${macros.generate('ifcService', c)}''')
+    template('ifcServiceExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.src = true %><% c.className = item.cap %> ${macros.generate('ifcServiceExtends', c)}<% } %>''')
   }
 
   templates ('controller',
   items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-    template('ifcController', appendName: true, body: '''<% c.className = "${item.cap}Base" %>${macros.generate('ifcController', c)}''')
+    template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
   }
 
