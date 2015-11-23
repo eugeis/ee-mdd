@@ -42,8 +42,8 @@ templates ('macros') {
   protected ${c.name('List')}<${prop.typeEjbMember(c)}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
-  template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(!members.contains(delegate.ref.parent)) { %>
-  protected ${c.name(delegate.ref.parent.name)} $delegate.ref.parent.uncap;<% } %><% members.add(delegate.ref.parent) %><% } %>''')
+  template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(delegate.ref) { if(!members.contains(delegate.ref.parent)) { %>
+  protected ${c.name(delegate.ref.parent.name)} $delegate.ref.parent.uncap;<% } %><% members.add(delegate.ref.parent) %><% } } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember(c)}> $idProp.uncap;<% } else { %>
@@ -326,7 +326,7 @@ templates ('macros') {
 
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.ret ? op.ret.name : 'void'} $op.name($op.signature) {
+  public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
     //TODO to implement <% if (op.returnTypeBoolean) { %>
     return false;<% } else if (op.ret) { %>
     return null; <% } %>
@@ -366,7 +366,7 @@ public interface $className {
   ${macros.generate('interfaceBodyExternal', c)}
 }''')
 
-  template('ifcServiceExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.cap } %>
+  template('ifcServiceExtends', body: '''
 /**
 * The service provides public operations for '$module.name'.<% if (item.description) { %>
 * <p>
@@ -1102,7 +1102,7 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-  template('serviceBaseBean', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %>{{imports}}
+  template('serviceBaseBean', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %><% if(!item.base) { %>import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.constantsBase}.*;<% } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public ${item.base?'abstract ':''}class $className implements ${c.name(item.name)} {<% if (item.useConverter) { %>
@@ -1628,12 +1628,12 @@ public class $className {
   public static final String ROLE_${stateMachine.underscored}_${eventEntry.value.underscored} = "${component.uncapShortName}_${stateMachine.uncapShortName}_${eventEntry.key}";<% } } } %>
 }<% }%>''')
 
-  template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
+  template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> if(opRef.ref) { def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
   @${c.name('Inject')}
   public void set${ref.cap}($ref.name $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
-  }<% op << ref %><% } } %>''')
+  }<% op << ref %><% } } } %>''')
 
 
 

@@ -23,4 +23,9 @@ package ee.mdd.model.component
  */
 class Facade extends CompilationUnit {
   boolean useConverter = false
+  
+  protected boolean init() {
+    this.base = true
+    super.init()
+  }
 }
