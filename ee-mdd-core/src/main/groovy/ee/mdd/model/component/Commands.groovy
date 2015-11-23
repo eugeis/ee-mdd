@@ -21,7 +21,7 @@ import ee.mdd.model.Element
  *
  * @author Niklas Cappelmann
  */
-class Commands extends Controller {
+class Commands extends CompilationUnit {
   
   Entity getEntity() { parent }
   
