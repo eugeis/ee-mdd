@@ -48,6 +48,7 @@ import ee.mdd.model.component.Type
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -636,6 +637,19 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getReturnTypeRaw {
+        ->
+        def key = System.identityHashCode(delegate) + 'returnTypeRaw'
+        if(!properties.containsKey(key)) {
+          def op = delegate
+          def ret = op.ret.name
+          if(!op.unique)
+            ret = 'List'
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       isReturnTypeBoolean {
         ->
@@ -741,15 +755,13 @@ class EnhancerForJava {
     DataTypeOperation.metaClass {
       
       returnTypeExternal << { Context c ->
-        def key = System.identityHashCode(delegate) + 'returnTypeExternal'
-        if(!properties.containsKey(key)) {
           if(Find.isInstance(delegate) && !delegate.unique) {
+            c.name('List')
+            c.name(delegate.parent.entity.name)
             properties[key] = "${c.name('List')}<$delegate.parent.entity.cap>"
           } else {
             properties[key] = "$delegate.parent.entity.cap"
           }
-        }
-        properties[key]
         
       }
 
@@ -780,8 +792,8 @@ class EnhancerForJava {
         }
         ret-separator
       }
+      
     }
-
 
 
     Literal.metaClass {
