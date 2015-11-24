@@ -382,17 +382,15 @@ public interface $className extends <% if (item.superUnit) {%>$superUnit.name<% 
 ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${macros.generate('interfaceBody', c)}
 }''')
 
-  template('ifcContainer', body: '''<% if (!c.className) { c.className = item.n.cap.base } %><% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %>
-<% item.props.each { entityProp -> %><% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %>
-<% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>{{imports}} 
-import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model
-<% if (!item.base) { %>
-/**
+  template('ifcContainer', body: '''{{imports}} 
+import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %><% item.props.each { entityProp -> def entity = entityProp.type %>
+<% oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>
+<% if (!item.base) { %>/**
 * The container is used to transfer bundled data between between server and client.
 * <p>
 * ${item.description?item.description:''}
 * </p>
-*/<% } else { %>/** Base interface of {@link ${c.name(item.name)}} */<% } %>
+*/<% } else { %>/** Base interface of {@link ${item.name}} */<% } %>
 
 public interface $c.className extends ${c.name('Serializable')} {
   /** A unique URI prefix for RESTful services and multi-language support */
@@ -412,15 +410,6 @@ public interface $c.className extends ${c.name('Serializable')} {
   void resetTempIds();
 
   /**
-  * Applies all changes from the passed container. In effect, all removes are applied.
-  *
-  * Use this method to update a container which contains all information with a container carrying delta information.
-  *
-  * @param container Delta information (new, updated and deleted deadlocks)
-  */
-  void synchronize(${item.cap} container);
-
-  /**
    * Applies all changes and addition returns a delta cache containing all changes. This method's logic is more
    * complex as the pure synchronize method, so it should only be used if the returned delta cache is needed for
    * further processing.
@@ -428,37 +417,56 @@ public interface $c.className extends ${c.name('Serializable')} {
    * @param container Delta information (new, updated and deleted deadlocks)
    * @return Delta container with all changes
    */
-   $item.n.cap.delta synchronizeWithDelta($item.cap container);
+  $item.n.cap.delta synchronizeWithDelta($item.cap container);
 
-   /**
-   * Synchronizes only the removes.
-   */
-   void synchronize($item.n.cap.removes removes);
-
-   /**
-   * Merges the changes from the passed container. In effect, all removes are merged as well.
+  /**
+   * Synchronize the container with external changes.
+   * Use this method to update containers containing delta information. New, updated, removed entities will be applied to the container.
    *
-   * Use this method to merge containers containing delta information.
+   * @param changes container with changes (new, updated and deleted entities)
+   */
+  void synchronize(${item.cap} changes);
+
+   /**
+   * Synchronize the container with external changes, removed entities by ids.
    *
-   * @param container Delta information (new, updated and deleted deadlocks)
+   * @param removedIds ids of removed entities
    */
-   void merge($item.cap container);
-
-   $item.n.cap.removes get${item.cap}Removes();
+  void synchronizeRemoved($item.n.cap.ids removedIds);
 
    /**
-   * Clears all data (caches and removes)
+   * Synchronize the container with external changes.
+   * Use this method to update containers containing delta information. New and updated entities will be applied to the container.
+   *
+   * @param changes container with changes (new and updated entities)
    */
-   void clear();
+  void synchronizeIgnoreRemoved($item.cap changes);
 
-   /**
-   * Returns whether the container is empty, i.e. that it contains neither container entries nor removes.
-   */
-   boolean isEmpty();
+  void markAsRemoved($item.n.cap.ids removedIds);
 
-   $item.name buildChangeSet();<% item.props.each { entityProp -> def entity = entityProp.type %>
+  void clearRemovedMarks();
+
+  void clearRemovedMarks($item.n.cap.ids removedIds);
+
+  void clearRemovedMarksOlderThan(int duration, ${c.name('TimeUnit')} timeUnit);
+
+  void keepMarksAfterRemove(boolean keepMarksAfterRemove);
+
+  $item.n.cap.ids buildRemoved();
+
+  /** Clears all data (caches and removed) */
+  void clear();
+
+  /** Returns whether the container is empty, i.e. that it contains neither container entries nor removed. */
+  boolean isEmpty();
+
+  $item.name buildChangeSet();
+
+  $item.cap diff($item.n.cap.diff diff);
+
+  $item.n.cap.versions buildVersions();<% item.props.each { entityProp -> def entity = entityProp.type %>
    
-   $entity.cap get${entity.n.cap.entity}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+   $entity.n.cap.cache get${entity.cap}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
    
    ${c.name('LinkedObjectCache')}<${entity.idProp.computedType(c)}, ${relationIdProp.computedType(c)}, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
 
@@ -1052,9 +1060,21 @@ public class $c.className extends $item.n.cap.deltaBaseImpl {
 }''')
 
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
-public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(c.item)}${item.genericSgn} {
+public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(item.name)} {
   private static final long serialVersionUID = 1L;
-  ${macros.generate('props', c)}${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
+  ${macros.generate('props', c)}<% if(!c.item.superUnit) { %>
+  protected Long version;
+
+  @Override
+  public Long getVersion() {
+    return version;
+  }
+
+  @Override
+  public void setVersion(Long version) {
+    this.version = version;
+  }<% } %>
+  ${macros.generate('propGetters', c)}${macros.generate('propsSetter', c)}${macros.generate('methods', c)}${macros.generate('propsToString', c)}${macros.generate('hashCodeAndEqualsEntity', c)}
 
 }''')
 
@@ -1063,7 +1083,7 @@ public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}Bas
   private static final long serialVersionUID = 1L;<% } %>
 }''')
 
-  template('entityBaseBean', body: '''<% def superUnit = c.item.superUnit; if(!c.className) { c.className = item.n.cap.entity } %><% item.superGenericRefs.each { c.name(it) } %>{{imports}}${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
+  template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {
   private static final long serialVersionUID = 1L;
   <% if(c.item.attributeChangeFlag) {%>@${c.name('Transient')}
@@ -1152,52 +1172,63 @@ public class $className extends $item.n.cap.baseBean {
 ${macros.generate('implOperations', c)}
 }''')
 
-  template('implContainer', body: '''<% if(!c.className) { c.className = item.n.cap.containerBaseImpl }%><% def className = c.className; def entityNames = item.props.collect { it.name } as Set %><%  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
+  template('implContainer', body: '''{{imports}}
+import ee.mdd.example.model.${item.n.cap.ids};
+<% item.props.each { prop -> %>
+import ee.mdd.example.cache.${prop.type.n.cap.cache};
+import ee.mdd.example.cache.${prop.n.cap.cacheImpl};
+import ee.mdd.example.cache.${prop.n.cap.cacheOverride};<% } %>
+import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.props.collect { it.name } as Set %><% def linkToManyCapToUncapNames = [:];  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
 <% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
-   if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop }
-   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>import ee.mdd.example.model.${item.n.cap.ids};
-import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model {{imports}}
+   if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop; linkToManyCapToUncapNames["${entity.cap}${prop.cap}"] = "${entity.uncap}${prop.cap}"; }
+   if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>
 @${c.name('Alternative')}
 public class $className extends ${c.name('Base')} implements $item.name {
   private static final long serialVersionUID = 1L;
 
-  protected ${item.n.cap.ids} removed = new ${item.n.cap.ids}();
-
   protected String source;
   protected ${c.name('Date')} timestamp;
-  <% c.item.props.each { prop -> %>
-  protected ${c.name(prop.type.name)} ${prop.type.instancesName}; <% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+  protected final boolean override;
+  protected final boolean threadSafe;<% c.item.props.each { prop -> %>
+  protected ${prop.type.n.cap.cache} ${prop.type.instancesName}; <% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
   protected ${c.name('LinkedObjectCache')}< <% if (entity.idProp.multi) {%>${c.name('List')}<entity.idProp.type><% } else {%>entity.idProp.type<% } %>, <% if (relationIdProp.multi) {%>${c.name('List')}<relationIdProp.type><% } else {%>relationIdProp.type<% } %>, prop.type.cap> ${entity.uncap}${prop.cap};<% } } %>
 
-  public $className(boolean override, boolean threadSafe) {
+  public $className(boolean override) {
+    this(null, override, false);
+  }
+
+  public $className(String source, boolean override, boolean threadSafe) {
+    this(source, override, threadSafe, TimeUtils.now());
+  }
+
+  public $className(String source, boolean override, boolean threadSafe, Date timestamp) {
     super();
+    this.source = source;
+    this.override = override;
+    this.threadSafe = threadSafe;
     this.timestamp = ${c.name('TimeUtils')}.now();
     if(!override) {<% item.props.each { prop -> %>
-      this.${prop.type.instancesName} = new ${prop.cap}CacheImpl(threadSafe); <% } %>
+      this.${prop.type.instancesName} = new ${prop.n.cap.cacheImpl}(threadSafe); <% } %>
     } else {<% item.props.each { prop -> %>
-      this.${prop.type.instancesName} = new ${prop.cap}CacheOverride(threadSafe); <% } %>
+      this.${prop.type.instancesName} = new ${prop.n.cap.cacheOverride}(threadSafe); <% } %>
     }
     <% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
     this.${entity.uncap}${prop.cap} = new ${c.name('LinkedObjectCache')}<>($prop.type.name);<% } } %>
   }
 
-  public $className(String source, boolean override, boolean threadSafe) {
-    this(override, threadSafe);
-    this.source = source;
+  public $className($item.name parentContainer, boolean threadSafe) {
+    this(parentContainer.getSource(), parentContainer, threadSafe, TimeUtils.now());
   }
 
-  public $className($item.name sourceContainer, boolean threadSafe) {
+  public $className(String source, $item.name parentContainer, boolean threadSafe, Date timestamp) {
     super();
+    this.source = source;
+    this.override = true;
+    this.threadSafe = threadSafe;
     this.timestamp = ${c.name('TimeUtils')}.now(); <% item.props.each { prop -> %>
-    this.${prop.type.instancesName} = new ${prop.type.n.cap.cacheOverride}(threadSafe);
-    ((${prop.type.n.cap.cacheOverride}) this.{$prop.type.instancesName}.setParent(sourceContainer.get${prop.type.name}s());<% } %>
+    this.${prop.type.instancesName} = new ${prop.type.n.cap.cacheOverride}(parentContainer.get${prop.type.cap}s(), threadSafe);<% } %>
     <% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
     this.${entity.uncap}${prop.cap} = new LinkedObjectCache<>($prop.type.instancesName);<% } } %>
-  }
-
-  public $className(String source, $item.name sourceContainer, boolean threadSafe) {
-    this(sourceContainer, threadSafe);
-    this.source = source;
   }
 
   @Override
@@ -1206,67 +1237,88 @@ public class $className extends ${c.name('Base')} implements $item.name {
   }
 
   @Override
-  public void setSource(String source) {
-    this.source = source;
-  }
-
-  @Override
   public Date getTimestamp() {
     return timestamp;
   }
 
   @Override
-  public void setTimestamp(Date timestamp) {
-    this.timestamp = timestamp;
-  }
-
-  @Override
-  public void resetTempIds() { <% item.props.each { prop ->
-    if(prop.type.idProp) { def type = prop.type.idProp.type;
-    if (type.name.equalsIgnoreCase('Long') || type.name.equalsIgnoreCase('Integer')) { %>
+  public void resetTempIds() { <% item.props.each { prop -> if(prop.type.idProp) { def type = prop.type.idProp.type; if (type.name.equalsIgnoreCase('Long') || type.name.equalsIgnoreCase('Integer')) { %>
     ${prop.type.instancesName}.resetTempIds();<% } } }%>
   }
 
   @Override
-  public void synchronize($item.name container) {<% item.props.each { prop -> %>
-    ${prop.type.instancesName}.synchronize(container.get${prop.type.cap}s());<% } %>
+  public void synchronizeIgnoreRemoved($item.cap changes) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.synchronizeAll(changes.get${prop.type.cap}s().getAll());<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.synchronizeAll(changes.get${cap}().getAll());<% } %>
   }
 
   @Override
-  public void synchronize($item.n.cap.removes removes) {<% item.props.each { prop -> %>
-    ${prop.type.instancesName}.synchronizeRemoves(removes.get${prop.type.cap}Ids());<% } %>
+  public void synchronize($item.cap changes) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.synchronizeAll(changes.get${prop.type.cap}s().getAll(), changes.get${prop.type.cap}s().getRemoved());<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.synchronizeAll(changes.get${cap}().getAll(), changes.get${cap}().getRemoved());<% } %>
+  }
+
+  @Override
+  public void synchronizeRemoved($item.n.cap.ids removedIds) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.synchronizeRemovedAll(removedIds.get${prop.type.cap}s());<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.synchronizeRemovedAll(removedIds.get${cap}());<% } %>
+  }
+
+  @Override
+  public void clearRemovedMarks() {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.clearRemovedMarks();<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.clearRemovedMarks();<% } %>
+  }
+
+  @Override
+  public void clearRemovedMarks($item.n.cap.ids ids) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.clearRemovedMarks(ids.get${prop.type.cap}s());<% } %>
+  }
+
+  @Override
+  public void clearRemovedMarksOlderThan(int duration, TimeUnit timeUnit) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.clearRemovedMarksOlderThan(duration, timeUnit);<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.clearRemovedMarksOlderThan(duration, timeUnit);<% } %>
+  }
+
+  @Override
+  public void keepMarksAfterRemove(boolean keepMarksAfterRemove) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.keepMarksAfterRemove(keepMarksAfterRemove);<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.keepMarksAfterRemove(keepMarksAfterRemove);<% } %>
+  }
+
+  @Override
+  public void markAsRemoved($item.n.cap.ids removedIds) {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.markAsRemovedAll(removedIds.get${prop.cap}s());<% } %>
+  }
+
+  @Override
+  public $item.n.cap.ids buildRemoved() {
+    $item.n.cap.ids ret = new $item.n.cap.ids();
+    <% item.props.each { prop -> %>
+    ret.get${prop.type.cap}s().addAll(${prop.type.instancesName}.getRemoved());<% } %>
+
+    return ret;
   }
 
   @Override
   public ${item.n.cap.delta} synchronizeWithDelta($item.cap container) {
-    <% item.props.each { prop -> %>${prop.type.n.cap.deltaCache} ${prop.type.n.uncap.deltaCache} = ${prop.type.namesInstances}.synchronizeWithDelta(container.get${prop.type.cap}s(), container.get${item.n.cap.removes}().get${prop.type.cap}Ids());
+    <% item.props.each { prop -> %>${prop.type.n.cap.deltaCache} ${prop.type.n.uncap.deltaCache} = ${prop.type.instancesName}.synchronizeWithDelta(container.get${prop.type.cap}s(), container.get${item.n.cap.removes}().get${prop.type.cap}Ids());
     <% } %>
     <% def localDeltas = item.props.collect { prop -> "${prop.type.n.uncap.deltaCache}" }.join(", ") %>
      return new ${item.n.cap.deltaImpl}(${localDeltas});
   }
 
   @Override
-  public void merge($item.cap container) {
-    removes.synchronize(container.get${item.n.cap.removes}());
-
-    synchronize(container);
-    synchronize(removes);
+  public boolean isEmpty() {<% def str = item.props.collect { prop -> "${prop.type.instancesName}.isEmpty() && !${prop.type.instancesName}.hasRemoved()" }.join(' && ');
+                               def str2 = linkToManyCapToUncapNames.collect { cap, uncap -> "${uncap}.isEmpty() && !${uncap}.hasRemoved()" }.join(' && '); if(str2) { str = "$str && $str2" } %>
+    return $str;
   }
 
   @Override
-  public ${item.n.cap.removes} get${item.n.cap.removes}() {
-    return removes;
-  }
-
-  @Override
-  public boolean isEmpty() {<%  def sizeQueries = (item.props.collect { prop -> "${prop.type.instancesName}.getSize() == 0" } + item.props.collect { prop -> "removes.get${prop.type.cap}Ids()" }).join(" && ") %>
-    return ${sizeQueries};
-  }
-
-  @Override
-  public void clear() { <% item.props.each { prop -> %>
-    ${prop.type.instancesName}.clear();<% } %>
-    removes.clear();
+  public void clear() {<% item.props.each { prop -> %>
+    ${prop.type.instancesName}.clear();<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
+    ${uncap}.clear();<% } %>
   }<% item.props.each { prop -> %>
 
   @Override
@@ -1282,9 +1334,40 @@ public class $className extends ${c.name('Base')} implements $item.name {
 
   @Override
   public $item.name buildChangeSet() {
-    $item.name changeSet = new ${item.name}Impl(true);<% item.props.each { prop -> %>
-    ((${prop.type.n.cap.cacheOverride}) changeSet.get${prop.type.cap}s()).fillChangeSetFrom(($prop.type.n.cap.cacheOverride) get${prop.type.cap}s());<% } %>
-    return changeSet;
+    $item.name ret = new ${item.name}Impl();
+    if(override) {<% item.props.each { prop -> %>
+    fillChangeSet${prop.type.cap}s(ret.get${prop.type.cap}s(), ($prop.type.n.cap.cacheOverride) get${prop.type.cap}s());<% } %>
+    } else {
+      ret.synchronize(this);
+    }
+    return ret;
+  }<% item.props.each { prop -> %>
+
+  protected void fillChangeSet${prop.type.cap}s($prop.type.n.cap.cache fillChanges, $prop.type.n.cap.cacheOverride $prop.type.instancesName) {
+    fillChanges.synchronizeAll(${prop.type.instancesName}.getAllLocal(), ${prop.type.instancesName}.getRemoved());
+  }<% } %>
+
+  @Override
+  public $item.cap diff($item.n.cap.diff diff) {
+    $item.n.cap.impl ret = new ${item.n.cap.impl}();
+    <% item.props.each { prop -> %>
+    diff${prop.type.cap}sTo(ret.get${prop.type.cap}s(), diff.get${prop.type.cap}s(), ret);<% } %>
+    return ret;
+  }<% item.props.each { prop -> %>
+
+  protected void diff${prop.type.cap}sTo($prop.type.n.cap.cache fillChanges, DiffIds<${prop.type.idProp.computedType(c)}> diff, $item.n.cap.impl fillContainer) {
+    if(!diff.isEmpty()) {
+      fillChanges.synchronizeAll(${prop.type.instancesName}.getAll(diff.getNew()));
+      fillChanges.synchronizeAll(${prop.type.instancesName}.getAll(diff.getModified()), diff.getRemoved());
+    }
+  }<% } %>
+
+  @Override
+  public $item.n.cap.versions buildVersions() {
+    $item.n.cap.versionsImpl ret = new ${item.n.cap.versionsImpl}(source);
+    ret.setTimestamp(timestamp);<% item.props.each { prop -> %>
+    ret.set${prop.type.cap}s(${prop.type.instancesName}.buildVersions());<% } %>
+    return ret;
   }
 
   protected <T> T strict(T result, String method, Object... params) {
