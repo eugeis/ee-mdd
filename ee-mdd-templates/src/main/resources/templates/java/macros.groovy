@@ -104,6 +104,8 @@ templates ('macros') {
   template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
 
   void $prop.setter;<% } } %>''')
+  
+  template('interPropSetters', body: '''void set${c.prop.cap}(${c.prop.computedType(c)} $c.prop.name);''')
 
   template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
   void $prop.setter;<% } } %>''')
@@ -383,7 +385,8 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 }''')
 
   template('ifcContainer', body: '''{{imports}} 
-import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %><% item.props.each { entityProp -> def entity = entityProp.type %>
+import ee.mdd.example.model.${item.name};<% item.props.each { prop -> %>
+import ee.mdd.example.cache.${prop.type.n.cap.cache}<% } %> // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %><% item.props.each { entityProp -> def entity = entityProp.type %>
 <% oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>
 <% if (!item.base) { %>/**
 * The container is used to transfer bundled data between between server and client.
@@ -466,14 +469,14 @@ public interface $c.className extends ${c.name('Serializable')} {
 
   $item.n.cap.versions buildVersions();<% item.props.each { entityProp -> def entity = entityProp.type %>
    
-   $entity.n.cap.cache get${entity.cap}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
+  ${entity.n.cap.cache} get${entity.cap}s();<% } %><% oneToManyNoOppositeProps.each { entity, linkedProps -> linkedProps.each { prop -> def relationIdProp = prop.type.idProp %>
    
-   ${c.name('LinkedObjectCache')}<${entity.idProp.computedType(c)}, ${relationIdProp.computedType(c)}, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
+  ${c.name('LinkedObjectCache')}<${entity.idProp.computedType(c)}, ${relationIdProp.computedType(c)}, $prop.type.name> get${entity.name}${prop.cap}();<% } } %>
 
-   ${macros.generate('interfaceBody', c)}<% item.props.each { prop -> %>
+  ${macros.generate('interfaceBody', c)}<% item.props.each { prop -> if(!prop.typeEntity) { c.prop = prop %>
 
-   ${prop.computedType(c)} $prop.getter;<% } %>
-   ${macros.generate('propSettersIfc', c)}
+  ${prop.computedType(c)} $prop.getter;
+  ${macros.generate('interPropSetters', c)}<% } } %>
 }''')
 
   template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>{{imports}}
@@ -1056,6 +1059,30 @@ public class $c.className extends $item.n.cap.deltaBaseImpl {
 
   public $c.className() {
     super();
+  }
+}''')
+  
+  template('containerDiffExtends', body: '''
+public class $className extends $item.n.cap.diffBase {
+  private static final long serialVersionUID = 1L;
+}''')
+  
+  template('containerDiff', body: '''{{imports}}
+public class $className extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;<% item.props.each { prop -> %>
+  protected ${c.name('DiffIds')} ${prop.type.instancesName};<% } %><% item.props.each { prop -> %>
+
+  public DiffIds get${prop.type.cap}s() {
+    return ${prop.type.instancesName};
+  }
+
+  public void set${prop.type.cap}s(DiffIds ${prop.type.instancesName}) {
+    this.${prop.type.instancesName} = ${prop.type.instancesName};
+  }<% } %>
+
+  @Override
+  protected void fillToString(StringBuffer b) {<% item.props.each { prop -> %>
+    b.append("${prop.type.instancesName}").append(${prop.type.instancesName}).append(SEPARATOR);<% } %>
   }
 }''')
   
