@@ -1058,6 +1058,37 @@ public class $c.className extends $item.n.cap.deltaBaseImpl {
     super();
   }
 }''')
+  
+  template('containerVersions', body: '''{{imports}}<% if (!item.base) { %>
+/**
+* The container info is used to transfer bundled information about container data between between server and client.
+* <p>
+* ${item.description?item.description:''}
+* </p>
+*/<% } else { %>/** Base interface of {@link $item.name} */<% } %>
+public interface $className extends ${c.name('Serializable')} {
+
+  /** Source of object builder. E.g. server/node name. */
+  String getSource();
+
+  /** Time point of data fetching */
+  ${c.name('Date')} getTimestamp();
+
+  $item.n.cap.diff diff($item.n.cap.versions snapshot);<% item.props.each { prop -> %>
+
+  ${c.name('Map')}<${prop.type.idProp.computedType(c)}, Long> get${prop.type.cap}s();<% } %><% item.props.each { prop -> %>
+
+  int get${prop.type.cap}sCount();<% } %>
+}''')
+  
+  template('containerVersionsExtends', body: '''/**
+   * The container info is used to transfer bundled information about container data between between server and client.
+   * <p>
+   * ${item.description?item.description:''}
+   * </p>
+   */
+   public interface $className extends $item.n.cap.versionsBase {
+   }''')
 
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
 public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(item.name)} {

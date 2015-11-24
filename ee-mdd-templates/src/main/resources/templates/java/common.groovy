@@ -107,6 +107,8 @@ templates ('common') {
     template('containerIdsBase', appendName: true, body: '''<% c.className = item.n.cap.idsBase %> ${macros.generate('containerIdsBase', c)}''')
     template('containerIds', appendName: true, body: '''<% c.className = item.n.cap.ids %> ${macros.generate('containerIds', c)}''')
     template('implContainerDelta', appendName: true, body: '''<% c.className = item.n.cap.deltaBaseImpl %> ${macros.generate('implContainerDelta', c)}''')
+    template('containerVersions', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.versionsBase } else { c.className = item.n.cap.versions } %> ${macros.generate('containerVersions', c)}''' )
+    template('containerVersionsExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versions %> ${macros.generate('containerVersionsExtends', c)} <% } %>''' )
   }
 
   templates ('implContainer',
