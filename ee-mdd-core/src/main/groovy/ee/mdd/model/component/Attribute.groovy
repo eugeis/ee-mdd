@@ -23,11 +23,19 @@ import ee.mdd.model.Element
  * @author Niklas Cappelmann
  */
 class Attribute extends Element {
+  Names n
   Type type
   List<MetaAttribute> metas
   def value
   boolean multi = false
   boolean generic = false
+  
+  Names getN() {
+    if (!n) {
+      n = new Names(this, name)
+    }
+    n
+  }
 
   def add(MetaAttribute item) {
     if(!metas) {

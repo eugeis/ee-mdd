@@ -24,7 +24,15 @@ import ee.mdd.model.Composite
  * @author Niklas Cappelmann
  */
 class Type extends Composite {
+  Names n
 	List<MetaAttribute> metas
+  
+  Names getN() {
+    if (!n) {
+      n = new Names(this, name)
+    }
+    n
+  }
 
 	Namespace getNs() {
 		parent.ns
