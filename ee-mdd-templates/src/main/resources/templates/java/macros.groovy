@@ -386,7 +386,7 @@ ${macros.generate('propGettersIfc', c)}${macros.generate('propSettersIfc', c)}${
 
   template('ifcContainer', body: '''{{imports}} 
 import ee.mdd.example.model.${item.name};<% item.props.each { prop -> %>
-import ee.mdd.example.cache.${prop.type.n.cap.cache}<% } %> // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %><% item.props.each { entityProp -> def entity = entityProp.type %>
+import ee.mdd.example.cache.${prop.type.n.cap.cache};<% } %> // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.entities.collect { it.name } as Set; def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:] %><% item.props.each { entityProp -> def entity = entityProp.type %>
 <% oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) { %><% if (prop.oneToMany && !prop.opposite && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop } %><% if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } %><% } } } %>
 <% if (!item.base) { %>/**
 * The container is used to transfer bundled data between between server and client.
@@ -402,12 +402,8 @@ public interface $c.className extends ${c.name('Serializable')} {
   /** Source of object builder. E.g. server/node name. */
   String getSource();
 
-  void setSource(String source);
-
   /** Time point of data fetching */
   ${c.name('Date')} getTimestamp();
-
-  void setTimestamp(Date timestamp);
 
   /** Reset temporary ids of new entities */
   void resetTempIds();
@@ -479,15 +475,16 @@ public interface $c.className extends ${c.name('Serializable')} {
   ${macros.generate('interPropSetters', c)}<% } } %>
 }''')
 
-  template('ifcContainerDelta', body: ''' <% if (!c.className) { c.className = item.n.cap.deltaBase } %>{{imports}}
-  public interface $c.className extends ${c.name('LogStringProvider')} {
-    <% item.props.each { entityProp -> def entity = entityProp.type %>
-      ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
-  }''')
+  template('ifcContainerDelta', body: '''{{imports}}<% item.props.each { prop -> %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.deltaCache};<% } %>
+
+public interface $c.className extends ${c.name('LogStringProvider')} { <% item.props.each { entityProp -> def entity = entityProp.type %>
+  ${entity.n.cap.deltaCache} get${entity.n.cap.delta}();<% } %>
+}''')
 
   template('ifcContainerDeltaExtends', body: '''<% c.src = true %><% if (!c.className) { c.className = item.n.cap.delta } %><% def superClassName = item.n.cap.deltaBase %>{{imports}}
-  public interface $c.className extends $superClassName {
-  }''')
+public interface $c.className extends $superClassName {
+}''')
 
   template('ifcController', body: '''{{imports}}
   <% if (!item.base) { %>
@@ -635,7 +632,7 @@ public interface $className extends $item.n.cap.findersBase {
   public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
   }''')
   
-  template('ifcDeltaCache', body: '''<% def superUnit = item.superUnit; def cacheClass = item.n.cap.cache; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
+  template('ifcDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def cacheClass = item.n.cap.cache; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>
 <% if (superUnit) { cacheSuper = "$superUnit.n.cap.deltaCache<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "${c.name('DeltaCache')}<$idProp.type.name, $type>" }%>
 public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {
   @Override
@@ -995,6 +992,64 @@ public abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${
   }<% } %>
   ${macros.generate('implOperations', c)}
 }''')
+  
+  template('implDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual? 'E' : c.name(item.cap); def deltaCacheSuper; def deltaCacheSuperGeneric; if (superUnit) { %>
+<% deltaCacheSuper = "${superUnit.n.cap.deltaCacheImpl}"; deltaCacheSuperGeneric = "${deltaCacheSuper}<${item.simpleSuperGenericSgn}${type}>"%><% } else if (idProp.typeLong) { %>
+<% deltaCacheSuper = c.name('LongEntityDeltaCache'); deltaCacheSuperGeneric = "${deltaCacheSuper}<${type}>" %><% } else if (idProp.typeInteger) { %>
+<% deltaCacheSuper = c.name('IntegerEntityDeltaCache'); deltaCacheSuperGeneric = "${deltaCacheSuper}<${type}>" %><% } else if ( idProp.typeString)  { %>
+<% deltaCacheSuper = c.name('StringEntityDeltaCache'); deltaCacheSuperGeneric = "${deltaCacheSuper}<${type}>" %><% } else { %>
+<% deltaCacheSuper = c.name('DeltaCacheImpl'); deltaCacheSuperGeneric = "${deltaCacheSuper}<${idProp.type}, ${type}>" } %><% def cacheType = item.n.cap.cache; def cacheTypeImpl = item.n.cap.cacheImpl; %>
+public abstract class $className<% if (item.virtual) { %><${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}><% } %> extends ${deltaCacheSuperGeneric} implements ${item.n.cap.deltaCache}<% if (item.virtual) { %><${item.simpleGenericSgn}E><% } %> {
+  private static final long serialVersionUID = 1L;
+
+  public $className(boolean threadSafe) {
+    super(threadSafe);
+  }
+
+  public $className() {
+    this(false);
+  }
+
+  <% if (!item.virtual) {%>@Override
+  protected $cacheType createCache(boolean threadSafe) {
+    return new ${cacheTypeImpl}(threadSafe);
+  }<% } else { %>@Override
+  protected abstract $cacheType createCache(boolean threadSafe);
+  <% } %>
+
+  @Override
+  public $cacheType getNew() {
+    return (${cacheType}) super.getNew();
+  }
+
+  @Override
+  public $cacheType getNewModified() {
+    return (${cacheType}) super.getNewModified();
+  }
+
+  @Override
+  public $cacheType getOldModified() {
+    return (${cacheType}) super.getOldModified();
+  }
+
+  @Override
+  public $cacheType getRemoved() {
+    return (${cacheType}) super.getRemoved();
+  }
+}''')
+  
+  template('implDeltaCacheExtends', body: '''{{imports}}<% if (item.virtual) { %>@SuppressWarnings("unchecked")
+public abstract class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${item.n.cap.deltaCacheBaseImpl}<${item.simpleGenericSgn}E><% } else { %>public class $className extends ${item.n.cap.deltaCacheBaseImpl}<% } %> {
+  private static final long serialVersionUID = 1L;
+
+  public $className(boolean threadSafe) {
+    super(threadSafe);
+  }
+
+  public $className() {
+    this(false);
+  }
+}''')
 
   template('containerIdsBase', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
 public class $c.className extends ${c.name('Base')} {
@@ -1025,10 +1080,12 @@ public class $c.className extends $item.n.cap.idsBase {
   private static final long serialVersionUID = 1L;
 }''')
 
-  template('implContainerDelta', body: '''<% if (!c.className) { c.className = item.n.cap.deltaBaseImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
-def newInstances = item.props.collect { entityProp -> "new ${entityProp.type.n.cap.deltaCacheImpl}()" }.join(", ") %>{{imports}}
-public class $c.className implements $item.n.cap.deltaImpl {
-  <% item.props.each { entityProp -> def entity = entityProp.type %>private final ${entity.n.cap.deltaCache} ${entity.uncap}DeltaCache;<% } %>
+  template('implContainerDelta', body: '''{{imports}}<% item.props.each { prop -> %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.deltaCache};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.deltaCacheImpl};<% } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+def newInstances = item.props.collect { entityProp -> "new ${entityProp.type.n.cap.deltaCacheImpl}()" }.join(", ") %>
+public class $c.className implements $item.n.cap.delta {<% item.props.each { entityProp -> def entity = entityProp.type %>
+  private final ${entity.n.cap.deltaCache} ${entity.uncap}DeltaCache;<% } %>
 
   public $c.className(${signature}) {
     <% item.props.each { entityProp -> def entity = entityProp.type %>this.${entity.uncap}DeltaCache = ${c.name('AssertionUtils')}.assertNotNull(${entity.uncap}DeltaCache);<% } %>
@@ -1049,8 +1106,10 @@ public class $c.className implements $item.n.cap.deltaImpl {
   }
 }''')
 
-  template('implContainerDeltaExtends', body: '''<% if (!c.className) { c.className = item.n.cap.deltaImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
-def params = item.props.collect { entityProp -> "new ${entityProp.type.uncap}deltaCache()" }.join(", ") %>
+  template('implContainerDeltaExtends', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.deltaBaseImpl};<% item.props.each { entityProp -> %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${entityProp.type.n.cap.deltaCache};<% } %><% if (!c.className) { c.className = item.n.cap.deltaImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+def params = item.props.collect { entityProp -> "${entityProp.type.uncap}DeltaCache" }.join(", ") %>
 public class $c.className extends $item.n.cap.deltaBaseImpl {
 
   public $c.className(${signature}) {
@@ -1116,6 +1175,90 @@ public interface $className extends ${c.name('Serializable')} {
    */
    public interface $className extends $item.n.cap.versionsBase {
    }''')
+  
+  template('implContainerVersions', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.versions};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.diff};
+public ${item.base?'abstract ':''}class $className extends ${c.name('Base')} implements $item.n.cap.versions {
+  private static final long serialVersionUID = 1L;
+
+  protected String source;
+  protected ${c.name('Date')} timestamp;
+  protected boolean versions;
+  <% item.props.each { entityProp -> %>
+  protected ${c.name('Map')}<${entityProp.type.idProp.computedType(c)}, Long> ${entityProp.type.instancesName};<% } %>
+
+  public $className() {
+    super();
+    this.timestamp = ${c.name('TimeUtils')}.now();
+  }
+
+  public $className(String source) {
+    this();
+    this.source = source;
+  }
+
+  @Override
+  public String getSource() {
+    return source;
+  }
+
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  @Override
+  public Date getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(Date timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  @Override
+  public $item.n.cap.diff diff($item.n.cap.versions snapshot) {
+    $item.n.cap.diff ret = new $item.n.cap.diff();<% item.props.each { entityProp -> %>
+    fill${entityProp.type.cap}sTo(ret, snapshot);<% } %>
+    return ret;
+  }<% item.props.each { entityProp -> %>
+
+  protected void fill${entityProp.type.cap}sTo($item.n.cap.diff toFill, $item.n.cap.versions snapshot) {
+    toFill.set${entityProp.type.cap}s(${c.name('CollectionUtils')}.diff(${entityProp.type.instancesName}, snapshot.get${entityProp.type.cap}s()));
+  }<% } %><% item.props.each { entityProp -> %>
+
+  @Override
+  public Map<${entityProp.type.idProp.computedType(c)}, Long> get${entityProp.type.cap}s() {
+    return ${entityProp.type.instancesName};
+  }
+
+  public void set${entityProp.cap}s(Map<${entityProp.type.idProp.computedType(c)}, Long> ${entityProp.type.instancesName}) {
+    this.${entityProp.type.instancesName} = ${entityProp.type.instancesName};
+  }<% } %><% item.props.each { entityProp -> %>
+
+  @Override
+  public int get${entityProp.type.cap}sCount() {
+    return ${entityProp.type.instancesName} != null ? ${entityProp.type.instancesName}.size() : 0;
+  }<% } %>
+
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);<% item.props.each { entityProp -> %>
+    b.append("${entityProp.type.instancesName}=").append(${entityProp.type.instancesName}).append(SEPARATOR);<% } %>
+    b.append("timestamp=").append(${c.name('StringUtils')}.formatDateLong(timestamp));
+  }
+}''')
+  
+  template('implContainerVersionsExtends', body: '''{{imports}}
+public class $className extends $item.n.cap.versionsBaseImpl {
+  private static final long serialVersionUID = 1L;
+
+  ${macros.generate('superclassConstructor', c)}
+
+  public $className(String source) {
+    super(source);
+  }
+}''')
 
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
 public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(item.name)} {
@@ -1233,10 +1376,15 @@ ${macros.generate('implOperations', c)}
   template('implContainer', body: '''{{imports}}
 import ee.mdd.example.model.${item.n.cap.ids};
 <% item.props.each { prop -> %>
-import ee.mdd.example.cache.${prop.type.n.cap.cache};
-import ee.mdd.example.cache.${prop.n.cap.cacheImpl};
-import ee.mdd.example.cache.${prop.n.cap.cacheOverride};<% } %>
-import ee.mdd.example.model.${item.name}; // TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.props.collect { it.name } as Set %><% def linkToManyCapToUncapNames = [:];  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.cache};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.n.cap.cacheImpl};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.n.cap.cacheOverride};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.n.cap.deltaCache};<% } %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.name};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.delta};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.diff};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.versions};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.impl.${item.n.cap.versionsImpl};// TODO: c.name does not yet resolve items in sub packages like .model or .cache<% def entityNames = item.props.collect { it.name } as Set %><% def linkToManyCapToUncapNames = [:];  def oneToManyNoOppositeProps = [:]; def manyToOneProps = [:]; item.props.each { entityProp -> %>
 <% def entity = entityProp.type; oneToManyNoOppositeProps[entity] = []; manyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if(prop.type) {
    if (((prop.oneToMany && !prop.opposite) || (prop.mm)) && entityNames.contains(prop.type.name)) { oneToManyNoOppositeProps[entity] << prop; linkToManyCapToUncapNames["${entity.cap}${prop.cap}"] = "${entity.uncap}${prop.cap}"; }
    if (prop.manyToOne && entityNames.contains(prop.type.name)) { manyToOneProps[entity] << prop } } } } %>
@@ -1334,7 +1482,7 @@ public class $className extends ${c.name('Base')} implements $item.name {
   }
 
   @Override
-  public void clearRemovedMarksOlderThan(int duration, TimeUnit timeUnit) {<% item.props.each { prop -> %>
+  public void clearRemovedMarksOlderThan(int duration, ${c.name('TimeUnit')} timeUnit) {<% item.props.each { prop -> %>
     ${prop.type.instancesName}.clearRemovedMarksOlderThan(duration, timeUnit);<% } %><% linkToManyCapToUncapNames.each { cap, uncap -> %>
     ${uncap}.clearRemovedMarksOlderThan(duration, timeUnit);<% } %>
   }
@@ -1361,9 +1509,9 @@ public class $className extends ${c.name('Base')} implements $item.name {
 
   @Override
   public ${item.n.cap.delta} synchronizeWithDelta($item.cap container) {
-    <% item.props.each { prop -> %>${prop.type.n.cap.deltaCache} ${prop.type.n.uncap.deltaCache} = ${prop.type.instancesName}.synchronizeWithDelta(container.get${prop.type.cap}s(), container.get${item.n.cap.removes}().get${prop.type.cap}Ids());
+    <% item.props.each { prop -> %>${prop.type.n.cap.deltaCache} ${prop.type.uncap}DeltaCache = ${prop.type.instancesName}.synchronizeWithDelta(container.get${prop.type.cap}s(), container.get${prop.type.cap}s().getRemoved());
     <% } %>
-    <% def localDeltas = item.props.collect { prop -> "${prop.type.n.uncap.deltaCache}" }.join(", ") %>
+    <% def localDeltas = item.props.collect { prop -> "${prop.type.uncap}DeltaCache" }.join(", ") %>
      return new ${item.n.cap.deltaImpl}(${localDeltas});
   }
 
@@ -1413,7 +1561,7 @@ public class $className extends ${c.name('Base')} implements $item.name {
     return ret;
   }<% item.props.each { prop -> %>
 
-  protected void diff${prop.type.cap}sTo($prop.type.n.cap.cache fillChanges, DiffIds<${prop.type.idProp.computedType(c)}> diff, $item.n.cap.impl fillContainer) {
+  protected void diff${prop.type.cap}sTo($prop.type.n.cap.cache fillChanges, ${c.name('DiffIds')}<${prop.type.idProp.computedType(c)}> diff, $item.n.cap.impl fillContainer) {
     if(!diff.isEmpty()) {
       fillChanges.synchronizeAll(${prop.type.instancesName}.getAll(diff.getNew()));
       fillChanges.synchronizeAll(${prop.type.instancesName}.getAll(diff.getModified()), diff.getRemoved());
@@ -1429,11 +1577,11 @@ public class $className extends ${c.name('Base')} implements $item.name {
   }
 
   protected <T> T strict(T result, String method, Object... params) {
-    return ExceptionUtils.checkIfFound(result, this, method, params);
+    return ${c.name('ExceptionUtils')}.checkIfFound(result, this, method, params);
   }
 
   @Override
-  public void fillToLogString(LogStringBuilder b) {
+  public void fillToLogString(${c.name('LogStringBuilder')} b) {
     super.fillToLogString(b); <% item.props.each { prop -> %>
     b.append("${prop.type.instancesName}", ${prop.type.instancesName}); <% } %>
   }
