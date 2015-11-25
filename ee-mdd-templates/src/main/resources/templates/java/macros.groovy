@@ -1587,13 +1587,14 @@ public class $className extends ${c.name('Base')} implements $item.name {
   }
 }''')
 
-  template('implContainerExtends', body: '''<% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.n.cap.impl } %>{{imports}}
+  template('implContainerExtends', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.name};
 @${c.name('Alternative')}
 public class $className extends $item.n.cap.baseImpl {
   private static final long serialVersionUID = 1L;
 
   public $className() {
-    super(false, false);
+    super(null, false, false);
   }
 
   public $className(String source) {
@@ -1601,36 +1602,27 @@ public class $className extends $item.n.cap.baseImpl {
   }
 
   public $className(boolean override) {
-    super(override, false);
+    super(null, override, false);
   }
 
-  public $className(String source, boolean override) {
-    super(source, override, false);
+  public $className(boolean override, boolean threadSafe) {
+    this(null, override, threadSafe);
   }
 
   public $className(String source, boolean override, boolean threadSafe) {
     super(source, override, threadSafe);
   }
 
-  public $className($item.name sourceContainer) {
-    super(sourceContainer, false);
+  public $className($item.name parentContainer) {
+    this(parentContainer, false);
   }
 
-  public $className($item.name sourceContainer, boolean threadSafe) {
-    super(sourceContainer, threadSafe);
+  public $className($item.name parentContainer, boolean threadSafe) {
+    super(parentContainer, threadSafe);
   }
 
-  public $className(String source, $item.name sourceContainer) {
-    super(source, sourceContainer, false);
-  }
-
-  public $className(String source, $item.name sourceContainer, boolean threadSafe) {
-    super(source, sourceContainer, threadSafe);
-  }
   ${macros.generate('implOperations', c)}
-}
-
-''')
+}''')
 
   template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.key.capitalize()}Ml;{{imports}}

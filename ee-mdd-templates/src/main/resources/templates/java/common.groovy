@@ -119,7 +119,7 @@ templates ('common') {
   items: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implContainer', appendName: true, body: '''<% c.className = c.item.n.cap.baseImpl %>${macros.generate('implContainer', c)}''')
-    template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %> c.className = c.item.n.cap.impl %>${macros.generate('implContainerExtends', c)}<% } %>''')
+    template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %><% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.n.cap.impl } %>${macros.generate('implContainerExtends', c)}<% } %>''')
     template('implContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.deltaImpl %> ${macros.generate('implContainerDeltaExtends', c)}''')
     template('implContainerVersions', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsBaseImpl %><% } else { %><% c.className = item.n.cap.versionsImpl %><% } %>${macros.generate('implContainerVersions', c)}''')
     template('implContainerVersionsExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsImpl %> ${macros.generate('implContainerVersionsExtends', c)}<% } %>''')
