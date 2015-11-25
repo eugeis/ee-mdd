@@ -1010,6 +1010,15 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      isTypeString << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeString'
+        if(!properties.containsKey(key)) {
+          properties[key] = (delegate.type.name == 'String' ? true : false)
+        }
+        properties[key]
+      }
 
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
