@@ -30,8 +30,10 @@ def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.commo
   'NamedThreadFactoryHolderByPrefix' : 'com.siemens.ra.cg.pl.common.base.util', 'HolderImpl' : 'com.siemens.ra.cg.pl.common.base', 'PublisherEmpty' : 'com.siemens.ra.cg.pl.common.base.cdi',
   'ConditionVerifierAbstract' : 'com.siemens.ra.cg.pl.common.base.cond', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Link' : 'com.siemens.ra.cg.pl.common.base.model',
   'Receiver' : 'com.siemens.ra.cg.pl.common.base.cdi', 'Cache' : 'com.siemens.ra.cg.pl.common.base.cache', 'DeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
-  'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
-  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'DiffIds' : 'com.siemens.ra.cg.pl.common.base.cache'] as TreeMap
+  'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'IntegerEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
+  'StringEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'DeltaCacheImpl' : 'com.siemens.ra.cg.pl.common.base.cache', 'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
+  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'DiffIds' : 'com.siemens.ra.cg.pl.common.base.cache', 'ExceptionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
+  'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion', 'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
