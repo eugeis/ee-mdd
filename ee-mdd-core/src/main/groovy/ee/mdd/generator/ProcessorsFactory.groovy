@@ -15,7 +15,6 @@
  */
 package ee.mdd.generator
 
-import java.io.File;
 
 
 /**
@@ -52,9 +51,11 @@ class ProcessorsFactory {
   Processor printProcessor() {
     Processor ret = new Processor(name: 'prinln')
 
-    ret.after = { c -> if (!c.error) {
+    ret.after = { c ->
+      if (!c.error) {
         println c.output
-      } }
+      }
+    }
     ret
   }
 

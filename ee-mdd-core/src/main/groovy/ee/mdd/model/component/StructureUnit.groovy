@@ -29,8 +29,14 @@ import ee.mdd.model.Composite
 class StructureUnit extends Composite implements BuilderAware {
   AbstractFactoryBuilder builder
   MddFactory factory
-  
-  static final sameNamespaceModules = ['shared', 'client', 'backend', 'ejb', 'facade', 'cfg'] as Set
+
+  static final sameNamespaceModules = [
+    'shared',
+    'client',
+    'backend',
+    'ejb',
+    'facade',
+    'cfg'] as Set
 
   String artifact, key, version
   Namespace namespace
@@ -53,7 +59,7 @@ class StructureUnit extends Composite implements BuilderAware {
       }
     }
   }
-  
+
   protected initKey() {
     if(!key) {
       if(!sameNamespaceModules.contains(name)) {
@@ -85,15 +91,15 @@ class StructureUnit extends Composite implements BuilderAware {
     }
     n
   }
-  
+
   String getCapShortName() {
-    underscoreToCamelCase(key).capitalize();
+    underscoreToCamelCase(key).capitalize()
   }
-  
-  String getUncapShortName() { 
-    underscoreToCamelCase(key).toLowerCase();
+
+  String getUncapShortName() {
+    underscoreToCamelCase(key).toLowerCase()
   }
-  
+
   String underscoreToCamelCase(String underscoreStr) {
     if(!underscoreStr || underscoreStr.isAllWhitespace()){
       return ''
@@ -120,5 +126,9 @@ class StructureUnit extends Composite implements BuilderAware {
 
   def extend(Closure closure) {
     builder.createChildNodes(this, factory, closure)
+  }
+
+  String toString() {
+    "$name@${getClass().simpleName}"
   }
 }

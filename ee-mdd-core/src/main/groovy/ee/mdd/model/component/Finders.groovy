@@ -23,10 +23,14 @@ import ee.mdd.model.Element
  */
 class Finders extends Controller {
 
-  Entity getEntity() { parent }
-  
-  Finders getSuperFinders() { entity.superUnit?.finders}
-  
+  Entity getEntity() {
+    parent
+  }
+
+  Finders getSuperFinders() {
+    entity.superUnit?.finders
+  }
+
   List<Find> getFinders() {
     def ret = []
     if(operations)
@@ -57,5 +61,13 @@ class Finders extends Controller {
   void fillReference(Map<String, Element> refToMe) {
     super.fillReference(refToMe)
     refToMe['finder'] = this
+  }
+
+  String deriveName() {
+    if(!parent) {
+      super.deriveName()
+    } else {
+      "${parent.cap}Finders"
+    }
   }
 }

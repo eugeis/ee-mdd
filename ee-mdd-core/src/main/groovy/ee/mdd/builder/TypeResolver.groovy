@@ -16,6 +16,7 @@
 package ee.mdd.builder
 
 import ee.mdd.model.Element
+import ee.mdd.model.component.ExternalType
 
 /**
  *
@@ -105,17 +106,27 @@ class TypeResolver {
 
       def ref = node.reference
       Class globalType = types.find { Class clazz -> clazz.isInstance(node) }
-      if(globalType && !duplicates.contains(ref)) {
-        def old = refToElement.put(ref, node)
-        if(old) {
-          println "Duplicate global reference '$ref' first='$old' and second='$node'."
-          duplicates << ref
+      if(globalType) {
+        register ref, node
+
+        if(ExternalType.isInstance(node) && node.alias) {
+          register node.alias, node
         }
       }
 
       handlers.each { name, ResolveHandler handler ->
         handler.onElement(node)
       }
+    }
+  }
+
+  def register(String ref, def node) {
+    if(!refToElement.containsKey(ref)) {
+      refToElement.put(ref, node)
+    } else {
+      def old = refToElement.get(ref)
+      println "Can't register the globale reference '$ref' with '$node of $node.parent', because it is already registered by '$old of $old.parent'."
+      duplicates << ref
     }
   }
 }

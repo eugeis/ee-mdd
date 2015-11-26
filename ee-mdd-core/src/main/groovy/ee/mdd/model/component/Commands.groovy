@@ -22,10 +22,14 @@ import ee.mdd.model.Element
  * @author Niklas Cappelmann
  */
 class Commands extends Controller {
-  
-  Entity getEntity() { parent }
-  
-  Commands getSuperCommands() { entity.superUnit?.commands}
+
+  Entity getEntity() {
+    parent
+  }
+
+  Commands getSuperCommands() {
+    entity.superUnit?.commands
+  }
 
   List<Delete> getDeleters() {
     def ret = []
@@ -57,5 +61,13 @@ class Commands extends Controller {
   void fillReference(Map<String, Element> refToMe) {
     super.fillReference(refToMe)
     refToMe['commands'] = this
+  }
+
+  String deriveName() {
+    if(!parent) {
+      super.deriveName()
+    } else {
+      "${parent.cap}Commands"
+    }
   }
 }
