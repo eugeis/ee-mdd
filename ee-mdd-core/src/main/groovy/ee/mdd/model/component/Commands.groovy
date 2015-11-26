@@ -20,6 +20,7 @@ import ee.mdd.model.Element
 /**
  *
  * @author Niklas Cappelmann
+ * @author Eugen Eisler
  */
 class Commands extends Controller {
 

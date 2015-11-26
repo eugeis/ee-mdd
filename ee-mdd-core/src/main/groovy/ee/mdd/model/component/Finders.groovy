@@ -20,8 +20,9 @@ import ee.mdd.model.Element
 /**
  *
  * @author Niklas Cappelmann
+ * @author Eugen Eisler
  */
-class Finders extends CompilationUnit {
+class Finders extends Controller {
 
   Entity getEntity() {
     parent
