@@ -48,6 +48,7 @@ import ee.mdd.model.component.Type
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -418,7 +419,7 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'jpaConstants'
         if(!properties.containsKey(key)) {
           String newLine = System.properties['line.separator']
-          def ret = newLine
+          def ret = ''
           def finder = delegate.finders
           def commands = delegate.commands
 
@@ -636,6 +637,19 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getReturnTypeRaw {
+        ->
+        def key = System.identityHashCode(delegate) + 'returnTypeRaw'
+        if(!properties.containsKey(key)) {
+          def op = delegate
+          def ret = op.ret.name
+          if(!op.unique)
+            ret = 'List'
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       isReturnTypeBoolean {
         ->
@@ -741,15 +755,13 @@ class EnhancerForJava {
     DataTypeOperation.metaClass {
       
       returnTypeExternal << { Context c ->
-        def key = System.identityHashCode(delegate) + 'returnTypeExternal'
-        if(!properties.containsKey(key)) {
           if(Find.isInstance(delegate) && !delegate.unique) {
+            c.name('List')
+            c.name(delegate.parent.entity.name)
             properties[key] = "${c.name('List')}<$delegate.parent.entity.cap>"
           } else {
             properties[key] = "$delegate.parent.entity.cap"
           }
-        }
-        properties[key]
         
       }
 
@@ -780,8 +792,8 @@ class EnhancerForJava {
         }
         ret-separator
       }
+      
     }
-
 
 
     Literal.metaClass {
@@ -862,8 +874,6 @@ class EnhancerForJava {
       }
 
       relTypeEjb << { Context c ->
-        def key = System.identityHashCode(delegate) + 'relTypeEjb'
-        if(!properties.containsKey(key)) {
           def prop = delegate
           def ret
           if(Entity.isInstance(prop.type)) {
@@ -873,9 +883,6 @@ class EnhancerForJava {
             //register usage of the type, in order to calculate imports, etc.
             c.name(ret)
           }
-          properties[key] = ret
-        }
-        properties[key]
       }
 
       typeEjbMember << { Context c ->
@@ -1003,6 +1010,15 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      isTypeString << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeString'
+        if(!properties.containsKey(key)) {
+          properties[key] = (delegate.type.name == 'String' ? true : false)
+        }
+        properties[key]
+      }
 
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
@@ -1049,7 +1065,7 @@ class EnhancerForJava {
                 association.value = ['mappedBy' : "\"$prop.opposite\""]
               } else {
                 association = builder.meta(type: 'OneToMany')
-                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite\"", 'orphanRemoval' : true]
+                association.value = ['cascade' : "${c.name('CascadeType')}"+'.ALL', 'mappedBy' : "\"$prop.opposite.name\"", 'orphanRemoval' : true]
               }
               metas << association
             } else {
@@ -1235,7 +1251,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
-          if(Entity.isInstance(prop.type) && prop.multi) {
+          if(!Entity.isInstance(prop.type) && prop.multi) {
             ret = true
           }
           properties[key] = ret
@@ -1352,7 +1368,7 @@ class EnhancerForJava {
           ret = ''
         } else {
           if(delegate.body[0].equals('#')) {
-            resolveMacro(c, body)
+            ret = resolveMacro(c, body)
           } else {
             ret = body
           }
