@@ -19,7 +19,7 @@
  */
 
 extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
-  ['Base' : 'ee.common.model', 'EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model', 'Factory' : 'ee.common.model',
+  ['EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model', 'Factory' : 'ee.common.model',
   'Labeled' : 'ee.common.model', 'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
   'Finder' : 'ee.common.core', 'EventListener' : 'ee.common.core',
   'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
@@ -28,7 +28,7 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'External' : 'ee.common.annotation', 'SupportsEnvironments' : 'ee.common.annotation', 'Traceable' : 'ee.common.annotation',
   'SERVER' : 'static ee.common.integ.RuntimeType.*', 'CLIENT' : 'static ee.common.integ.RuntimeType.*', 'LOCAL' : 'static ee.common.integ.ExecutionType.*', 'MEMORY' : 'static ee.common.integ.ExecutionType.*', 
   'PRODUCTIVE' : 'static ee.common.integ.ExecutionType.*', 'ComparisonUtils' : 'ee.common.util',
-  'LogStringProvider' : 'ee.common.util', 'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
+  'BaseTestCase' : 'ee.common.test', 'LifecycleEvent' : 'ee.common.model',
   'NotFoundException' : 'ee.common.exception', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',
   'IntegerCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
   'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model', 'Model' : 'ee.common.annotation',

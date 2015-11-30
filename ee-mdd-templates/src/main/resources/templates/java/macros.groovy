@@ -500,7 +500,7 @@ public interface $c.className extends $superClassName {
 
   template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
-  public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}><% } %>{
+  public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}><% } %> {
     /** A unique URI prefix for RESTful services and multi-language support */
     public static final String URI_PREFIX = "${item.getUri()}";
     ${macros.generate('propGettersEntityIfc', c)}${macros.generate('propsSettersEntityIfc', c)}${macros.generate('relationIdPropGetterIfc', c)}${macros.generate('relationIdPropSetterIfc', c)}${macros.generate('interfaceBody', c)}
@@ -1051,7 +1051,7 @@ public abstract class $className<${item.simpleGenericSgn}E extends ${c.name(item
   }
 }''')
 
-  template('containerIdsBase', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
+  template('containerIds', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
 public class $c.className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;<% item.props.each { entityProp -> def entity = entityProp.type %>
   protected ${c.name('HashSet')}<$entity.idProp.type.name> ${entity.instancesName} = new ${c.name('HashSet')}<>();<% } %><% item.props.each { entityProp -> def entity = entityProp.type %>
@@ -1071,11 +1071,11 @@ public class $c.className extends ${c.name('Base')} {
   @Override
   public void fillToString(StringBuffer b) {
     super.fillToString(b);<% item.props.each { entityProp -> def entity = entityProp.type %>
-    b.append("${entity.instancesName}=").append(${entity.instancesName}).append(SEP);<% } %>
+    b.append("${entity.instancesName}=").append(${entity.instancesName}).append(SEPARATOR);<% } %>
   }
 }''')
 
-  template('containerIds', body: '''<% if (!c.className) { c.className = item.n.cap.ids } %>{{imports}}
+  template('containerIdsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.ids } %>{{imports}}
 public class $c.className extends $item.n.cap.idsBase {
   private static final long serialVersionUID = 1L;
 }''')
@@ -2805,9 +2805,9 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
   @Override
   protected void fillToString(StringBuffer buffer) {
     super.fillToString(buffer);
-    buffer.append("type=").append(type).append(SEP);
-    buffer.append("expectedState=").append(expectedState).append(SEP);
-    buffer.append("actor=").append(actor).append(SEP);
+    buffer.append("type=").append(type).append(SEPARATOR);
+    buffer.append("expectedState=").append(expectedState).append(SEPARATOR);
+    buffer.append("actor=").append(actor).append(SEPARATOR);
     buffer.append("${idProp.uncapFullName}=").append($idProp.uncapFullName);
   }
 
@@ -3154,7 +3154,7 @@ public abstract class $className extends ${c.name('Base')} {
   @Override
   protected void fillToString(StringBuffer buffer) {
     super.fillToString(buffer);
-    buffer.append("state=").append(state).append(SEP);
+    buffer.append("state=").append(state).append(SEPARATOR);
     buffer.append("events=").append(events);
   }
 
@@ -3225,10 +3225,10 @@ public abstract class $className implements ${item.capShortName}ContextManager {
   
   template('implContextManagerExtends', body: '''{{imports}}//Manual imports because c.name() does not resolve these classes
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.commands};
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.finders};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.finders};<% if(item.history) { %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.history.entity.n.cap.commands};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.history.entity.n.cap.finders};
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.ejb.${item.history.entity.n.cap.entity};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.ejb.${item.history.entity.n.cap.entity};<% } %>
 
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -3527,8 +3527,8 @@ public class $className extends ${c.name('Base')} {
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% item.props.each { prop-> if (!prop.multi && prop.type.name.matches('(String|Boolean|boolean|Long|long|Integer|int)')) { %>
-    b.append("$prop.name=").append($prop.name).append(SEP);<% } } %>
-    b.append($entity.uncap != null ? ${entity.uncap}.${idProp.getter} : null).append(SEP);
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
+    b.append($entity.uncap != null ? ${entity.uncap}.${idProp.getter} : null).append(SEPARATOR);
     if (state != null) {
       b.append(state.name());
     }
@@ -3701,8 +3701,8 @@ public class $className extends ${sm.capShortName}StateEventImpl implements ${it
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);
-    b.append(SEP);<% item.props.each { prop -> if (prop.type.name.matches('(String|Boolean|Long|Integer)')) { %>
-    b.append("$prop.name=").append($prop.name).append(SEP);<% } } %>
+    b.append(SEPARATOR);<% item.props.each { prop -> if (prop.type.name.matches('(String|Boolean|Long|Integer)')) { %>
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
   }
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
@@ -4270,14 +4270,14 @@ public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);
-    b.append("event=").append(event).append(SEP);
-    b.append("fromState=").append(fromState).append(SEP);
+    b.append("event=").append(event).append(SEPARATOR);
+    b.append("fromState=").append(fromState).append(SEPARATOR);
     b.append("toState=").append(toState);
     if (redirectEvent != null) {
-      b.append(SEP).append("redirectEvent=").append(redirectEvent);
+      b.append(SEPARATOR).append("redirectEvent=").append(redirectEvent);
     }
     if (failedCondition != null) {
-      b.append(SEP).append("failedCondition=").append(failedCondition);
+      b.append(SEPARATOR).append("failedCondition=").append(failedCondition);
     }
   }
 }''')

@@ -7,6 +7,8 @@ import ee.mdd.model.statemachine.State
 import ee.mdd.model.statemachine.StateMachine
 
 
+
+
 templates('sm') {
 
   useMacros('commonMacros', '/common/macros')
@@ -46,7 +48,7 @@ templates('sm') {
       template('eventType', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEventType" %> ${macros.generate('eventType', c)}''')
       template('eventFactory', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventFactory" %> ${macros.generate('eventFactory', c)}''')
       template('implEventFactory', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactory', c)}''')
-      template('implEventFactoryExtends', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactoryExtends', c)}''')
+      template('implEventFactoryExtends', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryImpl" %> ${macros.generate('implEventFactoryExtends', c)}''')
     }
     
     templates('stateEventProcessor',

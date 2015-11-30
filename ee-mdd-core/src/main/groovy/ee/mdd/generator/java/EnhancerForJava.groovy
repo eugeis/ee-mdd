@@ -1022,7 +1022,6 @@ class EnhancerForJava {
 
       propMapping << { Context c ->
         def key = System.identityHashCode(delegate) + 'propMapping'
-        if(!properties.containsKey(key)) {
           ModelBuilder builder = c.item.component.builder
           def prop = delegate
           def propMapping = []
@@ -1043,9 +1042,7 @@ class EnhancerForJava {
           } else if(c.subPkg == 'ejb') {
             propMapping.addAll(delegate.jpaPropMapping(c))
           }
-          properties[key] = propMapping
-        }
-        properties[key]
+          propMapping
       }
 
       entityPropMapping << { Context c ->

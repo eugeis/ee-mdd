@@ -3,6 +3,8 @@ package templates.java
 import ee.mdd.model.ui.View
 
 
+
+
 templates('ui') {
 
   useMacros('commonMacros', '/common/macros')
