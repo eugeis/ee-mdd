@@ -1627,7 +1627,7 @@ public class $className extends $item.n.cap.baseImpl {
   template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.key.capitalize()}Ml;{{imports}}
 ${item.description?"/*** $item.description */":''}
-public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')} {<% def last = item.literals.last(); item.literals.each { lit -> %>
+public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')}<% item.interfs.each{%>, ${c.name(it)}<% } %> {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
   ${macros.generate('props', c)}${macros.generate('enumConstructor', c)}${macros.generate('propGetters', c)}<% item.literals.each { lit -> %>
 

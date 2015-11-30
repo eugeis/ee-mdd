@@ -17,6 +17,7 @@ package ee.mdd.model.component
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -31,6 +32,7 @@ class CompilationUnit extends Type {
   boolean propSetters = true
   CompilationUnit superUnit
   List<String> superGenericRefs
+  List<String> interfs = []
   List<Prop> props
   List<Constructor> constructors
   List<Operation> operations
@@ -82,4 +84,5 @@ class CompilationUnit extends Type {
       generics = []
     }; generics << super.add(item)
   }
+  
 }

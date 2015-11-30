@@ -1,11 +1,13 @@
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Commands
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Facade
+import ee.mdd.model.component.Finders
 
 /*
  * Copyright 2011-2012 the original author or authors.
@@ -93,7 +95,7 @@ templates ('common') {
   }
 
   templates ('controller',
-  items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) }) },
+  items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
