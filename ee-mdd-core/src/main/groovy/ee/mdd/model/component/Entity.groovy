@@ -33,6 +33,7 @@ class Entity extends DataType {
   String labelBody
   
   protected boolean init() {
+    if(cache == null) { add(new Cache(base:true)) }
     if(deltaCache == null) { add( new DeltaCache(base: true)) }
     super.init()
   }

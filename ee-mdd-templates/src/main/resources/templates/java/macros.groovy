@@ -317,6 +317,10 @@ templates ('macros') {
   template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
+  
+  template('interfaceBodyCache', body: '''<% item.cache.operations.each { op -> if (!op.override) { %>
+  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
+  ${op.return} $op.name(${op.signature(c)});<% } } %>''')
 
   template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
@@ -325,6 +329,16 @@ templates ('macros') {
   ${op.ref.returnTypeExternal(c)} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
   template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
+
+  @Override<% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
+    //TODO to implement <% if (op.returnTypeBoolean) { %>
+    return false;<% } else if (op.ret) { %>
+    return null; <% } %>
+  }<% } } %>''')
+  
+  template('implOperationsCache', body: ''' <% item.cache.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
@@ -587,7 +601,7 @@ public interface $className extends $item.n.cap.findersBase {
   <% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
   public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(!op.originalParent(c)) { %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
 
-  <% if(op.unique) { %> $idProp.type <% } else { %>${c.name('Set')}<$idProp.type.name><% } %> ${op.name}AsId(${op.signature(c)});<% } %>
+  <% if(op.unique) { %> $idProp.type.name <% } else { %>${c.name('Set')}<$idProp.type.name><% } %> ${op.name}AsId(${op.signature(c)});<% } %>
 
   <% if(op.unique) { %> $type <% } else { %> ${c.name('List')}<$type> <% } %> ${op.name}(${op.signature(c)});
 
@@ -625,7 +639,7 @@ public interface $className extends $item.n.cap.findersBase {
     @Override
     ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update);
 
-    ${macros.generate('interfaceBody', c)}
+    ${macros.generate('interfaceBodyCache', c)}
 }''')
 
   template('ifcCacheExtends', body: '''{{imports}}
@@ -656,7 +670,7 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
 
   //classes
 
-  template('implCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>import static ee.common.util.ComparisonUtils.*;{{imports}}
+  template('implCache', body: '''import static ee.common.util.ComparisonUtils.*;{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>
   <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
   <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
   <% } %><% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
@@ -688,7 +702,7 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
 
   public $className(boolean threadSafe) {
     super(threadSafe);
-  }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(op.entity.name == item.name) { String finderKeyName = op.params.collect { it.prop?.uncap }.join('And'); %><% if (op.params.size() == 1 && singlePropIndexes.contains(op.params[0].prop)) { def param = op.params[0]; def prop = param.prop; %>
+  }<% } %><% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> c.op = op; if(op.entity.name == item.name) { String finderKeyName = op.params.collect { it.prop?.uncap }.join('And'); %><% if (op.params.size() == 1 && singlePropIndexes.contains(op.params[0].prop)) { def param = op.params[0]; def prop = param.prop; %>
 
   @Override
   public ${op.unique ? "$idProp.type.name" : "Set<$idProp.type.name>"} ${op.uncap}AsId(${op.signature(c)}) {
@@ -857,13 +871,13 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   @Override
   public $type findBy${prop.cap}${relationIdProp.cap}Strict(${relationIdProp.computedType(c)} ${prop.uncap}${relationIdProp.cap}) {
     return strict(findBy${prop.cap}${relationIdProp.cap}(${prop.uncap}${relationIdProp.cap}), \"findBy${prop.cap}${relationIdProp.cap}\", ${prop.uncap}${relationIdProp.cap});
-  } <% } } } %><% item.operations.each { op -> if (op.body) { %>
+  } <% } } } %><% item.cache.operations.each { op -> if (op.body) { %>
 
   @Override<% if(op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.return} ${op.name}(${op.signature(c)}) {
     ${op.resolveBody(c)}
-  }<% } %><% } %><% if (c.override && !item.virtual) { %>
+  }<% } %><% } %><% if (c.override) { %>
 
   @Override
   public $item.n.cap.cache getParent() {
@@ -905,10 +919,10 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   @Override
   protected void preInitPropertyBasedLazyCaches() {
     super.preInitPropertyBasedLazyCaches();<% singlePropIndexes.each { prop -> if (prop.unique) { %>
-    ${prop.uncap}ToId = !threadSafe ? new ${c.name('HashMap')}<$prop.type.name, $idProp.type>() : new ${c.name('ConcurrentHashMap')}<$prop.type, $idProp.type>();<% } else { %>
+    ${prop.uncap}ToId = !threadSafe ? new ${c.name('HashMap')}<$prop.type.name, $idProp.type.name>() : new ${c.name('ConcurrentHashMap')}<$prop.type.name, $idProp.type.name>();<% } else { %>
     ${prop.uncap}ToIds = new ${c.name('LinkToSetCache')}<>(threadSafe);<% } %><% } %><% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
     ${prop.uncap}${relationIdProp.cap}ToIds = new ${c.name('LinkToSetCache')}<>(threadSafe);<% } } %><% keyNameToIndex.each { key, index -> if (index.unique) { %>
-    ${key}ToId = !threadSafe ? ${c.name('HashMap')}<String, $idProp.type>() : new ${c.name('ConcurrentHashMap')}<String, $idProp.type>();<% } else { %>
+    ${key}ToId = !threadSafe ? ${c.name('HashMap')}<String, $idProp.type.name>() : new ${c.name('ConcurrentHashMap')}<String, $idProp.type.name>();<% } else { %>
     ${key}ToIds = new ${c.name('LinkToSetCache')}<>(threadSafe);<% } %><% } %>
   }
 
@@ -990,7 +1004,7 @@ public abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${
   public $className(boolean threadSafe) {
     super(threadSafe);
   }<% } %>
-  ${macros.generate('implOperations', c)}
+  ${macros.generate('implOperationsCache', c)}
 }''')
   
   template('implDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual? 'E' : c.name(item.cap); def deltaCacheSuper; def deltaCacheSuperGeneric; if (superUnit) { %>
@@ -1404,7 +1418,7 @@ public class $className extends ${c.name('Base')} implements $item.name {
   }
 
   public $className(String source, boolean override, boolean threadSafe) {
-    this(source, override, threadSafe, TimeUtils.now());
+    this(source, override, threadSafe, ${c.name('TimeUtils')}.now());
   }
 
   public $className(String source, boolean override, boolean threadSafe, Date timestamp) {
@@ -1423,7 +1437,7 @@ public class $className extends ${c.name('Base')} implements $item.name {
   }
 
   public $className($item.name parentContainer, boolean threadSafe) {
-    this(parentContainer.getSource(), parentContainer, threadSafe, TimeUtils.now());
+    this(parentContainer.getSource(), parentContainer, threadSafe, ${c.name('TimeUtils')}.now());
   }
 
   public $className(String source, $item.name parentContainer, boolean threadSafe, Date timestamp) {
@@ -1936,7 +1950,7 @@ public class $className {
   public void testProperties() {<% item.props.each { prop -> %><% if (prop.testable) { %>
     ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { %><% if(prop.type.idProp!=null) { if(!((prop.type) in list)) { list << (prop.type); def relationIdProp = prop.type.idProp %><% if(relationIdProp.multi) { %>
     ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
-    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } } %><% } else if (!prop.type.typeEnum && !prop.typeEntity) { %>
+    ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } } %><% } else if (!prop.type.typeEnum && !prop.typeEntity) { %><% if(prop.multi) { %> 
     ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %>
     <% list = [] %><% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne) && !((prop.type) in list)) {  list << prop.type %>
     item.$prop.call;<% } %><% if (!prop.type.typeEnum && !prop.typeEntity) { %>
@@ -2461,19 +2475,19 @@ ${ret-newLine}''')
     return new ${c.name('MlKeyImpl')}(${component.capShortName}Ml.ML_BASE, name());
   }''')
 
-  template('propToIds', body: '''<% def op = c.op %>if (parent != null) {<% if (op.unique) { %>
-        $idProp.type.name id = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
+  template('propToIds', body: '''<% def op = c.op %>if (!parent.isEmpty()) {<% if (op.unique) { %>
+        $c.item.idProp.type.name id = getParent().${op.name}AsId($op.signatureName);
         if (id != null) {
           ret.add(id);
         }<% } else { %>
         ret = new ${c.name('HashSet')}<>(ret);
-        ret.addAll((($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName));<% } %>
-        ret.removeAll(deleted);
+        ret.addAll(getParent().${op.name}AsId($op.signatureName));<% } %>
+        ret.removeAll(getRemoved());
       }''')
 
-  template('retNullOrDeleted', body: '''<% def op = c.op %>if (ret == null && parent != null) {
-      ret = (($item.n.cap.cache${item.virtual ? '<E>' : ''})parent).${op.name}AsId($op.signatureName);
-      if (ret != null && deleted.contains(ret)) {
+  template('retNullOrDeleted', body: '''<% def op = c.op %>if (ret == null && !parent.isEmpty()) {
+      ret = getParent().${op.name}AsId($op.signatureName);
+      if (ret != null && removedMarks.containsKey(ret)) {
         ret = null;
       }
 }''')
@@ -2493,6 +2507,8 @@ ${ret-newLine}''')
 	    counter--;
 	  }
 	  System.out.println(test);''')
+  
+  template('plannedStartDateOnlyBody', body: '''if (plannedStartDate != null) {\n      this.plannedStartDate = ${c.name('TimeUtils')}.setDate(this.plannedStartDate, plannedStartDate);\n    } ''')
 
 
   // UI
