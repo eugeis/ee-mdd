@@ -104,7 +104,7 @@ templates ('common') {
   templates ('container',
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'model'] ) } ) {
-    template('ifcContainer', appendName: true, body: '''<% c.className = c.item.n.cap.base %> ${macros.generate('ifcContainer', c)}''')
+    template('ifcContainer', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.base %><% } else { %><% c.className = item.cap %><% } %> ${macros.generate('ifcContainer', c)}''')
     template('ifcContainerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcContainerExtends', c)}<% } %>''')
     template('ifcContainerDelta', appendName: true, body: '''<% c.className = item.n.cap.deltaBase %> ${macros.generate('ifcContainerDelta', c)}''')
     template('ifcContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.delta %> ${macros.generate('ifcContainerDeltaExtends', c)}''')
@@ -120,7 +120,7 @@ templates ('common') {
   templates ('implContainer',
   items: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
-    template('implContainer', appendName: true, body: '''<% c.className = c.item.n.cap.baseImpl %>${macros.generate('implContainer', c)}''')
+    template('implContainer', appendName: true, body: '''<% if(c.item.base) { %><% c.className = c.item.n.cap.baseImpl %><% } else { %><% c.className = item.n.cap.impl %><% } %>${macros.generate('implContainer', c)}''')
     template('implContainerExtends', appendName: true, body: '''<% if (c.item.base) { %><% if(!c.item.name.endsWith("Container")) { c.className = c.item.n.cap.containerImpl } else { c.className = c.item.n.cap.impl } %>${macros.generate('implContainerExtends', c)}<% } %>''')
     template('implContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.deltaImpl %> ${macros.generate('implContainerDeltaExtends', c)}''')
     template('implContainerVersions', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsBaseImpl %><% } else { %><% c.className = item.n.cap.versionsImpl %><% } %>${macros.generate('implContainerVersions', c)}''')

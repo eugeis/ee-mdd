@@ -324,7 +324,7 @@ templates ('macros') {
 
   template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.returnTypeExternal(c)} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  ${op.return} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
   ${op.ref.returnTypeExternal(c)} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
@@ -1337,7 +1337,7 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
 
-  template('serviceBaseBean', body: ''' <% if (!c.className) { c.className = item.n.cap.serviceBaseBean } %><% if(!item.base) { %>import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.constantsBase}.*;<% } %>{{imports}}
+  template('serviceBaseBean', body: '''<% if(!item.base) { %>import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.constantsBase}.*;<% } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public ${item.base?'abstract ':''}class $className implements ${c.name(item.name)} {<% if (item.useConverter) { %>
@@ -1366,7 +1366,7 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
     } else {
       return null;
     }<% } else { %>
-    ${ref.returnTypeRaw} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
+    ${ref.returnTypeRaw(c)} ret = ${ref.parent.uncap}.${ref.name}($ref.signatureName);<% if (item.useConverter && ref.returnTypeEjb) { %>
     ret = converter.toExternal(ret);<% } %>
     return ret;<% } %><% } %>
   }<% } %><% } %>
@@ -1951,7 +1951,7 @@ public class $className {
     ${c.name(prop.type)} $prop.uncap = $prop.testValue;<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { %><% if(prop.type.idProp!=null) { if(!((prop.type) in list)) { list << (prop.type); def relationIdProp = prop.type.idProp %><% if(relationIdProp.multi) { %>
     ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
     ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap} = $relationIdProp.testValue;<% } } } %><% } else if (!prop.type.typeEnum && !prop.typeEntity) { %><% if(prop.multi) { %> 
-    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } %>
+    ${c.name(prop.type)} $prop.uncap = new ${prop.type.n.cap.impl}();<% } } } %>
     <% list = [] %><% item.props.each { prop -> if(prop.typeEntity && (prop.manyToOne || prop.oneToOne) && !((prop.type) in list)) {  list << prop.type %>
     item.$prop.call;<% } %><% if (!prop.type.typeEnum && !prop.typeEntity) { %>
     item.$prop.call;<% } }%>

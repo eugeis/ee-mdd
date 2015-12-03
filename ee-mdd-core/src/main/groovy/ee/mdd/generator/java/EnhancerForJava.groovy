@@ -638,18 +638,15 @@ class EnhancerForJava {
         properties[key]
       }
       
-      getReturnTypeRaw {
+      getReturnTypeRaw { 
         ->
-        def key = System.identityHashCode(delegate) + 'returnTypeRaw'
-        if(!properties.containsKey(key)) {
-          def op = delegate
-          def ret = op.ret.name
-          if(!op.unique)
-            ret = 'List'
-          properties[key] = ret
-        }
-        properties[key]
+        delegate.returnTypeExternal
       }
+      
+      getReturnTypeExternal {
+        ->
+        delegate.return
+      } 
 
       isReturnTypeBoolean {
         ->
@@ -755,14 +752,25 @@ class EnhancerForJava {
     DataTypeOperation.metaClass {
       
       returnTypeExternal << { Context c ->
-          if(Find.isInstance(delegate) && !delegate.unique) {
-            c.name('List')
-            c.name(delegate.parent.entity.name)
-            properties[key] = "${c.name('List')}<$delegate.parent.entity.cap>"
-          } else {
-            properties[key] = "$delegate.parent.entity.cap"
-          }
-        
+        def ret = ''
+        if(Find.isInstance(delegate) && !delegate.unique) {
+          c.name('List')
+          c.name(delegate.parent.entity.name)
+          ret = "${c.name('List')}<$delegate.parent.entity.cap>"
+        } else {
+          ret = "$delegate.parent.entity.cap"
+        }
+        ret
+      }
+      
+      returnTypeRaw << { Context c ->
+        def ret = ''
+       if(Find.isInstance(delegate) && !delegate.unique ) {
+         ret = c.name('List')
+       } else {
+         ret = c.name(delegate.parent.entity.cap)
+       }
+       ret
       }
 
       getPropWhere << {
