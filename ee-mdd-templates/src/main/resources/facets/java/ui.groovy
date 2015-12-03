@@ -20,7 +20,7 @@
   * @author Niklas Cappelmann
   */
  
-def nameToNamespace = [ 'Button' : 'ee.common.ui', 'ViewInterface' : 'ee.common.ui', 'DialogViewInterface' : 'ee.common.ui', 'BaseModel' : 'ee.common.ui'] as TreeMap
+def nameToNamespace = ['ViewInterface' : 'ee.common.ui', 'BaseModel' : 'ee.common.ui'] as TreeMap
 
 extModule(name: 'Ui') {
   nameToNamespace.each { n, ns ->

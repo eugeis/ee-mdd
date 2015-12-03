@@ -2649,9 +2649,9 @@ public class $className extends ${view.n.cap.mediatorBase-"View"} {
 }
 ''')
   
-  template('dialogGuidoBase', body: '''<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
+  template('dialogGuidoBase', body: '''{{imports}}<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
 /** Base Guido implementation of ${item.name}. */
-public abstract class $c.className extends DialogView {
+public abstract class $c.className extends ${c.name('DialogView')} {
   public static final String ID = ${item.dialog.cap}Guido.class.getName();
 
   protected $contentViewClassName contentView;
@@ -2665,6 +2665,10 @@ public abstract class $c.className extends DialogView {
     initEventHandling();
   }
 
+  protected void initWidgets() {
+    addContent(contentView);
+  }
+
   protected void initEventHandling() {
   }
 
@@ -2676,8 +2680,8 @@ public abstract class $c.className extends DialogView {
   
   template('dialogGuido', body: '''<% def dialog = item.dialog %>{{imports}}
 /** Guido implementation of ${item.name}. */
-@${c.name('RootScoped')}(RootType.NEW)
-@View
+@${c.name('RootScoped')}(${c.name('RootType')}.NEW)
+@${c.name('View')}
 public class $className extends ${dialog.cap}GuidoBase {
 
   ${macros.generate('superclassConstructor', c)}
@@ -2687,6 +2691,33 @@ public class $className extends ${dialog.cap}GuidoBase {
   @Override
   protected void initEventHandling() {
     super.initEventHandling();
+  }
+}''')
+  
+  template('viewGuido', body: '''{{imports}}<% def baseClass = item.dialog ? c.name('DialogContentView') : c.name('BaseView') %>
+/** Base Guido implementation of ${item.name}. */
+public abstract class $className extends $baseClass implements $item.cap {
+  public static final String ID = ${item.n.cap.guido}.class.getName();
+
+  <% item.controls.each { def control -> def widgetType = control.guidWidget %>protected com.siemens.ra.cg.pl.uif.guido.widget.$widgetType ${control.fieldName};
+  <% } %><% item.views.each { def view -> %>protected ${view.cap}Guido ${view.uncap};
+  <% } %>
+  protected $item.presenter.cap presenter;
+
+  ${macros.generate('superclassConstructor', c)}
+
+  @Override
+  protected void postViewCreated() {
+    super.postViewCreated();
+    initWidgets();
+    initEventHandling();
+    presenter.postViewCreated();
+  }
+
+  protected void initWidgets() {<% item.controls.each { def control-> def widgetType = control.guidWidgets %>
+    ${control.fieldName} = widgetFactory().new$widgetType(viewId, "${control.fieldName}");<% if (control.ml) { %>
+    ${control.fieldName}.setTextML(${control.parent.underscored}_${control.underscored}_${control.widgetTypeShort});<% } } %> <% item.views.each { def view-> %>
+    ${view.uncap}Panel.addView(${view.uncap});<% } %>
   }
 }''')
   

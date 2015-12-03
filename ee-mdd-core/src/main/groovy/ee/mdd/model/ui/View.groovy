@@ -62,7 +62,9 @@ class View extends Widget {
   }
 
   def getViews() {
-    viewRefs.views
+    def ret = []
+    viewRefs.each { if(it.view) { ret << it.view } }
+    ret
   }
 
   void add(ViewRef item) {

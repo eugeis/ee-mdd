@@ -43,6 +43,21 @@ import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.Type
+import ee.mdd.model.ui.Button
+import ee.mdd.model.ui.CheckBox
+import ee.mdd.model.ui.ComboBox
+import ee.mdd.model.ui.ContextMenu
+import ee.mdd.model.ui.Control
+import ee.mdd.model.ui.DateField
+import ee.mdd.model.ui.GroupBoxHeader
+import ee.mdd.model.ui.GroupContentFrame
+import ee.mdd.model.ui.Header
+import ee.mdd.model.ui.Label
+import ee.mdd.model.ui.Panel
+import ee.mdd.model.ui.Spinner
+import ee.mdd.model.ui.Table
+import ee.mdd.model.ui.TextField
+import ee.mdd.model.ui.TimeField
 
 
 
@@ -1381,6 +1396,51 @@ class EnhancerForJava {
         ret
       }
     }
+    
+    Control.metaClass {
+      
+      getGuidWidget {
+        ->
+        def key = System.identityHashCode(delegate) + 'guidWidget'
+        if(!properties.containsKey(key)) {
+          def ret = ''
+          def widget = delegate
+          if(Button.isInstance(widget)) {
+            ret = 'PushButton'
+          } else if (ComboBox.isInstance(widget)) {
+            ret = 'TSRAStyleComboBoy'
+          } else if (ContextMenu.isInstance(widget)) {
+            ret = 'PopupMenu'
+          } else if (GroupContentFrame.isInstance(widget)) {
+            ret = 'TSRAStyleGroupBoxContentFrame'
+          } else if (CheckBox.isInstance(widget)) {
+            ret = 'CheckBox'
+          } else if (DateField.isInstance(widget)) {
+            ret = 'TSRAStyleCalendarDatePickerWidget'
+          } else if (Header.isInstance(widget)) {
+            ret = 'TSRAStyleHeader'
+          } else if (Label.isInstance(widget)) {
+            ret = 'Label'
+          } else if (Panel.isInstance(widget)) {
+            ret = 'StackedWidget'
+          } else if (Spinner.isInstance(widget)) {
+            ret = 'SpinBox'
+          } else if (Table.isInstance(widget)) {
+            ret = 'TSRAStyleTable'
+          } else if (TextField.isInstance(widget)) {
+            ret = 'TSRAStyleLineEdit'
+          } else if (TimeField.isInstance(widget)) {
+            ret = 'TSRAStyleTimeEdit'
+          } else if (GroupBoxHeader.isInstance(widget)) {
+            ret = 'TSRAStyleGroupBoxHeader'
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }      
+    }
+      
+      
 
     Channel.metaClass {
 
