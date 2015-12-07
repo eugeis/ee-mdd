@@ -15,7 +15,6 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Element
 
 
 /**
@@ -25,8 +24,14 @@ import ee.mdd.model.Element
  */
 class Container extends DataType {
   Controller controller
+  XmlController xmlController
 
   def add(Controller item) {
     controller = super.add(item)
   }
+  
+  def add(XmlController item) {
+    xmlController = super.add(item)
+  }
+  
 }

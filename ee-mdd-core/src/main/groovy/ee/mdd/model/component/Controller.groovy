@@ -25,7 +25,9 @@ import ee.mdd.model.statemachine.StateMachine
  */
 class Controller extends CompilationUnit {
   boolean importChanges = false
+  boolean deleteBeforeImport = true
   boolean cache = false
+  boolean asyncImport = false
   
   String deriveName() {
     if(!parent) {

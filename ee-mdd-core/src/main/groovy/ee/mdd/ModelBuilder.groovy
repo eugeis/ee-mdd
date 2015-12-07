@@ -73,6 +73,7 @@ import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.component.XmlController
 import ee.mdd.model.realm.Realm
 import ee.mdd.model.realm.RealmGroup
 import ee.mdd.model.realm.RealmRole
@@ -144,8 +145,9 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   private def config = new CompositeFactory(beanClass: Config, parent: dataType)
   private def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
-  private def container = new CompositeFactory(beanClass: Container, childFactories: ['controller'], parent: dataType)
+  private def container = new CompositeFactory(beanClass: Container, childFactories: ['controller', 'xmlController'], parent: dataType)
   private def controller = new CompositeFactory(beanClass: Controller, parent: cu)
+  private def xmlController = new CompositeFactory(beanClass: XmlController, parent: controller)
   private def index = new CompositeFactory(beanClass: Index)
   private def initializer = new CompositeFactory(beanClass: Initializer, parent: controller)
   private def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
@@ -263,6 +265,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'constr', constructor
     registerFactory 'container', container
     registerFactory 'controller', controller
+    registerFactory 'xmlController', xmlController
     registerFactory 'delegate', operationRef
     registerFactory 'index', index
     registerFactory 'initializer', initializer
