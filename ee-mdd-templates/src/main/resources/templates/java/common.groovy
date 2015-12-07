@@ -175,8 +175,11 @@ templates ('common') {
   templates('xmlContainer',
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('containerXmlConverter', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverter %> ${macros.generate('containerXmlConverter', c)}''')
-    template('containerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterBase %> ${macros.generate('containerXmlConverterExtends', c)}''')
+    template('containerXmlConverter', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterBase %> ${macros.generate('containerXmlConverter', c)}''')
+    template('containerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverter %> ${macros.generate('containerXmlConverterExtends', c)}''')
+    template('implContainerXmlConverter', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterBaseImpl %> ${macros.generate('implContainerXmlConverter', c)}''')
+    template('implContainerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterImpl %> ${macros.generate('implContainerXmlConverterExtends', c)}''')
+    
   }
   
 }

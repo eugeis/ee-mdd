@@ -4482,10 +4482,11 @@ public class $className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<
 }''')
  
  template('containerXmlConverter', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 /**
 * The $item.name converts string to container object %>
 */
-public interface $className extends MultiSourceConverter<String, $item.cap> {
+public interface $className extends ${c.name('MultiSourceConverter')}<String, $item.cap> {
 }''')
  
  template('containerXmlConverterExtends', body: '''{{imports}}
@@ -4495,7 +4496,74 @@ public interface $className extends MultiSourceConverter<String, $item.cap> {
 public interface $className extends ${item.n.cap.xmlConverter}Base {
 }''')
  
-template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
+ template('implContainerXmlConverter', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+
+/**
+ * The $item.name converts string to container object
+ */
+@${c.name('Alternative')}
+public abstract class $className<T> implements $item.n.cap.xmlConverter {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+
+  protected Class<T> xmlClass;
+  protected ${module.capShortName}XmlConverter xmlConverter;
+
+  //needed for CDI proxy
+  protected $className() {
+  }
+
+  protected $className(Class<T> xmlClass) {
+    this.xmlClass = xmlClass;
+  }
+
+  @Override
+  public $item.cap convert(String from) {
+    log.info("convert(length={})", from.length());
+    T xmlObject = ${c.name('XmlUtils')}.fromString(from, xmlClass, true);
+    return convertXml(xmlObject);
+  }
+
+  @Override
+  public $item.cap convertFileFromClasspath(String fileInClasspath) {
+    log.info("convertFileFromClasspath({})", fileInClasspath);
+    T xmlObject = ${c.name('XmlUtils')}.fromPath(fileInClasspath, xmlClass, true);
+    return convertXml(xmlObject);
+  }
+
+  protected abstract $item.cap convertXml(T xmlObject);
+
+  @${c.name('Inject')}
+  public void setXmlConverter(${module.capShortName}XmlConverter xmlConverter) {
+    this.xmlConverter = xmlConverter;
+  }
+}''')
+ 
+ template('implContainerXmlConverterExtends', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.impl.${item.n.cap.impl};
+
+/** The $item.name converts xml string to ${item.cap} */
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
+@${c.name('ApplicationScoped')}
+public class $className extends ${item.n.cap.xmlConverterBaseImpl}<Object> {
+
+  public $className() {
+    super(Object.class);
+    //TODO provide Root Element JaxbClass
+  }
+
+  @Override
+  protected $item.cap convertXml(Object xmlObject) {
+    $item.cap ret = new ${item.n.cap.impl}();
+    //TODO implement iterating over JAXB object and call proper converters of ${module.capShortName}XmlConverter xmlConverter
+    return ret;
+  }
+}''')
+ 
+ template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
   
   
   
