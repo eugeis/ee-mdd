@@ -21,8 +21,7 @@
 extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   ['EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model', 'Factory' : 'ee.common.model',
   'Labeled' : 'ee.common.model', 'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
-  'Finder' : 'ee.common.core', 'EventListener' : 'ee.common.core',
-  'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
+  'Finder' : 'ee.common.core', 'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
   'MlKey' : 'ee.common.ml', 'MlKeyBuilder' : 'ee.common.ml' , 'MlKeyImpl' : 'ee.common.ml',
   'Backend' : 'ee.common.annotation', 'Service' : 'ee.common.annotation', 'Environment' : 'ee.common.annotation', 
   'External' : 'ee.common.annotation', 'SupportsEnvironments' : 'ee.common.annotation', 'Traceable' : 'ee.common.annotation',

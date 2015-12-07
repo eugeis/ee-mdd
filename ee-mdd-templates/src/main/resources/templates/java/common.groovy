@@ -179,7 +179,10 @@ templates ('common') {
     template('containerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverter %> ${macros.generate('containerXmlConverterExtends', c)}''')
     template('implContainerXmlConverter', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterBaseImpl %> ${macros.generate('implContainerXmlConverter', c)}''')
     template('implContainerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterImpl %> ${macros.generate('implContainerXmlConverterExtends', c)}''')
-    
+    template('xmlController', appendName: true, body: '''<% c.className = c.item.xmlController.n.cap.base %> ${macros.generate('xmlController', c)}''')
+    template('xmlControllerExtends', appendName: true, body: '''<% c.className = c.item.xmlController.cap %> ${macros.generate('xmlControllerExtends', c)}''')
+    template('implXmlController', appendName: true, body: '''<% c.className = c.item.xmlController.n.cap.baseImpl %> ${macros.generate('implXmlController', c)}''')
+    template('implXmlControllerExtends', appendName: true, body: '''<% c.className = c.item.xmlController.n.cap.Impl %> ${macros.generate('implXmlControllerExtends', c)}''')
   }
   
 }

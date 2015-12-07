@@ -20,7 +20,7 @@
  * @author Niklas Cappelmann
  */
 
-def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
+def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging.impl',
   'ConnectionMetaEvent' : 'com.siemens.ra.cg.pl.common.base.model.event', 'Base' : 'com.siemens.ra.cg.pl.common.base.model', 'BaseEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'IdSetter' : 'com.siemens.ra.cg.pl.common.base.model',
   'BaseEntityImpl' : 'com.siemens.ra.cg.pl.common.ejb.model', 'ControlguideNotFoundException' : 'com.siemens.ra.cg.pl.common.base.exception',
   'IdEntity' : 'com.siemens.ra.cg.pl.common.base.model', 'TimeUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'ActionType' : 'com.siemens.ra.cg.pl.common.base.model',
@@ -37,8 +37,8 @@ def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.commo
   'Button' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'TextInput' : 'com.siemens.ra.cg.pl.uif.widget', 'Table' : 'com.siemens.ra.cg.pl.uif.widget',
   'ContextMenu' : 'com.siemens.ra.cg.pl.uif.widget', 'RootType' : 'com.siemens.ra.cg.pl.common.base.cdi.root.RootScoped', 'RootScoped' : 'com.siemens.ra.cg.pl.common.base.cdi.root',
   'View' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'View' : 'com.siemens.ra.cg.pl.common.base.annotations', 'ViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogContentView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'BaseView' : 'com.siemens.ra.cg.pl.uif.guido.widget',
-  'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp', 'SingleTypeEventListenerBridgeByJms' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 'MultiSourceConverter' : 'com.siemens.ra.cg.pl.common.base.converter',
-  'XmlUtils' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
+  'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp', 'Event' : 'com.siemens.ra.cg.pl.common.base.messaging', 'EventListener' : 'com.siemens.ra.cg.pl.common.base.messaging', 'SingleTypeEventListenerBridgeByJms' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 'MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'MultiSourceConverter' : 'com.siemens.ra.cg.pl.common.base.converter',
+  'XmlUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Transactional' : 'com.siemens.ra.cg.pl.common.base.annotations'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

@@ -4563,6 +4563,83 @@ public class $className extends ${item.n.cap.xmlConverterBaseImpl}<Object> {
   }
 }''')
  
+ template('xmlController', body: '''{{imports}}
+/** The $item.name converts xml to container object and imports it into system. */
+public interface $className extends ${c.name('EventListener')}<String> {
+  ${macros.generate('interfaceBody', c)}
+  @${c.name('Transactional')}
+  public void importData(String content);
+
+  @${c.name('Transactional')}
+  public void importDataFromPath(String fileInClassPath);
+}''')
+ 
+ template('xmlControllerExtends', body: '''<% def xmlController = item.xmlController %>
+/**
+* The $item.name converts xml to container
+*/
+public interface $className extends $xmlController.n.cap.base {
+}''')
+ 
+ template('implXmlController', body: '''<% def xmlController = item.xmlController %>{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+@${c.name('Alternative')}
+public abstract class $className implements $xmlController.cap {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  ${macros.generate('refsMember', c)}
+  protected $item.n.cap.xmlConverter xmlContainerConverter;
+  protected $item.controller.cap containerController;
+  ${macros.generate('implOperationsAndDelegates', c)}
+  @Override
+  @${c.name('Transactional')}
+  public void importData(String content) {
+    $item.cap container = xmlContainerConverter.convert(content);
+    importContainer(container);
+  }
+
+  @Override
+  @${c.name('Transactional')}
+  public void importDataFromPath(String fileInClassPath) {
+    $item.cap container = xmlContainerConverter.convertFileFromClasspath(fileInClassPath);
+    importContainer(container);
+  }
+
+  @Override
+  public Class<String> getEventObjectType() {
+    return String.class;
+  }
+
+  @Override
+  public void onEvent(${c.name('Event')}<String> event) {
+    importData(event.getFirstObject());
+  }
+
+  public void importContainer($item.cap container) {
+    containerController.importContainer(container);
+  }
+  ${macros.generate('implControlInjects', c)}
+
+  @${c.name('Inject')}
+  public void setXmlContainerContainer($item.n.cap.xmlConverter xmlContainerConverter) {
+    this.xmlContainerConverter = xmlContainerConverter;
+  }
+
+  @${c.name('Inject')}
+  public void setContainerContainer($item.controller.cap containerController) {
+    this.containerController = containerController;
+  }
+}''')
+ 
+ template('implXmlControllerExtends', body: '''<% def xmlController = item.xmlController %>{{imports}}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
+@${c.name('ApplicationScoped')}
+public class $className extends ${xmlController.n.cap.baseImpl} {
+  ${macros.generate('implOperations', c)}
+}
+''')
+ 
  template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
   
   
