@@ -48,8 +48,7 @@ extModule(name: 'EeCommonJms', artifact: 'ee-common-jms') {
   ['JmsSendExecutor' : 'ee.common.jms', 'JmsSender' : 'ee.common.jms',
     'JmsDestinationConfig' : 'ee.common.jms',
     'JmsMessagingAdapterTestCase' : 'ee.common.jms',
-    'JmsToEventListener' : 'ee.common.jms.jse',
-    'SingleTypeEventListenerBridgeByJms' : 'ee.common.jms'].each { n, ns ->
+    'JmsToEventListener' : 'ee.common.jms.jse'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }

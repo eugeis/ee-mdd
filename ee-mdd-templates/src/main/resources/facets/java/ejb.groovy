@@ -20,7 +20,8 @@
  * @author Niklas Cappelmann
  */
 
-def nameToNamespace = ['Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb', 'Local' : 'javax.ejb', 'Timeout' : 'javax.ejb', 'Timer' : 'javax.ejb', 'TimerConfig' : 'javax.ejb', 'TimerService' : 'javax.ejb'] as TreeMap
+def nameToNamespace = ['Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'TransactionAttribute' : 'javax.ejb', 'Local' : 'javax.ejb', 'Timeout' : 'javax.ejb',
+                       'Timer' : 'javax.ejb', 'TimerConfig' : 'javax.ejb', 'TimerService' : 'javax.ejb', 'ActivationConfigProperty' : 'javax.ejb', 'MessageDriven' : 'javax.ejb'] as TreeMap
 
 extModule(name: 'Ejb') {
   nameToNamespace.each { n, ns ->

@@ -4460,7 +4460,28 @@ public abstract class $className {
 public class $className extends ${item.capShortName}XmlConverterBase {
 }''')
  
- template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
+ template('containerImportDataMdb', body: '''{{imports}}
+/**
+* The container import MDB is used to receive asynchronous import commands for container data.
+*/
+@${c.name('MessageDriven')}(messageListenerInterface = ${c.name('MessageListener')}.class,
+  activationConfig = {
+    @${c.name('ActivationConfigProperty')}(propertyName = DESTINATION, propertyValue = ee.mdd.example.integ.JMS_IMPORT_QUEUE),
+    @ActivationConfigProperty(propertyName = DESTINATION_TYPE, propertyValue = QUEUE),
+    @ActivationConfigProperty(propertyName = MESSAGE_SELECTOR, propertyValue = "datatype = '" + ee.mdd.example.integ.JMS_MESSAGE_SELECTOR_${item.underscored}_DATA + "'")
+  })
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
+public class $className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<String> {
+
+  @${c.name('Inject')}
+  public void set${item.cap}Importer(${c.name(item.xmlController.cap)} $item.xmlController.uncap) {
+    super.setEventListener($item.xmlController.uncap);
+  }
+}''')
+ 
+template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
   
   
   

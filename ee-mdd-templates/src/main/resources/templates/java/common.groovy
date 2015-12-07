@@ -165,4 +165,10 @@ templates ('common') {
     template('xmlConverterExtends', appendName: true, body: '''<% if(item.entities) { %><% c.className = "${item.capShortName}XmlConverter" %> ${macros.generate('xmlConverterExtends', c)} <% } %>''')
     
   }
+  
+  templates('xmlContainer',
+  items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb'] ) } ) {
+    template('containerImportDataMdb', appendName: true, body: '''<% if(item.controller.asyncImport) { %><% c.className = item.n.cap.importDataMdb %> ${macros.generate('containerImportDataMdb', c)} <% } %>''')
+  }
 }
