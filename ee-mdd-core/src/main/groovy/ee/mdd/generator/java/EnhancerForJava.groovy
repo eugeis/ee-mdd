@@ -113,6 +113,16 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      nameFull << { Context c ->
+        def el = delegate
+        def ret
+        if(c.subPkg)
+          ret = "${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${c.subPkg}.${el.cap}"
+        else
+          ret = "${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${el.cap}"
+      }
+      
     }
 
     Type.metaClass {

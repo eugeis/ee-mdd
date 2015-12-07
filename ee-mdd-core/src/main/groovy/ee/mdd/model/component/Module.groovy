@@ -42,9 +42,17 @@ class Module extends StructureUnit {
   Component getComponent() {
     parent.component
   }
-
+  
   Module getModule() {
     this
+  }
+  
+  String getCapShortName() {
+    underscoreToCamelCase(key).capitalize();
+  }
+  
+  String getUncapShortName() {
+    underscoreToCamelCase(key).toLowerCase();
   }
 
   def add(EnumType child) {

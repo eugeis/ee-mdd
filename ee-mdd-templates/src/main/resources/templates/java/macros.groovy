@@ -4424,6 +4424,43 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
 @${c.name('DependsOnExecutionType')}
 public @interface $className {
 }''')
+ 
+ template('convertFromXml', body: '''
+public ${c.enum.nameFull(c)} convertFromXml(${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} from) {
+    ${c.enum.nameFull(c)} ret = from != null ? ${c.enum.nameFull(c)}.valueOf(from.name()) : null;
+    return ret;
+}''')
+ 
+ template('convertToXml', body: '''public ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} convertToXml(${c.enum.nameFull(c)} from) {
+    ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} ret = ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName}.valueOf(from.name());
+    return ret;
+  }''')
+ 
+ template('xmlConverter', body: '''{{imports}}
+/** Base of Xml converter for types of '$item.name' */
+@${c.name('Alternative')}
+public abstract class $className {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());<% c.item.component.shared.enumTypes.each { t -> if (t.xml) { c.enum = t %>
+
+  ${macros.generate('convertFromXml', c)}
+
+  ${macros.generate('convertToXml', c)}<% } } %><% item.enumTypes.each { t -> if (t.xml) { c.enum = t %>
+
+  ${macros.generate('convertFromXml', c)}
+
+  ${macros.generate('convertToXml', c)}<% } } %>
+}''')
+ 
+ template('xmlConverterExtends', body: '''{{imports}}
+/** Xml converter for types of '$item.name' */
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
+@${c.name('ApplicationScoped')}
+public class $className extends ${item.capShortName}XmlConverterBase {
+}''')
+ 
+ template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
   
   
   

@@ -28,7 +28,7 @@ import ee.mdd.model.component.Component
  */
 class Element extends Base {
   String desc
-  String uncap, cap, underscored, sqlName, xmlValue, description, uri
+  String uncap, cap, underscored, sqlName, xmlName, xmlValue, description, uri
   boolean xml = true;
   
   Component component() { (this instanceof Component) ? this : parent.component() }
@@ -38,6 +38,13 @@ class Element extends Base {
       sqlName = getUnderscored().replaceAll(/(?<!^)(?<!_)[QEUIOAJY]/, '')
       sqlName = sqlName.replaceAll(/(\w)\1+/, '$1')
     }; sqlName
+  }
+  
+  String getXmlName() {
+    if(xmlName == null) {
+      xmlName = getName()
+    }
+    xmlName
   }
 
   String getUri() {
