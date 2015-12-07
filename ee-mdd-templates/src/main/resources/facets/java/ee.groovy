@@ -32,7 +32,7 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   'NotFoundException' : 'ee.common.exception', 'IntegerEntityCache' : 'ee.common.cache', 'StringEntityCache' : 'ee.common.cache',
   'IntegerCacheOverride' : 'ee.common.cache', 'StringCacheOverride' : 'ee.common.cache',
   'LinkToSetCache' : 'ee.common.cache', 'LinkToSet' : 'ee.common.model', 'Model' : 'ee.common.annotation',
-  'Presenter' : 'ee.common.ui', 'Controller' : 'ee.common.annotation', 'WorkstationType' : 'ee.common.integ', 'SessionPrincipal' : 'ee.common.model',
+  'Controller' : 'ee.common.annotation', 'WorkstationType' : 'ee.common.integ', 'SessionPrincipal' : 'ee.common.model',
   'RepState' : 'ee.common.model', 'Closeable' : 'ee.common.base', 'Initializable' : 'ee.common.base', 'Config' : 'ee.common.config', 'ConditionVerifier' : 'ee.common.cond', 'StateFlowType' : 'ee.common.statemachine'].each { n, ns ->
     extType(name: n, namespace: ns)
   }

@@ -36,7 +36,8 @@ def nameToNamespace = ['MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.commo
   'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion', 'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util',
   'Button' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'TextInput' : 'com.siemens.ra.cg.pl.uif.widget', 'Table' : 'com.siemens.ra.cg.pl.uif.widget',
   'ContextMenu' : 'com.siemens.ra.cg.pl.uif.widget', 'RootType' : 'com.siemens.ra.cg.pl.common.base.cdi.root.RootScoped', 'RootScoped' : 'com.siemens.ra.cg.pl.common.base.cdi.root',
-  'View' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'View' : 'com.siemens.ra.cg.pl.common.base.annotations', 'DialogContentView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'BaseView' : 'com.siemens.ra.cg.pl.uif.guido.widget'] as TreeMap
+  'View' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'View' : 'com.siemens.ra.cg.pl.common.base.annotations', 'ViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogContentView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'BaseView' : 'com.siemens.ra.cg.pl.uif.guido.widget',
+  'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
