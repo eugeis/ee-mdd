@@ -4481,6 +4481,20 @@ public class $className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<
   }
 }''')
  
+ template('containerXmlConverter', body: '''{{imports}}
+/**
+* The $item.name converts string to container object %>
+*/
+public interface $className extends MultiSourceConverter<String, $item.cap> {
+}''')
+ 
+ template('containerXmlConverterExtends', body: '''{{imports}}
+/**
+* The $item.name converts string to container%>
+*/
+public interface $className extends ${item.n.cap.xmlConverter}Base {
+}''')
+ 
 template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
   
   
