@@ -36,8 +36,11 @@ class GeneratorForJs extends GeneratorFactoryBase {
     EnhancerForJs.enhanceClasses()
   }
 
-  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader) {
+  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader, Closure targetModuleResolver) {
     def jsProcessorFactory = new ProcessorsForJs()
+    if(targetModuleResolver) {
+      jsProcessorFactory.targetModuleResolver = targetModuleResolver
+    }
     generator.add(jsProcessorFactory.jsPathProcessor())
   }
 }

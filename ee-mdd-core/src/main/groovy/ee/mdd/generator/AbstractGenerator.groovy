@@ -26,7 +26,7 @@ import groovy.util.logging.Slf4j
 abstract class AbstractGenerator extends Composite {
   List<Processor> processors
   OutputPurpose purpose = OutputPurpose.PRODUCTION
-  OutputType type = OutputType.API
+  OutputType type = OutputType.LOGIC
   String facet
 
   protected void before(Context c) {

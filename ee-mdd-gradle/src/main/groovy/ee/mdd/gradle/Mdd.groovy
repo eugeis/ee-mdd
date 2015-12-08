@@ -5,9 +5,9 @@ import ee.mdd.model.Element
 
 class Mdd {
   def target = './temp/'
+  Closure targetModuleResolver
   def modelSource = 'model.groovy'
   Closure facet
-  Closure outputMapper
   Element model
   GeneratorForJava generator = new GeneratorForJava()
 }

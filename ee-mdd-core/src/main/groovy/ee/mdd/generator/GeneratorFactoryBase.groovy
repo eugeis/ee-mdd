@@ -54,7 +54,7 @@ class GeneratorFactoryBase {
   }
 
 
-  void generate(Model model, File target) {
+  void generate(Model model, File target, Closure targetModuleResolver = null) {
     FacetTemplateLoader templateLoader = new FacetTemplateLoader()
 
     Generator generator = new Generator()
@@ -62,7 +62,7 @@ class GeneratorFactoryBase {
 
     def processorFactory = new ProcessorsFactory()
 
-    extendGenerator(generator, processorFactory, templateLoader)
+    extendGenerator(generator, processorFactory, templateLoader, targetModuleResolver)
 
     generator.add(processorFactory.printProcessor())
     generator.add(processorFactory.fileProcessor(target))

@@ -1,8 +1,3 @@
-import ee.mdd.model.component.Facade
-
-
-
-
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -19,6 +14,11 @@ import ee.mdd.model.component.Facade
  * limitations under the License.
  */
 
+import static ee.mdd.generator.OutputType.*
+import static ee.mdd.generator.OutputPurpose.*
+
+import ee.mdd.model.component.Facade
+
 /**
  *
  * @author Eugen Eisler
@@ -30,7 +30,7 @@ templates('ejb') {
   useMacros('commonMacros', '/common/macros')
   useMacros('macros')
 
-  templates ('facadeEjbService',
+  templates ('facadeEjbService', type: LOGIC,
   items: { c -> c.model.findAllRecursiveDown( { Facade.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 

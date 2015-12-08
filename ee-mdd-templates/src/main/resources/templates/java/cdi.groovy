@@ -1,7 +1,3 @@
-import ee.mdd.model.component.Channel
-
-
-
 /*
  * Copyright 2011-2012 the original author or authors.
  *
@@ -18,6 +14,11 @@ import ee.mdd.model.component.Channel
  * limitations under the License.
  */
 
+import static ee.mdd.generator.OutputType.*
+import static ee.mdd.generator.OutputPurpose.*
+
+import ee.mdd.model.component.Channel
+
 /**
  *
  * @author Eugen Eisler
@@ -29,14 +30,14 @@ templates('cdi') {
   useMacros('commonMacros', '/common/macros')
   useMacros('macros')
 
-  templates ('cdiToJms',
+  templates ('cdiToJms', type: INTEG,
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ/ejb' ] ) } ) {
 
     template('cdiToJms', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.cdiToJms %> ${macros.generate('cdiToJms', c)}<% } %>''')
   }
 
-  templates ('eventToCdi',
+  templates ('eventToCdi', type: INTEG,
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
 

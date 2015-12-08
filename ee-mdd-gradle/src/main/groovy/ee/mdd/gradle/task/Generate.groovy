@@ -12,7 +12,7 @@ class Generate extends MddTask {
   @TaskAction
   void generate() {
     validateState()
-    mdd.generator.generate( mdd.model, new File(mdd.target) )
+    mdd.generator.generate( mdd.model, new File(mdd.target), mdd.targetModuleResolver )
   }
 
   private validateState() {
