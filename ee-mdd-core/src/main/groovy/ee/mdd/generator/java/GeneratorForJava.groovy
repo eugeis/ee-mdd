@@ -32,10 +32,10 @@ class GeneratorForJava extends GeneratorFactoryBase {
     EnhancerForJava.enhanceClasses()
   }
 
-  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader, Closure outputModuleResolver) {
+  protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader, Closure targetModuleResolver) {
     def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.typeResolver.refToElement)
-    if(outputModuleResolver) {
-      javaProcessorFactory.outputModuleResolver = outputModuleResolver
+    if(targetModuleResolver) {
+      javaProcessorFactory.targetModuleResolver = targetModuleResolver
     }
     generator.add(javaProcessorFactory.javaImportsPathProcessor())
   }

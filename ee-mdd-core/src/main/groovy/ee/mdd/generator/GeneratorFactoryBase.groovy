@@ -54,7 +54,7 @@ class GeneratorFactoryBase {
   }
 
 
-  void generate(Model model, File target, Closure targetModuleResolver = null) {
+  void generate(Model model, File target, Closure targetModuleResolver) {
     FacetTemplateLoader templateLoader = new FacetTemplateLoader()
 
     Generator generator = new Generator()

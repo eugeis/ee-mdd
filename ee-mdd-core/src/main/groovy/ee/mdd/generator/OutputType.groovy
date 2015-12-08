@@ -19,7 +19,7 @@ package ee.mdd.generator
  * @author Eugen Eisler
  */
 enum OutputType {
-  API, API_IMPL, SHARED, LOGIC, INTEG, FRONTEND, CONFIG
+  API, API_IMPL, SHARED, LOGIC, INTEG, FRONTEND, RESOURCE
 
   boolean isApi() {
     API == this
@@ -41,8 +41,8 @@ enum OutputType {
     INTEG == this
   }
 
-  boolean isConfig() {
-    CONFIG == this
+  boolean isResource() {
+    RESOURCE == this
   }
 
   boolean isFrontend() {
