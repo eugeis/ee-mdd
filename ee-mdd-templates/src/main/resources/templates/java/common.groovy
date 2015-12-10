@@ -130,8 +130,15 @@ templates ('common') {
     template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
   }
+   
+  templates('implContainerController', type: API_IMPL,
+  items: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+    template('implContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% if(controller.base) { %><% c.className = item.controller.n.cap.baseImpl %><% } else { %><% c.className = item.controller.n.cap.impl %><% } %> ${macros.generate('implContainerController', c)}<% } %>''')
+    template('implContainerControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = c.item.controller.n.cap.impl %>${macros.generate('implContainerControllerExtends', c)}<% } %>''')
+  }
     
-  templates('containerController', type: LOGIC,
+templates('containerController', type: LOGIC,
     items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = item.controller.n.cap.base %> ${macros.generate('ifcContainerController', c)}<% } %>''')

@@ -28,6 +28,7 @@ import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
+import ee.mdd.model.component.DataTypeProp
 import ee.mdd.model.component.Delete
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
@@ -770,6 +771,14 @@ class EnhancerForJava {
           ret = false
         }
         ret
+      }
+      
+    }
+    
+    DataTypeProp.metaClass {
+      
+      getRelation << {
+       delegate.typeEntity
       }
       
     }

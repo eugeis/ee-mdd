@@ -342,6 +342,16 @@ templates ('macros') {
     return null; <% } %>
   }<% } } %>''')
   
+  template('implOperationsController', body: '''<% item.controller.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
+
+  @Override<% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
+    //TODO to implement <% if (op.returnTypeBoolean) { %>
+    return false;<% } else if (op.ret) { %>
+    return null; <% } %>
+  }<% } } %>''')
+  
   template('implOperationsCache', body: ''' <% item.cache.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
@@ -1311,6 +1321,375 @@ public class $className extends $item.n.cap.versionsBaseImpl {
   public $className(String source) {
     super(source);
   }
+}''')
+  
+  template('implContainerController', body: '''{{imports}}<% def controller = item.controller; def refs = []; item.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
+<% if (!controller.base) { %>@Controller
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })<% } %>
+public ${controller.base?'abstract ':''}class $className implements $controller.name {
+  protected final String source = ${c.name('StringUtils')}.formatSource(this);
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  <% refs.each { ref -> if(ref.commands) { %>
+  protected $ref.n.cap.commands ${ref.uncap}Commands;<% } %><% if(ref.finders) { %>
+  protected $ref.n.cap.finders ${ref.uncap}Finders<% } %><% } %>
+
+  protected Event<${item.n.cap.event}> publisher;
+  protected ${module.capShortName}Converter converter;<% if (controller.cache) { %>
+  protected ${module.capShortName}Cache cache;
+  <% } %>
+
+  @Override
+  @${c.name('Transactional')}
+  public void importContainer($item.cap container) {<% if (controller.deleteBeforeImport) { %>
+    deleteAll(false);<% } else if (controller.cache) { %>
+    resetCache();<% } %>
+    container.resetTempIds();
+    <% item.props.each { entityProp -> %>
+    convertToInternalAndImportNew${entityProp.type.cap}s(container);<% } %>
+
+    $item.n.cap.event event = new ${item.n.cap.event}(${c.name('ActionType')}.CREATE_MULTIPLE, source);
+    event.initMlKey(${component.key.capitalize()}Ml.ML_BASE, ${component.key.capitalize()}Ml.${item.underscored.toLowerCase()}}_IMPORTED);
+    fireEvent(event);
+  }
+
+  @Override
+  @${c.name('Transactional')}
+  public void onEvent(com.siemens.ra.cg.pl.common.base.messaging.Event<$item.cap> event) {
+    $item.cap container = event.getFirstObject();
+    importContainer(container);
+  }
+
+  @Override
+  public Class<$item.cap> getEventObjectType() {
+    return ${item.cap}.class;
+  }
+
+<% if(controller.importChanges) { %>
+<% def parentEntities = []; def notChildEntities = []; def childEntities = []; item.props.each { entityProp -> def isParent = false; def isChild = false; entityProp.type.propsRecursive.each { prop -> %><% if(prop.relation && prop.oneToMany){ isParent = true} %><% if(prop.relation && prop.manyToOne){ isChild = true} %><% } %><% if(isParent) { parentEntities.add(entityProp.type) } %><% if(isChild) { childEntities.add(entityProp.type) } else { notChildEntities.add(entityProp.type) } %><% } %>
+<% def childEntitiesReferencedInOtherChildEntity = []; childEntities.each { entity -> %><% entity.propsRecursive.each { prop -> if(prop.relation && prop.manyToOne && !prop.opposite && !childEntitiesReferencedInOtherChildEntity.contains(prop.type)){ childEntitiesReferencedInOtherChildEntity.add(prop.type)} %><% } %><% } %>
+<% def childEntitiesReferencedInItself = []; childEntities.each { entity -> %><% entity.propsRecursive.each { prop -> if(prop.relation && prop.manyToOne && !prop.opposite && !childEntitiesReferencedInItself.contains(prop.type) && entity == prop.type){ childEntitiesReferencedInItself.add(prop.type)} %><% } %><% } %>
+  @Override
+  @${c.name('Transactional')}
+  public void importChangesContainer($item.cap receivedChangesContainer) {
+    $item.cap changeEntitiesContainer = new ${item.cap}Impl();
+
+    // Entities creation and modification
+<% notChildEntities.each { entity -> %>
+    importNewAndModified${entity.cap}sFromChangesContainer(receivedChangesContainer, changeEntitiesContainer);<% } %><% childEntitiesReferencedInOtherChildEntity.each { entity -> %>
+
+    // Children entities referenced in other children must be imported first
+    importNewAndModified${entity.cap}sFromChangesContainer(receivedChangesContainer, changeEntitiesContainer);<% } %>
+<% childEntities.each { entity -> %><% if(!childEntitiesReferencedInOtherChildEntity.contains(entity)) { %>
+    importNewAndModified${entity.cap}sFromChangesContainer(receivedChangesContainer, changeEntitiesContainer);<% } } %>
+
+    // Entities deletion
+<% childEntities.each { entity -> %><% if(!childEntitiesReferencedInOtherChildEntity.contains(entity)) { %>
+    importDeleted${entity.cap}sFromChangesContainer(receivedChangesContainer, changeEntitiesContainer);<% } } %>
+<% childEntitiesReferencedInOtherChildEntity.each { entity -> %>
+    //Deleted children entities referenced in other children must be deleted after the other children entities that reference them
+    importDeleted${entity.cap}sFromChangesContainer(receivedChangesContainer, changeEntitiesContainer);<% } %>
+<% notChildEntities.each { entity -> %>
+    //Parent entities are deleted in last, after their children entities are deleted
+    importDeleted${entity.cap}sFromChangesContainer(receivedChangesContainer, changeEntitiesContainer);<% } %>
+
+    // Resetting temp ids
+    /* reseting the temp ids here cause database exception
+       so temp ids are reset for each entity cache in sub methods
+       (uncomment and rerun unit tests to investigate)
+      changeEntitiesContainer.resetTempIds();
+    */
+
+    // Importing entities to entity manager<% notChildEntities.each { entity -> %>
+    importNew${entity.cap}s(changeEntitiesContainer);<% } %><% childEntitiesReferencedInOtherChildEntity.each { entity -> %>
+    //FIXME: why this workaround???
+    //TODO: understand this problem
+    // since this entity is referenced in one of the following entities: <% notChildEntities.each { notChildEntity -> %> [${notChildEntity.cap},]<% } %>
+    // it should not be needed to import it. It should be imported automatically by cascading
+    importNew${entity.cap}s(changeEntitiesContainer);<% } %>
+
+    // Updating versions<% notChildEntities.each { entity -> %><% if(entity.commands) { %>
+    ${entity.commands.uncap}.forceVersionUpdate();<% } %><% if(entity.finders) { %>
+    ${entity.commands.uncap}.forceVersionUpdate();<% } %><% } %>
+
+    // Firing event
+    $item.n.cap.event event = new ${item.n.cap.event}(changeEntitiesContainer, ActionType.CREATE_MULTIPLE, source);
+    event.initMlKey(${component.underscored.toLowerCase()}Ml.ML_BASE, ${component.key.capitalize()}Ml.${item.underscored}_IMPORTED);
+    fireEvent(event);
+  }
+
+<% item.props.each { entityProp -> entityProp.type.propsRecursive.each { prop -> if (prop.relation && prop.manyToOne && !prop.opposite) { %>
+  private void update${entityProp.type.cap}s${prop.cap}(List<${entityProp.type.cap}> ${entityProp.type.uncap}s, $item.cap changeEntitiesContainer, boolean isANew${entityProp.type.cap}) {
+    // If existing, add the relation between the ${entityProp.type.cap}s and the ${prop.computedType(c)} (for the ${prop.name} attribute)
+    for (${entityProp.type.cap} ${entityProp.type.uncap} : ${entityProp.type.uncap}s) {
+      ${entityProp.type.idProp.computedType(c)} ${entityProp.type.uncap}New${prop.cap}Id = ${entityProp.type.uncap}.get${prop.cap}Id();
+      if (${entityProp.type.uncap}New${prop.cap}Id != null) {
+        <% if (prop.multi) { %>${c.name('List')}${prop.relTypeEjb(c)}<% } else { %> ${prop.relTypeEjb(c)}<% } %> ${entityProp.type.uncap}New${prop.cap} = getNewOrExisting${prop.computedType(c)}(${entityProp.type.uncap}New${prop.cap}Id, changeEntitiesContainer);
+        ${entityProp.type.n.cap.bean} new${entityProp.type.n.cap.bean} = (${entityProp.type.n.cap.bean}) (isANew${entityProp.type.cap} ? changeEntitiesContainer.get${entityProp.type.cap}s().get(${entityProp.type.uncap}.getId()) : ${entityProp.type.finders.uncap}.findById(${entityProp.type.uncap}.getId()));
+        new${entityProp.type.n.cap.bean}.set${prop.cap}(${entityProp.type.uncap}New${prop.cap});
+      }
+    }
+  }
+<% } } } %>
+
+<% [childEntitiesReferencedInOtherChildEntity, notChildEntities].each  { it.each { entity -> %>
+  private ${entity.n.cap.bean} getNewOrExisting${entity.cap}(${entity.idProp.computedType(c)} ${entity.uncap}Id, $item.cap changeEntitiesContainer) {
+    ${entity.n.cap.bean} entity = (${entity.n.cap.bean}) changeEntitiesContainer.get${entity.cap}s().get(${entity.uncap}Id);
+    if (entity == null) {
+      entity = (${entity.n.cap.bean}) ${entity.finders.uncap}.findById(${entity.uncap}Id);
+    }
+    return entity;
+  }
+
+ private void importNew${entity.cap}s($item.cap container) {
+    boolean fireEvent = false;
+    ${c.name('List')}<$entity.cap> newEntities = container.get${entity.cap}s().findNew();
+    ${entity.commands.uncap}.updateAll(newEntities, fireEvent);
+  }
+<% } } %>
+
+<% item.props.each { entityProp -> %>
+  private void importNewAndModified${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
+    importNew${entityProp.type.cap}sFromChangesContainer(receivedChangesContainer,changeEntitiesContainer);
+    importModified${entityProp.type.cap}sFromChangesContainer(receivedChangesContainer,changeEntitiesContainer);
+  }
+
+  private void importNew${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
+    // new ${entityProp.type.uncap}s
+    List<${entityProp.type.cap}> new${entityProp.type.cap}s = receivedChangesContainer.get${entityProp.type.cap}s().findNew();
+    List<${entityProp.type.cap}> new${entityProp.type.cap}Entities = converter.convert${entityProp.type.cap}sToInternal(new${entityProp.type.cap}s);
+    changeEntitiesContainer.get${entityProp.type.cap}s().putAll(new${entityProp.type.cap}Entities);
+    changeEntitiesContainer.get${entityProp.type.cap}s().resetTempIds();
+<% entityProp.type.propsRecursive.each { prop -> if (prop.relation && prop.manyToOne && prop.opposite) { %>
+    //add the relation between the ${entityProp.type.uncap}s and ${prop.name}s
+    for(${entityProp.type.cap} new${entityProp.type.cap} : new${entityProp.type.cap}s){
+      ${entityProp.type.idProp.computedType(c)} new${entityProp.type.cap}${prop.computedType(c)}Id = new${entityProp.type.cap}.get${prop.computedType(c)}Id();
+      <% if(prop.multi) { %>List<${prop.relTypeEjb(c)}> <% } else { %> ${prop.relTypeEjb(c)} <% } %> ${prop.name}OfNew${entityProp.type.cap} = getNewOrExisting${prop.cap}(new${entityProp.type.cap}${prop.computedType(c)}Id, changeEntitiesContainer);
+      ${entityProp.type.n.cap.bean} new${entityProp.type.n.cap.bean} = (${entityProp.type.n.cap.bean}) changeEntitiesContainer.get${entityProp.type.cap}s().get(new${entityProp.type.cap}.getId());
+      ${prop.name}OfNew${entityProp.type.cap}.addTo${prop.opposite.cap}(new${entityProp.type.n.cap.bean});
+   }<% }} %><% if(!parentEntities.contains(entityProp.type)){%>
+    if (!new${entityProp.type.cap}s.isEmpty()) {
+      boolean isANew${entityProp.type.cap} = true;<% entityProp.type.propsRecursive.each { prop -> if (prop.relation && prop.manyToOne && !prop.opposite) { %>
+      update${entityProp.type.cap}s${prop.cap}(new${entityProp.type.cap}s, changeEntitiesContainer, isANew${entityProp.type.cap});<% }} %>
+    }<% } %>
+  }
+
+  private void importModified${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
+   // modified ${entityProp.type.uncap}s
+    List<${entityProp.type.cap}> modified${entityProp.type.cap}s = receivedChangesContainer.get${entityProp.type.cap}s().findModified();
+    List<${entityProp.type.idProp.computedType(c)}> modified${entityProp.type.cap}Ids = new ArrayList<${entityProp.type.idProp.computedType(c)}>();
+    for (${entityProp.type.cap} modified${entityProp.type.cap} : modified${entityProp.type.cap}s) {
+      modified${entityProp.type.cap}Ids.add(modified${entityProp.type.cap}.getId());
+    }
+    if (!modified${entityProp.type.cap}s.isEmpty()) {
+      boolean logErrorForNotExistedIds = true;
+      List<${entityProp.type.cap}> modifiedEntities = ${entityProp.type.finders.uncap}.findByIds(modified${entityProp.type.cap}Ids, logErrorForNotExistedIds);
+      converter.convert${entityProp.type.cap}sToInternal(modified${entityProp.type.cap}s, modifiedEntities);
+      changeEntitiesContainer.get${entityProp.type.cap}s().putAll(modifiedEntities);
+
+      boolean isANew${entityProp.type.cap} = false;<% entityProp.type.propsRecursive.each { prop -> if (prop.relation && prop.manyToOne && !prop.opposite) { %>
+      update${entityProp.type.cap}s${prop.cap}(modified${entityProp.type.cap}s, changeEntitiesContainer, isANew${entityProp.type.cap});<% }} %>
+    }
+  }
+
+  private void importDeleted${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
+    ArrayList<${entityProp.type.idProp.computedType(c)}> ${entityProp.type.uncap}ToBeDeletedIds = new ArrayList<>(receivedChangesContainer.get${entityProp.type.cap}s().getRemoved());
+    changeEntitiesContainer.get${entityProp.type.cap}s().synchronizeRemovedAll(receivedChangesContainer.get${entityProp.type.cap}s().getRemoved());<% if (childEntitiesReferencedInItself.contains(entityProp.type)) { %>
+
+    // First, delete ${entityProp.type.uncap}s that reference other ${entityProp.type.uncap}s
+    <% entityProp.type.propsRecursive.each { prop -> if (prop.type == entityProp.type) { %>
+    // Delete referenced ${entityProp.type.uncap}s in $prop.name
+    if (!${entityProp.type.uncap}ToBeDeletedIds.isEmpty()) {
+      List<${entityProp.type.cap}> ${entityProp.type.uncap}sToBeDeleted = ${entityProp.type.finders.uncap}.findByIds(${entityProp.type.uncap}ToBeDeletedIds);
+      for (${entityProp.type.cap} ${entityProp.type.uncap}ToBeDeleted : ${entityProp.type.uncap}sToBeDeleted) {
+        if (${entityProp.type.uncap}ToBeDeleted.get${prop.cap}Id() != null) {  <% entityProp.type.propsRecursive.each { propToParentEntity -> if (propToParentEntity.relation && propToParentEntity.manyToOne && propToParentEntity.opposite) { %>
+          <% if(propToParentEntity.multi) { %>List<${propToParentEntity.relTypeEjb(c)}><% } else { %>${propToParentEntity.relTypeEjb(c)}<% } %> ${prop.name}Of${entityProp.type.cap}ToBeDeleted = (<% if(propToParentEntity.multi) { %>List<${propToParentEntity.relTypeEjb(c)}><% } else { %>${propToParentEntity.relTypeEjb(c)})<% } %> ${propToParentEntity.type.finders.uncap}.findById(${entityProp.type.uncap}ToBeDeleted.get${propToParentEntity.computedType(c)}Id());
+          ${prop.name}Of${entityProp.type.cap}ToBeDeleted.removeFrom${propToParentEntity.opposite.cap}((${entityProp.type.n.cap.bean}) ${entityProp.type.uncap}ToBeDeleted);<% } } %>
+          ${entityProp.type.uncap}ToBeDeletedIds.remove(${entityProp.type.uncap}ToBeDeleted.getId());
+        }
+      }
+    }<% } } %>
+
+    // Then delete the other ${entityProp.type.uncap}s that do not reference any other other ${entityProp.type.uncap}s
+
+<% } %>
+    // deleted ${entityProp.type.uncap}s
+    if (!${entityProp.type.uncap}ToBeDeletedIds.isEmpty()) {<% if(childEntities.contains(entityProp.type)){%>
+      List<${entityProp.type.cap}> ${entityProp.type.uncap}sToBeDeleted = ${entityProp.type.finders.uncap}.findByIds(${entityProp.type.uncap}ToBeDeletedIds);
+      for (${entityProp.type.cap} ${entityProp.type.uncap}ToBeDeleted : ${entityProp.type.uncap}sToBeDeleted) { <% entityProp.type.propsRecursive.each { prop -> if (prop.relation && prop.manyToOne && prop.opposite) { %>
+       <% if(prop.multi) { %>List<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %> ${prop.name}Of${entityProp.type.cap}ToBeDeleted = (<% if(prop.multi) { %>List<${prop.relTypeEjb(c)}><% } else { %>${prop.relTypeEjb(c)}<% } %>) ${prop.type.finders.uncap}.findById(${entityProp.type.uncap}ToBeDeleted.get${prop.computedType(c)}Id());
+       ${prop.name}Of${entityProp.type.cap}ToBeDeleted.removeFrom${prop.opposite.cap}((${entityProp.type.n.cap.bean}) ${entityProp.type.uncap}ToBeDeleted);<% }} %>
+      }<%} else {%>
+      for (${entityProp.type.idProp.computedType(c)} ${entityProp.type.uncap}ToBeDeletedId : ${entityProp.type.uncap}ToBeDeletedIds) {
+        //We have to delete ${entityProp.type.uncap} one by one (deleteByIds method use a batch query that doesn't handle the object cascade)
+        ${entityProp.type.commands.uncap}.delete(${entityProp.type.uncap}ToBeDeletedId);
+      }<% } %>
+    }
+  }
+<% } } %>
+
+  @Override
+  @Transactional
+  public void deleteAll() {
+    deleteAll(true);
+  }
+
+  @Transactional
+  protected void deleteAll(boolean fireEvent) {<% item.props.each { entityProp -> %>
+    delete${entityProp.type.cap}s();<% } %>
+
+    if (fireEvent) {
+      $item.n.cap.event event = new ${item.n.cap.event}(ActionType.DELETE_MULTIPLE, source);
+      event.initMlKey(${component.key.capitalize()}Ml.ML_BASE, ${component.key.capitalize()}Ml.${item.underscored}_DELETED);
+      fireEvent(event);
+    }<% if (controller.cache) { %>
+    resetCache();<% } %>
+  }<% item.props.each { entityProp -> %>
+
+  protected void delete${entityProp.cap}s() {
+    ${entityProp.type.commands.uncap}.deleteAll(false);
+  }<% } %><% if (controller.cache) { %>
+
+  @Override
+  public $item.cap loadAll() {
+    return loadAll(true);
+  }
+
+  @Override
+  public synchronized $item.cap loadAll(boolean threadSafe) {
+    $item.cap ret = cache.get$item.cap();
+    if (ret == null || ret.isEmpty()) {
+      ret = new $item.n.cap.impl(source, false, threadSafe);
+      ret.keepMarksAfterRemove(false);
+      <% item.props.each { entityProp -> %>
+      fill${entityProp.type.cap}s(ret);<% } %>
+
+      cache.change$item.cap(ret);
+    }
+    return ret;
+  }
+
+  @Override
+  public $item.n.cap.versions loadVersions() {
+    $item.cap container = loadAll();
+    $item.n.cap.versions ret = container.buildVersions();
+    return ret;
+  }<% } else { %>
+
+  @Override
+  public $item.cap loadAll() {
+    return loadAll(false);
+  }
+
+  @Override
+  public $item.cap loadAll(boolean threadSafe) {
+    $item.n.cap.impl ret = new $item.n.cap.impl(source, false, threadSafe);
+    <% item.props.each { entityProp -> %>
+    fill${entityPrpo.type.cap}s(ret);<% } %>
+    return ret;
+  }
+
+  @Override
+  public $item.n.cap.versions loadVersions() {
+    $item.n.cap.versionsImpl ret = new $item.n.cap.versionsImpl(source);
+    <% item.props.each { entityProp -> %>
+    ret.set${entityProp.type.cap}s(${entityProp.type.finders.uncap}.findVersions());<% } %>
+    return ret;
+  }<% } %>
+
+  @Override
+  public $item.cap loadDiff($item.n.cap.versions snapshot) {
+    log.debug("Snapshot: {}", snapshot);
+    $item.cap container = loadDiffBaseContainer(snapshot);
+    $item.n.cap.versions versions = container.buildVersions();
+    log.debug("Base: {}", versions);
+    $item.n.cap.diff diff = versions.diff(snapshot);
+    log.debug("Diff: {}", diff);
+    $item.cap ret = container.diff(diff);
+    return ret;
+  }
+
+  protected $item.cap loadDiffBaseContainer($item.n.cap.versions snapshot) {
+    $item.cap ret = loadAll();
+    return ret;
+  }<% item.props.each { entityProp -> %>
+
+  protected void convertToInternalAndImportNew${entityProp.type.cap}s($item.cap container) {
+    boolean fireEvent = false;
+    List<entityProp.type.cap> newEntities = converter.convert${entityProp.type.cap}sToInternal(container.get${entityProp.type.cap}s().findNew());
+    ${entityProp.type.commands.uncap}.updateAll(newEntities, fireEvent);
+  }<% } %><% item.props.each { entityProp -> %>
+
+  protected void fill${entityProp.type.cap}s($item.cap container) {
+    fill${entityProp.type.cap}s(container, ${entityProp.type.finders.uncap}.findAll());
+  }
+
+  protected void fill${entityProp.type.cap}s($item.cap container, List<$entityProp.type.cap> entities) {
+    List<$entityProp.type.cap> items = converter.convert${entityProp.type.cap}sToExternal(entities);
+    container.get${entityProp.type.cap}s().putAll(items);
+  }<% } %><% controller.operations.each { op-> if (op.body && !op.delegateOp) { %>
+
+  @Override<% if (op.transactional) { %>
+  @Transactional<% } %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% c.op = op %>
+  ${macros.generate('operationRawType', c)}<% } %><% } %><% controller.operations.each { opRef-> if(opRef.delegateOP) { def op = opRef.ref; if (op) { %>
+
+  @Override<% if (op.transactional) { %>
+  @Transactional<% } %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${opRef.return} ${opRef.name}($opRef.signature(c)) {<% if (op.void) { %>
+    ${op.parent.uncap}.${op.name}($op.signatureName);<% }else { %>
+    ${opRef.return} ret = ${op.parent.uncap}.${op.name}($op.signatureName);
+    return ret;<% } %>
+  }
+  <% } %><% } %><% } %>
+  <% if (controller.cache) { %>
+  public void resetCache() {
+    cache.change$item.cap(null);
+  }
+
+  public void synchronizeCache() {
+    $item.cap container = cache.get$item.cap();
+    if (container != null) {<% item.props.each { entityProp -> %>
+      $entityProp.type.cache.cap $entityProp.type.cache.uncap = container.get${entityProp.type.cap}s();
+      Map<${entityProp.type.idProp.type}, Long> ${entityProp.type.uncap}VersionsInDb = ${entityProp.type.finders.uncap}.findVersionsByIds(${entityProp.type.cache.uncap}.getKeys());
+      List<${entityProp.type.idProp.type}> ${entityProp.type.uncap}sOutOfSync = ${entityProp.type.cache.uncap}.findOutOfSync(${entityProp.type.uncap}VersionsInDb);
+      if (${c.name('CollectionUtils')}.isNotEmpty(${entityProp.type.uncap}sOutOfSync)) {
+        resetCache();
+        return;
+      }<% } %>
+    }
+  } <% } %><% refs.each { ref-> %>
+
+  @Inject
+  public void set${ref.name}($ref.name $ref.uncap) {
+    this.$ref.uncap = $ref.uncap;
+  }<% } %>
+
+  @Inject
+  public void set${module.capShortName}Converter(${module.capShortName}Converter converter) {
+    this.converter = converter;
+  }<% if (controller.cache) { %>
+
+  @Inject
+  public void setCache(${module.capShortName}Cache cache) {
+    this.cache = cache;
+  }<% } %>
+
+  ${macros.generate('publisherFireEvent', c)}
+
+  ${macros.generate('setPublisher', c)}
+}''')
+  
+  template('implContainerControllerExtends', body: '''{{imports}}<% def controller = item.controller %>
+@Controller
+@SupportsEnvironments({
+    @Environment(runtimes = { SERVER }),
+    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+@ApplicationScoped
+public class $className extends $controller.n.cap.baseImpl {
+  ${macros.generate('implOperationsController', c)}
 }''')
 
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
@@ -4681,7 +5060,15 @@ public class $className extends ${xmlController.n.cap.baseImpl} {
 ''')
  
  template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
+ 
+ template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
+    publisher.fire(event);
+  }''')
   
+ template('setPublisher', body: '''@Inject
+  public void setPublisher(@${component.capShortName} @Backend Event<${item.n.cap.event}> publisher) {
+    this.publisher = publisher;
+  }''')
   
   
 }
