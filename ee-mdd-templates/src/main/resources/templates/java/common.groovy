@@ -1,6 +1,5 @@
-import static ee.mdd.generator.OutputType.*
 import static ee.mdd.generator.OutputPurpose.*
-
+import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
@@ -126,10 +125,17 @@ templates ('common') {
   }
 
   templates ('controller', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
+    items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) && !Container.isInstance(it.parent) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-      template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
+    template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
+  }
+    
+  templates('containerController', type: LOGIC,
+    items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('ifcContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = item.controller.n.cap.base %> ${macros.generate('ifcContainerController', c)}<% } %>''')
+    template('ifcContainerControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = item.controller.cap %> ${macros.generate('ifcContainerControllerExtends', c)}<% } %>''')
   }
 
   templates ('jmsToCdi', type: INTEG,

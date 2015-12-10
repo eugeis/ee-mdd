@@ -318,6 +318,10 @@ templates ('macros') {
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
   
+  template('interfaceBodyController', body: '''<% def controller = item.controller %><% controller.operations.each { op -> if (!op.override) { %>
+  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
+  ${op.return} $op.name(${op.signature(c)});<% } } %>''')
+  
   template('interfaceBodyCache', body: '''<% item.cache.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
@@ -544,6 +548,39 @@ public interface $c.className extends $superClassName {
    */
   public interface $className extends $item.n.cap.base {
   }''')
+  
+  template('ifcContainerControllerExtends', body: '''{{imports}}<% c.src = true; def controller = item.controller %>
+  /**
+   * The $controller.name controller provides internal logic operations for the container '$item.name'.<% if (controller.description) { %>
+   * <p>
+   * $controller.description
+   * </p><% } %>
+   */
+  public interface $className extends $controller.n.cap.base {
+  }''')
+  
+  
+  template('ifcContainerController', body: '''{{imports}}<% c.src = true; def controller = item.controller %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.versions};
+/** Base interface of {@link $controller.name} */
+public interface $className extends ${c.name('EventListener')}<${item.cap}> {
+  @${c.name('Transactional')}
+  void importContainer($item.cap container);<% if(controller.importChanges) {%>
+  @${c.name('Transactional')}
+  void importChangesContainer($item.cap container);<%}%>
+  @${c.name('Transactional')}
+  void deleteAll();
+  $item.cap loadAll();
+  $item.cap loadDiff($item.n.cap.versions loadedContainerVersions);
+  $item.cap loadAll(boolean threadSafe);
+  $item.n.cap.versions loadVersions();<% if (controller.cache) { %>
+  void resetCache();
+  void synchronizeCache();<% } %>
+  ${macros.generate('interfaceBodyController', c)}
+}''')
+  
+  
 
   template('ifcFinders', body: '''<% if(!c.className) { c.className = item.n.cap.finders } %><% def finders = item.finders; def idProp = item.idProp; %>{{imports}}
   <% if(finders.description) { %>/**
@@ -1096,7 +1133,8 @@ public class $c.className extends $item.n.cap.idsBase {
 
   template('implContainerDelta', body: '''{{imports}}<% item.props.each { prop -> %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.deltaCache};
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.deltaCacheImpl};<% } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${prop.type.n.cap.deltaCacheImpl};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.delta};<% } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
 def newInstances = item.props.collect { entityProp -> "new ${entityProp.type.n.cap.deltaCacheImpl}()" }.join(", ") %>
 public class $c.className implements $item.n.cap.delta {<% item.props.each { entityProp -> def entity = entityProp.type %>
   private final ${entity.n.cap.deltaCache} ${entity.uncap}DeltaCache;<% } %>
@@ -1121,9 +1159,10 @@ public class $c.className implements $item.n.cap.delta {<% item.props.each { ent
 }''')
 
   template('implContainerDeltaExtends', body: '''{{imports}}
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.deltaBaseImpl};<% item.props.each { entityProp -> %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.impl.${item.n.cap.deltaBaseImpl};<% item.props.each { entityProp -> %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.cache.${entityProp.type.n.cap.deltaCache};<% } %><% if (!c.className) { c.className = item.n.cap.deltaImpl } %><% def signature = item.props.collect { entityProp -> "${entityProp.type.n.cap.deltaCache} ${entityProp.type.uncap}DeltaCache" }.join(", ")
 def params = item.props.collect { entityProp -> "${entityProp.type.uncap}DeltaCache" }.join(", ") %>
+
 public class $c.className extends $item.n.cap.deltaBaseImpl {
 
   public $c.className(${signature}) {
@@ -4583,6 +4622,7 @@ public interface $className extends $xmlController.n.cap.base {
  
  template('implXmlController', body: '''<% def xmlController = item.xmlController %>{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+import com.siemens.ra.cg.pl.common.base.messaging.Event; // 'Event' is already defined in facet as javax.enterprise.event
 @${c.name('Alternative')}
 public abstract class $className implements $xmlController.cap {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -4610,7 +4650,7 @@ public abstract class $className implements $xmlController.cap {
   }
 
   @Override
-  public void onEvent(${c.name('Event')}<String> event) {
+  public void onEvent(Event<String> event) {
     importData(event.getFirstObject());
   }
 
