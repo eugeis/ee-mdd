@@ -5157,5 +5157,25 @@ public class $className extends ${xmlController.n.cap.baseImpl} {
     this.publisher = publisher;
   }''')
   
+ template('event', body: '''{{imports}}
+/** Event object for @$item.name */
+public class $className extends ${c.name('EventImpl')}<${item.name}> {
+  private static final long serialVersionUID = 1L;
+
+  public $item.n.cap.event(${item.name} object, ActionType type, String source) {
+    super(object, type, source, ${item.name}.class);
+    setUriPrefix(${item.name}.URI_PREFIX);
+  }
+
+  public $item.n.cap.event(ActionType type, String source) {
+    super(type, source, ${item.name}.class);
+    setUriPrefix(${item.name}.URI_PREFIX);
+  }
+
+  public $item.n.cap.event(List<${item.name}> objectList, ActionType type, String source) {
+    super(objectList, type, source, ${item.name}.class);
+    setUriPrefix(${item.name}.URI_PREFIX);
+  }
+}''')
   
 }
