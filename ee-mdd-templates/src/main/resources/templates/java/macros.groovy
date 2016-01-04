@@ -1323,19 +1323,54 @@ public class $className extends $item.n.cap.versionsBaseImpl {
   }
 }''')
   
-  template('implContainerController', body: '''{{imports}}<% def controller = item.controller; def refs = []; item.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
+  template('containerEvent', body: '''{{imports}}import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.delta};
+
+/** Event object for @$item.name */
+public class $className extends ${c.name('EventImpl')}<${item.name}> {
+  private static final long serialVersionUID = 1L;
+
+  public $item.n.cap.event(${item.name} object, ActionType type, String source) {
+    super(object, type, source, ${item.name}.class);
+    setUriPrefix(${item.name}.URI_PREFIX);
+  }
+
+  public $item.n.cap.event(ActionType type, String source) {
+    super(type, source, ${item.name}.class);
+    setUriPrefix(${item.name}.URI_PREFIX);
+  }
+
+  public $item.n.cap.event(${c.name('List')}<${item.name}> objectList, ActionType type, String source) {
+    super(objectList, type, source, ${item.name}.class);
+    setUriPrefix(${item.name}.URI_PREFIX);
+  }
+
+  public void setEventContext(${item.n.cap.delta} delta) {
+    super.setEventContext(delta);
+  }
+
+  @Override
+  public ${item.n.cap.delta} getEventContext() {
+    return (${item.n.cap.delta}) super.getEventContext();
+  }
+}
+''')
+  
+  template('implContainerController', body: '''{{imports}}
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.event.${item.n.cap.event};<% def controller = item.controller; def refs = []; controller.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
 <% if (!controller.base) { %>@Controller
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })<% } %>
-public ${controller.base?'abstract ':''}class $className implements $controller.name {
+public ${controller.base?'abstract ':''}class $className implements ${c.name(controller.name)} {
   protected final String source = ${c.name('StringUtils')}.formatSource(this);
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   <% refs.each { ref -> if(ref.commands) { %>
-  protected $ref.n.cap.commands ${ref.uncap}Commands;<% } %><% if(ref.finders) { %>
-  protected $ref.n.cap.finders ${ref.uncap}Finders<% } %><% } %>
+  protected ${c.name(ref.n.cap.commands)} ${ref.uncap}Commands;<% } %><% if(ref.finders) { %>
+  protected ${c.name(ref.n.cap.finders)} ${ref.uncap}Finders;<% } %><% } %>
 
-  protected Event<${item.n.cap.event}> publisher;
+  protected ${c.name('Event')}<${item.n.cap.event}> publisher;
   protected ${module.capShortName}Converter converter;<% if (controller.cache) { %>
   protected ${module.capShortName}Cache cache;
   <% } %>
@@ -1457,8 +1492,8 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
 
   private void importNew${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
     // new ${entityProp.type.uncap}s
-    List<${entityProp.type.cap}> new${entityProp.type.cap}s = receivedChangesContainer.get${entityProp.type.cap}s().findNew();
-    List<${entityProp.type.cap}> new${entityProp.type.cap}Entities = converter.convert${entityProp.type.cap}sToInternal(new${entityProp.type.cap}s);
+    List<${c.name(entityProp.type.cap)}> new${entityProp.type.cap}s = receivedChangesContainer.get${entityProp.type.cap}s().findNew();
+    List<${c.name(entityProp.type.cap)}> new${entityProp.type.cap}Entities = converter.convert${entityProp.type.cap}sToInternal(new${entityProp.type.cap}s);
     changeEntitiesContainer.get${entityProp.type.cap}s().putAll(new${entityProp.type.cap}Entities);
     changeEntitiesContainer.get${entityProp.type.cap}s().resetTempIds();
 <% entityProp.type.propsRecursive.each { prop -> if (prop.relation && prop.manyToOne && prop.opposite) { %>
@@ -1478,7 +1513,7 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
   private void importModified${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
    // modified ${entityProp.type.uncap}s
     List<${entityProp.type.cap}> modified${entityProp.type.cap}s = receivedChangesContainer.get${entityProp.type.cap}s().findModified();
-    List<${entityProp.type.idProp.computedType(c)}> modified${entityProp.type.cap}Ids = new ArrayList<${entityProp.type.idProp.computedType(c)}>();
+    List<${entityProp.type.idProp.computedType(c)}> modified${entityProp.type.cap}Ids = new ${c.name('ArrayList')}<${entityProp.type.idProp.computedType(c)}>();
     for (${entityProp.type.cap} modified${entityProp.type.cap} : modified${entityProp.type.cap}s) {
       modified${entityProp.type.cap}Ids.add(modified${entityProp.type.cap}.getId());
     }
@@ -1494,7 +1529,7 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
   }
 
   private void importDeleted${entityProp.type.cap}sFromChangesContainer($item.cap receivedChangesContainer, $item.cap changeEntitiesContainer) {
-    ArrayList<${entityProp.type.idProp.computedType(c)}> ${entityProp.type.uncap}ToBeDeletedIds = new ArrayList<>(receivedChangesContainer.get${entityProp.type.cap}s().getRemoved());
+    ${c.name('ArrayList')}<${entityProp.type.idProp.computedType(c)}> ${entityProp.type.uncap}ToBeDeletedIds = new ${c.name('ArrayList')}<>(receivedChangesContainer.get${entityProp.type.cap}s().getRemoved());
     changeEntitiesContainer.get${entityProp.type.cap}s().synchronizeRemovedAll(receivedChangesContainer.get${entityProp.type.cap}s().getRemoved());<% if (childEntitiesReferencedInItself.contains(entityProp.type)) { %>
 
     // First, delete ${entityProp.type.uncap}s that reference other ${entityProp.type.uncap}s
@@ -1653,7 +1688,7 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
     $item.cap container = cache.get$item.cap();
     if (container != null) {<% item.props.each { entityProp -> %>
       $entityProp.type.cache.cap $entityProp.type.cache.uncap = container.get${entityProp.type.cap}s();
-      Map<${entityProp.type.idProp.type}, Long> ${entityProp.type.uncap}VersionsInDb = ${entityProp.type.finders.uncap}.findVersionsByIds(${entityProp.type.cache.uncap}.getKeys());
+      ${c.name('Map')}<${entityProp.type.idProp.type}, Long> ${entityProp.type.uncap}VersionsInDb = ${entityProp.type.finders.uncap}.findVersionsByIds(${entityProp.type.cache.uncap}.getKeys());
       List<${entityProp.type.idProp.type}> ${entityProp.type.uncap}sOutOfSync = ${entityProp.type.cache.uncap}.findOutOfSync(${entityProp.type.uncap}VersionsInDb);
       if (${c.name('CollectionUtils')}.isNotEmpty(${entityProp.type.uncap}sOutOfSync)) {
         resetCache();
@@ -1662,7 +1697,7 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
     }
   } <% } %><% refs.each { ref-> %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${ref.name}($ref.name $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
   }<% } %>
