@@ -134,6 +134,13 @@ templates ('common') {
     template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
   }
+  
+  templates('config', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Config.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('config', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('config', c)}''')
+    template('configExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('configExtends', c)}<% } %>''')
+  }
    
   templates('implContainerController', type: API_IMPL,
   items: { c -> c.model.findAllRecursiveDown( {Container.isInstance(it) }) },

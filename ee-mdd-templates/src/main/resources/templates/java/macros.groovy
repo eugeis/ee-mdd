@@ -302,7 +302,7 @@ templates ('macros') {
   template('propMethods', body: '''<% item.props.each { prop-> %>
   <% if (prop.description) { %>
   /*** $prop.description */<% } %>
-  public $prop.computedType(c) $prop.getter {
+  public ${prop.computedType(c)} $prop.getter {
     return $prop.uncap;
   }<% if (item.propSetters) { %>
   public void ${prop.getSetter()} {
@@ -1130,6 +1130,39 @@ public abstract class $className<${item.simpleGenericSgn}E extends ${c.name(item
     this(false);
   }
 }''')
+  
+  template('config', body: '''{{imports}}
+${item.description?"/*** $item.description */":''}<% if (!item.base) { %>
+${macros.generate('configAnnotations', c)} <% } %>
+public<% if (item.base) {%> abstract<% } %> class $className extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;
+  /** A unique URI prefix for RESTful services and multi-language support */
+  public static final String URI_PREFIX = "$item.uri";
+  <% item.props.each { prop-> %>  <% if (prop.description) { %>
+  /*** $prop.description */<% } %>
+  protected ${prop.computedType(c)} $prop.name<% if (prop.defaultValue != null) { %> = ${prop.defaultValue}<% if (prop.type == 'Long' || prop.type == 'long') { %>L<% } %><% } %>;<% } %>
+  ${macros.generate('baseConstructor', c)}
+  ${macros.generate('propMethods', c)}
+  ${macros.generate('implOperationsAndDelegates', c)}
+  public void update($item.cap $item.uncap) {<% item.props.each { prop -> %><% if (item.propSetters) { %>
+    $prop.setterMethodName(${item.uncap}.$prop.getter);<% } else { %>
+    $prop.uncap = ${item.uncap}.${prop.getter};<% } %><% } %>
+  }
+  ${macros.generate('hashCodeAndEquals', c)}
+}''')
+  
+  template('configExtends', body: '''{{imports}}
+${macros.generate('configAnnotations', c)}
+public class $className extends $item.n.cap.base {
+  private static final long serialVersionUID = 1L;
+  ${macros.generate('superConstructor', c)}
+  ${macros.generate('implOperations', c)}
+}''')
+  
+  template('configAnnotations', body: '''{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('Config')}<% if (c.item.onlyInClient) { %>
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }))<% } %>''')
 
   template('containerIds', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
 public class $c.className extends ${c.name('Base')} {

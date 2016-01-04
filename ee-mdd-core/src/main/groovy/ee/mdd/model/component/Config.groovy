@@ -23,6 +23,8 @@ package ee.mdd.model.component
 
 class Config extends DataType {
   ConfigController controller
+  boolean clientCache = false
+  boolean onlyInClient = false
   
   def add(ConfigController item) {
     controller = super.add(item)
