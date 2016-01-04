@@ -590,6 +590,25 @@ public interface $className extends ${c.name('EventListener')}<${item.cap}> {
   ${macros.generate('interfaceBodyController', c)}
 }''')
   
+  template('ifcConfigController', body: '''{{imports}}<% def controller = item.controller %>
+/** Base interface of {@link $controller.name} */
+public interface $className {<% if(controller.addDefaultOperations) { %>
+  @${c.name('Transactional')}
+  $item.cap update($item.cap $item.uncap);
+  $item.cap load();<% } %>
+  ${macros.generate('interfaceBodyController', c)}
+}''')
+  
+  template('ifcConfigControllerExtends', body: '''{{imports}}<% def controller = item.controller %>
+/**
+* The controller $controller.name provides internal logic operations for the config $item.name.<% if (controller.description) { %>
+* <p>
+* $controller.description
+* </p><% } %>
+*/
+public interface $className extends $controller.n.cap.base {
+}''')
+  
   
 
   template('ifcFinders', body: '''<% if(!c.className) { c.className = item.n.cap.finders } %><% def finders = item.finders; def idProp = item.idProp; %>{{imports}}
@@ -1718,11 +1737,11 @@ public ${controller.base?'abstract ':''}class $className implements ${c.name(con
 }''')
   
   template('implContainerControllerExtends', body: '''{{imports}}<% def controller = item.controller %>
-@Controller
-@SupportsEnvironments({
-    @Environment(runtimes = { SERVER }),
-    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
-@ApplicationScoped
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })
+@${c.name('ApplicationScoped')}
 public class $className extends $controller.n.cap.baseImpl {
   ${macros.generate('implOperationsController', c)}
 }''')

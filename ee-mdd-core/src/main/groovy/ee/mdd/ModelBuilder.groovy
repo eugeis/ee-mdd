@@ -37,6 +37,7 @@ import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.ConditionParam
 import ee.mdd.model.component.Config
+import ee.mdd.model.component.ConfigController
 import ee.mdd.model.component.Constructor
 import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
@@ -143,11 +144,12 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update'], parent: controller)
   private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'realm'], parent: su)
   private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
-  private def config = new CompositeFactory(beanClass: Config, parent: dataType)
+  private def config = new CompositeFactory(beanClass: Config, parent: dataType, childFactories: ['configController'])
   private def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
   private def container = new CompositeFactory(beanClass: Container, childFactories: ['controller', 'xmlController'], parent: dataType)
   private def controller = new CompositeFactory(beanClass: Controller, parent: cu)
   private def xmlController = new CompositeFactory(beanClass: XmlController, parent: controller)
+  private def configController = new CompositeFactory(beanClass: ConfigController, parent: controller)
   private def index = new CompositeFactory(beanClass: Index)
   private def initializer = new CompositeFactory(beanClass: Initializer, parent: controller)
   private def dataTypeOperation = new CompositeFactory(beanClass: DataTypeOperation, parent: operation)
@@ -266,6 +268,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'container', container
     registerFactory 'controller', controller
     registerFactory 'xmlController', xmlController
+    registerFactory 'configController', configController
     registerFactory 'delegate', operationRef
     registerFactory 'index', index
     registerFactory 'initializer', initializer

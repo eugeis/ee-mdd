@@ -22,5 +22,9 @@ package ee.mdd.model.component
  */
 
 class Config extends DataType {
-  Controller controller
+  ConfigController controller
+  
+  def add(ConfigController item) {
+    controller = super.add(item)
+  }
 }

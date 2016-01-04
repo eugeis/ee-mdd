@@ -4,6 +4,7 @@ import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.Component
+import ee.mdd.model.component.Config
 import ee.mdd.model.component.Container
 import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Entity
@@ -41,7 +42,6 @@ templates ('common') {
   useMacros('commonMacros', '/common/macros')
   useMacros('macros')
 
-  //model
   templates ('modelApi', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
@@ -89,8 +89,6 @@ templates ('common') {
     template('enum', appendName: true, body: '''${macros.generate('enum', c)}''')
   }
 
-
-  //logic
   templates ('service', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Facade.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
@@ -131,7 +129,7 @@ templates ('common') {
   }
 
   templates ('controller', type: LOGIC,
-  items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) && !Container.isInstance(it.parent) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
+  items: { c -> c.model.findAllRecursiveDown( { Controller.isInstance(it) && !Container.isInstance(it.parent) && !Config.isInstance(it.parent) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
@@ -147,9 +145,17 @@ templates ('common') {
   templates('containerController', type: LOGIC,
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-    template('ifcContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = item.controller.n.cap.base %> ${macros.generate('ifcContainerController', c)}<% } %>''')
-    template('ifcContainerControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = item.controller.cap %> ${macros.generate('ifcContainerControllerExtends', c)}<% } %>''')
+    template('ifcContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.base %> ${macros.generate('ifcContainerController', c)}<% } %>''')
+    template('ifcContainerControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = controller.cap %> ${macros.generate('ifcContainerControllerExtends', c)}<% } %>''')
   }
+  
+  templates('configController', type: LOGIC,
+  items: { c -> c.model.findAllRecursiveDown( { Config.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('ifcConfigController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.base %> ${macros.generate('ifcConfigController', c)}<% } %>''')
+    template('ifcConfigControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = controller.cap %> ${macros.generate('ifcConfigControllerExtends', c)}<% } %>''')
+  }
+    
 
   templates ('jmsToCdi', type: INTEG,
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
