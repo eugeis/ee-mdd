@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import static ee.mdd.generator.OutputType.*
 import static ee.mdd.generator.OutputPurpose.*
-
+import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.statemachine.Action
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.Event
@@ -111,7 +110,7 @@ templates('sm') {
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('actionEvent', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}Event" %> ${macros.generate('actionEvent', c)}<% } %>''')
-      template('actionEventReceiver', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}EventReceiver" %> ${macros.generate('actionEventReceiver', c)}<% } %>''')
+      template('actionEventReceiver', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}EventReceiver" %> ${macros.generate('eventReceiver', c)}<% } %>''')
       template('executorIfc', appendName: true, body: '''<% if(!item.body && !item.async) { %><% c.className = "${item.cap}Executor" %> ${macros.generate('executorIfc', c)}<% } %>''')
       template('implExecutor', appendName: true, body: '''<% if (!item.body && !item.async && item.stateMachine.generateDefaultImpl) { %><% c.className = "${item.cap}ExecutorImpl" %> ${macros.generate('implExecutor', c)}<% } %>''')
     }

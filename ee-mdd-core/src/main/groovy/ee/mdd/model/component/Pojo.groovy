@@ -15,13 +15,14 @@
 */
 package ee.mdd.model.component
 
-import groovy.transform.ToString
 
 
 
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Pojo extends CompilationUnit {
+  boolean event = false
 }

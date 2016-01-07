@@ -29,6 +29,7 @@ class Prop extends Attribute {
   boolean writable = true
   boolean hashCode = false
   boolean cache = false
+  boolean lob = false
   String defaultValue
   int length
 }

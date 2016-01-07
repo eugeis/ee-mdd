@@ -1304,7 +1304,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
-          if(prop.type.name.matches("boolean|double|int|long")) {
+          if(prop.type.name.matches("boolean|double|float|int|long|short|char")) {
             ret = true
           }
           properties[key] = ret

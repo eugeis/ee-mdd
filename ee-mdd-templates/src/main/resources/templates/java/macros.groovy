@@ -288,9 +288,6 @@ templates ('macros') {
     super.onEvent(event);
   }''')
   
-  
-
-
   template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
   <% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
@@ -311,8 +308,7 @@ templates ('macros') {
   
   template('operationRawType', body: '''<% def op = c.op %>public $op.ret.name ${op.name}($op.signature) {
     $op.body
-  }
-''')
+  }''')
 
   template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
@@ -1210,9 +1206,16 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
   public void set$item.cap($item.cap $item.uncap) {
     this.$item.uncap = $item.uncap;
   }<% } %>
-}''') 
+}''')
   
-  template('implConfigControllerExtends', body: '''<% def controller = item.controller %>
+  template('eventReceiver', body: '''{{imports}}
+/** Event receiver for JSE environment only  of {@link $item.n.cap.event} */
+@${c.name('ApplicationScoped')}
+public class $className extends Receiver<${item.n.cap.event}> {
+  ${macros.generate('onEventSuper', c)}
+}''')
+  
+  template('implConfigControllerExtends', body: '''<% def controller = item.controller %>{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
@@ -2198,6 +2201,25 @@ public class $className extends $item.n.cap.baseImpl {
   }
 
   ${macros.generate('implOperations', c)}
+}''')
+  
+  template('pojo', body: '''{{imports}}
+${item.description?"/*** $item.description */":''}
+public class $className extends ${c.name('Base')} {
+  private static final long serialVersionUID = 1L;
+  ${macros.generate('propMembers', c)}
+  ${macros.generate('baseConstructor', c)}
+  ${macros.generate('propMethods', c)}
+  ${macros.generate('implOperationsAndDelegates', c)}<% if(item.propsUpdate) { %>
+  ${macros.generate('propsUpdate', c)}<% } %>
+  ${macros.generate('fillToString', c)}
+  ${macros.generate('hashCodeAndEquals', c)}
+}''')
+  
+  template('pojoExtends', body: '''
+${item.description?"/*** @see $item.n.cap.base  */":''}
+public class $className extends $item.n.cap.base {
+  private static final long serialVersionUID = 1L;
 }''')
 
   template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
@@ -4243,13 +4265,6 @@ public class $className extends ${c.name('EventImpl')}<${sm.entity.cap}> {
     return true;
   }
 }''')
-  
-  template('actionEventReceiver', body: '''{{imports}}
-/** Event receiver for JSE environment only of {@link ${item.cap}Event} */
-@${c.name('ApplicationScoped')}
-public class $className extends ${c.name('Receiver')}<${item.cap}Event> {
-  ${macros.generate('onEventSuper', c)}
-}''')
 
   template('executorIfc', body: '''{{imports}}
 /** Executor for action $item.name of state machine $item.stateMachine.name */
@@ -5251,4 +5266,18 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
   public void setPublisher(@${component.capShortName} @Backend ${c.name('Event')}<${item.n.cap.event}> publisher) {
     this.publisher = publisher;
   }''')
+  
+  template('onEventSuper', body: '''
+  @Override
+  public void onEvent(@Observes(during = AFTER_COMPLETION, notifyObserver = IF_EXISTS)${item.clientCache?' @Internal':''} $item.n.cap.event event) {
+    super.onEvent(event);
+  }''')
+  
+  template('fillToString', body: '''
+  @Override
+  protected void fillToString(StringBuffer b) {
+    super.fillToString(b);<% item.props.each { prop-> if (!prop.multi && !prop.lob && (prop.type.name.matches("String|Boolean|boolean|Long|long|Integer|int") || prop.typeEnum )) { %>
+    b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
+  }''')
+  
 }
