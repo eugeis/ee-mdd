@@ -369,6 +369,14 @@ templates ('macros') {
   public $op.ret ${op.name}($op.signature) {
     $op.body
   }<% } } %>''')
+  
+  template('implOperationsAndDelegatesController', body: ''' <% item.controller.operations.each { op -> if(op.body) { %>
+  <% if (c.override) { %>
+  @Override<% } %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public $op.ret ${op.name}($op.signature) {
+    $op.body
+  }<% } } %>''')
 
   template('implControlInjects', body: '''<% item.controls.each { ref -> def uncapName = ref.uncap%>
   @${c.name('Inject')}
@@ -1163,6 +1171,55 @@ public class $className extends $item.n.cap.base {
 @${c.name('ApplicationScoped')}
 @${c.name('Config')}<% if (c.item.onlyInClient) { %>
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }))<% } %>''')
+  
+  template('implConfigController', body: '''<% def controller = item.controller %>
+<% if (!controller.base) { %>@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { ${c.name('CLIENT')} }) })<% } %>
+public ${controller.base?'abstract ':''}class $className implements $controller.name {
+  protected final String source = ${c.name('StringUtils')}.formatSource(this);
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  ${macros.generate('refsMember', c)}
+  protected ${c.name('Event')}<${item.n.cap.event}> publisher;<% if(controller.addDefaultOperations) { %>
+  protected $item.cap $item.uncap;
+
+  @Override
+  @${c.name('Transactional')}
+  public $item.cap update($item.cap $item.uncap) {
+    log.info("update({})", $item.uncap);
+    this.${item.uncap}.update($item.uncap);
+
+    $item.n.cap.event event = new ${item.n.cap.event}($item.uncap, ActionType.UPDATE, source);
+    event.initMlKey(${module.uncapShortName}Ml.ML_BASE, ${module.uncapShortName}Ml.${item.underscored}_UPDATED);
+    fireEvent(event);
+    return $item.uncap;
+  }
+
+  @Override
+  public $item.cap load() {
+    //TODO EE: implement loading from DB, e.g. with managers
+    return $item.uncap;
+  }<% } %>
+  ${macros.generate('implOperationsAndDelegatesController', c)}
+  ${macros.generate('implInjectsController', c)}
+  ${macros.generate('publisherFireEvent', c)}
+  ${macros.generate('setPublisher', c)}<% if(controller.addDefaultOperations) { %>
+
+  @Inject
+  public void set$item.cap($item.cap $item.uncap) {
+    this.$item.uncap = $item.uncap;
+  }<% } %>
+}''') 
+  
+  template('implConfigControllerExtends', body: '''<% def controller = item.controller %>
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends $controller.n.cap.baseImpl {
+  ${macros.generate('implOperations', c)}
+}''')
 
   template('containerIds', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
 public class $c.className extends ${c.name('Base')} {
@@ -2429,6 +2486,13 @@ public class $className {
 }<% }%>''')
 
   template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> if(opRef.ref) { def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
+
+  @${c.name('Inject')}
+  public void set${ref.cap}(${c.name(ref.name)} $ref.uncap) {
+    this.$ref.uncap = $ref.uncap;
+  }<% op << ref %><% } } } %>''')
+  
+  template('implInjectsController', body: ''' <% def op = []; item.controller.operations.each { opRef -> if(opRef.ref) { def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
   @${c.name('Inject')}
   public void set${ref.cap}(${c.name(ref.name)} $ref.uncap) {
@@ -5177,5 +5241,14 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
     setUriPrefix(${item.name}.URI_PREFIX);
   }
 }''')
+ 
+ template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
+    publisher.fire(event);
+  }''')
   
+  template('setPublisher', body: '''
+  @Inject
+  public void setPublisher(@${component.capShortName} @Backend ${c.name('Event')}<${item.n.cap.event}> publisher) {
+    this.publisher = publisher;
+  }''')
 }
