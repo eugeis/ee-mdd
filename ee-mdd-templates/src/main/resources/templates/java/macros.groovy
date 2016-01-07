@@ -1168,7 +1168,29 @@ public class $className extends $item.n.cap.base {
 @${c.name('Config')}<% if (c.item.onlyInClient) { %>
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }))<% } %>''')
   
-  template('implConfigController', body: '''<% def controller = item.controller %>
+  template('implController', body: '''{{imports}}<% if (!item.base) { %>
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })<% } %>
+public ${item.base?'abstract ':''}class $className<% if (item.superUnit) { %> extends ${item.superUnit.n.cap.impl}${item.superGenericSgn}<% } %> implements $item.cap {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  ${macros.generate('refsMember', c)}
+  ${macros.generate('implOperationsAndDelegates', c)}
+  ${macros.generate('implInjects', c)}
+}''')
+  
+  template('implControllerExtends', body: '''{{imports}}
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends $item.n.cap.baseImpl {
+  ${macros.generate('implOperations', c)}
+}
+ ''')
+  
+  template('implConfigController', body: '''<% def controller = item.controller %>{{imports}}
 <% if (!controller.base) { %>@${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
