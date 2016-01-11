@@ -1173,7 +1173,7 @@ public class $className extends $item.n.cap.base {
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })<% } %>
-public ${item.base?'abstract ':''}class $className<% if (item.superUnit) { %> extends ${item.superUnit.n.cap.impl}${item.superGenericSgn}<% } %> implements $item.cap {
+public ${item.base?'abstract ':''}class $className<% if (item.superUnit) { %> extends ${item.superUnit.n.cap.impl}${item.superGenericSgn}<% } %> implements ${c.name(item.cap)} {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   ${macros.generate('refsMember', c)}
   ${macros.generate('implOperationsAndDelegates', c)}
@@ -1919,9 +1919,42 @@ public class $className<T extends ${c.name(item.cap)}> extends ${item.cap}Builde
   }
 }''')
   
+  template('implEntityBuilder', body: '''{{imports}}
+public abstract class $className extends ${item.cap}Builder<$item.n.cap.impl> {<% item.propsRecursive.each { prop -> if (prop.typeEntity && (prop.manyToOne || prop.oneToOne) ) { def relationIdProp = prop.type.idProp %>
+
+  protected ${relationIdProp.computedType(c)} ${prop.name}Id<% if (!prop.type.manualId) { %> = ID_GENERATOR.incrementAndGet()<% } %>;<% } } %>
+
+  public $className() {
+    super(new ${item.n.cap.impl}());
+  }
+
+  @Override
+  public $item.n.cap.impl build() {
+    $item.n.cap.impl impl = super.build();
+    <% item.propsRecursive.each { prop-> if (prop.manyToOne || prop.oneToOne) { %>impl.set${prop.cap}Id(${prop.name}Id);
+    <% } } %>
+    return impl;
+  }<% item.propsRecursive.each { prop -> if (!prop.derived) { if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+
+  public $item.n.cap.implBuilder with${prop.cap}Id(${relationIdProp.computedType(c)} ${prop.name}Id) {
+    this.${prop.name}Id = ${prop.name}Id;
+    return ($item.n.cap.implBuilder) this;
+  }<% } else if (!prop.relation) {  %>
+
+  @Override
+  public $item.n.cap.implBuilder with$prop.cap(${prop.computedType(c)} $prop.name) {
+    return ($item.n.cap.implBuilder) super.with$prop.cap($prop.name);
+  }<% } } } %>
+}''')
+  
+  template('implEntityBuilderExtends', body: '''
+public class $className extends ${item.n.cap.implBuilderBase} {
+${macros.generate('implOperations', c)}
+}''')
+  
   template('entityFactory', body: '''{{imports}}
-@Alternative
-public abstract class $className extends AbstractEntityFactory<$item.cap> implements $item.n.cap.factory {
+@${c.name('Alternative')}
+public abstract class $className extends AbstractEntityFactory<${c.name(item.cap)}> implements $item.n.cap.factory {
 
   protected $className() {
   }
@@ -1940,7 +1973,7 @@ public abstract class $className extends AbstractEntityFactory<$item.cap> implem
 }''')
   
   template('entityFactoryExtends', body: '''{{imports}}
-public interface $className extends ${c.name('Factory')}<$item.cap> {
+public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
 }''') 
 
   template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
