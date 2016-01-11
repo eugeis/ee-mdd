@@ -56,6 +56,13 @@ templates ('common') {
     template('ifcBasicType', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
     template('ifcBasicTypeExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
   }
+  
+  templates('basicTypeFactory', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
+    template('basicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %><% c.baseClass = 'AbstractFactory' %> ${macros.generate('factory', c)}<% } %>''' )
+    template('basicTypeFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
+  }
 
   templates ('modelImplEntity', type: API_IMPL,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
@@ -163,6 +170,13 @@ templates ('common') {
     template('implContainerDeltaExtends', appendName: true, body: '''<% c.className = item.n.cap.deltaImpl %> ${macros.generate('implContainerDeltaExtends', c)}''')
     template('implContainerVersions', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsBaseImpl %><% } else { %><% c.className = item.n.cap.versionsImpl %><% } %>${macros.generate('implContainerVersions', c)}''')
     template('implContainerVersionsExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsImpl %> ${macros.generate('implContainerVersionsExtends', c)}<% } %>''')
+  }
+  
+  templates('containerFactory', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
+    template('containerFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('containerFactory', c)}<% } %>''' )
+    template('containerFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
   }
   
   templates('containerEvent', type: API,

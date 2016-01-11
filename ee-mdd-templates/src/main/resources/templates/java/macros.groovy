@@ -1972,6 +1972,51 @@ public abstract class $className extends $c.baseClass<${c.name(item.cap)}> imple
   }
 }''')
   
+  template('containerFactory', body: '''{{imports}}
+@${c.name('Alternative')}
+public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap> implements $item.n.cap.factory {
+
+  protected ${module.capShortName}ModelFactory modelFactory;
+
+  protected $className() {
+  }
+
+  protected $className(Class<? extends $item.cap> type) {
+    super(type);
+  }
+  <% item.entities.each { entity -> %>
+  protected abstract Class<?> ${entity.uncap}Type();
+<% } %>
+
+  @Override
+  public boolean isSameType(Object object) {
+    $item.cap comparedObject = ($item.cap) object;
+    <% item.entities.each { entity -> %>
+    for (${entity.cap} ${entity.uncap} : comparedObject.get${entity.cap}s().getAll()) {
+      if(${entity.uncap}.getClass() != ${entity.uncap}Type()){
+        return false;
+      }
+    }<% } %>
+    return true;
+  }
+
+  @Override
+  public $item.cap copy($item.cap from, $item.cap to) {
+    super.copy(from, to);
+    <% item.props.each { prop->  %>
+    to.set${prop.cap}(from.$prop.getter);<% } %><% item.entities.each { entity -> %>
+
+    $entity.cache.cap ${entity.uncap} = to.get${entity.cap}s();
+    ${entity.uncap}.getRemovedMarks().putAll(from.get${entity.cap}s().getRemovedMarks());<% } %><% item.entities.each { entity -> %>
+
+    for (${entity.cap} ${entity.uncap} : from.get${entity.cap}s().getAll()) {
+      ${entity.uncap}.put(modelFactory.findFactoryByType(${entity.cap}.class).convert(${entity.uncap}));
+    }<% } %>
+
+    return to;
+  }
+}''')
+  
   template('factoryExtends', body: '''{{imports}}
 public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
 }''')
