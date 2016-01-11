@@ -95,8 +95,9 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
     template('entityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.cap}BuilderBase" %> ${macros.generate('entityBuilder', c)}<% } %>''')
     template('entityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.cap}Builder" %> ${macros.generate('entityBuilderExtends', c)}<% } %>''')
-  }
-    
+    template('entityFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('entityFactory', c)}<% } %>''' )
+    template('entityFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('entityFactoryExtends', c)}<% } %>''')
+  } 
   
   templates('entityEventReceiver', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },

@@ -1918,6 +1918,30 @@ public class $className<T extends ${c.name(item.cap)}> extends ${item.cap}Builde
     super(instance);
   }
 }''')
+  
+  template('entityFactory', body: '''{{imports}}
+@Alternative
+public abstract class $className extends AbstractEntityFactory<$item.cap> implements $item.n.cap.factory {
+
+  protected $className() {
+  }
+
+  protected $className(Class<? extends $item.cap> type) {
+    super(type);
+  }
+
+  @Override
+  public $item.cap copy($item.cap from, $item.cap to) {
+    super.copy(from, to);<% item.propsRecursive.each { prop-> if (!prop.derived) { if ((!prop.multi || prop.typeBasicType) && !prop.typeEntity) { %>
+    to.set${prop.cap}(from.${prop.getter});<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+    to.set${prop.cap}${relationIdProp.cap}(from.get${prop.cap}${relationIdProp.cap}());<% } } } %>
+    return to;
+  }
+}''')
+  
+  template('entityFactoryExtends', body: '''{{imports}}
+public interface $className extends ${c.name('Factory')}<$item.cap> {
+}''') 
 
   template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {
