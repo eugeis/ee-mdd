@@ -38,7 +38,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'ContextMenu' : 'com.siemens.ra.cg.pl.uif.widget', 'RootType' : 'com.siemens.ra.cg.pl.common.base.cdi.root.RootScoped', 'RootScoped' : 'com.siemens.ra.cg.pl.common.base.cdi.root',
   'View' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'View' : 'com.siemens.ra.cg.pl.common.base.annotations', 'ViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogContentView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'BaseView' : 'com.siemens.ra.cg.pl.uif.guido.widget',
   'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp', 'Event' : 'com.siemens.ra.cg.pl.common.base.messaging', 'EventListener' : 'com.siemens.ra.cg.pl.common.base.messaging', 'SingleTypeEventListenerBridgeByJms' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 'MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'MultiSourceConverter' : 'com.siemens.ra.cg.pl.common.base.converter',
-  'XmlUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Transactional' : 'com.siemens.ra.cg.pl.common.base.annotations'] as TreeMap
+  'XmlUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Transactional' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Builder' : 'com.siemens.ra.cg.pl.common.base'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

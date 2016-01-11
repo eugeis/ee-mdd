@@ -25,6 +25,7 @@ import ee.mdd.model.Element
  */
 class Prop extends Attribute {
   boolean api = true
+  boolean derived = false
   boolean readable = true
   boolean writable = true
   boolean hashCode = false

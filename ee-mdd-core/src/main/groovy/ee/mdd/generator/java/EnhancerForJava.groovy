@@ -894,6 +894,10 @@ class EnhancerForJava {
         properties[key]
       }
       
+      getSetterCall << {
+        "set${delegate.cap}(${delegate.uncap})"
+      }
+      
       getSetterMethodName << { 
         ->
         def key = System.identityHashCode(delegate) + 'setterMethodName'
@@ -901,6 +905,24 @@ class EnhancerForJava {
         properties[key] = "set${delegate.cap}" 
         }
         properties[key] 
+      }
+      
+      getTestValue << {
+        ->
+        def key = System.identityHashCode(delegate) + 'testValue'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret
+          if(prop.defaultValue) {
+            ret = prop.defaultValue
+          } else if (prop.multi) {
+            ret = "new ArrayList<>()"
+          } else {
+            ret = "String"
+          }
+          properties[key] = ret
+        }
+        properties[key]
       }
 
       computedType << { Context c ->
@@ -1058,6 +1080,15 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'typeString'
         if(!properties.containsKey(key)) {
           properties[key] = (delegate.type.name == 'String' ? true : false)
+        }
+        properties[key]
+      }
+      
+      isTypeInteger << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeInteger'
+        if(!properties.containsKey(key)) {
+          properties[key] = (delegate.type.name == 'Integer' ? true : false)
         }
         properties[key]
       }

@@ -1884,6 +1884,40 @@ public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends
 public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
+  
+  template('entityBuilder', body: '''{{imports}}<% def idProp = item.idProp; def idGenerator; if(!item.manualId) { if(idProp.typeLong) { idGenerator = 'AtomicLong' } else if (idProp.typeInteger) { idGenerator = 'AtomicInteger' } } %> 
+public abstract class $className<T extends ${c.name(item.cap)}> implements ${c.name('Builder')}<T> {<% if (idGenerator) { %>
+  protected static final ${c.name(idGenerator)} ID_GENERATOR = new $idGenerator();<% } %>
+
+  private T instance;
+  <% item.propsRecursive.each { prop -> if (!prop.relation) { if (idGenerator && prop.primaryKey) {%>
+  protected ${prop.computedType(c)} $prop.uncap = ID_GENERATOR.incrementAndGet();<% } else { %>
+  protected ${prop.computedType(c)} $prop.uncap = ${prop.testValue};<% }}} %>
+
+  protected $className(T instance) {
+    this.instance = instance;
+  }
+
+  @Override
+  public T build() {
+    <% item.propsRecursive.each { prop-> if (!prop.relation && !prop.derived) { %>instance.$prop.setterCall;
+    <% } } %>
+    return instance;
+  }<% item.propsRecursive.each { prop-> if (!prop.relation && !prop.derived) { %>
+
+  public ${item.cap}Builder<T> with$prop.cap(${prop.computedType(c)} $prop.uncap) {
+    this.$prop.uncap = $prop.uncap;
+    return (${item.cap}Builder<T>) this;
+  }<% } } %>
+}''')
+  
+  template('entityBuilderExtends', body: '''{{imports}}
+public class $className<T extends ${c.name(item.cap)}> extends ${item.cap}BuilderBase<T> {
+
+  public $className(T instance) {
+    super(instance);
+  }
+}''')
 
   template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {
