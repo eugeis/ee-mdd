@@ -62,15 +62,7 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implEntity', appendName: true, body: '''<% c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
     template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
-  }
-  
-  templates('implEntityBuilder', type: API_IMPL,
-  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
-    template('implEntityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilderBase %>${macros.generate('implEntityBuilder', c)}<% } %>''')
-    template('implEntityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilder %>${macros.generate('implEntityBuilderExtends', c)}<% } %>''')
-  }
-    
+  }    
     
   templates('cache', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
@@ -103,9 +95,17 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
     template('entityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.cap}BuilderBase" %> ${macros.generate('entityBuilder', c)}<% } %>''')
     template('entityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.cap}Builder" %> ${macros.generate('entityBuilderExtends', c)}<% } %>''')
-    template('entityFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('entityFactory', c)}<% } %>''' )
-    template('entityFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('entityFactoryExtends', c)}<% } %>''')
-  } 
+    template('entityFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %><% c.baseClass = 'AbstractEntityFactory' %> ${macros.generate('factory', c)}<% } %>''' )
+    template('entityFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
+  }
+  
+  templates('implEntityBuilder', type: API_IMPL,
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+    template('implEntityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilderBase %>${macros.generate('implEntityBuilder', c)}<% } %>''')
+    template('implEntityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilder %>${macros.generate('implEntityBuilderExtends', c)}<% } %>''')
+    template('implEntityFactory', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implFactory %>${macros.generate('implFactory', c)}<% } %>''')
+  }
   
   templates('entityEventReceiver', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },

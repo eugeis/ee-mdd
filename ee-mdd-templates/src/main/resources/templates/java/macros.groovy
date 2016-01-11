@@ -1952,9 +1952,9 @@ public class $className extends ${item.n.cap.implBuilderBase} {
 ${macros.generate('implOperations', c)}
 }''')
   
-  template('entityFactory', body: '''{{imports}}
+  template('factory', body: '''{{imports}}
 @${c.name('Alternative')}
-public abstract class $className extends AbstractEntityFactory<${c.name(item.cap)}> implements $item.n.cap.factory {
+public abstract class $className extends $c.baseClass<${c.name(item.cap)}> implements $item.n.cap.factory {
 
   protected $className() {
   }
@@ -1972,9 +1972,25 @@ public abstract class $className extends AbstractEntityFactory<${c.name(item.cap
   }
 }''')
   
-  template('entityFactoryExtends', body: '''{{imports}}
+  template('factoryExtends', body: '''{{imports}}
 public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
-}''') 
+}''')
+  
+  template('implFactory', body: '''{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
+public class $className extends ${item.n.cap.factoryBase} {
+
+  public $className() {
+    super(${item.n.cap.impl}.class);
+  }
+
+  @Override
+  public $item.cap newInstance() {
+    return new ${item.n.cap.impl}();
+  }
+}''')
 
   template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {
