@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import static ee.mdd.generator.OutputType.*
 import static ee.mdd.generator.OutputPurpose.*
-
+import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Entity
 
@@ -45,5 +44,7 @@ templates('jpa') {
 
     template('entityBaseBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('entityBaseBean', c)}''')
     template('entityBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.entity %>${macros.generate('entityBean', c)}<% } %>''')
+    template('entityBeanBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilderBase %> ${macros.generate('entityBeanBuilder', c)}<% } %>''')
+    template('entityBeanBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilder %> ${macros.generate('entityBeanBuilderExtends', c)}<% } %>''')
   }
 }

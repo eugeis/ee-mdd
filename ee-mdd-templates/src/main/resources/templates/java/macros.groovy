@@ -2058,6 +2058,60 @@ public${c.item.virtual?' abstract':''} class $c.className extends ${item.n.cap.b
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
+  
+  template('entityBeanBuilder', body: '''{{imports}}
+public abstract class $className extends ${item.cap}Builder<$item.n.cap.entity> {
+  <% item.propsRecursive.each { prop -> if (prop.type && prop.manyToOne && !prop.type.virtual) { %>
+  protected ${prop.computedTypeEjb(c)} $prop.name = <% if (prop.computedTypeEjb(c) != item.n.cap.entity) { %>new ${prop.type.n.cap.beanBuilder}().build();<%} else {%> null; // To avoid infinite recursion when building this object<% } %><% } else if (prop.relation) { %>
+  protected ${prop.computedTypeEjb(c)} $prop.name = ${prop.testValue};<% } } %>
+
+  public $className() {
+    super(new ${item.n.cap.entity}());
+  }
+
+  @Override
+  public $item.n.cap.entity build() {
+    $item.n.cap.entity entity = super.build();
+    <% item.propsRecursive.each { prop -> if (prop.relation) { %>entity.${prop.setterCall};
+    <% } } %>
+    return entity;
+  }
+  <% item.propsRecursive.each { prop-> if (!prop.derived) { if (prop.multi) { %>
+  @SafeVarargs
+  public final $item.n.cap.beanBuilder with$prop.cap(Builder<${prop.relTypeEjb(c)}>... toAdd) {
+    List<${prop.relTypeEjb(c)}> instances = new ${c.name('ArrayList')}<>();
+    for (Builder<${prop.relTypeEjb(c)}> builder : toAdd) {
+      instances.add(builder.build());
+    }
+    return with$prop.cap(instances);
+  }
+
+  public $item.n.cap.beanBuilder with$prop.cap(${prop.relTypeEjb(c)}... toAdd) {
+    return with$prop.cap(asList(toAdd));
+  }
+
+  <% if (!prop.relation) { %>@Override<% } %>
+  public $item.n.cap.beanBuilder with$prop.cap(${prop.computedTypeEjb(c)} toAdd) {
+    this.${prop.name}.addAll(toAdd);
+    return ($item.n.cap.beanBuilder) this;
+  }
+  <% } else if (prop.relation) { %>
+  public $item.n.cap.beanBuilder with$prop.cap(${prop.computedTypeEjb(c)} $prop.name) {
+    this.${prop.name} = $prop.name;
+    return ($item.n.cap.beanBuilder) this;
+  }
+  <% } else { %>
+  @Override
+  public $item.n.cap.beanBuilder with$prop.cap(${prop.computedType(c)} $prop.name) {
+    return ($item.n.cap.beanBuilder) super.with$prop.cap($prop.name);
+  }
+  <% } } } %>
+}''')
+  
+  template('entityBeanBuilderExtends', body: '''
+public class $className extends ${item.n.cap.beanBuilderBase} {
+}''')
+  
 
   template('basicTypeBaseBean', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
