@@ -2036,6 +2036,57 @@ public class $className extends ${item.n.cap.factoryBase} {
     return new ${item.n.cap.impl}();
   }
 }''')
+  
+  template('implContainerFactory', body: '''{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
+public class $className extends ${item.n.cap.factoryBase} {
+
+  public $className() {
+    super(${item.n.cap.impl}.class);
+  }
+
+  public $className(${module.capShortname}ModelFactory modelFactory) {
+    super(${item.n.cap.impl}.class);
+    this.modelFactory = modelFactory;
+  }<% item.entities.each { entity -> %>
+
+  @Override
+  protected  Class<?> ${entity.uncap}Type(){
+    return ${entity.n.cap.impl}.class;
+  }  <% } %>
+
+  @Override
+  public $item.cap newInstance() {
+    return new ${item.n.cap.impl}();
+  }
+
+  @Inject
+  public void setModelFactory(${module.capShortName}ModelFactory modelFactory) {
+    this.modelFactory = modelFactory;
+  }
+}''')
+  
+  template('factoryBean', body: '''{{imports}}<% def multiProps = item.props.findAll { it.multi } %>
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+public class $className extends ${item.n.cap.factoryBase} {
+
+  public $className() {
+    super(${item.cap}${c.bean}.class);
+  }
+
+  @Override
+  public $item.cap newInstance() {<% if (multiProps) { %>
+    ${item.cap}${c.bean} ret = new ${item.cap}${c.bean}();<% multiProps.each { prop -> def propType = prop.typeEntity ? prop.typeEjbMember(c) : prop.type.name; %>
+    ret.set${prop.cap}(new ArrayList<${propType}>());<% } %>
+    return ret;<% } else { %>
+    return new ${item.cap}${c.bean}();<% } %>
+  }
+}''')
 
   template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {

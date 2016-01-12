@@ -36,6 +36,7 @@ templates('jpa') {
 
     template('basicTypeBase', appendName: true, body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('basicTypeBaseBean', c)}''')
     template('basicTypeBean', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.embeddable %> ${macros.generate('basicTypeBean', c)} <% } %>''')
+    template('basicTypeFactoryBean', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.embeddableFactory; c.bean = 'Embeddable' %> ${macros.generate('factoryBean', c)} <% } %>''')
   }
 
   templates ('entity', type: SHARED,
@@ -44,6 +45,7 @@ templates('jpa') {
 
     template('entityBaseBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('entityBaseBean', c)}''')
     template('entityBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.entity %>${macros.generate('entityBean', c)}<% } %>''')
+    template('entityFactoryBean', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.entityFactory; c.bean = 'Entity' %> ${macros.generate('factoryBean', c)}<% } %>''')
     template('entityBeanBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilderBase %> ${macros.generate('entityBeanBuilder', c)}<% } %>''')
     template('entityBeanBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilder %> ${macros.generate('entityBeanBuilderExtends', c)}<% } %>''')
   }
