@@ -63,6 +63,13 @@ templates ('common') {
     template('basicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %><% c.baseClass = 'AbstractFactory' %> ${macros.generate('factory', c)}<% } %>''' )
     template('basicTypeFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
   }
+  
+  templates('implBasicTypeFactory', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
+    template('implBasicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('implFactory', c)}<% } %>''')
+  }
+    
 
   templates ('modelImplEntity', type: API_IMPL,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
