@@ -192,6 +192,13 @@ templates ('common') {
     template('implContainerFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.implFactory %> ${macros.generate('implContainerFactory', c)}<% } %>''' )
   }
   
+  templates('containerFactoryBean', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb'] ) } ) {
+    template('containerFactoryBean', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.beanFactory %> ${macros.generate('containerFactoryBean', c)}<% } %>''' )
+  }
+    
+  
   templates('containerEvent', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'event'] ) } ) {

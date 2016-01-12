@@ -2087,6 +2087,37 @@ public class $className extends ${item.n.cap.factoryBase} {
     return new ${item.cap}${c.bean}();<% } %>
   }
 }''')
+  
+  template('containerFactoryBean', body: '''{{imports}}
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
+public class $className extends ${item.n.cap.factoryBase} {
+
+  public $className() {
+    super(${item.n.cap.impl}.class);
+  }
+
+  public $className(${module.capShortName}ModelFactory modelFactory) {
+    super(${item.n.cap.impl}.class);
+    this.modelFactory = modelFactory;
+  }<% item.entities.each { entity -> %>
+
+  @Override
+  protected Class<?> ${entity.uncap}Type(){
+    return ${entity.n.cap.entity}.class;
+  }<% } %>
+
+  @Override
+  public $item.cap newInstance() {
+    return new ${item.n.cap.impl}();
+  }
+
+  @Inject
+  public void setModelFactory(@Internal ${module.capShortName}ModelFactory modelFactory) {
+    this.modelFactory = modelFactory;
+  }
+}''')
 
   template('entityBaseBean', body: '''{{imports}}<% def superUnit = c.item.superUnit %><% item.superGenericRefs.each { c.name(it) } %>${macros.generate('metaAttributesEntity', c)}${macros.generate('jpaMetasEntity', c)}
 public ${item.virtual || item.base ? 'abstract ':''}class ${item.genericsName} extends<% if(item.superUnit) { %> ${superUnit.n.cap.entity}${item.superGenericSgn}<% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}><% } %> implements ${c.name(c.item.cap)}${item.genericSgn} {
@@ -2229,6 +2260,28 @@ import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.int
 ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
 ${macros.generate('implOperations', c)}
+}''')
+  
+  template('implCommands', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
+/** JPA implementation of {@link commands.name} */
+<% if (commands.base) { %>@Alternative<% }else { %>@Manager
+@SupportsEnvironments({
+    @Environment(runtimes = { SERVER }),
+    @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })<% } %>
+public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<${idProp.type}, $item.cap> implements $commands.name {
+  protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
+
+  protected $ref.type.name $ref.type.uncap;<% } %><% commands.creators.each { op-> %>
+
+  @Override
+  @Transactional
+  ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op-> %>
+
+  @Override
+  @Transactional
+  public ${op.return} ${op.name}(${op.signature(c)}) {
+    executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks});
+  }<% } %>
 }''')
 
   template('implContainer', body: '''{{imports}}
@@ -5557,6 +5610,15 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% item.props.each { prop-> if (!prop.multi && !prop.lob && (prop.type.name.matches("String|Boolean|boolean|Long|long|Integer|int") || prop.typeEnum )) { %>
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
+  }''')
+  
+  template('createBySignature', body: '''
+public $op.return ${op.name}(${op.signature(c)}) {
+    $item.cap ret = factory.newInstance();<% op.params.each { def param -> def prop = param.prop; if (prop.defaultValue) { %>
+    ret.set$prop.cap($prop.defaultValue);<% } else { %>
+    ret.set$prop.cap($prop.name);<% } } %>
+    ret = create(ret);
+    return ret;
   }''')
   
 }

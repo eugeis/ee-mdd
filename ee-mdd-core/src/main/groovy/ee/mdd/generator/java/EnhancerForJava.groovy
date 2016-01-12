@@ -65,6 +65,7 @@ import ee.mdd.model.ui.TimeField
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -835,6 +836,15 @@ class EnhancerForJava {
         ret-separator
       }
       
+      getPropLinks << {
+        ->
+        def key = System.identityHashCode(delegate) + 'propLinks'
+        if(!properties.containsKey(key)) {
+        properties[key] = delegate.params.collect { it.multi ? "new StringLink<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new StringLink<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})" }.join(', ')
+        }
+        properties[key]
+      }
+      
     }
 
 
@@ -947,6 +957,11 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getComputedTypeForIdIfRelation << {
+        ->
+        delegate.relationIdProp == null ? delegate.computedBoxedType : delegate.relationIdProp.computedBoxedType
+      }
 
       relTypeEjb << { Context c ->
           def prop = delegate
@@ -1007,6 +1022,31 @@ class EnhancerForJava {
         def key = System.identityHashCode(delegate) + 'testValue'
         if(!properties.containsKey(key)) {
           properties[key] = typeToTestValue.get(delegate.type.name)
+        }
+        properties[key]
+      }
+      
+      getRelationIdProp << {
+        ->
+        def key = System.identityHashCode(delegate) + 'relationIdProp'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.manyToOne || delegate.oneToOne ? delegate.type.idProp : null
+        }
+        properties[key]
+      }
+      
+      getComputedBoxedType << {
+        def key = System.identityHashCode(delegate) + 'computedBoxedType'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.multi ? "List<${delegate.boxedType}>" : delegate.boxedType
+        }
+        properties[key]
+      }
+      
+      getBoxedType << {
+        def key = System.identityHashCode(delegate) + 'computedBoxedType'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.type.name == 'boolean' ? 'Boolean' : delegate.type.name == 'int' ? 'Integer' : delegate.type.name == 'long' ? 'Long' : delegate.type.name
         }
         properties[key]
       }
