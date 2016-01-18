@@ -5524,17 +5524,6 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
 public @interface $className {
 }''')
  
- template('convertFromXml', body: '''
-public ${c.enum.nameFull(c)} convertFromXml(${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} from) {
-    ${c.enum.nameFull(c)} ret = from != null ? ${c.enum.nameFull(c)}.valueOf(from.name()) : null;
-    return ret;
-}''')
- 
- template('convertToXml', body: '''public ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} convertToXml(${c.enum.nameFull(c)} from) {
-    ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} ret = ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName}.valueOf(from.name());
-    return ret;
-  }''')
- 
  template('xmlConverter', body: '''{{imports}}
 /** Base of Xml converter for types of '$item.name' */
 @${c.name('Alternative')}
@@ -5737,10 +5726,7 @@ public abstract class $className implements $xmlController.cap {
 @${c.name('ApplicationScoped')}
 public class $className extends ${xmlController.n.cap.baseImpl} {
   ${macros.generate('implOperations', c)}
-}
-''')
- 
- template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
+}''')
   
  template('event', body: '''{{imports}}
 /** Event object for @$item.name */
@@ -5762,6 +5748,91 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
     setUriPrefix(${item.name}.URI_PREFIX);
   }
 }''')
+ 
+ 
+ template('implInitializer', body: '''{{imports}}
+/** Initializer bean for '$component.name' */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
+public class $className extends ${component.capShortName}InitializerBase {
+}''')
+ 
+ template('initializer', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %>
+/** Initializer for '$item.name' */
+//TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
+@${c.name('Alternative')}
+public class $className extends ApplicationInitializerBase {
+  protected ProfileManager profileManager;<% startupInitializers.each { %>
+  protected ${component.capShortName}${it.uncapShortName}Initializer ${it.capShortName}InitializerInstance;<% } %>
+
+  public $className() {
+    super(new ApplicationMeta(${component.capShortName}ConstantsBase.APPLICATION));
+  }<% if (component.modules.find { !it.entities.empty } ) { %>
+
+  @Override
+  protected void initAsStandaloneOrMaster(ClusterSingleton clusterSingleton) {
+    profileManager.importProfile(${component.capShortName}ConstantsBase.COMPONENT_PROFILE_FILENAME);
+  }<% } %><% if(startupInitializers) { %>
+
+  @Override
+  protected void initOthers(ClusterSingleton clusterSingleton) {<% startupInitializers.each { %>
+    ${it.uncapShortName}InitializerInstance.init(clusterSingleton);<% } %>
+  }<% startupInitializers.each { %>
+
+  @Inject
+  public void set${component.capShortName}${it.cap}Initializer(${component.capShortName}${it.cap}Initializer ${it.uncapShortName}Initializer) {
+    this.${it.uncapShortName}Initializer = ${it.uncapShortName}InitializerInstance;
+  }<% } } %>
+
+  @Inject
+  public void setProfileManager(ProfileManager profileManager) {
+    this.profileManager = profileManager;
+  }
+}''')
+ 
+ template('initializerWakeup', body: '''{{imports}}
+/** Startup for Initializer bean for '$component.name' */
+@${c.name('Singleton')}
+@${c.name('Startup')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
+public class $className  {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+
+  protected ${component.capShortName}InitializerImpl initializer;
+
+  @${c.name('PostConstruct')}
+  public void startup() {
+
+    //startup component initializer
+    try {
+      initializer.startupInit();
+    } catch(Exception e) {
+      log.error("Exception during wake up, ignore it", e);
+    }
+  }
+
+  @Inject
+  public void set${component.capShortName}Initializer(${component.capShortName}InitializerImpl initializer) {
+    this.initializer = initializer;
+  }
+}''')
+ 
+ 
+ 
+ 
+  //logic
+  template('convertFromXml', body: '''
+  public ${c.enum.nameFull(c)} convertFromXml(${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} from) {
+    ${c.enum.nameFull(c)} ret = from != null ? ${c.enum.nameFull(c)}.valueOf(from.name()) : null;
+    return ret;
+  }''')
+  
+  template('convertToXml', body: '''public ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} convertToXml(${c.enum.nameFull(c)} from) {
+    ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} ret = ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName}.valueOf(from.name());
+    return ret;
+  }''')
+ 
+ template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
  
  template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
     publisher.fire(event);
