@@ -53,7 +53,9 @@ templates('jpa') {
   templates('implCommandsFinders', type: SHARED,
   items: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
-    template('implCommands', appendName: true, body: '''<% if(item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseImpl %> ${macros.generate('implCommands', c)}<% } %>''')
-    template('implFinders', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.baseImpl %> ${macros.generate('implFinders', c)}<% } %>''')
+    template('implCommands', appendName: true, body: '''<% if(item.commands && !item.virtual) { %><% if(item.commands.base) { %><% c.className = item.commands.n.cap.baseImpl %><% } else { %><% c.className = item.commands.n.cap.impl %><% } %> ${macros.generate('implCommands', c)}<% } %>''')
+    template('implCommandsExtends', appendName: true, body: '''<% if(item.commands && !item.virtual && item.commands.base) { %><% c.className = item.commands.n.cap.impl %> ${macros.generate('implCommandsExtends', c)} <% } %>''')
+    template('implFinders', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% if(item.finders.base) { %><% c.className = item.finders.n.cap.baseImpl %><% } else { %><% c.className = item.finders.n.cap.impl %><% } %> ${macros.generate('implFinders', c)}<% } %>''')
+    template('implFindersExtends', appendName: true, body: '''<% if(item.finders && !item.virtual && item.finders.base) { %><% c.className = item.finders.n.cap.impl %> ${macros.generate('implFindersExtends', c)} <% } %>''')
   }
 }

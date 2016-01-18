@@ -348,6 +348,16 @@ templates ('macros') {
     return null; <% } %>
   }<% } } %>''')
   
+  template('implOperationsManager', body: '''<% c.manager.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
+
+  @Override<% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
+    //TODO to implement <% if (op.returnTypeBoolean) { %>
+    return false;<% } else if (op.ret) { %>
+    return null; <% } %>
+  }<% } } %>''')
+  
   template('implOperationsCache', body: ''' <% item.cache.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
@@ -2435,6 +2445,26 @@ public ${finders.base?'abstract ':''}class $className extends ManagerAbstract<${
   public Class<? extends $item.cap> findEntityClass() {
     return ${item.n.cap.entity}.class;
   }
+}''')
+  
+  template('implCommandsExtends', body: '''{{imports}}<% def commands = item.commands; c.manager = commands %>
+/** JPA implementation of {@link $commands.name} */
+@Manager
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
+public class $className extends $commands.n.cap.baseImpl { 
+  ${macros.generate('implOperations', c)}
+}''')
+  
+  template('implFindersExtends', body: '''{{imports}}<% def finders = item.finders; c.manager = finders %>
+/** JPA implementation of {@link $finders.name} */
+@Manager
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
+public class $c.className extends $finders.n.cap.baseImpl {
+  ${macros.generate('implOperations', c)}
 }''')
 
   template('implContainer', body: '''{{imports}}
