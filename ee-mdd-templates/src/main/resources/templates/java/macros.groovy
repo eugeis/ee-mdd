@@ -2281,7 +2281,82 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
   @Transactional
   public ${op.return} ${op.name}(${op.signature(c)}) {
     executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks});
+  }<% } %><% commands.updators.each { op-> c.op = op;
+    def retPropGetters = op.params.collect { "ret.$it.prop.getter" }.join(', '); c.retPropGetters = retPropGetters;
+    def propNames = op.params.collect { it.prop.name }.join(', '); c.propNames = propNames %>
+
+  ${macros.generate('operationIdProp', c)}<%if (op.fireEventProp) {%>
+
+  ${macros.generate('operationIdPropFireEvent', c)}
+
+  ${macros.generate('operationEntity', c)}
+
+  @Override
+  @Transactional
+  public $op.returnTypeExternal ${op.name}($item.cap entity, $op.signature, boolean fireEvent) {
+    $item.cap ret = entity;
+    //build ml key parameter
+    ${macros.generate('buildMlParams', c)}
+
+    //update properties
+    ${macros.generate('updateProps', c)}
+
+    //send ml event
+    if (fireEvent) {
+       ${macros.generate('sendMlEvent', c)}
+    }
+
+    return ret;
+  }
+  <%} else {%>
+
+  @Override
+  @Transactional
+  public $op.returnTypeExternal ${op.name}($item.cap entity, ${op.signature(c)}) {
+    $item.cap ret = entity;
+    //build ml key parameter
+    ${macros.generate('buildMlParams', c)}
+
+    //update properties
+    ${macros.generate('updateProps', c)}
+
+    //send ml event
+    ${macros.generate('sendMlEvent', c)}
+
+    return ret;
+  }
+  <% } %><% } %><% if (item.ordered) {  %>
+
+  ${macros.generate('fillOrderList', c)}
+
+  ${macros.generate('fillOrder', c)}<% } %>
+
+  ${macros.generate('fireEventEntity', c)}
+
+  ${macros.generate('fireEventEntities', c)}
+
+  ${macros.generate('fireEvent', c)}
+
+  ${macros.generate('publisherFireEvent', c)}
+
+  ${macros.generate('initMlKeyForEntityEvent', c)}
+
+  @Override
+  ${macros.generate('setEntityManager', c)}
+
+  ${macros.generate('setFactoryManager', c)}
+
+  ${macros.generate('setPublisher', c)}<% refs.each { ref -> %>
+
+  @Inject
+  public void set${ref.name}($ref.name $ref.uncap) {
+    this.$ref.uncap = $ref.uncap;
   }<% } %>
+
+  @Override
+  public Class<? extends $item.cap> findEntityClass() {
+    return ${item.n.cap.entity}.class;
+  }
 }''')
 
   template('implContainer', body: '''{{imports}}
@@ -5558,15 +5633,6 @@ public class $className extends ${xmlController.n.cap.baseImpl} {
 ''')
  
  template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
- 
- template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
-    publisher.fire(event);
-  }''')
-  
- template('setPublisher', body: '''@Inject
-  public void setPublisher(@${component.capShortName} @Backend Event<${item.n.cap.event}> publisher) {
-    this.publisher = publisher;
-  }''')
   
  template('event', body: '''{{imports}}
 /** Event object for @$item.name */
@@ -5619,6 +5685,117 @@ public $op.return ${op.name}(${op.signature(c)}) {
     ret.set$prop.cap($prop.name);<% } } %>
     ret = create(ret);
     return ret;
+  }''')
+  
+  template('operationIdProp', body: '''@Override
+  @Transactional
+  public $c.op.returnTypeExternal ${c.op.name}(${c.item.idProp.computedType(c)} $c.item.idProp.name, ${c.op.signature(c)}) {
+    return ${c.op.name}(findById(${c.item.idProp.name}), $c.op.signatureName);
+  }''')
+  
+  template('operationIdPropFireEvent', body: '''@Override
+  @Transactional
+  public $c.op.returnTypeExternal ${c.op.name}(${c.itemidProp.computedType(c)} $c.item.idProp.name, ${c.op.signature(c)}, boolean fireEvent) {
+    return ${c.op.name}(findById(${c.item.idProp.name}), $c.op.signatureName, fireEvent);
+  }''')
+  
+  template('operationEntity', body: '''@Override
+  @Transactional
+  public $c.op.returnTypeExternal ${c.op.name}($item.cap entity, ${c.op.signature(c)}) {
+    return ${c.op.name}(entity, $c.op.signatureName, true);
+  }''')
+  
+  template('buildMlParams', body: '''
+Object[] mlParameters = new Object[] { ret.$c.idProp.getter, ret.getNaturalKey(), $c.retPropGetters, $c.propNames };
+''')
+  
+  template('updateProps', body: '''<% c.op.params.each { def param -> def prop = param.prop; if (prop.defaultValue) { %> ret.set$prop.cap($prop.defaultValue);<% } else { %>ret.set$prop.cap($prop.name);<% } } %>
+    ret = merge(ret);''')
+  
+  template('sendMlEvent', body: '''
+    forceVersionUpdate();
+    $item.n.cap.event event = new $citem.n.cap.event(ret, ActionType.UPDATE, source);
+    event.initMlKey(${module.capShortName}Ml.ML_BASE, ${module.capShortName}Ml.${c.op.underscored}, mlParameters);
+    fireEvent(event);''')
+  
+  template('fillOrderList', body: '''
+  @Override
+  @Transactional
+  public List<$item.cap> createAll(List<$item.cap> entities, boolean fireEvent) {
+    fillOrder(entities, 1);
+    return super.createAll(entities, fireEvent);
+  }''')
+  
+  template('fillOrder', body: '''//TODO: When default props are implemented replace 'Order' by orderProp
+protected void fillOrder(List<$item.cap> entities, long startOrder) {
+    long order = startOrder;
+    for($item.cap entity : entities) {
+      if (entity.getOrder() == null) {
+        entity.setOrder(order++);
+      }
+    }
+  }''')
+  
+  template('fireEventEntity', body: '''
+  @Override
+  public void fireEvent($item.cap entity, ActionType actionType) {
+    forceVersionUpdate();
+    $item.n.cap.event event = new ${item.n.cap.event}(entity, actionType, source);
+    initMlKey(event);
+    fireEvent(event);
+  }''')
+  
+  template('fireEventEntities', body: '''
+@Override
+  public void fireEvent(List<$item.cap> entities, ActionType actionType) {
+    forceVersionUpdate();
+    $item.n.cap.event event = new ${item.n.cap.event}(entities, actionType, source);
+    initMlKey(event);
+    fireEvent(event);
+  }''')
+  
+  template('fireEvent', body: '''
+  @Override
+  public void fireEvent(ActionType actionType) {
+    $item.n.cap.event event = new ${item.n.cap.event}(actionType, source);
+    initMlKey(event);
+    fireEvent(event);
+  }''')
+  
+  template('initMlKeyForEntityEvent', body: '''
+private void initMlKey($item.n.cap.event event) {
+    List<$item.cap> entities = event.getObjectList();
+    boolean multiple = entities.size() != 1;
+    String key;
+    switch (event.getType()) {
+    case CREATE:
+    case CREATE_MULTIPLE:
+      key = multiple ? ${module.capShortName}Ml.${item.underscored}_CREATED_MULTIPLE : ${module.capShortName}Ml.${item.underscored}_CREATED;
+      break;
+    case UPDATE:
+      key = multiple ? ${module.capShortName}Ml.${item.underscored}_UPDATED_MULTIPLE : ${module.capShortName}Ml.${item.underscored}_UPDATED;
+      break;
+    case DELETE:
+    case DELETE_MULTIPLE:
+      key = multiple ? ${module.capShortName}Ml.${item.underscored}_DELETED_MULTIPLE : ${module.capShortName}Ml.${item.underscored}_DELETED;
+      break;
+    default:
+      return;
+    }
+    Object[] params = multiple ? CollectionUtils.EMPTY_ARRAY : new Object[] { entities.get(0).getId(), entities.get(0).getNaturalKey() };
+    event.initMlKey(${module.capShortName}Ml.ML_BASE, key, params);
+  }''')
+  
+  template('setEntityManager', body: '''
+  @Inject
+  public void setEntityManager(@${component.capShortName} EntityManager entityManager) {
+    this.entityManager = entityManager;
+  }''')
+  
+  template('setFactoryManager', body: '''
+  @Inject
+  public void setFactory($item.n.cap.factory factory) {
+    super.setFactory(factory);
   }''')
   
 }
