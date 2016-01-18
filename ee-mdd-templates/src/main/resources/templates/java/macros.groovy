@@ -5817,7 +5817,46 @@ public class $className  {
   }
 }''')
  
+ template('producerLocal', body: '''{{imports}}
+/** CDI resources producer for '$item.name' in Local Mode*/
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')} }))
+@${c.name('Traceable')}
+public class $className {
+  private volatile static ${c.name('EntityManager')} entityManager;
+
+  public static EntityManager entityManager() {
+    if (entityManager == null) {
+      ${c.name('EntityManagerFactory')} entityManagerFactory = ${c.name('EntityManagerFactoryLocator')}.
+          findEntityManagerFactory("${component.key}Pu", null, ${className}.class.getClassLoader(), "META-INF/persistence-h2-local.xml");
+      entityManager = entityManagerFactory.createEntityManager();
+    }
+    return entityManager;
+  }
+
+  @${c.name('Produces')}
+  @${component.capShortName}
+  public EntityManager getEntityManager() {
+    return entityManager();
+  }
+}''')
  
+ template('producerServer', body: '''{{imports}}
+/** Server CDI resources producer for '$item.name' */
+@${c.name('Stateless')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
+@${c.name('Traceable')}
+public class $className {
+
+  @${c.name('PersistenceContext')}(unitName = "${component.key}Pu")
+  private EntityManager entityManager;
+
+  @${c.name('Produces')}
+  @${component.capShortName}
+  public ${c.name('EntityManager')} getEntityManager() {
+    return entityManager;
+  }
+}''')
  
  
   //logic

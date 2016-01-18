@@ -18,6 +18,7 @@ import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Entity
+import ee.mdd.model.component.Module
 
 /**
  *
@@ -58,4 +59,13 @@ templates('jpa') {
     template('implFinders', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% if(item.finders.base) { %><% c.className = item.finders.n.cap.baseImpl %><% } else { %><% c.className = item.finders.n.cap.impl %><% } %> ${macros.generate('implFinders', c)}<% } %>''')
     template('implFindersExtends', appendName: true, body: '''<% if(item.finders && !item.virtual && item.finders.base) { %><% c.className = item.finders.n.cap.impl %> ${macros.generate('implFindersExtends', c)} <% } %>''')
   }
+  
+  templates('jpaProducer', type: SHARED,
+  items: { c -> c.model.findAllRecursiveDown( {Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+    template('producerLocal', appendName: true, body: '''<% if(item.name.equals('backend')) { %><% c.className = "${component.capShortName}ProducerLocal" %> ${macros.generate('producerLocal', c)}<% } %>''')
+    template('producerServer', appendName: true, body: '''<% if(item.name.equals('backend')) { %><% c.className = "${component.capShortName}ProducerServer" %> ${macros.generate('producerServer', c)} <% } %>''')
+  }
+    
+    
 }

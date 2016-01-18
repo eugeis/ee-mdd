@@ -20,7 +20,7 @@
   * @author Niklas Cappelmann
   */
  
-def nameToNamespace = ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject.Produces',
+def nameToNamespace = ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject',
   'Alternative' : 'javax.enterprise.inject', 'Event' : 'javax.enterprise.event', 'Observes' : 'javax.enterprise.event', 'Reception' : 'javax.enterprise.event',
   'Resource' : 'javax.annotation', 'PostConstruct' : 'javax.annotation', 'Inject' : 'javax.inject', 'Provider' : 'javax.inject', 'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*',
   'IF_EXISTS' : 'static javax.enterprise.event.Reception.*'] as TreeMap

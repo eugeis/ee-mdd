@@ -30,7 +30,8 @@ def nameToNamespace = ['NamedQuery' : 'javax.persistence',
   'CollectionTable' : 'javax.persistence', 'CascadeType' : 'javax.persistence', 'FetchType' : 'javax.persistence',
   'TemporalType' : 'javax.persistence', 'GenerationType' : 'javax.persistence', 'TableGenerator' : 'javax.persistence',
   'GeneratedValue' : 'javax.persistence', 'MappedSuperclass' : 'javax.persistence', 'Transient' : 'javax.persistence',
-  'Transactional' : 'javax.transaction', 'Version' : 'javax.persistence'] as TreeMap
+  'Transactional' : 'javax.transaction', 'Version' : 'javax.persistence', 'EntityManager' : 'javax.persistence', 'EntityManagerFactory' : 'javax.persistence',
+  'PersistenceContext' : 'javax.persistence'] as TreeMap
 
 extModule(name: 'Jpa') {
   nameToNamespace.each { n, ns ->
