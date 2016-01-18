@@ -2265,9 +2265,9 @@ ${macros.generate('implOperations', c)}
   template('implCommands', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
 /** JPA implementation of {@link commands.name} */
 <% if (commands.base) { %>@Alternative<% }else { %>@Manager
-@SupportsEnvironments({
-    @Environment(runtimes = { SERVER }),
-    @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })<% } %>
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
 public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<${idProp.type}, $item.cap> implements $commands.name {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
@@ -2281,11 +2281,16 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
   @Transactional
   public ${op.return} ${op.name}(${op.signature(c)}) {
     executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks});
-  }<% } %><% commands.updators.each { op-> c.op = op;
+  }<% } %><% commands.operationsNotManager.each { op -> if (op.body) { c.op = op; %>
+
+  @Override<% if (op.transactional) { %>
+  @Transactional<% } %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  ${macros.generate('operationRawType', c)}<% } } %><% commands.updators.each { op-> c.op = op;
     def retPropGetters = op.params.collect { "ret.$it.prop.getter" }.join(', '); c.retPropGetters = retPropGetters;
     def propNames = op.params.collect { it.prop.name }.join(', '); c.propNames = propNames %>
 
-  ${macros.generate('operationIdProp', c)}<%if (op.fireEventProp) {%>
+  ${macros.generate('operationIdProp', c)}<% if (op.fireEventProp) { %>
 
   ${macros.generate('operationIdPropFireEvent', c)}
 
@@ -2293,7 +2298,7 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
 
   @Override
   @Transactional
-  public $op.returnTypeExternal ${op.name}($item.cap entity, $op.signature, boolean fireEvent) {
+  public $op.returnTypeExternal ${op.name}($item.cap entity, ${op.signature(c)}, boolean fireEvent) {
     $item.cap ret = entity;
     //build ml key parameter
     ${macros.generate('buildMlParams', c)}
@@ -2303,12 +2308,12 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
 
     //send ml event
     if (fireEvent) {
-       ${macros.generate('sendMlEvent', c)}
+      ${macros.generate('sendMlEvent', c)}
     }
 
     return ret;
   }
-  <%} else {%>
+  <% } else { %>
 
   @Override
   @Transactional
@@ -2326,6 +2331,79 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
     return ret;
   }
   <% } %><% } %><% if (item.ordered) {  %>
+
+  ${macros.generate('fillOrderList', c)}
+
+  ${macros.generate('fillOrder', c)}<% } %>
+
+  ${macros.generate('fireEventEntity', c)}
+
+  ${macros.generate('fireEventEntities', c)}
+
+  ${macros.generate('fireEvent', c)}
+
+  ${macros.generate('publisherFireEvent', c)}
+
+  ${macros.generate('initMlKeyForEntityEvent', c)}
+
+  @Override
+  ${macros.generate('setEntityManager', c)}
+
+  ${macros.generate('setFactoryManager', c)}
+
+  ${macros.generate('setPublisher', c)}<% refs.each { ref -> %>
+
+  @Inject
+  public void set${ref.name}($ref.name $ref.uncap) {
+    this.$ref.uncap = $ref.uncap;
+  }<% } %>
+
+  @Override
+  public Class<? extends $item.cap> findEntityClass() {
+    return ${item.n.cap.entity}.class;
+  }
+}''')
+  
+  template('implFinders', body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp %><% def refs = finders.props %>
+/** JPA implementation of {@link finders.name} */
+<% if (finders.base) { %>@Alternative<% }else { %>@Manager
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
+public ${finders.base?'abstract ':''}class $className extends ManagerAbstract<${idProp.type}, $item.cap> implements $finders.name {
+  protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
+
+  protected $ref.type.name $ref.type.uncap;<% } %><% finders.counters.each { op-> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks});
+    return ret.longValue();
+  }<% } %><% finders.existers.each { op-> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks});
+    return ret > 0;
+  }<% } %><% finders.finders.each { op-> %>
+<% if(op.oneOfPropsRelationId) { %>
+  /* TODO: For the moment (2015-08-24), the generator doesn't support finders using relations in the manager. Generator has to be improved<% } %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    $op.returnTypeExternal ret = findBy${op.unique?'Unique':''}Properties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks});
+    return ret;
+  }
+
+  @Override
+  public $op.returnTypeExternal ${op.name}Strict(${op.signature(c)}) {
+    return strict(${op.name}($op.signatureName), \"${op.name}\", $op.signatureName);
+  }<% if(op.oneOfPropsRelationId) { %>*/<% } %><% } %><% finders.operationsNotManager.each { op -> if (op.body) { c.op = op %>
+
+  @Override<% if (op.transactional) { %>
+  @Transactional<% } %><% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  ${macros.generate('operationRawType',c)}<% } } %><% if (item.ordered) { def orderProp = item.resolveProp('order'); %>
 
   ${macros.generate('fillOrderList', c)}
 

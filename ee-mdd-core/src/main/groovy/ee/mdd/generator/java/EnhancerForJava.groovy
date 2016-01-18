@@ -307,6 +307,15 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getOperationsNotManager << {
+        ->
+        def key = System.identityHashCode(delegate) + 'operationsNotManager'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.operations.findAll { !(it instanceof DataTypeOperation ) }
+        }
+        properties[key]
+      }
 
       isGeneric << {
         ->

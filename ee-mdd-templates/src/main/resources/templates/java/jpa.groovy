@@ -54,6 +54,6 @@ templates('jpa') {
   items: { c -> c.model.findAllRecursiveDown( {Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
     template('implCommands', appendName: true, body: '''<% if(item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseImpl %> ${macros.generate('implCommands', c)}<% } %>''')
-    //template('implFinders', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.baseImpl %> ${macros.generate('implFinders', c)}<% } %>''')
+    template('implFinders', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.baseImpl %> ${macros.generate('implFinders', c)}<% } %>''')
   }
 }
