@@ -358,4 +358,9 @@ templates ('common') {
     template('builderFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactory" %> ${macros.generate('builderFactoryExtends', c)} <% } %>''')
   }
   
+  templates('producerClient', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('producerClient', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ProducerClient" %> ${macros.generate('producerClient', c)} <% } %>''')
+  }
 }

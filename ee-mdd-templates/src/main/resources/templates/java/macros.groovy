@@ -5898,6 +5898,23 @@ public class $className {
   }
 }''')
  
+  template('producerClient', body: '''{{imports}}
+/** Client CDI resources producer for '$module.name' */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }))
+@${c.name('Traceable')}
+public class $className {<% module.services.each { service-> %>
+
+  @${c.name('Inject')}
+  private ${c.name('Instance')}<${service.n.cap.provider}> ${service.uncap}ProviderDef;<% } %><% module.services.each { service-> %>
+
+  @${c.name('Produces')}
+  public $service.name get$service.name() {
+    $service.name ret = new ${c.name('ReconnectServiceProvider')}<>(${service.uncap}ProviderDef.get()).getService();
+    return ret;
+  }<% } %>
+}''')
+ 
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());<% cachedContainers.each { container -> %>
