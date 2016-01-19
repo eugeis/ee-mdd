@@ -43,6 +43,7 @@ import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
+import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.ui.Button
 import ee.mdd.model.ui.CheckBox
@@ -354,6 +355,26 @@ class EnhancerForJava {
         properties[key]
       }
       
+    }
+    
+    StructureUnit.metaClass {
+      
+      getInitializerName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'initializerName'
+        if(!properties.containsKey(key)) {
+          def ret
+          if(delegate instanceof Component) {
+            ret = "${delegate.component.capShortName}Initializer"
+          } else if (delegate.key != delegate.component.key) {
+            ret = "${delegate.component.capShortName}${delegate.capShortName}Initializer"
+          } else {
+            ret = "${delegate.component.capShortName}${delegate.cap}Initializer"
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
     }
 
     Component.metaClass {

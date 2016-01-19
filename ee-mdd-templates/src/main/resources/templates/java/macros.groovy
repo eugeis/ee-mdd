@@ -5790,7 +5790,7 @@ public class $className extends ApplicationInitializerBase {
   }
 }''')
  
- template('initializerWakeup', body: '''{{imports}}
+  template('initializerWakeup', body: '''{{imports}}
 /** Startup for Initializer bean for '$item.name' */
 @${c.name('Singleton')}
 @${c.name('Startup')}
@@ -5814,6 +5814,29 @@ public class $className  {
   @Inject
   public void set${component.capShortName}Initializer(${component.capShortName}InitializerImpl initializer) {
     this.initializer = initializer;
+  }
+}''')
+ 
+  template('initializerMem', body: '''{{imports}}
+/** Initializer bean for '$module.name' for memory mode */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
+public class $className extends ${module.initializerName}Base {
+
+  protected ${c.name('ClusterSingleton')} clusterSingleton;
+
+  public void onLifecycleEvent(@${c.name('Observes')}(notifyObserver = Reception.ALWAYS) ${c.name('LifecycleEvent')} event) {
+    try {
+      init(clusterSingleton);
+      // add additional startup tasks here
+    } catch (Exception e) {
+      log.error("$className failed", e, event);
+    }
+  }
+
+  @Inject
+  public void setClusterSingleton(ClusterSingleton clusterSingleton) {
+    this.clusterSingleton = clusterSingleton;
   }
 }''')
  
@@ -6071,5 +6094,20 @@ private void initMlKey($item.n.cap.event event) {
   public void setFactory($item.n.cap.factory factory) {
     super.setFactory(factory);
   }''')
+  
+  template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+</beans>
+''')
+  
+  template('componentTestCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+      http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+</beans>''')
   
 }
