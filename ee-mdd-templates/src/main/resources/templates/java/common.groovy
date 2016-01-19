@@ -316,10 +316,10 @@ templates ('common') {
     template('containerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverter %> ${macros.generate('containerXmlConverterExtends', c)}''')
     template('implContainerXmlConverter', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterBaseImpl %> ${macros.generate('implContainerXmlConverter', c)}''')
     template('implContainerXmlConverterExtends', appendName: true, body: '''<% c.className = c.item.n.cap.xmlConverterImpl %> ${macros.generate('implContainerXmlConverterExtends', c)}''')
-    template('xmlController', appendName: true, body: '''<% c.className = c.item.xmlController.n.cap.base %> ${macros.generate('xmlController', c)}''')
-    template('xmlControllerExtends', appendName: true, body: '''<% c.className = c.item.xmlController.cap %> ${macros.generate('xmlControllerExtends', c)}''')
-    template('implXmlController', appendName: true, body: '''<% c.className = c.item.xmlController.n.cap.baseImpl %> ${macros.generate('implXmlController', c)}''')
-    template('implXmlControllerExtends', appendName: true, body: '''<% c.className = c.item.xmlController.n.cap.Impl %> ${macros.generate('implXmlControllerExtends', c)}''')
+    template('xmlController', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.n.cap.base %> ${macros.generate('xmlController', c)}<% } %>''')
+    template('xmlControllerExtends', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.cap %> ${macros.generate('xmlControllerExtends', c)}<% } %>''')
+    template('implXmlController', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.n.cap.baseImpl %> ${macros.generate('implXmlController', c)}<% } %>''')
+    template('implXmlControllerExtends', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.n.cap.Impl %> ${macros.generate('implXmlControllerExtends', c)}<% } %>''')
   }
   
   templates('intializer', type: API,
@@ -329,5 +329,12 @@ templates ('common') {
     template('initializer', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerBase" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('initializer', c)}<% } %>''')
     template('initializerWakeup', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerWakeup" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('initializerWakeup', c)}<% } %>''')
   }
-
+  
+  templates('moduleCache', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('moduleCache', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } ) { %><% c.className = "${module.capShortName}CacheBase" %> ${macros.generate('moduleCache', c)}<% } %>''')
+    template('moduleCacheExtends', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } ) { %><% c.className = "${module.capShortName}Cache" %> ${macros.generate('moduleCacheExtends', c)}<% } %>''')
+  }
+  
 }

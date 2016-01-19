@@ -1256,7 +1256,7 @@ public class $className extends $controller.n.cap.baseImpl {
   ${macros.generate('implOperations', c)}
 }''')
 
-  template('containerIds', body: '''<% if (!c.className) { c.className = item.n.cap.idsBase } %>{{imports}}
+  template('containerIds', body: '''{{imports}}
 public class $c.className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;<% item.props.each { entityProp -> def entity = entityProp.type %>
   protected ${c.name('HashSet')}<$entity.idProp.type.name> ${entity.instancesName} = new ${c.name('HashSet')}<>();<% } %><% item.props.each { entityProp -> def entity = entityProp.type %>
@@ -1590,7 +1590,7 @@ public ${controller.base?'abstract ':''}class $className implements ${c.name(con
 
     // Updating versions<% notChildEntities.each { entity -> %><% if(entity.commands) { %>
     ${entity.commands.uncap}.forceVersionUpdate();<% } %><% if(entity.finders) { %>
-    ${entity.commands.uncap}.forceVersionUpdate();<% } %><% } %>
+    ${entity.finders.uncap}.forceVersionUpdate();<% } %><% } %>
 
     // Firing event
     $item.n.cap.event event = new ${item.n.cap.event}(changeEntitiesContainer, ActionType.CREATE_MULTIPLE, source);
@@ -5856,6 +5856,62 @@ public class $className {
   public ${c.name('EntityManager')} getEntityManager() {
     return entityManager;
   }
+}''')
+ 
+  template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
+public abstract class $className {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());<% cachedContainers.each { container -> %>
+  protected $container.cap $container.uncap;<% } %><% cachedContainers.each { container -> %>
+
+  public $container.cap get${container.cap}() {
+    return $container.uncap;
+  }
+
+  public void change$container.cap($container.cap $container.uncap) {
+    this.$container.uncap = $container.uncap;
+  }<% } %>
+
+  public void clear() {<% cachedContainers.each { container -> %>
+    $container.uncap = null;<% } %>
+  }<% cachedContainers.each { container -> %>
+
+  public void on$container.n.cap.event(@Observes(notifyObserver = Reception.IF_EXISTS) @${component.capShortName} @External ${container.n.cap.event} event) {
+    log.info("on${container.n.cap.event}({})", event);
+    change$container.cap(null);
+  }<% } %>
+<% def entitiesThatAreCached = []; cachedContainers.each { cachedContainer -> cachedContainer.entities.each { entity -> if(!entitiesThatAreCached.contains(entity)) { entitiesThatAreCached.add(entity); } } } %>
+<% entitiesThatAreCached.each { entity -> %>
+  public void on$entity.n.cap.event(@Observes(notifyObserver = Reception.IF_EXISTS) @${component.capShortName} @External ${entity.n.cap.event} event) {
+    log.info("on$entity.n.cap.event({})", event);
+    List<${entity.cap}> ${entity.uncap}sInEvent = event.getObjectList();
+    if (!${entity.uncap}sInEvent.isEmpty()) {
+      ${c.name('ActionType')} eventType = event.getType();
+      if (ActionType.UPDATE.equals(eventType) ||
+          ActionType.DELETE.equals(eventType) ||
+          ActionType.DELETE_MULTIPLE.equals(eventType)) {<% cachedContainers.each { container -> if (container.entities.contains(entity)) { %>
+        if (${container.uncap} != null) {
+          ${container.uncap}.get${entity.cap}s().removeEntities(${entity.uncap}sInEvent);
+        }<% } } %>
+      }
+      if (ActionType.UPDATE.equals(eventType) ||
+          ActionType.CREATE.equals(eventType) ||
+          ActionType.CREATE_MULTIPLE.equals(eventType)) {<% cachedContainers.each { container -> if (container.entities.contains(entity)) { %>
+        if (${container.uncap} != null) {
+          ${container.uncap}.get${entity.cap}s().putAll(${entity.uncap}sInEvent);
+        }<% } } %>
+      }
+    }
+  }
+<% } %>
+}''')
+  
+  template('moduleCacheExtends', body: '''{{imports}}
+@${c.name('Controller')}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })
+@${c.name('ApplicationScoped')}
+public class $className extends ${module.capShortName}CacheBase {
 }''')
  
  
