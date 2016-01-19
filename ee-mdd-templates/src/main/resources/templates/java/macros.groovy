@@ -81,7 +81,7 @@ templates ('macros') {
     super($constr.call);
   }<% } %>''')
   
-  template('superclassConstructor', body: '''public $className() {
+  template('superclassConstructor', body: '''public $c.className() {
   super();
  }''')
 
@@ -5987,6 +5987,31 @@ public class $className extends ${module.capShortName}BuilderFactoryBase {
     return ${module.capShortName}BuilderFactoryBase.a${container.cap}();
   }
   <% } %>
+}''')
+  
+  template('jpaSchemaGenerator', body: '''{{imports}}<% def entity = module.entities.find { !it.virtual } %>
+@${c.name('Singleton')}
+//each DDL operation is COMMIT operation, therefore Container Transaction Management must be disabled
+@${c.name('TransactionManagement')}(TransactionManagementType.BEAN)
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
+public class $className {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  private ${c.name('EntityManager')} entityManager;
+
+  ${macros.generate('superclassConstructor', c)}
+
+  public $className(EntityManager entityManager) {
+    super();
+    this.entityManager = entityManager;
+  }
+
+  public void createSchema() {
+
+    ${c.name('DbSchemaGenerator')} generator = new DbSchemaGenerator(log);
+    generator.createSchema(entityManager, "$entity.n.cap.entity");
+  }
+
+  ${macros.generate('setEntityManager', c)}
 }''')
  
  

@@ -19,6 +19,7 @@ import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Entity
+import ee.mdd.model.component.Module
 
 /**
  *
@@ -66,6 +67,11 @@ templates('jpa') {
     template('producerLocal', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerLocal" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/jse/${c.className}.java" %> ${macros.generate('producerLocal', c)}''')
     template('producerServer', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerServer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producerServer', c)}''')
   }
-    
+  
+  templates('jpaSchemaGenerator', type: SHARED,
+  items: { c -> c.model.findAllRecursiveDown( {Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('jpaSchemaGenerator', appendName: true, body: '''<% if (module.entities) { %><% c.className = "${module.capShortName}SchemaGenerator" %> ${macros.generate('jpaSchemaGenerator', c)}<% } %>''')
+  }
     
 }

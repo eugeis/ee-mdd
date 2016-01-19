@@ -40,7 +40,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp', 'Event' : 'com.siemens.ra.cg.pl.common.base.messaging', 'EventListener' : 'com.siemens.ra.cg.pl.common.base.messaging', 'SingleTypeEventListenerBridgeByJms' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 'MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'MultiSourceConverter' : 'com.siemens.ra.cg.pl.common.base.converter',
   'XmlUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Transactional' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Builder' : 'com.siemens.ra.cg.pl.common.base', 'Factory' : 'com.siemens.ra.cg.pl.common.base',
   'AbstractEntityFactory' : 'com.siemens.ra.cg.pl.common.base.model', 'AbstractFactory' : 'com.siemens.ra.cg.pl.common.base.model', 'EntityManagerFactoryLocator' : 'com.siemens.ra.cg.pl.common.ejb.locator',
-  'ClusterSingleton' : 'com.siemens.ra.cg.pl.env.integ', 'ModuleInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ'] as TreeMap
+  'ClusterSingleton' : 'com.siemens.ra.cg.pl.env.integ', 'ModuleInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ', 'DbSchemaGenerator' : 'com.siemens.ra.cg.pl.common.ejb.schemagen'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
