@@ -5953,6 +5953,41 @@ public abstract class $className {
 @${c.name('ApplicationScoped')}
 public class $className extends ${module.capShortName}CacheBase {
 }''')
+  
+  template('builderFactory', body: '''{{imports}}
+/** Base implementation of builder factory for '$module.name' */
+public abstract class $className {<% module.entities.each { entity -> if (!entity.virtual) { %>
+
+  public static ${entity.n.cap.implBuilder} a${entity.name}() {
+    return new ${entity.n.cap.implBuilder}();
+  }
+
+  public static ${entity.n.cap.EntityBuilder} a${entity.n.cap.entity}() {
+    return new ${entity.n.cap.EntityBuilder}();
+  }
+  <% } } %><% module.containers.each { container -> %>
+  public static ${container.cap}Builder a${container.cap}() {
+    return new ${container.cap}Builder();
+  }<% } %>
+}''')
+  
+  template('builderFactoryExtends', body: '''{{imports}}
+/** Implementation of builder factory for '$module.name' */
+public class $className extends ${module.capShortName}BuilderFactoryBase {
+  <% module.entities.each { entity -> if (!entity.virtual) { %>
+  public static ${entity.n.cap.implBuilder} a${entity.name}() {
+    return ${module.capShortName}BuilderFactoryBase.a${entity.name}();
+  }
+
+  public static ${entity.n.cap.EntityBuilder} a${entity.n.cap.entity}() {
+    return ${module.capShortName}BuilderFactoryBase.a${entity.n.cap.entity}();
+  }<% } } %>
+  <% module.containers.each { container -> %>
+  public static ${container.cap}Builder a${container.cap}() {
+    return ${module.capShortName}BuilderFactoryBase.a${container.cap}();
+  }
+  <% } %>
+}''')
  
  
   //logic

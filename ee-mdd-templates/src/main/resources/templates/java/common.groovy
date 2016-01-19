@@ -345,10 +345,17 @@ templates ('common') {
   }
   
   templates('moduleCache', type: API,
-  items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('moduleCache', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } ) { %><% c.className = "${module.capShortName}CacheBase" %> ${macros.generate('moduleCache', c)}<% } %>''')
-    template('moduleCacheExtends', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } ) { %><% c.className = "${module.capShortName}Cache" %> ${macros.generate('moduleCacheExtends', c)}<% } %>''')
+    template('moduleCache', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}CacheBase" %> ${macros.generate('moduleCache', c)}<% } %>''')
+    template('moduleCacheExtends', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}Cache" %> ${macros.generate('moduleCacheExtends', c)}<% } %>''')
+  }
+  
+  templates('builderFactory', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('builderFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactoryBase" %> ${macros.generate('builderFactory', c)} <% } %>''')
+    template('builderFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactory" %> ${macros.generate('builderFactoryExtends', c)} <% } %>''')
   }
   
 }
