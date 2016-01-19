@@ -396,7 +396,12 @@ templates ('macros') {
 
 
   //ifcs
-
+  
+  
+  template('ifcInitializer', body: '''{{imports}}
+public interface $className {
+  void init(${c.name('ClusterSingleton')} clusterSingleton);
+}''')
 
   template('ifcService', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}<% if (!item.base) { %>
 /**
@@ -5749,15 +5754,27 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
   }
 }''')
  
+ template('initializer', body: '''{{imports}}
+@${c.name('Alternative')}
+public abstract class $className extends ${c.name('ModuleInitializerBase')} implements ${module.initializerName} {
+}''')
  
  template('implInitializer', body: '''{{imports}}
+/** Initializer bean for '$module.name' */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
+public class $className extends ${module.initializerName}Base {
+}''')
+ 
+ 
+ template('implInitializerComponent', body: '''{{imports}}
 /** Initializer bean for '$item.name' */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
 public class $className extends ${component.capShortName}InitializerBase {
 }''')
  
- template('initializer', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %>
+ template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %>
 /** Initializer for '$module.name' */
 //TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
 @${c.name('Alternative')}
