@@ -5514,7 +5514,7 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
   
  template('qualifier', body: '''{{imports}}
 /**
-* The qualifier of '$item.name' what can be used in artifacts at dependency management and event messaging.
+* The qualifier of '$module.name' what can be used in artifacts at dependency management and event messaging.
 * The qualifier allows to select correct implementation of the common/generic interfaces.
 */
 @${c.name('Qualifier')}
@@ -5751,14 +5751,14 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
  
  
  template('implInitializer', body: '''{{imports}}
-/** Initializer bean for '$component.name' */
+/** Initializer bean for '$item.name' */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
 public class $className extends ${component.capShortName}InitializerBase {
 }''')
  
  template('initializer', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %>
-/** Initializer for '$item.name' */
+/** Initializer for '$module.name' */
 //TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
 @${c.name('Alternative')}
 public class $className extends ApplicationInitializerBase {
@@ -5791,7 +5791,7 @@ public class $className extends ApplicationInitializerBase {
 }''')
  
  template('initializerWakeup', body: '''{{imports}}
-/** Startup for Initializer bean for '$component.name' */
+/** Startup for Initializer bean for '$item.name' */
 @${c.name('Singleton')}
 @${c.name('Startup')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
@@ -5818,7 +5818,7 @@ public class $className  {
 }''')
  
  template('producerLocal', body: '''{{imports}}
-/** CDI resources producer for '$item.name' in Local Mode*/
+/** CDI resources producer for '$module.name' in Local Mode*/
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')} }))
 @${c.name('Traceable')}
@@ -5842,7 +5842,7 @@ public class $className {
 }''')
  
  template('producerServer', body: '''{{imports}}
-/** Server CDI resources producer for '$item.name' */
+/** Server CDI resources producer for '$module.name' */
 @${c.name('Stateless')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
 @${c.name('Traceable')}

@@ -17,8 +17,8 @@
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.BasicType
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.Entity
-import ee.mdd.model.component.Module
 
 /**
  *
@@ -61,10 +61,10 @@ templates('jpa') {
   }
   
   templates('jpaProducer', type: SHARED,
-  items: { c -> c.model.findAllRecursiveDown( {Module.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
-    template('producerLocal', appendName: true, body: '''<% if(item.name.equals('backend')) { %><% c.className = "${component.capShortName}ProducerLocal" %> ${macros.generate('producerLocal', c)}<% } %>''')
-    template('producerServer', appendName: true, body: '''<% if(item.name.equals('backend')) { %><% c.className = "${component.capShortName}ProducerServer" %> ${macros.generate('producerServer', c)} <% } %>''')
+  items: { c -> c.model.findAllRecursiveDown( {Component.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('producerLocal', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerLocal" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/jse/${c.className}.java" %> ${macros.generate('producerLocal', c)}''')
+    template('producerServer', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerServer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producerServer', c)}''')
   }
     
     
