@@ -361,6 +361,8 @@ templates ('common') {
   templates('producerClient', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('producerClient', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ProducerClient" %> ${macros.generate('producerClient', c)} <% } %>''')
+    template('producerClient', appendName: true, body: '''<% if(module.services) { %><% c.className = "${module.capShortName}ProducerClient" %> ${macros.generate('producerClient', c)} <% } %>''')
+    template('producerTestClient', appendName: true, body: '''<% if(module.services) { %><% c.className = "${module.capShortName}ProducerTestClient" %> ${macros.generate('producerTestClient', c)} <% } %> ''' )
+    template('producerEjbClient', appendName: true, body: '''<% if(module.services) { %><% c.className = "${module.capShortName}ProducerEjbClient" %> ${macros.generate('producerEjbClient', c)} <% } %> ''' )
   }
 }

@@ -5914,6 +5914,42 @@ public class $className {<% module.services.each { service-> %>
     return ret;
   }<% } %>
 }''')
+  
+  template('producerTestClient', body: '''{{imports}}
+/** Test CDI resources producer for '$module.name' */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { ${c.name('CLIENT')} }))
+@${c.name('Traceable')}
+public class $className {<% module.services.each { service-> %>
+
+  @${c.name('Produces')}
+  public $service.name get$service.name() {
+    return ${c.name('mock')}(${service.name}.class);
+  }<% } %>
+}''')
+  
+  template('producerEjbClient', body: '''{{imports}}
+/** Producer of '$module.name' services for ejb clients in production mode */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
+@${c.name('Traceable')}
+public class $className {
+  <% module.services.each { service-> %>
+  private $service.cap $service.uncap;<% } %><% module.services.each { service-> %>
+
+  @${c.name('Produces')}
+  public $service.cap get$service.cap() {
+    if ($service.uncap == null) {
+      $service.uncap = new $service.n.cap.provider(${c.name('ServiceLocatorFactory')}.getInstance(), false, true).getService();
+    }
+    return $service.uncap;
+  }<% } %>
+  <% module.services.each { service-> %>
+
+  public void set${service.cap}(${service.cap} $service.uncap) {
+    this.$service.uncap = $service.uncap;
+  }<% } %>
+}''')
  
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
