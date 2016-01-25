@@ -5950,6 +5950,24 @@ public class $className {
     this.$service.uncap = $service.uncap;
   }<% } %>
 }''')
+  
+  template('containerProducerInternal', body: '''{{imports}}
+/** Server CDI container producer for '$module.name' */
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
+@${c.name('Traceable')}
+public class $className {<% module.containers.each { container -> if(container.controller) { %>
+
+  @${c.name('Inject')}
+  private $container.controller.cap $container.controller.uncap;<% } } %><% module.containers.each { container -> if(container.controller) { %>
+
+  @${c.name('Produces')}
+  @${c.name('Internal')}
+  public $container.cap get$container.cap () {
+    return ${container.controller.uncap}.loadAll();
+  }<% } } %>
+}''')
  
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
