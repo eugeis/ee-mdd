@@ -6140,6 +6140,27 @@ public abstract class $className {
     this.modelFactory = modelFactory;
   }
 }''')
+  
+  template('ejbDataFactory', body: '''{{imports}}
+/** Data factory implementation for '$module.name' based on Ejb Model Factory */
+@${c.name('ApplicationScoped')}
+@${c.name('Default')}
+@${c.name('Internal')}
+public class $className extends ${module.capShortName}DataFactoryBase {
+
+  ${macros.generate('superclassConstructor', c)}
+
+  public $className(${module.capShortName}ModelFactory modelFactory) {
+    super();
+    setModelFactory(modelFactory);
+  }
+
+  @${c.name('Inject')}
+  @Override
+  public void setModelFactory(@Internal ${module.capShortName}ModelFactory modelFactory) {
+    super.setModelFactory(modelFactory);
+  }
+}''')
  
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
