@@ -765,6 +765,24 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
 
 
   //classes
+  
+  template('serviceEmpty', body: '''{{imports}}
+/** Empty implementation of {@link $item.name} what shall be extended by Test/Mock implementation in order to avoid unnecessary work by extension of the interface. */
+@${c.name('Alternative')}
+public abstract class $className implements $item.name {<% item.operations.each { op -> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {<% if (op.returnTypeBoolean) { %>
+    return false;<% } else if (!op.void) { %>
+    return null;<% } %>
+  }<% } %><% item.operations.each { opRef -> if(opRef.delegateOp) { def op = opRef.ref; if (op) { %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {<% if (op.typeBoolean) { %>
+    return false;<% } else if (!op.void) { %>
+    return null;<% } %>
+  }<% } %><% } } %>
+}''')
 
   template('implCache', body: '''import static ee.common.util.ComparisonUtils.*;{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>
   <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>

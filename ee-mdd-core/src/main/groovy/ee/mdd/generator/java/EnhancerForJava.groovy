@@ -721,7 +721,7 @@ class EnhancerForJava {
         if(!properties.containsKey(key)) {
           def ret = false
           def op = delegate
-          if (op.ret && op.ret.name == 'boolean')
+          if (op.ret && (op.ret.name == 'boolean' || op.ret.name == 'Boolean'))
             ret = true
           properties[key] = ret
         }
@@ -1173,8 +1173,8 @@ class EnhancerForJava {
           properties[key] = (delegate.type.name == 'String' ? true : false)
         }
         properties[key]
-      }
-      
+      } 
+        
       isTypeInteger << {
         ->
         def key = System.identityHashCode(delegate) + 'typeInteger'
