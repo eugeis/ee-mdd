@@ -49,6 +49,12 @@ templates ('common') {
     template('ifcEntity', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifcEntity', c)}''')
     template('ifcEntityExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
   }
+  
+  templates('ifcFactory', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('ifcModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactory" %> ${macros.generate('ifcModelFactory', c)} <% } %>''')
+  }
 
   templates ('modelApiBasicType', type: API,
   items: { c -> c.model.findAllRecursiveDown( { BasicType.isInstance(it) }) },
@@ -380,16 +386,26 @@ templates ('common') {
     template('containerProducerInternal', appendName: true, body: '''<% if(module.containers) { %><% c.className = "${module.capShortName}ContainerProducerInternal" %> ${macros.generate('containerProducerInternal', c)} <% } %>''')
   }
   
-  templates('implDataFactory', type: API_IMPL,
+  templates('implFactory', type: API_IMPL,
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('implDataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryImpl" %> ${macros.generate('implDataFactory', c)}<% } %>''')
+    template('implModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactoryImpl" %> ${macros.generate('implModelFactory', c)}<% } %>''')
   }
   
-  templates('dataFactory', type: API,
+  templates('factory', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('dataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryBase" %> ${macros.generate('dataFactory', c)}<% } %>''')
+    template('modelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactoryBase" %> ${macros.generate('modelFactory', c)}<% } %>''')
   }
-    
+  
+  templates('commandsFindersFactoryMem', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('commandsFactoryMem', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryMemoryBase" %> ${macros.generate('commandsFactoryMem', c)} <% } %>''')
+    template('findersFactoryMem', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryMemoryBase" %> ${macros.generate('findersFactoryMem', c)} <% } %>''')
+    template('commandsFactoryMemExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryMemory" %> ${macros.generate('commandsFactoryMemExtends', c)} <% } %>''')
+    template('findersFactoryMemExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryMemory" %> ${macros.generate('findersFactoryMemExtends', c)} <% } %>''')
+  }  
 }

@@ -99,6 +99,10 @@ class StructureUnit extends Composite implements BuilderAware {
   String getUncapShortName() {
     underscoreToCamelCase(key).toLowerCase()
   }
+  
+  String getUnderscoredShortName() {
+    key.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase()
+  }
 
   String underscoreToCamelCase(String underscoreStr) {
     if(!underscoreStr || underscoreStr.isAllWhitespace()){

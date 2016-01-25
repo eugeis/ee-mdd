@@ -38,9 +38,10 @@ templates('ejb') {
     template('serviceBean', appendName: true, body: '''<% if (c.item.base) { %><% c.className = c.item.n.cap.bean %>${macros.generate('serviceBean', c)} <% } %>''')
   }
   
-  templates('ejbDataFactory', type: LOGIC,
+  templates('ejbFactory', type: LOGIC,
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('ejbDataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryEjb" %> ${macros.generate('ejbDataFactory', c)} <% } %>''')
+    template('ejbModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactoryEjb" %> ${macros.generate('ejbModelFactory', c)} <% } %>''')
   }
 }

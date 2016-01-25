@@ -544,6 +544,17 @@ public interface $c.className extends $superClassName {
   public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.cap}<% } %> {
     ${macros.generate('interfaceBody', c)}
   }''')
+  
+  template('ifcModelFactory', body: '''{{imports}}
+/** Factory for all types of '$module.name' */
+public interface $className {<% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+
+  $t.cap new${t.cap}();
+
+  $t.n.cap.factory get${t.cap}Factory();<% } } } %>
+
+  <E> Factory<E> findFactoryByType(Class<E> type);
+}''')
 
   template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
@@ -2871,6 +2882,46 @@ public class $className {
   public void setPublisher(Event<?> publisher) {
     this.publisher = publisher;
   }
+}''')
+  
+  template('commandsFactoryMem', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className {
+
+  public $className() {
+  }<% module.entities.findAll { !it.virtual && it.commands }.each { entity = it; def commands = entity.commands; %>
+
+  public $commands.name get$commands.cap(${c.name('Event')}<$entity.n.cap.event> publisher) {
+    $commands.n.cap.mem ret = new $commands.n.cap.mem();
+    ret.setPublisher(publisher);
+    ret.setFactory(new ${entity.n.cap.entiy}Factory())
+    return ret;
+  }<% } %>
+}''')
+  
+  template('findersFactoryMem', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className {
+
+  public $className() {
+  }<% module.entities.findAll { !it.virtual && it.finders }.each { entity = it; def finders = entity.finders; %>
+
+  public $finders.name get$finders.cap(${c.name('Event')}<$entity.n.cap.event> publisher) {
+    $finders.n.cap.mem ret = new $finders.n.cap.mem();
+    ret.setPublisher(publisher);
+    ret.setFactory(new ${entity.n.cap.entiy}Factory())
+    return ret;
+  }<% } %>
+}''')
+  
+  template('commandsFactoryMemExtends', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className extends ${module.capShortName}CommandsFactoryMemoryBase {
+}''')
+  
+  template('findersFactoryMemExtends', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className extends ${module.capShortName}FindersFactoryMemoryBase {
 }''')
   
   template('commandsFactoryLocalExtends', body: '''{{imports}}
@@ -6248,6 +6299,20 @@ public class $className extends ${module.capShortName}DataFactoryBase {
   }
 }''')
   
+  template('implModelFactory', body: '''{{imports}}
+/** Implementation of {@link ${module.capShortName}ModelFactory for Impl. model classes*/
+@${c.name('ApplicationScoped')}
+@${c.name('Traceable')}
+@${c.name('Default')}
+public class $className extends ${module.capShortName}ModelFactoryBase {
+
+  public $className() {<% [module.basicTypes, module.entities].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${t.n.cap.impl}Factory();<% } } } %><% [module.containers].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${t.n.cap.impl}Factory(this);<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+    addFactory(${t.cap}.class, $t.uncap);<% } } } %>
+  }
+}''')
+  
   template('dataFactory', body: '''{{imports}}
 /** Base implementation of data factory for '$module.name' */
 public abstract class $className {
@@ -6301,6 +6366,36 @@ public abstract class $className {
   }
 }''')
   
+  template('modelFactory', body: '''{{imports}}
+@${c.name('Alternative')}
+@${c.name('Traceable')}
+public class $className implements ${module.capShortName}ModelFactory {
+  protected ${c.name('HashMap')}<Class<?>, ${c.name('Factory')}<?>> typeToFactory = new HashMap<>();
+  <% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+  protected ${t.cap}Factory $t.uncap;<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+
+  @Override
+  public $t.cap new${t.cap}() {
+    return ${t.uncap}.newInstance();
+  }
+
+  @Override
+  public $t.n.cap.factory get${t.cap}Factory() {
+    return $t.uncap;
+  }<% } } } %>
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <E> Factory<E> findFactoryByType(Class<E> type) {
+    Factory<E> ret = (Factory<E>) typeToFactory.get(type);
+    return ret;
+  }
+
+  protected void addFactory(Class<?> type, Factory<?> factory) {
+    typeToFactory.put(type, factory);
+  }
+}''')
+  
   template('ejbDataFactory', body: '''{{imports}}
 /** Data factory implementation for '$module.name' based on Ejb Model Factory */
 @${c.name('ApplicationScoped')}
@@ -6319,6 +6414,21 @@ public class $className extends ${module.capShortName}DataFactoryBase {
   @Override
   public void setModelFactory(@Internal ${module.capShortName}ModelFactory modelFactory) {
     super.setModelFactory(modelFactory);
+  }
+}''')
+  
+  template('ejbModelFactory', body: '''{{imports}}
+/** JPA implementation of {@link ${module.capShortName}ModelFactory} */
+@${c.name('ApplicationScoped')}
+@${c.name('Traceable')}
+@${c.name('Default')}
+@${c.name('Internal')}
+public class $className extends ${module.capShortName}ModelFactoryBase {
+
+  public $className() {<% [module.basicTypes, module.entities].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${t.beanName}Factory();<% } } } %><% [module.containers].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${t.beanName}Factory(this);<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+    addFactory(${t.cap}.class, $t.uncap);<% } } } %>
   }
 }''')
  
@@ -6640,5 +6750,76 @@ private void initMlKey($item.n.cap.event event) {
         </interceptor-binding>
     </assembly-descriptor>
 </ejb-jar>''')
+  
+  template('ormXml', body: '''
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd" version="2.0">
+<persistence-unit-metadata>
+    <persistence-unit-defaults>
+        <schema>${component.underscoredShortName}</schema>
+    </persistence-unit-defaults>
+</persistence-unit-metadata>
+</entity-mappings>''')
+  
+  template('wildflyEjbJarXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
+<jboss:jboss
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:jboss="http://www.jboss.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:s="urn:security:1.1"
+        version="3.1" impl-version="2.0">
+
+    <interceptors>
+        <interceptor>
+            <interceptor-class></interceptor-class>
+        </interceptor>
+        <interceptor>
+            <interceptor-class></interceptor-class>
+        </interceptor>
+    </interceptors>
+
+    <assembly-descriptor>
+         <s:security>
+            <ejb-name>*</ejb-name>
+            <s:security-domain>other</s:security-domain>
+         </s:security>
+
+        <!-- TODO: declare needed roles -->
+
+         <interceptor-binding>
+            <ejb-name>*</ejb-name>
+            <interceptor-class></interceptor-class>
+            <interceptor-class></interceptor-class>
+        </interceptor-binding>
+    </assembly-descriptor>
+</jboss:jboss>''')
+  
+  template('wildFlyDatasource', body: '''
+<datasource jndi-name="java:/jdbc/${component.key}DS" pool-name="cg${component.key}DS" enabled="true" use-java-context="true">
+    <connection-url></connection-url>
+    <driver>h2</driver>
+    <security>
+        <user-name>${component.key}</user-name>
+        <password>${component.key}</password>
+    </security>
+</datasource>''')
+  
+  template('wildFlyJmsDestinations', body: '''
+<jms-queue name="${component.uncapShortName}ImportQueue">
+    <entry name="java:global/jms/cg/${component.uncapShortName}/ImportQueue"/>
+    <entry name="java:jboss/exported/jms/cg/${component.uncapShortName}/ImportQueue"/>
+    <entry name="java:/jms/cg/${component.uncapShortName}/ImportQueue"/>
+</jms-queue>
+<jms-queue name="${component.uncapShortName}NotificationQueue">
+    <entry name="java:global/jms/cg/${component.uncapShortName}/NotificationQueue"/>
+    <entry name="java:jboss/exported/jms/cg/${component.uncapShortName}/NotificationQueue"/>
+    <entry name="java:/jms/cg/${component.uncapShortName}/NotificationQueue"/>
+</jms-queue>
+<jms-topic name="${component.uncapShortName}NotificationTopic">
+    <entry name="java:global/jms/cg/${component.uncapShortName}/NotificationTopic"/>
+    <entry name="java:jboss/exported/jms/cg/${component.uncapShortName}/NotificationTopic"/>
+    <entry name="java:/jms/cg/${component.uncapShortName}/NotificationTopic"/>
+</jms-topic>''')
   
 }
