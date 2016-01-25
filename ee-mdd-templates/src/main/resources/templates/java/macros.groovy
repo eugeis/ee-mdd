@@ -6066,6 +6066,80 @@ public class $className {
 @${c.name('ApplicationScoped')}
 public class $className extends ${module.capShortName}ConverterBase {
 }''')
+  
+  template('implDataFactory', body: '''
+/** Data factory implementation for '$module.name' based on Internal model factory */
+@${c.name('ApplicationScoped')}
+@${c.name('Default')}
+@${c.name('Internal')}
+public class $className extends ${module.capShortName}DataFactoryBase {
+
+  ${macros.generate('superclassConstructor', c)}
+
+  public $className(${module.capShortName}ModelFactory} modelFactory) {
+    super();
+    setModelFactory(modelFactory);
+  }
+
+  @${c.name('Inject')}
+  @Override
+  public void setModelFactory(${module.capShortName}ModelFactory modelFactory) {
+    super.setModelFactory(modelFactory);
+  }
+}''')
+  
+  template('dataFactory', body: '''{{imports}}
+/** Base implementation of data factory for '$module.name' */
+public abstract class $className {
+  private final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+
+  protected ${module.capShortName}ModelFactory modelFactory;<% module.basicTypes.each { basicType -> if (basicType.virtual) { c.obj = basicType %>
+
+  public ${basicType.generic?"$basicType.genericSgn ":''}void fill${basicType.cap}(${basicType.cap}${basicType.genericSgn} ret, int itemNumber) {
+    log.debug("fill${basicType.cap}({}, {})", ret, itemNumber);${macros.generate('propsBasicTypeTestValues', c)}
+  }<% } else { %>
+
+  public ${basicType.cap} new${basicType.cap}(int itemNumber) {
+    log.debug("${basicType.uncap}({})", itemNumber);
+    ${basicType.cap} ret = modelFactory.new${basicType.cap}();<% if (basicType.superUnit) { %>
+    fill${basicType.superUnit.cap}(ret, basicTypeNumber);<% } %>${macros.generate('propsBasicTypeTestValues', c)}
+    return ret;
+  }
+
+  public List<${basicType.cap}> new${basicType.cap}List(int fromItemNumber, int toItemNumber) {
+    log.debug("${basicType.uncap}List({}, {})", fromItemNumber, toItemNumber);
+    ArrayList<${basicType.cap}> ret = new ArrayList<>();
+    for (int i = fromItemNumber; i < toItemNumber; i++) {
+      ret.add(new${basicType.cap}(i));
+    }
+    return ret;
+  }<% } } %><% module.entities.each { entity -> c.entity = entity; if (entity.virtual) { %>
+
+  public ${entity.generic?"$entity.genericSgn ":''}void fill${entity.cap}(${entity.cap}${entity.genericSgn} ret, int entityNumber) {
+    log.debug("fill${entity.cap}({}, {})", ret, entityNumber);<% if (entity.superUnit) { %>
+    fill${entity.superUnit.cap}(ret, entityNumber);<% } %>${macros.generate('propsEntityTestValues', c)}
+  }<% } else { %>
+
+  public ${entity.cap} new${entity.cap}(int entityNumber) {
+    log.debug("${entity.uncap}({})", entityNumber);
+    ${entity.cap} ret = modelFactory.new${entity.cap}();<% if (entity.superUnit) { %>
+    fill${entity.superUnit.cap}(ret, entityNumber);<% } %>${macros.generate('propsEntityTestValues', c)}
+    return ret;
+  }
+
+  public List<${entity.cap}> new${entity.cap}List(int fromEntityNumber, int toEntityNumber) {
+    log.debug("${entity.uncap}List({}, {})", fromEntityNumber, toEntityNumber);
+    ArrayList<${entity.cap}> ret = new ArrayList<>();
+    for (int i = fromEntityNumber; i < toEntityNumber; i++) {
+      ret.add(new${entity.cap}(i));
+    }
+    return ret;
+  }<% } } %>
+
+  public void setModelFactory(${module.capShortName}ModelFactory modelFactory) {
+    this.modelFactory = modelFactory;
+  }
+}''')
  
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
@@ -6340,6 +6414,19 @@ private void initMlKey($item.n.cap.event event) {
   public void setFactory($item.n.cap.factory factory) {
     super.setFactory(factory);
   }''')
+  
+  template('propsBasicTypeTestValues', body: '''<% c.obj.props.each { prop -> if (!prop.derived) { if (prop.type == 'String') { %>
+    ret.set${prop.cap}("$prop.cap" + itemNumber);<% } else if (prop.type == 'Long') { %>
+    ret.set${prop.cap}(Long.valueOf(itemNumber));<% } else if (prop.type == 'byte[]') { %>
+    ret.set${prop.cap}(("$prop.cap" + itemNumber).getBytes());<% } else if (prop.type == 'Integer') { %>
+    ret.set${prop.cap}(Integer.valueOf(itemNumber));<% } else if (prop.type == 'Date') { %>
+    ret.set${prop.cap}(TimeUtils.now());<% } %><% } } %>''')
+  
+  template('propsEntityTestValues', body: '''<% c.entity.props.each { prop -> if (!prop.derived) { if ((!prop.primaryKey || item.manualId ) && !prop.multi) {  if (prop.type == 'String') { %>
+    ret.set${prop.cap}("$prop.cap" + entityNumber);<% } else if (prop.type == 'Long') { %>
+    ret.set${prop.cap}(Long.valueOf(entityNumber));<% } else if (prop.type == 'Integer') { %>
+    ret.set${prop.cap}(Integer.valueOf(entityNumber));<% } else if (prop.type == 'Date') { %>
+    ret.set${prop.cap}(TimeUtils.now());<% } } %><% } } %>''')
   
   template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -379,5 +379,17 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('containerProducerInternal', appendName: true, body: '''<% if(module.containers) { %><% c.className = "${module.capShortName}ContainerProducerInternal" %> ${macros.generate('containerProducerInternal', c)} <% } %>''')
   }
+  
+  templates('implDataFactory', type: API_IMPL,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('implDataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryImpl" %> ${macros.generate('implDataFactory', c)}<% } %>''')
+  }
+  
+  templates('dataFactory', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('dataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryBase" %> ${macros.generate('dataFactory', c)}<% } %>''')
+  }
     
 }
