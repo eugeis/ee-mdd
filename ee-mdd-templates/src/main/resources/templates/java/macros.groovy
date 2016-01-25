@@ -2723,6 +2723,166 @@ public class $className extends $item.n.cap.baseImpl {
   ${macros.generate('implOperations', c)}
 }''')
   
+  template('commandsFactory', body: '''{{imports}}
+/**
+ * Commands factory for all commands in ${module.name}.
+ */
+public interface $className {<% module.entities.each { entity -> if (entity.commands && !entity.virtual) { commands = entity.commands; %>
+
+  $commands.name get$commands.cap();<% } else if (entity.virtual) { %>
+
+  Commands<${entity.idProp.type.name}, ${entity.cap}${entity.genericWildcardSgn}> get${entity.cap}Commands(${entity.cap}${entity.genericWildcardSgn} $entity.uncap);<% } } %>
+}''')
+  
+  template('findersFactory', body: '''{{imports}}
+/**
+ * Finders factory for all finders in ${module.name}.
+ */
+public interface $className {<% module.entities.each { entity -> if (entity.finders && !entity.virtual) { finders = entity.finders; %>
+
+  $finders.name get$finders.cap();<% } else if (entity.virtual) { %>
+
+  Finders<${entity.idProp.type.name}, ${entity.cap}${entity.genericWildcardSgn}> get${entity.cap}Finders(${entity.cap}${entity.genericWildcardSgn} $entity.uncap);<% } } %>
+}''')
+  
+  template('commandsFactoryExtends', body: '''
+/**
+ * Commands factory for all commands in ${module.name}.
+ */
+public interface $className extends ${className}Base {
+}''')
+  
+  template('findersFactoryExtends', body: '''
+/**
+ * Finders factory for all finders in ${module.name}.
+ */
+public interface $className extends ${className}Base {
+}''')
+  
+  template('implCommandsFactory', body: '''{{imports}}<% def commands = module.entities.findAll { !it.virtual && it.commands }.collect { it.commands }; %>
+public abstract class $className implements ${module.capShortName}ManagerFactory {<% commands.each { command -> %>
+
+  protected $command.name $command.uncap;<% }; commands.each { command -> %>
+
+  @Override
+  public $command.name get$command.cap() {
+    return $command.uncap;
+  }<% };  commands.each { command -> %>
+
+  @Inject
+  public void set$command.cap($command.name $command.uncap) {
+    this.$command.uncap= $command.uncap;
+  }<% }; module.entities.findAll { it.virtual }.each { entity -> def children = module.entities.findAll { it.superUnit == entity &&( (it.finders && !it.virtual) || (it.virtual)) }; %>
+
+  @Override
+  public Commands<${entity.idProp.type.name}, ${entity.cap}${entity.genericWildcardSgn}> get${entity.cap}Commands(${entity.cap}${entity.genericWildcardSgn} $entity.uncap) {
+    Commands ret = null;
+    <% children.each { childEntity -> %>if (${childEntity.cap}.class.isInstance($entity.uncap)) {
+      ret = (Finders) get${childEntity.cap}Finders(<% if (childEntity.virtual) { %>ClassUtils.cast(${childEntity.cap}.class, $entity.uncap)<% } %>);
+    } <% if (childEntity != children.last()) { %>else <% } } %>
+    return ret;
+  }<% } %>
+}''')
+  
+  template('implFindersFactory', body: '''{{imports}}<% def finders = module.entities.findAll { !it.virtual && it.finders }.collect { it.finders }; %>
+public abstract class $className implements ${module.capShortName}ManagerFactory {<% finders.each { finder -> %>
+
+  protected $finder.name $finder.uncap;<% }; finders.each { finder -> %>
+
+  @Override
+  public $finder.name get$finder.cap() {
+    return $finder.uncap;
+  }<% };  finders.each { finder -> %>
+
+  @Inject
+  public void set$finder.cap($finder.name $finder.uncap) {
+    this.$finder.uncap= $finder.uncap;
+  }<% }; module.entities.findAll { it.virtual }.each { entity -> def children = module.entities.findAll { it.superUnit == entity &&( (it.finders && !it.virtual) || (it.virtual)) }; %>
+
+  @Override
+  public Finders<${entity.idProp.type.name}, ${entity.cap}${entity.genericWildcardSgn}> get${entity.cap}Finders(${entity.cap}${entity.genericWildcardSgn} $entity.uncap) {
+    Finders ret = null;
+    <% children.each { childEntity -> %>if (${childEntity.cap}.class.isInstance($entity.uncap)) {
+      ret = (Finders) get${childEntity.cap}Finders(<% if (childEntity.virtual) { %>ClassUtils.cast(${childEntity.cap}.class, $entity.uncap)<% } %>);
+    } <% if (childEntity != children.last()) { %>else <% } } %>
+    return ret;
+  }<% } %>
+}''')
+  
+  template('implCommandsFactoryExtends', body: '''{{imports}}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
+public class $className extends ${module.capShortName}CommandsFactoryBaseImpl {
+}''')
+  
+  template('implFindersFactoryExtends', body: '''{{imports}}
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
+public class $className extends ${module.capShortName}FindersFactoryBaseImpl {
+}''')
+  
+  template('commandsFactoryLocal', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className {
+  protected ${c.name('EntityManager')} entityManager;
+  protected ${c.name('Event')}<?> publisher;
+
+  public $className() {
+    entityManager = ${component.capShortName}ProducerLocal.entityManager();
+  }<% module.entities.findAll { !it.virtual && it.commands}.each { entity = it; commands = entity.commands; %>
+
+  public $commands.name get$commands.cap() {
+    $commands.n.cap.impl commands = new $commands.n.cap.impl();
+    commands.setEntityManager(entityManager);
+    commands.setPublisher((Event<$entity.n.cap.event>) publisher);
+    commands.setFactory(new ${entity.n.cap.entity}Factory());
+    $commands.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(commands, ${commands.cap}.class, entityManager);
+    ret = TraceProxyHandler.wrap(ret, ${commands.cap}.class);
+    return ret;
+  }<% } %>
+
+  public void setPublisher(Event<?> publisher) {
+    this.publisher = publisher;
+  }
+}''')
+  
+  template('findersFactoryLocal', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className {
+  protected ${c.name('EntityManager')} entityManager;
+  protected ${c.name('Event')}<?> publisher;
+
+  public $className() {
+    entityManager = ${component.capShortName}ProducerLocal.entityManager();
+  }<% module.entities.findAll { !it.virtual && it.finders}.each { entity = it; finders = entity.finders; %>
+
+  public $finders.name get$finders.cap() {
+    $finders.n.cap.impl finders = new $finders.n.cap.impl();
+    finders.setEntityManager(entityManager);
+    finders.setPublisher((Event<$entity.n.cap.event>) publisher);
+    finders.setFactory(new ${entity.n.cap.entity}Factory());
+    $finders.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(finders, ${finders.cap}.class, entityManager);
+    ret = TraceProxyHandler.wrap(ret, ${finders.cap}.class);
+    return ret;
+  }<% } %>
+
+  public void setPublisher(Event<?> publisher) {
+    this.publisher = publisher;
+  }
+}''')
+  
+  template('commandsFactoryLocalExtends', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className extends ${module.capShortName}CommandsFactoryLocalBase {
+}''')
+  
+  template('findersFactoryLocalExtends', body: '''{{imports}}
+@${c.name('Alternative')}
+public class $className extends ${module.capShortName}FindersFactoryLocalBase {
+}''')
+  
   template('pojo', body: '''{{imports}}
 ${item.description?"/*** $item.description */":''}
 public class $className extends ${c.name('Base')} {
@@ -6463,5 +6623,22 @@ private void initMlKey($item.n.cap.event event) {
       http://java.sun.com/xml/ns/javaee
       http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
 </beans>''')
+  
+  template('ejbJarXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
+<ejb-jar xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://java.sun.com/xml/ns/javaee" xmlns:ejb="http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd"
+    version="3.1">
+
+    <module-name>$module.capShortName</module-name>
+
+    <assembly-descriptor>
+        <!-- List security roles here -->
+        <interceptor-binding>
+            <ejb-name>*</ejb-name>
+            <interceptor-class></interceptor-class>
+        </interceptor-binding>
+    </assembly-descriptor>
+</ejb-jar>''')
   
 }

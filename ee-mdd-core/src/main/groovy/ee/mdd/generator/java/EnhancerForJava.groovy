@@ -263,6 +263,16 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      getGenericWildcardSgn << {
+        ->
+        def key = System.identityHashCode(delegate) + 'genericWildcardSgn'
+        if(!properties.containsKey(key)) {
+          def ret = (delegate.generic ? '<'+'?, '*(generics.size()-1)+'?>' : '')
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       getSimpleGenericSgn << {
         ->

@@ -61,6 +61,24 @@ templates('jpa') {
     template('implFindersExtends', appendName: true, body: '''<% if(item.finders && !item.virtual && item.finders.base) { %><% c.className = item.finders.n.cap.impl %> ${macros.generate('implFindersExtends', c)} <% } %>''')
   }
   
+  templates('factoryCommandsFinders', type: SHARED,
+  items: { c -> c.model.findAllRecursiveDown( {Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('commandsFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryBase" %> ${macros.generate('commandsFactory', c)} <% } %>''')
+    template('findersFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryBase" %> ${macros.generate('findersFactory', c)} <% } %>''')
+    template('commandsFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactory" %> ${macros.generate('commandsFactoryExtends', c)} <% } %>''')
+    template('findersFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactory" %> ${macros.generate('findersFactoryExtends', c)} <% } %>''')
+    template('commandsFactoryLocal', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryLocalBase" %> ${macros.generate('commandsFactoryLocal', c)} <% } %>''')
+    template('findersFactoryLocal', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryLocalBase" %> ${macros.generate('findersFactoryLocal', c)} <% } %>''')
+    template('commandsFactoryLocalExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryLocal" %> ${macros.generate('commandsFactoryLocalExtends', c)} <% } %>''')
+    template('findersFactoryLocalExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryLocal" %> ${macros.generate('findersFactoryLocalExtends', c)} <% } %>''')
+    template('implCommandsFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryBaseImpl" %> ${macros.generate('implCommandsFactory', c)} <% } %>''')
+    template('implFindersFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryBaseImpl" %> ${macros.generate('implFindersFactory', c)} <% } %>''')
+    template('implCommandsFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryImpl" %> ${macros.generate('implCommandsFactoryExtends', c)} <% } %>''')
+    template('implFindersFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryImpl" %> ${macros.generate('implFindersFactoryExtends', c)} <% } %>''')
+  }
+    
+  
   templates('jpaProducer', type: SHARED,
   items: { c -> c.model.findAllRecursiveDown( {Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
