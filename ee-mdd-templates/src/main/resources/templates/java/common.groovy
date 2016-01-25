@@ -322,6 +322,14 @@ templates ('common') {
     template('implXmlControllerExtends', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.n.cap.Impl %> ${macros.generate('implXmlControllerExtends', c)}<% } %>''')
   }
   
+  templates('converter', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('converter', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterBase" %> ${macros.generate('converter', c)}<% } %>''')
+    template('converterExends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}Converter" %> ${macros.generate('converterExtends', c)} <% } %>''')
+  }
+    
+  
   templates('initializer', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {

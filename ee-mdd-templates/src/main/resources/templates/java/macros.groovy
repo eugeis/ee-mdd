@@ -5968,6 +5968,104 @@ public class $className {<% module.containers.each { container -> if(container.c
     return ${container.controller.uncap}.loadAll();
   }<% } } %>
 }''')
+  
+  template('converter', body: '''{{imports}}
+/** Base converter between interface and entities for types of '$module.name' */
+@${c.name('Alternative')}
+public class $className {
+  protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
+  protected ${module.capShortName}ModelFactory internal;
+  protected ${module.capShortName}ModelFactory external;<% [module.basicTypes, module.entities].each { it.each { t -> %><% if (!t.virtual) { %>
+
+  public $t.cap toInternal($t.cap from) {
+    $t.cap ret = internal.get${t.cap}Factory().convert(from);
+    return ret;
+  }
+
+  public void toInternal($t.cap from, $t.cap to) {
+    internal.get${t.cap}Factory().copy(from, to);
+  }
+
+  public $t.cap toExternal($t.cap from) {
+    $t.cap ret = external.get${t.cap}Factory().convert(from);
+    return ret;
+  }<% } } } %><% [module.basicTypes, module.entities].each { it.each { t -> %><% if (!t.virtual) { %>
+
+  public List<$t.cap> convert${t.cap}sToInternal(Collection<$t.cap> items) {
+    ArrayList<$t.cap> ret = new ArrayList<>();
+    for($t.cap item : items) {
+      ret.add(toInternal(item));
+    }
+    return ret;
+  }
+
+  public List<$t.cap> convert${t.cap}sToExternal(Collection<$t.cap> items) {
+    ArrayList<$t.cap> ret = new ArrayList<>();
+    for($t.cap item : items) {
+      ret.add(toExternal(item));
+    }
+    return ret;
+  }<% } } } %>
+
+  @SuppressWarnings("unchecked")
+  public <E> E toExternal(E from) {
+    E ret;
+    if (from == null) {
+      ret = null;
+    }<% [module.basicTypes, module.entities].each { it.each { t-> %><% if (!t.virtual) { %> else if (from instanceof $t.cap) {
+      ret = (E) toExternal(($t.cap)from);
+    }<% } } } %> else {
+      ret = from;
+    }
+    return ret;
+  }
+
+  @SuppressWarnings("unchecked")
+  public <E> E toInternal(E from) {
+    E ret;
+    if (from == null) {
+      ret = null;
+    }<% [module.basicTypes, module.entities].each { it.each { t-> %><% if (!t.virtual) { %> else if (from instanceof $t.cap) {
+      ret = (E) toInternal(($t.cap)from);
+    }<% } } } %> else {
+      ret = from;
+    }
+    return ret;
+  }
+
+<% [module.entities].each { it.each { t-> %><% if (!t.virtual) { %>
+  public void convert${t.cap}sToInternal(Collection<$t.cap> from, Collection<$t.cap> to) {
+    for ($t.cap modifiedItem : from) {
+      $t.cap storedItem = null;
+      for ($t.cap toIterator : to) {
+        if (toIterator.getId().equals(modifiedItem.getId())) {
+          storedItem = toIterator;
+          break;
+        }
+      }
+      toInternal(modifiedItem, storedItem);
+    }
+  }<% } } } %>
+
+  @Inject
+  public void setInternal(@Internal${module.capShortName}ModelFactory internal) {
+    this.internal = internal;
+  }
+
+  @Inject
+  public void setExternal(${module.capShortName}ModelFactory external) {
+    this.external = external;
+  }
+}''')
+  
+  template('converterExtends', body: '''{{imports}}
+/** Converter between interface and entities for types of '$module.name' */
+@${c.name('SupportsEnvironments')}({
+    @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
+    @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })
+@${c.name('ApplicationScoped')}
+public class $className extends ${module.capShortName}ConverterBase {
+}''')
  
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
