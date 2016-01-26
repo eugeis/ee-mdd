@@ -783,6 +783,27 @@ public abstract class $className implements $item.name {<% item.operations.each 
     return null;<% } %>
   }<% } %><% } } %>
 }''')
+  
+  template('serviceProvider', body: '''{{imports}}
+/** Service provider for remote implementation of {@link $item.name} */
+@${c.name('ApplicationScoped')}
+@${c.name('Traceable')}
+public class $className extends ServiceProviderRemote<$item.name> {
+  public static final String BEAN = SERVICE_${item.underscored};
+  public static final String MODULE = MODULE_${module.underscored};
+
+  public $className() {
+    super(BEAN, ${item.name}.class, APPLICATION, MODULE);
+  }
+
+  public $className(ServiceLocator serviceLocator, boolean cacheService, boolean lazyInit) {
+    super(BEAN, ${item.name}.class, APPLICATION, MODULE, serviceLocator, cacheService, lazyInit);
+  }
+
+  public void onChangeServiceLocator(@Observes(notifyObserver = Reception.IF_EXISTS) ServiceLocator serviceLocator) {
+    setServiceLocator(serviceLocator);
+  }
+}''')
 
   template('implCache', body: '''import static ee.common.util.ComparisonUtils.*;{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>
   <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>

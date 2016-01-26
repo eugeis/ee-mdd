@@ -159,6 +159,12 @@ templates ('common') {
     template('ifcServiceExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.src = true %><% c.className = item.cap %> ${macros.generate('ifcServiceExtends', c)}<% } %>''')
     template('serviceEmpty', appendName: true, body: '''<% c.className = item.n.cap.empty %> ${macros.generate('serviceEmpty', c)}''')
   }
+  
+  templates('serviceProvider', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Facade.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'provider'] ) } ) {
+    template('serviceProvider', appendName: true, body: '''<% c.className = item.n.cap.provider %> ${macros.generate('serviceProvider', c)}''')
+  }
 
   templates ('container', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
