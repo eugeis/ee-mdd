@@ -42,6 +42,7 @@ import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
+import ee.mdd.model.component.Param
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
@@ -876,13 +877,62 @@ class EnhancerForJava {
         ret-separator
       }
       
+      getParamsWithoutDefaults << { 
+        ->
+        def key = System.identityHashCode(delegate) + 'paramsWithoutDefaults'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.params.findAll { it.prop && !it.prop.defaultValue }
+        }
+        properties[key]
+      }
+      
       getPropLinks << {
         ->
         def key = System.identityHashCode(delegate) + 'propLinks'
         if(!properties.containsKey(key)) {
-        properties[key] = delegate.params.collect { it.multi ? "new StringLink<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new StringLink<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})" }.join(', ')
+          properties[key] = delegate.params.collect { it.multi ? "new StringLink<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new StringLink<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})" }.join(', ')
         }
         properties[key]
+      }
+      
+      getPropCompare << {
+        ->
+        def key = System.identityHashCode(delegate) + 'propCompare'
+        if(!properties.containsKey(key)) {
+          paramsWithoutDefaults.collect { param -> def prop = param.prop; param.multi?"${param.paramName}s.contains(${entity}.$prop.getterWithIdIfRelation)": "$param.compareMethod(${entity}.${prop.getterWithIdIfRelation}, $param.paramName)" }.join(' && ') 
+        }
+        properties[key]
+      }
+      
+      getMlKeyName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'mlKeyName'
+        if(!properties.containsKey(key)) {
+          properties[key] = "${delegate.entity.name}_$delegate.name".replaceAll(/(\B[A-Z])/,'_$1').toLowerCase()
+        }
+        properties[key]
+      }
+      
+      getMlKeyConstant << {
+        ->
+        def key = System.identityHashCode(delegate) + 'mlKeyConstant'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.mlKeyName.toUpperCase()
+        }
+        properties[key]
+      }
+      
+      isOneOfPropsRelationId << {
+        ->
+        def key = System.identityHashCode(delegate) + 'oneOfPropsRelationId'
+        if(!properties.containsKey(key)) {
+          def op = delegate
+          def ret = false
+          op.paramsWithoutDefaults.each { param -> if(param.prop.relationIdProp != null) { ret = true }
+          properties[key] = ret
+          }  
+        }
+        properties[key]  
       }
       
     }
@@ -971,6 +1021,26 @@ class EnhancerForJava {
             ret = "String"
           }
           properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      getNameWithIdIfRelation << {
+        ->
+        def key = System.identityHashCode(delegate) + 'nameWithIdIfRelation'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          properties[key] = prop.relationIdProp == null ? "${prop.name}" : "${prop.name}${prop.relationIdProp.cap}"
+        }
+        properties[key]
+      }
+      
+      getGetterWithIdIfRelation << {
+        ->
+        def key = System.identityHashCode(delegate) + 'getterWithIdIfRelation'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          properties[key] = prop.relationIdProp == null ? prop.getter : "${prop.name}${prop.relationIdProp.cap}"
         }
         properties[key]
       }
@@ -1516,6 +1586,39 @@ class EnhancerForJava {
         }
       }
 
+    }
+    
+    Param.metaClass {
+      
+      getCompareMethod << {
+        ->
+        def key = System.identityHashCode(delegate) + 'compareMethod'
+        if(!properties.containsKey(key)) {
+          def ret = 'areEquals'
+          switch (delegate.compare) {
+            case '<=':
+              ret = 'lessOrEqual'
+              break
+            case '<':
+              ret = 'less'
+              break
+            case '=>':
+              ret = 'greaterOrEqual'
+              break
+            case '>':
+              ret = 'greater'
+              break
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      getParamName << {
+        def prop = delegate.prop
+        prop.typeEntity ? "${prop.nameWithIdIfRelation}" : "${prop.name}"
+      }
+          
     }
 
 
