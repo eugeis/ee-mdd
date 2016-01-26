@@ -6227,13 +6227,14 @@ public class $className extends ${module.initializerName}Base {
 public class $className extends ${component.capShortName}InitializerBase {
 }''')
  
- template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %>
+ template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% startupInitializers.each { %>
+import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${it.initializerName};<% } %>
 /** Initializer for '$module.name' */
 //TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
 @${c.name('Alternative')}
 public class $className extends ApplicationInitializerBase {
-  protected ProfileManager profileManager;<% startupInitializers.each { %>
-  protected ${component.capShortName}${it.uncapShortName}Initializer ${it.capShortName}InitializerInstance;<% } %>
+  protected ${c.name('ProfileManager')} profileManager;<% startupInitializers.each { %>
+  protected ${it.initializerName} ${it.uncapShortName}Initializer;<% } %>
 
   public $className() {
     super(new ApplicationMeta(${component.capShortName}ConstantsBase.APPLICATION));
@@ -6249,7 +6250,7 @@ public class $className extends ApplicationInitializerBase {
     ${it.uncapShortName}InitializerInstance.init(clusterSingleton);<% } %>
   }<% startupInitializers.each { %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${component.capShortName}${it.cap}Initializer(${component.capShortName}${it.cap}Initializer ${it.uncapShortName}Initializer) {
     this.${it.uncapShortName}Initializer = ${it.uncapShortName}InitializerInstance;
   }<% } } %>

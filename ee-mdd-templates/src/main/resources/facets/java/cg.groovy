@@ -42,7 +42,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'AbstractEntityFactory' : 'com.siemens.ra.cg.pl.common.base.model', 'AbstractFactory' : 'com.siemens.ra.cg.pl.common.base.model', 'EntityManagerFactoryLocator' : 'com.siemens.ra.cg.pl.common.ejb.locator',
   'ClusterSingleton' : 'com.siemens.ra.cg.pl.env.integ', 'ModuleInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ', 'DbSchemaGenerator' : 'com.siemens.ra.cg.pl.common.ejb.schemagen',
   'ReconnectServiceProvider' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'ServiceLocatorFactory' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'Internal' : 'com.siemens.ra.cg.pl.common.base.cdi',
-  'TransactionProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'TraceProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ'] as TreeMap
+  'TransactionProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'TraceProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'ProfileManager' : 'com.siemens.ra.cg.pl.common.profile.core'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

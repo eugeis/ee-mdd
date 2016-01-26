@@ -353,7 +353,7 @@ templates ('common') {
   
   templates('intializerComponent', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ'] ) } ) {
     template('implInitializerComponent', appendName:true,  body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerImpl" %><% c.path = "ee-mdd_example-backend/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %>  ${macros.generate('implInitializerComponent', c)}<% } %>''')
     template('initializerComponent', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerBase" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('initializerComponent', c)}<% } %>''')
     template('initializerWakeup', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerWakeup" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('initializerWakeup', c)}<% } %>''')    
