@@ -408,5 +408,14 @@ templates ('common') {
     template('findersFactoryMem', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryMemoryBase" %> ${macros.generate('findersFactoryMem', c)} <% } %>''')
     template('commandsFactoryMemExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryMemory" %> ${macros.generate('commandsFactoryMemExtends', c)} <% } %>''')
     template('findersFactoryMemExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryMemory" %> ${macros.generate('findersFactoryMemExtends', c)} <% } %>''')
-  }  
+  }
+  
+  templates('commandsFindersMem', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('commandsMem', appendName: true, body: '''<% if(item.commands && !item.virtual) { if(item.commands.base) { %><% c.className = item.commands.n.cap.baseMem %><% } else { %><% c.className = item.commands.n.cap.mem %><% } %> ${macros.generate('commandsMem', c)} <% } %>''')
+    template('findersMem', appendName: true, body: '''<% if(item.finders && !item.virtual) { if(item.finders.base) { %><% c.className = item.finders.n.cap.baseMem %><% } else { %><% c.className = item.finders.n.cap.mem %><% } %> ${macros.generate('findersMem', c)} <% } %>''')
+    template('commandsMemExtends', appendName: true, body: '''<% if(item.commands && item.commands.base && !item.virtual) { %><% c.className = item.commands.n.cap.mem %> ${macros.generate('commandsMemExtends', c)} <% } %>''')
+    template('findersMemExtends', appendName: true, body: '''<% if(item.finders && item.finders.base && !item.virtual) { %><% c.className = item.finders.n.cap.mem %> ${macros.generate('findersMemExtends', c)} <% } %>''')
+  }
 }

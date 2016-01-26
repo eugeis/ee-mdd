@@ -2306,9 +2306,212 @@ public class $className extends $item.n.cap.baseBean {
 ${macros.generate('implOperations', c)}
 }''')
   
+  template('commandsMem', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %>
+/** Memory implementation of {@link $commands.name} */
+<% if (commands.base) { %>@${c.name('Alternative')}<% }else { %>@${c.name('ApplicationScoped')}
+${c.name('@Manager')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
+public ${commands.base?'abstract ':''}class $className extends ManagerMemAbstract<${idProp.type.name}, $item.cap> implements $commands.name {
+  protected Event<${item.n.cap.event}> publisher;<% commands.creators.each { op -> %>
+
+  @Override
+  ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op -> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    ArrayList<$op.entity.cap> toDelete = new ${c.name('ArrayList')}<>();
+    for ($op.entity.cap entity : findAll()) {
+      if (${op.propCompare}) {
+        toDelete.add(entity);
+      }
+    }
+    if (!toDelete.isEmpty()) {
+      removeAll(toDelete);
+      fireEvent(ActionType.DELETE_MULTIPLE);
+    }
+  }<% } %><% commands.operationsNotManager.each { op -> c.op = op; if (op.body) { %>
+
+  @Override<% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  ${macros.generate('operationRawType', c)}<% } } %><% commands.updators.each { op -> c.op = op;
+    def retPropGetters = op.params.collect { "ret.${it.prop.getter}" }.join(', ')
+    def propNames = op.params.collect { it.prop.name }.join(', '); c.retPropGetters = retPropGetters; c.propNames = propNames; %>
+
+  ${macros.generate('operationIdProp', c)}
+
+  <%if (op.fireEventProp) {%>
+  ${macros.generate('operationIdPropFireEvent', c)}
+
+  ${macros.generate('operationEntity', c)}
+
+  @Override
+  @${c.name('Transactional')}
+  public $op.returnTypeExternal ${op.name}($item.cap entity, ${op.signature(c)}, boolean fireEvent) {
+    $item.cap ret = entity;
+    //build ml key parameter
+    ${macros.generate('buildMlParams', c)}
+
+    //update properties
+    ${macros.generate('updateProps', c)}
+
+    //send ml event
+    if (fireEvent) {
+      ${macros.generate('publisherSendMlEvent', c)}
+    }
+
+    return ret;
+  }
+  <% } else { %>
+  @Override
+  @Transactional
+  public $op.returnTypeExternal ${op.name}($item.cap entity, ${op.signature(c)}) {
+    $item.cap ret = entity;
+    //build ml key parameter
+    ${macros.generate('buildMlParams', c)}
+
+    //update properties
+    ${macros.generate('updateProps', c)}
+
+    //send ml event
+    ${macros.generate('publisherSendMlEvent', c)}
+
+    return ret;
+  }
+  <% } %>
+  <% } %><% if (item.ordered) { %>
+
+  ${macros.generate('fillOrderList', c)}
+
+  ${macros.generate('fillOrder', c)}<% } %>
+
+  @Override
+  protected void beforePersist($item.cap entity) {
+    ${idProp.computedTypeEjb(c)} id = generateId(entity);
+    if (id!=null) {
+      entity.set${idProp.cap}(id);
+    }
+  }
+
+  ${macros.generate('fireEventEntity', c)}
+
+  ${macros.generate('fireEvent', c)}
+
+  ${macros.generate('publisherFireEvent', c)}
+
+  ${macros.generate('initMlKeyForEntityEvent', c)}
+
+  ${macros.generate('setPublisher', c)}
+
+  @Inject
+  public void setFactory($item.n.cap.factory factory) {
+    super.setFactory(factory);
+  }
+}''')
+  
+  template('findersMem', body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp %>
+/** Memory implementation of {@link $finders.name} */
+<% if (finders.base) { %>@${c.name('Alternative')}<% }else { %>@${c.name('ApplicationScoped')}
+${c.name('@Manager')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
+public ${finders.base?'abstract ':''}class $className extends ManagerMemAbstract<${idProp.type.name}, $item.cap> implements $finders.name {
+  protected Event<${item.n.cap.event}> publisher;<% finders.counters.each { op -> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    $op.returnTypeExternal ret = 0;
+    for ($op.entity.cap entity : findAll()) {
+      if (${op.propCompare}) {
+        ret++;
+      }
+    }
+    return ret;
+  }<% } %><% finders.existers.each { op-> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    boolean ret = false;
+    for ($op.entity.cap entity : findAll()) {
+      if (${op.propCompare}) {
+        ret = true;
+        break;
+      }
+    }
+    return ret;
+  }<% } %><% finders.finders.each { op-> %>
+
+  @Override
+  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+    $op.returnTypeExternal ret = ${op.unique ? null : "new ArrayList<>()"};
+    for ($op.entity.cap entity : findAll()) {
+      if (${op.propCompare}) {<% if (op.unique) { %>
+        ret = entity;
+        break;<% } else { %>
+        ret.add(entity);<% } %>
+      }
+    }
+    return ret;
+  }
+
+  @Override
+  public $op.returnTypeExternal ${op.name}Strict(${op.signature(c)}) {
+    return strict(${op.name}($op.signatureName), \"${op.name}\", $op.signatureName);
+  }<% if(op.oneOfPropsRelationId) { %>*/<% } %><% } %><% finders.operationsNotManager.each { op -> c.op = op; if (op.body) { %>
+
+  @Override<% if (op.rawType) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
+  ${macros.generate('operationRawType', c)}<% } } %><% if (item.ordered) { %>
+
+  ${macros.generate('fillOrderList')}
+
+  ${macros.generate('fillOrder', c)}<% } %>
+
+  @Override
+  protected void beforePersist($item.cap entity) {
+    ${idProp.computedTypeEjb(c)} id = generateId(entity);
+    if (id!=null) {
+      entity.set${idProp.cap}(id);
+    }
+  }
+
+  ${macros.generate('fireEventEntity', c)}
+
+  ${macros.generate('fireEvent', c)}
+
+  ${macros.generate('publisherFireEvent', c)}
+
+  ${macros.generate('initMlKeyForEntityEvent', c)}
+
+  ${macros.generate('setPublisher', c)}
+
+  @Inject
+  public void setFactory($item.n.cap.factory factory) {
+    super.setFactory(factory);
+  }
+}''')
+  
+  template('commandsMemExtends', body: '''{{imports}}<% def commands = item.commands; c.manager = commands %>
+/** Memory implementation of {@link $commands.name} */
+@${c.name('ApplicationScoped')}
+${c.name('@Manager')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
+public class $className extends $commands.n.cap.baseMem {
+  ${macros.generate('implOperationsManager', c)}
+}
+''')
+  
+  template('findersMemExtends', body: '''{{imports}}<% def finders = item.finders; c.manager = finders %>
+/** Memory implementation of {@link $finders.name} */
+@${c.name('ApplicationScoped')}
+${c.name('@Manager')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
+public class $className extends $manager.n.cap.baseMem {
+  ${macros.generate('implOperationsManager', c)}
+}
+''')
+  
   template('implCommands', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
 /** JPA implementation of {@link commands.name} */
-<% if (commands.base) { %>@Alternative<% }else { %>@Manager
+<% if (commands.base) { %>@Alternative<% }else { %>${c.name('@Manager')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
@@ -6687,6 +6890,12 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
     initMlKey(event);
     fireEvent(event);
   }''')
+  
+  template('publisherSendMlEvent', body: '''
+    forceVersionUpdate();
+    $item.n.cap.event event = new $item.n.cap.event(ret, ActionType.UPDATE, source);
+    event.initMlKey(${component.capShortName}Ml.ML_BASE, ${component.capShortName}Ml.${c.op.mlKeyConstant}, mlParameters);
+    publisher.fire(event);''')
   
   template('initMlKeyForEntityEvent', body: '''
 private void initMlKey($item.n.cap.event event) {

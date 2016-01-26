@@ -24,6 +24,7 @@ import ee.mdd.model.Element
  */
 class Param extends Attribute {
   Prop prop
+  String compare
 
   protected boolean init() {
     if(prop) {
