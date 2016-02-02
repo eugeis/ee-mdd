@@ -4309,6 +4309,50 @@ public abstract class $className extends $baseClass implements $item.cap {
   }
 }''')
   
+  template('viewDriverGuido', body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
+/** Base class for {@link $viewClassName} driver. */
+public class $className extends ViewDriver<$viewClassName> {
+  <% item.controls.each { def control -> if (!control.static) { def widgetType = control.guidWidget %>private ${widgetType}Driver ${control.fieldName};
+  <% } } %>
+  <% item.views.each { def view -> %>private ${view.n.cap.driver} ${view.uncap};
+  <% } %>
+  public $className() {
+    super(${viewClassName}.class);
+  }
+
+  public $className($viewClassName view) {
+    super(view);
+  }
+  <% item.views.each { def view -> %>
+  public ${view.n.cap.driver} ${view.uncap}() {
+    if (${view.uncap} == null) {
+      ${view.uncap} = newDriver(new ${view.n.cap.driver}(view().${view.uncap}));
+    }
+    return ${view.uncap};
+  }
+  <% } %>
+  <% item.controls.each { def control -> if (!control.static) { def widgetType = control.widgetType %>
+  public ${widgetType}Driver $control.fieldName() {
+    if ($control.fieldName == null) {
+      $control.fieldName = driverFactory().new${widgetType}Driver(view().$control.fieldName);
+    }
+    return $control.fieldName;
+  }
+  <% } } %>
+}''')
+  
+  template('viewDriverGuidoExtends', body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
+/** Driver for {@link $viewClassName} view. */
+@Driver<% if (item.main) { %>
+@${c.name('ApplicationScoped')}<% } %>
+public class $className extends ${item.n.cap.driverBase} {
+  ${macros.generate('superclassConstructor', c)}
+
+  public $className($viewClassName view) {
+    super(view);
+  }
+}''')
+  
   
   //StateMachine
   

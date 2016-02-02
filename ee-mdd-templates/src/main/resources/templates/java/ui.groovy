@@ -61,5 +61,7 @@ templates('ui') {
     template('viewGuido', appendName: true, body: '''<% c.className = item.n.cap.guidoBase %> ${macros.generate('viewGuido', c)} ''')
     template('dialogDriver', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.driverBase %> ${macros.generate('dialogDriver', c)} <% } %>''')
     template('dialogDriverExtends', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.driver %> ${macros.generate('dialogDriverExtends', c)} <% } %>''')
+    template('viewDriverGuido', appendName: true, body: '''<% c.className = item.n.cap.driverBase %> ${macros.generate('viewDriverGuido', c)} ''')
+    template('viewDriverGuidoExtends', appendName: true, body: '''<% c.className = item.n.cap.driver %> ${macros.generate('viewDriverGuidoExtends', c)} ''')
   }
 }
