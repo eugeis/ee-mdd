@@ -3592,6 +3592,31 @@ public class ${className} extends BaseTestCase {
     constructorTester.verifyDefaultConstructor(${module.capShortName}Constants.class);
   }
 }''')
+  
+  template('moduleCacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def cachedContainers =  module.containers.findAll { it.controller && it.controller.cache } %>
+public abstract class $className extends BaseTestCase {
+
+  protected ${module.capShortName}Cache instance = new ${module.capShortName}Cache();<% cachedContainers.each { container -> %>
+
+  @Test
+  public void testGetterSetterOf$container.cap() {
+    $container.cap $container.uncap = mock(${container.cap}.class);
+    instance.change$container.cap($container.uncap);
+    assertSame($container.uncap , instance.get$container.cap());
+  }<% } %>
+
+  @Test
+  public void testClear() {<% cachedContainers.each { container -> %>
+    instance.change$container.cap(mock(${container.cap}.class));<% } %>
+
+    instance.clear();<% cachedContainers.each { container -> %>
+    assertNull(instance.get$container.cap());<% } %>
+  }
+}''')
+  
+  template('moduleCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+public class $className extends ${module.capShortName}CacheTestBase {
+}''')
 
   template('notificationPluginTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName

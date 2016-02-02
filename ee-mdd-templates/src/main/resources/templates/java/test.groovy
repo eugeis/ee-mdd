@@ -20,6 +20,7 @@ import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Module
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.StateMachine
 
@@ -41,7 +42,14 @@ templates('test', purpose: UNIT_TEST) {
     template('test', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}<% } %>''')
     template('testExtends', appendName: true, body: '''<% if(!item.virtual) { c.className = item.n.cap.test %>${macros.generate('testExtends', c)}<% } %>''')
   }
-
+  
+  templates('moduleCacheTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('moduleCacheTest', appendName: true, body: '''<% def cachedContainers = module.containers.findAll {it.controller && it.controller.cache}; if (cachedContainers) { %><% c.className = "${module.capShortName}CacheTestBase" %> ${macros.generate('moduleCacheTest', c)}<% } %>''')
+    template('moduleCacheTestExtends', appendName: true, body: '''<% if (module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheTest" %> ${macros.generate('moduleCacheTestExtends', c)}<% } %>''')
+  }
+  
   templates ('bridgeTests',
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
