@@ -1,8 +1,7 @@
 package templates.java
 
-import static ee.mdd.generator.OutputType.*
 import static ee.mdd.generator.OutputPurpose.*
-
+import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.ui.View
 
 
@@ -57,8 +56,10 @@ templates('ui') {
   items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
 
-    template('dialogGuido', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guidoBase-"View" %> ${macros.generate('dialogGuidoBase', c)}<% } %>''')
-    template('dialogGuidoExtends', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guido-"View" %> ${macros.generate('dialogGuido', c)}<% } %>''')
+    template('dialogGuido', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guidoBase-"View" %> ${macros.generate('dialogGuido', c)}<% } %>''')
+    template('dialogGuidoExtends', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guido-"View" %> ${macros.generate('dialogGuidoExtends', c)}<% } %>''')
     template('viewGuido', appendName: true, body: '''<% c.className = item.n.cap.guidoBase %> ${macros.generate('viewGuido', c)} ''')
+    template('dialogDriver', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.driverBase %> ${macros.generate('dialogDriver', c)} <% } %>''')
+    template('dialogDriverExtends', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.driver %> ${macros.generate('dialogDriverExtends', c)} <% } %>''')
   }
 }

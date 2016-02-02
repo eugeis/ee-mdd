@@ -4213,7 +4213,7 @@ public class $className extends ${view.n.cap.mediatorBase-"View"} {
 }
 ''')
   
-  template('dialogGuidoBase', body: '''{{imports}}<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
+  template('dialogGuido', body: '''{{imports}}<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
 /** Base Guido implementation of ${item.name}. */
 public abstract class $c.className extends ${c.name('DialogView')} {
   public static final String ID = ${item.dialog.cap}Guido.class.getName();
@@ -4242,7 +4242,7 @@ public abstract class $c.className extends ${c.name('DialogView')} {
   }
 }''')
   
-  template('dialogGuido', body: '''<% def dialog = item.dialog %>{{imports}}
+  template('dialogGuidoExtends', body: '''<% def dialog = item.dialog %>{{imports}}
 /** Guido implementation of ${item.name}. */
 @${c.name('RootScoped')}(${c.name('RootType')}.NEW)
 @${c.name('View')}
@@ -4256,6 +4256,30 @@ public class $className extends ${dialog.cap}GuidoBase {
   protected void initEventHandling() {
     super.initEventHandling();
   }
+}''')
+  
+  template('dialogDriver', body: '''{{imports}}<% def dialog = item.dialog; def viewClassName = item.dialog.n.cap.guido; def contentViewDriverClassName = item.n.cap.driver %>
+/** Base class for {@link $viewClassName} driver. */
+public class $className extends ViewDriver<$viewClassName> {
+  private $contentViewDriverClassName contentView;
+
+  public $className() {
+    super(${viewClassName}.class);
+  }
+
+  @OnEventThread(CallType.SYNC)
+  public $contentViewDriverClassName contentView() {
+    if (contentView == null) {
+      contentView = newDriver(new $contentViewDriverClassName(view().contentView));
+    }
+    return contentView;
+  }
+}''')
+  
+  template('dialogDriverExtends', body: '''{{imports}}<% def dialog = item.dialog; def viewClassName = item.dialog.n.cap.guido %>
+/** Driver for {@link $viewClassName} view. */
+public class $className extends ${item.n.cap.driverBase} {
+  ${macros.generate('superclassConstructor', c)}
 }''')
   
   template('viewGuido', body: '''{{imports}}<% def baseClass = item.dialog ? c.name('DialogContentView') : c.name('BaseView') %>
