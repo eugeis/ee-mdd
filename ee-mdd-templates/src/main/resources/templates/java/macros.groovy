@@ -3582,6 +3582,16 @@ public class $c.className {
     ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }''')
+  
+  template('constantsTest', purpose: UNIT_TEST, body: '''{{imports}}
+/** Test for Constants for '$module.name' */
+public class ${className} extends BaseTestCase {
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${module.capShortName}Constants.class);
+  }
+}''')
 
   template('notificationPluginTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName

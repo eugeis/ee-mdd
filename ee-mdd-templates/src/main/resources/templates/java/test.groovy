@@ -17,6 +17,7 @@
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.statemachine.Condition
@@ -74,6 +75,12 @@ templates('test', purpose: UNIT_TEST) {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     template('conditionHandlerTest', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.testBase %> ${macros.generate('conditionHandlerTest', c)} <% } %>''')
     template('conditionHandlerTestExtends', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.test %> ${macros.generate('conditionHandlerTestExtends', c)} <% } %>''')
+  }
+  
+  templates('constantsTest',
+  items: { c -> c.model.findAllRecursiveDown( {Component.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('constantsTest', appendName: true, body: '''<% c.className = c.item.n.cap.constantsTest%><% c.path = "ee-mdd_example-shared/src-gen/test/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constantsTest', c)}''')
   }
   
 }
