@@ -64,4 +64,12 @@ templates('ui') {
     template('viewDriverGuido', appendName: true, body: '''<% c.className = item.n.cap.driverBase %> ${macros.generate('viewDriverGuido', c)} ''')
     template('viewDriverGuidoExtends', appendName: true, body: '''<% c.className = item.n.cap.driver %> ${macros.generate('viewDriverGuidoExtends', c)} ''')
   }
+  
+  templates('fx',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
+    template('fxDialog', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.n.cap.fxBase %> ${macros.generate('fxDialog', c)} <% } %>''')
+    template('fxDialogExtends', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.n.cap.fx %> ${macros.generate('fxDialogExtends', c)} <% } %>''')
+  }
+    
 }

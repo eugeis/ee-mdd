@@ -4368,6 +4368,18 @@ public class $className extends ${item.n.cap.driverBase} {
   }
 }''')
   
+  template('fxDialog', body: '''{{imports}}
+public class $className {
+
+}''')
+  
+  template('fxDialogExtends', body: '''{{imports}}
+@${c.name('RootScoped')}(RootType.NEW)
+@${c.name('View')}
+public class $className extends ${item.n.cap.fxBase} {
+
+}''')
+  
   
   //StateMachine
   
