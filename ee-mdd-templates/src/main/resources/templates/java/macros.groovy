@@ -3317,6 +3317,21 @@ public class $className extends ${c.name('JmsSender')} {
     super.setDestination(destination);
   }
 }''')
+  
+  template('cdiToAal', body: '''{{imports}}<% def aalEntities = module.entities.findAll {it.aal && !it.virtual}; def aalContainers = module.containers.findAll{it.aal} %>
+/** Cdi to Aal bridge for '${module.name}' */
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
+@Stateless
+public class $className extends CdiToAalBase {<% aalEntities.each { entity -> if (entity.event) { %>
+
+  public void on$entity.n.cap.event(@Observes @$component.capShortName @Backend $entity.n.cap.event event) {
+    super.onEvent(event);
+  }<% } } %>
+  <% aalContainers.each { container -> if (container.event) { %>
+  public void on$container.n.cap.event(@Observes @$component.capShortName @Backend $container.n.cap.event event) {
+    super.onEvent(event);
+  }<% } } %>
+}''')
 
   template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
