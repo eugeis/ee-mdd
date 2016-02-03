@@ -3874,6 +3874,17 @@ public class ${className}Test extends BaseTestCase {
   }
 }''')
   
+  template('implContainerControllerTest', body: '''{{imports}}<% def controller = item.controller %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${controller.name}BaseTestImpl {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }
+
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
 @${c.name('ApplicationScoped')}
 public abstract class $className {
