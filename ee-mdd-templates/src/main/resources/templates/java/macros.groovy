@@ -3997,7 +3997,113 @@ public abstract class $className extends BaseTestCase {
   <% } %>
 }''')
   
-  template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
+  template('containerControllerDelegateTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller %><% def refs = []; controller.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
+public abstract class $className {
+
+  protected static $controller.n.cap.impl controller;
+  protected static $item.cap container = new $item.n.cap.impl();<% item.entities.each { entity -> %>
+  protected static ArrayList<$entity.cap> ${entity.uncap}Ejbs  = new ArrayList<>();
+  protected static ArrayList<$entity.cap> $entity.uncap = new ArrayList<>();<% } %>
+
+  @BeforeClass
+  @SuppressWarnings("unchecked")
+  public static void beforeClass$className() {
+    controller = new $controller.n.cap.impl();<% refs.each { ref-> %>
+    controller.set${ref.cap}(mock(${ref.cap}.class));<% } %>
+    controller.set${module.capShortName}Converter(mock(${module.capShortName}Converter.class));
+    controller.setPublisher(mock(Event.class));<% if (controller.cache) { %>
+    controller.setCache(mock(${module.capShortName}Cache}.class));<% } %>
+  }
+
+  @After
+  ${macros.generate('afterClass', c)}
+
+  @Before
+  ${macros.generate('beforeClass', c)}
+
+  protected void verifyNoMoreInteractions() {
+    Mockito.verifyNoMoreInteractions(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      controller.${ref.uncap}<% } %>,
+      controller.converter,
+      controller.publisher);
+  }
+
+  protected void resetMocks() {
+    MockitoCg.resetMocks(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      controller.${ref.uncap}<% } %>,
+      controller.converter,
+      controller.publisher);
+  }
+
+  @Test
+  public void importContainer() {
+    controller.importContainer(container);<% if (controller.deleteBeforeImport) { %>
+    verifyDeleteAll();<% } %>
+    verifyImportContainer();
+  }
+
+  protected void verifyImportContainer() {<% item.entities.each { entity -> %>
+    verify(controller.converter).convert${entity.cap}sToInternal(container.get${entity.cap}s().findNew());
+    verify(controller.${entity.commands.uncap}).updateAll(${entity.uncap}Ejbs, false);<% } %>
+    verify(controller.publisher).fire(($item.n.cap.event) argThat(withActionType(ActionType.CREATE_MULTIPLE)));
+  }
+
+  @Test
+  public void deleteAll() {
+    controller.deleteAll();
+    verifyDeleteAll();
+    verify(controller.publisher).fire(($item.n.cap.event) argThat(withActionType(ActionType.DELETE_MULTIPLE)));
+  }
+
+  protected void verifyDeleteAll() {<% item.entities.each { entity -> %>
+    verify(controller.${entity.commands.uncap}).deleteAll(false);<% } %>
+  }
+
+  @Test
+  public void loadAll() {
+    controller.loadAll();
+    verifyLoadAll();
+  }
+
+  protected void verifyLoadAll() {<% item.entities.each { entity -> %>
+    verify(controller.${entity.finders.uncap}).findAll();<% } %><% item.entities.each { entity -> %>
+    verify(controller.converter).convert${entity.cap}sToExternal(${entity.uncap}Ejbs);<% } %>
+  }
+
+  @Test
+  public void loadVersions() {
+    controller.loadVersions();
+    verifyLoadVersions();
+  }
+
+  protected void verifyLoadVersions() {<% if (controller.cache) { %>
+    verifyLoadAll();<% } else { %><% item.entities.each { entity -> %>
+    verify(controller.${entity.finders.uncap}).findVersions();<% } } %>
+  }<% controller.operations.each { opRef-> if(opRef.delegateOp) { def op = opRef.ref; if (op) { def raw = op.rawType || (op.resultExpression && op.ret.multi && op.ret.typeEntity) %>
+  @Test
+  public void ${opRef.nameTest}() {<% if (op.void) { %>
+    controller.${opRef.nameExternal}($opRef.signatureTestValues);<% } else if (op.returnTypeBoolean) { %>
+    when(controller.${op.parent.uncap}.${op.name}($opRef.signatureTestValues)).thenReturn(true);
+    assertTrue(controller.${opRef.name}($opRef.signatureTestValues));<% } else { %>
+    when(controller.${op.parent.uncap}.${op.name}($opRef.signatureTestValues)).thenReturn(null);
+    assertEquals(null, controller.${opRef.name}($opRef.signatureTestValues));<% } %>
+    verify(controller.${op.parent.uncap}).${op.name}($opRef.signatureTestValues);
+  }<% } } } %>
+
+  @Test
+  public void onEventImportsContainer() {
+    <% if (controller.deleteBeforeImport) { %>
+    verifyDeleteAll();<% } %>
+    verifyImportContainer();
+  }
+
+  @Test
+  public void getEventObjectType() {
+    assertEquals(${item.cap}.class, controller.getEventObjectType());
+  }
+}''')
+  
+  template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());

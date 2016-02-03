@@ -714,7 +714,7 @@ class EnhancerForJava {
       getReturnTypeExternal {
         ->
         delegate.return
-      } 
+      }
 
       isReturnTypeBoolean {
         ->
@@ -813,6 +813,14 @@ class EnhancerForJava {
           ret = false
         }
         ret
+      }
+      
+    }
+    
+    OperationRef.metaClass {
+      
+      getNameTest << {
+        delegate.resultExpression ? "${delegate.ref.cap}Of" : delegate.ref.name
       }
       
     }
