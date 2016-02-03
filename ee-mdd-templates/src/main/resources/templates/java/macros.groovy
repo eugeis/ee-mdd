@@ -3847,6 +3847,33 @@ public class ${className} extends BaseTestCase {
   }
 }''')
   
+  template('implContainerFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}
+public class ${className}Test extends BaseTestCase {
+  private $className factory;
+
+  @Before
+  public void before() {
+    factory = new ${className}();
+    factory.setModelFactory(mock(${module.capShortName}ModelFactory.class));
+  }
+
+  <% item.entities.each { entity -> %>
+  @Test
+  public void test${entity.cap}Type(){
+    Class<?> clazz = factory.${entity.uncap}Type();
+
+    Assert.assertEquals(${entity.n.cap.impl}.class, clazz);
+  }  <% } %>
+
+  @Test
+  public void testNewInstance() {
+    $item.cap container = factory.newInstance();
+
+    assertThat(container, notNullValue());
+    assertThat(container, instanceOf(${item.n.cap.impl}.class));
+  }
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
 @${c.name('ApplicationScoped')}
 public abstract class $className {
