@@ -3874,7 +3874,7 @@ public class ${className}Test extends BaseTestCase {
   }
 }''')
   
-  template('implContainerControllerTest', body: '''{{imports}}<% def controller = item.controller %>
+  template('implContainerControllerTestExtends', body: '''{{imports}}<% def controller = item.controller %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 public class $className extends ${controller.name}BaseTestImpl {
@@ -3882,7 +3882,119 @@ public class $className extends ${controller.name}BaseTestImpl {
   @Test
   public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
    }
+}''')
+  
+  template('implContainerControllerTest', body: '''{{imports}}<% def controller = item.controller %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public abstract class $className extends BaseTestCase {
 
+  @Mock
+  Event<${item.n.cap.event}> publisher;
+
+  @Captor
+  protected ArgumentCaptor<${item.n.cap.event}> eventCaptor;
+
+  protected ${controller.name} controller;
+
+  protected ${module.capShortName}Converter converter;
+<% item.entities.each { entity -> if(entity.commands) { %>
+  protected $entity.comannds.cap $entity.commands.uncap;<% } %><% if(entity.finders) { %>
+  protected $entity.finders.cap $entity.finders.uncap;<% } } %>
+
+  protected EntityManager entityManager;
+<% def parentEntities = []; def notChildEntities = []; def childEntities = []; item.entities.each { entity -> def isParent = false; def isChild = false; entity.propsRecursive.each { prop -> %><% if(prop.relation && prop.oneToMany){ isParent = true} %><% if(prop.relation && prop.manyToOne){ isChild = true} %><% } %><% if(isParent) { parentEntities.add(entity) } %><% if(isChild) { childEntities.add(entity) } else { notChildEntities.add(entity) } %><% } %>
+<% def childEntitiesReferencedInOtherChildEntity = []; childEntities.each { entity -> %><% entity.propsRecursive.each { prop -> if(prop.relation && prop.manyToOne && !prop.oppositeProp && !childEntitiesReferencedInOtherChildEntity.contains(prop.type)){ childEntitiesReferencedInOtherChildEntity.add(prop.type)} %><% } %><% } %>
+  @Before
+  public void before() {
+    ${module.capShortName}CommandsFactoryLocal commandsFactory = SingletonContainer.getSingleton(${module.capShortName}CommandsFactoryLocal.class);
+    ${module.capShortName}FindersFactoryLocal findersFactory = SingletonContainer.getSingleton(${module.capShortName}FindersFactoryLocal.class);
+    commandsFactory.setPublisher(mock(Event.class));
+    FindersFactory.setPublisher(mock(Event.class));
+
+    entityManager = ${component.capShortName}ProducerLocal.entityManager();
+
+  <% item.entities.each { entity -> if(entity.commands) { %>
+    $entity.commands.uncap = managerFactory.get${entity.commands.cap}();<% } %><% if(entity.finders) { %>
+    $entity.finders.uncap = managerFactory.get${entity.finders.cap}();<% } } %>
+
+    ${controller.name}Impl controllerImpl = new ${controller.name}Impl();
+  <% item.entities.each { entity -> if(entity.commands) { %>
+    controllerImpl.set${entity.commands.cap}($entity.commands.uncap)<% } %>;<% if(entity.finders) { %>
+    controllerImpl.set${entity.finders.cap}($entity.finders.uncap);<% } } %>
+
+    converter = new ${module.capShortName}Converter();
+<% if (module.isFacetEnabled('jpa')) { %>
+    converter.setInternal(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    converter.setInternal(new ${module.capShortName}ModelFactorImpl());<% } %><% if (module.isFacetEnabled('entityImpl')) { %>
+    converter.setExternal(new ${module.capShortName}ModelFactorImpl());<% } else if (module.isFacetEnabled('jpa')) { %>
+    converter.setExternal(new ${module.capShortName}ModelFactorEjb());<% } %>
+
+    controllerImpl.set${module.capShortName}Converter(converter);
+    controllerImpl.setPublisher(publisher);
+
+    controller = TransactionProxyHandler.wrapForTransaction(controllerImpl, ${controller.name}.class, entityManager);
+    controller = TraceProxyHandler.wrap(controller, ${controller.name}.class);
+
+<% notChildEntities.each { entity -> %>
+    ${entity.commands.uncap}.deleteAll();<% } %>
+  }
+
+  @After
+  public void after() {<% notChildEntities.each { entity -> %>
+    ${entity.commands.uncap}.deleteAll();<% } %>
+  }
+
+<% if(controller.importChanges) { %>
+<% notChildEntities.each { entity -> %>
+  @Test
+  public void importChangesContainer_withNothingInDatabase_new${entity.cap}_generatedTest() throws Exception {
+    // given
+    ${entity.idProp.computedType(c)} ${entity.uncap}Id = -1L;
+    ${entity.cap} new${entity.cap} = a${entity.cap}().withId(${entity.uncap}Id).build();
+
+    $item.cap changesContainer = a$item.cap().with${entity.cap}s(new${entity.cap}).build();
+
+    // when
+    controller.importChangesContainer(changesContainer);
+
+    // then
+
+    // Check the number of entities in the database
+    checkThatDatabaseContainsNumberOf${entity.cap}s(1);
+
+    // Check the relations between persisted entities
+    ${entity.beanName} ${entity.uncap}Created = get${entity.cap}InDatabaseByIndex(0);
+    assertThat(${entity.uncap}Created.getId(), is(not(${entity.uncap}Id)));
+
+    // Check the content of the event fired
+    $item.cap containerSentWithEvent = getContainerSentWithEvent();
+    ${entity.cap}Cache ${entity.uncap}sInContainerSentWithEvent = containerSentWithEvent.get${entity.cap}s();
+    assertThat(${entity.uncap}sInContainerSentWithEvent.getAll(), containsExactly((${entity.cap}) ${entity.uncap}Created));
+  } <% } %>
+
+<% } %>
+
+  protected $item.cap getContainerSentWithEvent(){
+    verify(publisher).fire(eventCaptor.capture());
+    $item.cap containerInEvent = eventCaptor.getValue().getFirstObject();
+    return containerInEvent;
+  }
+
+  <% item.entities.each { entity -> %>
+  protected void insert${entity.cap}sInDatabase(${entity.cap}... entities) {
+    ${entity.commands.uncap}.updateAll(asList(entities));
+  }
+
+  protected void checkThatDatabaseContainsNumberOf${entity.cap}s(int expectedCount) {
+    List<${entity.cap}> all${entity.cap}s = ${entity.finders.uncap}.findAll();
+    assertThat("Unexpected number of stored ${entity.cap}: " + all${entity.cap}s, all${entity.cap}s, hasSize(expectedCount));
+  }
+
+  protected ${entity.beanName} get${entity.cap}InDatabaseByIndex(int index) {
+    return (${entity.beanName}) ${entity.finders.uncap}.findAll().get(index);
+  }
+  <% } %>
 }''')
   
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
