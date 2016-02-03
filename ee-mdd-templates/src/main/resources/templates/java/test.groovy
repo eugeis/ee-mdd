@@ -66,6 +66,12 @@ templates('test', purpose: UNIT_TEST) {
     template('implConverterTest', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterTestImpl" %>${macros.generate('implConverterTest', c)}<% } %>''')
     template('converterTest', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterTest" %> ${macros.generate('converterTest', c)}<% } %>''')
   }
+  
+  templates('initializerMemTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem' ] ) } ) {
+    template('initializerMemTest', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}" %> ${macros.generate('initializerMemTest', c)}<% } %>''')
+  }
 
   templates ('enumTest',
   items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },

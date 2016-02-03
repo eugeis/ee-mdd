@@ -3727,7 +3727,7 @@ public class $className {
   }<% } %>
 }''')
   
-  template('implConverterTest', body: '''{{imports}}
+  template('implConverterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className {
   protected final static ${module.capShortName}DataFactoryBase DATA_FACTORY;
   protected final static ${module.capShortName}Converter CONVERTER;
@@ -3768,8 +3768,52 @@ public class $className {
   }<% } } } %>
 }''')
   
-  template('converterTest', body: '''{{imports}}
+  template('converterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${className}Impl {
+}''')
+  
+  template('initializerMemTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  private ${module.initializerName}Mem initializer = spy(new ${module.initializerName}Mem());
+
+  @Mock
+  private ClusterSingleton clusterSingleton;
+
+  @Before
+  public void before() {
+    initializer.setClusterSingleton(clusterSingleton);
+
+    logAppender = new AssertingAppender(${module.initializerName}Mem.class);
+  }
+
+  @Test
+  public void onLifecycleEvent_initsClusterSingleton() throws Exception {
+    // given
+    final LifecycleEvent event = new LifecycleEvent(LifecyclePhase.INITIALIZE);
+
+    // when
+    initializer.onLifecycleEvent(event);
+
+    // then
+    verify(initializer).init(clusterSingleton);
+  }
+
+  @Test
+  public void onLifecycleEvent_initializationThrowsException_logsError() throws Exception {
+    // given
+    final LifecycleEvent event = new LifecycleEvent(LifecyclePhase.INITIALIZE);
+    doThrow(anException()).when(initializer).init(clusterSingleton);
+
+    // when
+    initializer.onLifecycleEvent(event);
+
+    // then
+    logAppender.hasReceived(withLogLevel(Level.ERROR));
+  }
 }''')
 
   template('eventToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
