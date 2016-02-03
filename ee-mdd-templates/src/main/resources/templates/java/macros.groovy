@@ -4107,6 +4107,40 @@ public abstract class $className {
 public class $className extends ${className}Base {
 }''')
   
+  template('implContainerVersionsTest', purpose: UNIT_TEST, body:'''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+
+  @Override
+  @Test
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    String source = "source";
+    // when
+    // then
+    assertThat(new $item.n.cap.versionsImpl(), is(notNullValue()));
+    assertThat(new $item.n.cap.versionsImpl(source), is(notNullValue()));
+  }<% item.entities.each { entity -> %>
+
+  @Test
+  public void test${entity.cap}sCount() {
+    $item.n.cap.versionsImpl versions = new $item.n.cap.versionsImpl();
+    assertThat(versions.get${entity.cap}sCount(), is(0));
+
+    versions.set${entity.cap}s(CollectionUtils.asMap($entity.idProp.testValue, 1L));
+    assertThat(versions.get${entity.cap}sCount() == versions.get${entity.cap}s().size(), is(true));
+  }<% } %>
+}''')
+  
+  template('implContainerVersionsTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.n.cap.versionsImpl}TestBase {
+
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {

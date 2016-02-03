@@ -68,6 +68,8 @@ templates('test', purpose: UNIT_TEST) {
     template('implContainerFactoryTest', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implFactoryTest %> ${macros.generate('implContainerFactoryTest', c)} <% } %>''')
     template('implContainerControllerTest', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.BaseTestImpl%>${macros.generate('implContainerControllerTest', c)} <% } %>''')
     template('implContainerControllerTestExtends', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.implTest %>${macros.generate('implContainerControllerTestExtends', c)} <% } %>''')
+    template('implContainerVersionsTest', appendName: true, body: '''<% c.className = item.n.cap.versionsImplTestBase %> ${macros.generate('implContainerVersionsTest', c)}''')
+    template('implContainerVersionsTestExtends', appendName: true, body: '''<% c.className = item.n.cap.versionsImplTest %> ${macros.generate('implContainerVersionsTestExtends', c)}''')
     template('containerControllerDelegateTest', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% c.className = controller.n.cap.delegateTestBase %>${macros.generate('containerControllerDelegateTest', c)}<% } %>''')
     template('containerControllerDelegateTestExtends', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% c.className = controller.n.cap.delegateTest %>${macros.generate('containerControllerDelegateTestExtends', c)}<% } %>''')
   }
