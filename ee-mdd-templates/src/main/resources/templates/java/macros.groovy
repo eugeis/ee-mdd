@@ -3838,6 +3838,15 @@ public class ${className} extends BaseTestCase {
   }
 }''')
   
+  template('eventToCdiExternalTest', purpose: UNIT_TEST, body: '''
+public class ${className} extends BaseTestCase {
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${module.n.cap.eventToCdiExternal}.class);
+  }
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
 @${c.name('ApplicationScoped')}
 public abstract class $className {
