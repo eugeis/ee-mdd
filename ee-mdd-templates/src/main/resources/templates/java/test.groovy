@@ -70,7 +70,13 @@ templates('test', purpose: UNIT_TEST) {
   templates('initializerMemTest',
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem' ] ) } ) {
-    template('initializerMemTest', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}" %> ${macros.generate('initializerMemTest', c)}<% } %>''')
+    template('initializerMemTest', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}MemTest" %> ${macros.generate('initializerMemTest', c)}<% } %>''')
+  }
+  
+  templates('initializerImplTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('initializerImplTest', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}ImplTest" %> ${macros.generate('initializerImplTest', c)}<% } %>''')
   }
 
   templates ('enumTest',

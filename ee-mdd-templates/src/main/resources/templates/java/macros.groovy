@@ -3815,6 +3815,19 @@ public class $className extends BaseTestCase {
     logAppender.hasReceived(withLogLevel(Level.ERROR));
   }
 }''')
+  
+  template('initializerImplTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${module.initializerName}Impl.class);
+  }
+}''')
 
   template('eventToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
 public class ${className} extends BaseTestCase {
