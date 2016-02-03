@@ -83,6 +83,13 @@ templates('test', purpose: UNIT_TEST) {
     template('converterTest', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterTest" %> ${macros.generate('converterTest', c)}<% } %>''')
   }
   
+  templates('commandsFindersMemoryTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem'] ) } ) {
+    template('commandsMemoryTest', appendName: true, body: '''<% if(item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.memoryTest %> ${macros.generate('commandsMemoryTest', c)} <% } %>''')
+    template('findersMemoryTest', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.memoryTest %> ${macros.generate('findersMemoryTest', c)} <% } %>''')
+  }
+  
   templates('initializerMemTest',
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem' ] ) } ) {

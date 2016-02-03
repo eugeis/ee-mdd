@@ -4189,6 +4189,30 @@ public abstract class $className {
 public class $className extends ${item.cap}BuilderBase{
 }''')
   
+  template('commandsMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
+@Alternative
+public class $className extends ${commands.name}TestImpl {
+
+  @BeforeClass
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static void before$className() {
+    ${module.capShortName}CommandsFactoryMemory commandsFactory = SingletonContainer.getSingleton(${module.capShortName}CommandsFactoryMemory.class);
+    preparedManager = commandsFactory.get${commands.cap}((Event)publisher);
+  }
+}''')
+  
+  template('findersMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders %>
+@Alternative
+public class $className extends ${finders.name}TestImpl {
+
+  @BeforeClass
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static void before$className() {
+    ${module.capShortName}FindersFactoryMemory findersFactory = SingletonContainer.getSingleton(${module.capShortName}FindersFactoryMemory.class);
+    preparedManager = findersFactory.get${finders.cap}((Event)publisher);
+  }
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
