@@ -4189,6 +4189,47 @@ public abstract class $className {
 public class $className extends ${item.cap}BuilderBase{
 }''')
   
+  template('commandsTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp; def idConverter %>
+<% if(idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
+@Alternative
+public abstract class $className extends ManagerTestBase<${item.idProp.type.name}, ${item.cap}, ${commands.cap}> {
+
+  protected static ${module.capShortName}DataFactoryBase dataFactory;
+
+  @BeforeClass
+  public static void before$className() {<% if (module.isFacetEnabled('jpa')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryEjb(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryImpl(new ${module.capShortName}ModelFactoryImpl());<% } %>
+  }<% commands.creators.each { op -> %>
+
+  @Test
+  public void test${op.cap}() {
+    ${item.cap} entity = entityForCreation(1);
+    ${item.cap} createdEntity = commands.${op.uncap}(${op.propGetters});<% op.props.each { prop -> %>
+    assertThat(createdEntity.get${prop.cap}(), is(entity.get${prop.cap}()));<% } %>
+  }<% } %><% commands.deleters.each { op-> %>
+
+  @Test
+  public void test${op.cap}() {
+    commands.deleteAll();
+    ${item.cap} entity = commands.create(entityForCreation(1));
+    commands.${op.uncap}(${op.propGetters});
+    ${c.name('List')}<${item.cap}> allEntities = commands.findAll();
+    assertThat(allEntities.size(), is(0));
+  }<% } %>
+
+  @Override
+  protected ${item.idProp.type.name} sampleEntityId(int entityNumber) {
+    return $idConverter;
+  }
+
+  @Override
+  protected $item.cap entityForCreation(int entityNumber) {
+    ${item.cap} ret = dataFactory.new${item.cap}(entityNumber);
+    return ret;
+  }
+}''')
+  
   template('commandsMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {

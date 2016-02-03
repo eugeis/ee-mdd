@@ -90,6 +90,13 @@ templates('test', purpose: UNIT_TEST) {
     template('findersMemoryTest', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.memoryTest %> ${macros.generate('findersMemoryTest', c)} <% } %>''')
   }
   
+  templates('commandsFindersTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('commandsTest', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseTestImpl %> ${macros.generate('commandsTest', c)} <% } %> ''')
+  }
+    
+  
   templates('initializerMemTest',
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem' ] ) } ) {
