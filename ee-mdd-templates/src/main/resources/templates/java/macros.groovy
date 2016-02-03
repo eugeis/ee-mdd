@@ -4141,6 +4141,54 @@ public class $className extends ${item.n.cap.versionsImpl}TestBase {
 
 }''')
   
+  template('containerBuilderTest', purpose: UNIT_TEST, body: '''<% def entityNames = item.entities.collect { it.name } as Set; def entityOneToManyNoOppositeProps = [:]; def entityManyToOneProps = [:]; item.entities.each { entity ->
+entityOneToManyNoOppositeProps[entity] = []; entityManyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if (prop.type) {
+        if (((prop.oneToMany && !prop.oppositeProp) || (prop.mm)) && entityNames.contains(prop.type.name)) { entityToOneToManyNoOppositeProps[entity] << prop }
+        if (prop.manyToOne && entityNames.contains(prop.type.name)) { entityToManyToOneProps[entity] << prop } } } } %>
+public abstract class $className {
+  <% item.entities.each { entity -> %>
+  protected List<${entity.cap}> $entity.uncap = new ArrayList<>();<% } %>
+
+  public $item.cap build() {
+    $item.cap container = buildContainer();<% item.entities.each { entity -> %>
+    add${entity.cap}s(container);<% } %>
+    return container;
+  }
+
+  protected $item.cap buildContainer() {
+   return new $item.n.cap.impl();
+  }
+
+  <% item.entities.each { entity -> %>
+  protected void add${entity.cap}s($item.cap container) {
+    for ($entity.cap next : $entity.uncap) {
+      container.get${entity.cap}s().put(next);
+    }
+  }<% } %>
+
+  <% item.entities.each { entity -> %>@SafeVarargs
+  public final $item.n.cap.builder with${entity.cap}s(Builder<? extends ${entity.cap}>... toAdd) {
+    List<${entity.cap}> instances = new ArrayList<>();
+    for (Builder<? extends ${entity.cap}> builder : toAdd) {
+      instances.add(builder.build());
+    }
+    return with${entity.cap}s(instances);
+  }
+
+  public $item.n.cap.builder with${entity.cap}s(${entity.cap}... toAdd) {
+    return with${entity.cap}s(asList(toAdd));
+  }
+
+  public $item.n.cap.builder with${entity.cap}s(List<? extends ${entity.cap}> toAdd) {
+    ${entity.uncap}.addAll(toAdd);
+    return ($item.n.cap.builder) this;
+  }<% } %>
+}''')
+  
+  template('containerBuilderTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+public class $className extends ${item.cap}BuilderBase{
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
