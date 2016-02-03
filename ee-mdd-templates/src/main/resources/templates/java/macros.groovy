@@ -3726,6 +3726,51 @@ public class $className {
     verify(executor).send(event, destination, connectionFactory);
   }<% } %>
 }''')
+  
+  template('implConverterTest', body: '''{{imports}}
+public class $className {
+  protected final static ${module.capShortName}DataFactoryBase DATA_FACTORY;
+  protected final static ${module.capShortName}Converter CONVERTER;
+
+  static {<% if (module.isFacetEnabled('jpa')) { %>
+    DATA_FACTORY = new ${module.capShortName}DataFactoryEjb(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    DATA_FACTORY = new ${module.capShortName}DataFactoryImpl(new ${module.capShortName}ModelFactoryImpl());<% } %>
+    CONVERTER = new ${module.capShotName}Converter();<% if (module.isFacetEnabled('jpa')) { %>
+    CONVERTER.setInternal(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    CONVERTER.setInternal(new ${module.capShortName}ModelFactoryImpl());<% } %><% if (module.isFacetEnabled('entityImpl')) { %>
+    CONVERTER.setExternal(new ${module.capShortName}ModelFactoryImpl());<% } else if (module.isFacetEnabled('jpa')) { %>
+    CONVERTER.setExternal(new ${module.capShortName}ModelFactoryEjb());<% } %>
+  }<% [module.basicTypes, module.entities].each { it.each { t-> %><% if (!t.virtual) { %>
+  <% c.method = 'toInternal'; c.capMethod = 'ToInternal'; c.t = t %>
+  ${macros.generate('expectSameObjectByConvert', c)}
+  <% c.method = 'toExternal'; c.capMethod = 'ToExternal'; c.t = t %>
+  ${macros.generate('expectSameObjectByConvert', c)}<% } } } %><% [module.basicTypes, module.entities].each { it.each { t-> %><% if (!t.virtual) { %>
+
+  @Test
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void excpectSameObjectsByConvert${t.cap}sToInternal() {
+    ${c.name('List')} originalList = DATA_FACTORY.new${t.cap}List(1,3);
+    List<$t.cap> convertedList = CONVERTER.convert${t.cap}sToInternal(originalList);
+    assertArrayEquals(originalList.toArray(), convertedList.toArray());
+  }
+
+  @Test
+  public void excpectSameObjectsByConvert${t.cap}sToExternal() {
+    List<$t.cap> originalList = DATA_FACTORY.new${t.cap}List(1,3);
+    List<$t.cap> convertedList = CONVERTER.convert${t.cap}sToExternal(originalList);
+    assertThat(convertedList.size(), is(originalList.size()));
+    for (int i = 0; i < originalList.size(); i++) {
+      $t.cap entity = originalList.get(i);
+      $t.cap convertedEntity = convertedList.get(i);<% t.propsRecursive.each { prop -> if (!prop.derived) { if ((!prop.multi || prop.typeBasicType) && !prop.typeEntity) { %>
+      assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+      assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
+    }
+  }<% } } } %>
+}''')
+  
+  template('converterTest', body: '''{{imports}}
+public class $className extends ${className}Impl {
+}''')
 
   template('eventToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
 public class ${className} extends BaseTestCase {
@@ -7097,6 +7142,14 @@ private void initMlKey($item.n.cap.event event) {
     ret.set${prop.cap}(Long.valueOf(entityNumber));<% } else if (prop.type == 'Integer') { %>
     ret.set${prop.cap}(Integer.valueOf(entityNumber));<% } else if (prop.type == 'Date') { %>
     ret.set${prop.cap}(TimeUtils.now());<% } } %><% } } %>''')
+  
+  template('expectSameObjectByConvert', body: '''@Test
+  public void expectSameObjectByConvert${c.t.cap}$c.capMethod() {
+    $c.t.cap entity = DATA_FACTORY.new${c.t.cap}(1);
+    $c.t.cap convertedEntity = CONVERTER.$c.method(entity);<% c.t.propsRecursive.each { prop -> if (!prop.derived) { if ((!prop.multi || prop.typeBasicType) && !prop.typeEntity) { %>
+    assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+    assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
+  }''')
   
   template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
