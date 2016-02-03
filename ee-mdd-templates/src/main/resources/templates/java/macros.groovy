@@ -4103,6 +4103,10 @@ public abstract class $className {
   }
 }''')
   
+  template('containerControllerDelegateTestExtends', purpose: UNIT_TEST, body: '''
+public class $className extends ${className}Base {
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
