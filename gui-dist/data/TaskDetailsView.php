@@ -1,4 +1,7 @@
 ﻿<?php
+
+//This is just a dummy backend mocking a db-server architecture.
+
 header('Content-Type: application/json');
 $id = $_GET["id"];
 $type = $_GET["type"];

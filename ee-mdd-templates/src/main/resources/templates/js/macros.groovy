@@ -152,7 +152,8 @@ section {
 }
 
 .entityTable tr.selected {
-	outline: 1px solid #999;
+	border-left: 2px solid #0d355a;
+	border-right1: 2px solid #0d355a;
 }
 
 .entityTable .tableInput {

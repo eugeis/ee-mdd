@@ -6,6 +6,8 @@ import ee.mdd.generator.js.GeneratorForJs
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
 
+import org.apache.commons.io.FileUtils
+
 class GenerateJsTest {
   GeneratorForJs generator = new GeneratorForJs()
 
@@ -140,7 +142,14 @@ class GenerateJsTest {
 
     generator.builder.typeResolver.printNotResolved()
 
-    generator.generate(model, new File('temp'), null)
+	boolean generateToWebsite = false;
+	if (generateToWebsite) {
+		String pathToHomepage = "C:\\Users\\Z0039XMM\\Desktop\\xampp-portable-win32-7.0.2-1-VC14\\xampp\\htdocs"
+		generator.generate(model, new File(pathToHomepage), null)
+		FileUtils.copyDirectory(new File("..\\gui-dist"), new File(pathToHomepage + "\\generated"))
+	} else {
+		generator.generate(model, new File("temp"), null)
+	}
 
     model.extend {
       component('Foo') {

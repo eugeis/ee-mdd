@@ -45,7 +45,7 @@ templates ('common') {
 
   	templates ('mainView',
   		items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && it.main}) },
-  		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
+  		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
   			template('indexhtml', body: '''<% c.path = "${c.filepath}/index.html" %>${macros.generate('indexhtml', c)}''')
   			template('appjs', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
   			template('stylecss', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylecss', c)}''')
@@ -62,9 +62,9 @@ templates ('common') {
 
   	templates ('frameView',
   		items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it)}) },
-  		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
+  		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
  			template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
   			template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
-  			template('framesrcjs', body: '''<% c.src = true %><% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
+  			template('framesrcjs', body: '''<% c.src = true; c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
   		}
 }
