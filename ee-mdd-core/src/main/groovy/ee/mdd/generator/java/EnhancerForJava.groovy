@@ -68,6 +68,7 @@ import ee.mdd.model.ui.TimeField
 
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -714,7 +715,7 @@ class EnhancerForJava {
       getReturnTypeExternal {
         ->
         delegate.return
-      } 
+      }
 
       isReturnTypeBoolean {
         ->
@@ -817,6 +818,14 @@ class EnhancerForJava {
       
     }
     
+    OperationRef.metaClass {
+      
+      getNameTest << {
+        delegate.resultExpression ? "${delegate.ref.cap}Of" : delegate.ref.name
+      }
+      
+    }
+    
     DataTypeProp.metaClass {
       
       getRelation << {
@@ -875,6 +884,10 @@ class EnhancerForJava {
           ret += separator+param.prop.underscored
         }
         ret-separator
+      }
+      
+      getPropGetters << {
+        delegate.paramsWithoutDefaults.collect { Prop prop = param.prop; prop.multi?"CollectionUtils.asList(entity.${prop.getterWithIdIfRelation})": "entity.${prop.getterWithIdIfRelation}" }.join(", ")
       }
       
       getParamsWithoutDefaults << { 

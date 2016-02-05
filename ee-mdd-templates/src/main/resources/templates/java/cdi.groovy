@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import static ee.mdd.generator.OutputType.*
 import static ee.mdd.generator.OutputPurpose.*
-
+import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Module
 
 /**
  *
@@ -46,4 +46,11 @@ templates('cdi') {
     template('eventToCdiExternal', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternalBase %> ${macros.generate('eventToCdiExternal', c)}<% } %>''')
     template('eventToCdiExternalExtends', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternal %> ${macros.generate('eventToCdiExternalExtends', c)}<% } %>''')
   }
+  
+  templates('cdiToAal', type: INTEG,
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+    template('cdiToAal', appendName: true, body: '''<% def aalEntities = module.entities.findAll {it.aal && !it.virtual}; def aalContainers = module.containers.findAll{it.aal} %><% if(aalEntities || aalContainers) { %><% c.className = "${module.capShortName}CdiToAal" %> ${macros.generate('cdiToAal', c)} <% } %>''')
+  }
+    
 }

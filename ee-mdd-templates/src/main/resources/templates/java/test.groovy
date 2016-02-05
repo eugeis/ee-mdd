@@ -17,8 +17,11 @@
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Component
+import ee.mdd.model.component.Container
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Module
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.StateMachine
 
@@ -40,7 +43,14 @@ templates('test', purpose: UNIT_TEST) {
     template('test', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}<% } %>''')
     template('testExtends', appendName: true, body: '''<% if(!item.virtual) { c.className = item.n.cap.test %>${macros.generate('testExtends', c)}<% } %>''')
   }
-
+  
+  templates('moduleCacheTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('moduleCacheTest', appendName: true, body: '''<% def cachedContainers = module.containers.findAll {it.controller && it.controller.cache}; if (cachedContainers) { %><% c.className = "${module.capShortName}CacheTestBase" %> ${macros.generate('moduleCacheTest', c)}<% } %>''')
+    template('moduleCacheTestExtends', appendName: true, body: '''<% if (module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheTest" %> ${macros.generate('moduleCacheTestExtends', c)}<% } %>''')
+  }
+  
   templates ('bridgeTests',
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
@@ -49,6 +59,54 @@ templates('test', purpose: UNIT_TEST) {
     template('jmsToCdiTest' , appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.jmsToCdiTest %> ${macros.generate('jmsToCdiTest', c)} <% } %>''')
     template('cdiToJmsTest', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.cdiToJmsTest %> ${macros.generate('cdiToJmsTest', c)} <% } %>''')
     template('eventToCdiTest', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiTest %> ${macros.generate('eventToCdiTest', c)} <% } %>''')
+    template('eventToCdiExternalTest', appendName: true, body: '''<% if(module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternalTest %> ${macros.generate('eventToCdiExternalTest, c)}<% } %>''')
+  }
+  
+  templates('containerTests',
+  items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+    template('implContainerFactoryTest', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implFactoryTest %> ${macros.generate('implContainerFactoryTest', c)} <% } %>''')
+    template('implContainerControllerTest', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.BaseTestImpl%>${macros.generate('implContainerControllerTest', c)} <% } %>''')
+    template('implContainerControllerTestExtends', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.implTest %>${macros.generate('implContainerControllerTestExtends', c)} <% } %>''')
+    template('implContainerVersionsTest', appendName: true, body: '''<% c.className = item.n.cap.versionsImplTestBase %> ${macros.generate('implContainerVersionsTest', c)}''')
+    template('implContainerVersionsTestExtends', appendName: true, body: '''<% c.className = item.n.cap.versionsImplTest %> ${macros.generate('implContainerVersionsTestExtends', c)}''')
+    template('containerBuilderTest', appendName: true, body: '''<% c.className = "${item.cap}BuilderBase" %> ${macros.generate('containerBuilderTest', c)}''')
+    template('containerBuilderTestExtends', appendName: true, body: '''<% c.className = "${item.cap}Builder" %> ${macros.generate('containerBuilderTestExtends', c)}''')
+    template('containerControllerDelegateTest', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% c.className = controller.n.cap.delegateTestBase %>${macros.generate('containerControllerDelegateTest', c)}<% } %>''')
+    template('containerControllerDelegateTestExtends', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% c.className = controller.n.cap.delegateTest %>${macros.generate('containerControllerDelegateTestExtends', c)}<% } %>''')
+  }
+  
+  templates('converterTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+    template('implConverterTest', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterTestImpl" %>${macros.generate('implConverterTest', c)}<% } %>''')
+    template('converterTest', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterTest" %> ${macros.generate('converterTest', c)}<% } %>''')
+  }
+  
+  templates('commandsFindersMemoryTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem'] ) } ) {
+    template('commandsMemoryTest', appendName: true, body: '''<% if(item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.memoryTest %> ${macros.generate('commandsMemoryTest', c)} <% } %>''')
+    template('findersMemoryTest', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.memoryTest %> ${macros.generate('findersMemoryTest', c)} <% } %>''')
+  }
+  
+  templates('commandsFindersTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('commandsTest', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseTestImpl %> ${macros.generate('commandsTest', c)} <% } %> ''')
+  }
+    
+  
+  templates('initializerMemTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'mem' ] ) } ) {
+    template('initializerMemTest', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}MemTest" %> ${macros.generate('initializerMemTest', c)}<% } %>''')
+  }
+  
+  templates('initializerImplTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('initializerImplTest', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}ImplTest" %> ${macros.generate('initializerImplTest', c)}<% } %>''')
   }
 
   templates ('enumTest',
@@ -74,6 +132,12 @@ templates('test', purpose: UNIT_TEST) {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
     template('conditionHandlerTest', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.testBase %> ${macros.generate('conditionHandlerTest', c)} <% } %>''')
     template('conditionHandlerTestExtends', appendName: true, body: '''<% if (!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.test %> ${macros.generate('conditionHandlerTestExtends', c)} <% } %>''')
+  }
+  
+  templates('constantsTest',
+  items: { c -> c.model.findAllRecursiveDown( {Component.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('constantsTest', appendName: true, body: '''<% c.className = c.item.n.cap.constantsTest%><% c.path = "ee-mdd_example-shared/src-gen/test/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constantsTest', c)}''')
   }
   
 }

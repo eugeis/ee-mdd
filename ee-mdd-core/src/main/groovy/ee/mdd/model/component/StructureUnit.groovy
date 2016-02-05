@@ -124,7 +124,11 @@ class StructureUnit extends Composite implements BuilderAware {
   }
 
   boolean isFacetEnabled(Facet facet) {
-    boolean ret = facets[facet.rootFacet.name] != null
+    isFacetEnabled(facet.rootFacet.name)
+  }
+
+  boolean isFacetEnabled(String facetName) {
+    boolean ret = facets[facetName] != null
     ret
   }
 

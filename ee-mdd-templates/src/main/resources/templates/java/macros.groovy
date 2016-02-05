@@ -3317,6 +3317,21 @@ public class $className extends ${c.name('JmsSender')} {
     super.setDestination(destination);
   }
 }''')
+  
+  template('cdiToAal', body: '''{{imports}}<% def aalEntities = module.entities.findAll {it.aal && !it.virtual}; def aalContainers = module.containers.findAll{it.aal} %>
+/** Cdi to Aal bridge for '${module.name}' */
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
+@Stateless
+public class $className extends CdiToAalBase {<% aalEntities.each { entity -> if (entity.event) { %>
+
+  public void on$entity.n.cap.event(@Observes @$component.capShortName @Backend $entity.n.cap.event event) {
+    super.onEvent(event);
+  }<% } } %>
+  <% aalContainers.each { container -> if (container.event) { %>
+  public void on$container.n.cap.event(@Observes @$component.capShortName @Backend $container.n.cap.event event) {
+    super.onEvent(event);
+  }<% } } %>
+}''')
 
   template('eventToCdi', body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiBase } %>{{imports}}
 /** Event Listener to Cdi for '$module.name' */
@@ -3567,6 +3582,41 @@ public class $c.className {
     ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }''')
+  
+  template('constantsTest', purpose: UNIT_TEST, body: '''{{imports}}
+/** Test for Constants for '$module.name' */
+public class ${className} extends BaseTestCase {
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${module.capShortName}Constants.class);
+  }
+}''')
+  
+  template('moduleCacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def cachedContainers =  module.containers.findAll { it.controller && it.controller.cache } %>
+public abstract class $className extends BaseTestCase {
+
+  protected ${module.capShortName}Cache instance = new ${module.capShortName}Cache();<% cachedContainers.each { container -> %>
+
+  @Test
+  public void testGetterSetterOf$container.cap() {
+    $container.cap $container.uncap = mock(${container.cap}.class);
+    instance.change$container.cap($container.uncap);
+    assertSame($container.uncap , instance.get$container.cap());
+  }<% } %>
+
+  @Test
+  public void testClear() {<% cachedContainers.each { container -> %>
+    instance.change$container.cap(mock(${container.cap}.class));<% } %>
+
+    instance.clear();<% cachedContainers.each { container -> %>
+    assertNull(instance.get$container.cap());<% } %>
+  }
+}''')
+  
+  template('moduleCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+public class $className extends ${module.capShortName}CacheTestBase {
+}''')
 
   template('notificationPluginTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName
@@ -3676,6 +3726,108 @@ public class $className {
     verify(executor).send(event, destination, connectionFactory);
   }<% } %>
 }''')
+  
+  template('implConverterTest', purpose: UNIT_TEST, body: '''{{imports}}
+public class $className {
+  protected final static ${module.capShortName}DataFactoryBase DATA_FACTORY;
+  protected final static ${module.capShortName}Converter CONVERTER;
+
+  static {<% if (module.isFacetEnabled('jpa')) { %>
+    DATA_FACTORY = new ${module.capShortName}DataFactoryEjb(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    DATA_FACTORY = new ${module.capShortName}DataFactoryImpl(new ${module.capShortName}ModelFactoryImpl());<% } %>
+    CONVERTER = new ${module.capShotName}Converter();<% if (module.isFacetEnabled('jpa')) { %>
+    CONVERTER.setInternal(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    CONVERTER.setInternal(new ${module.capShortName}ModelFactoryImpl());<% } %><% if (module.isFacetEnabled('entityImpl')) { %>
+    CONVERTER.setExternal(new ${module.capShortName}ModelFactoryImpl());<% } else if (module.isFacetEnabled('jpa')) { %>
+    CONVERTER.setExternal(new ${module.capShortName}ModelFactoryEjb());<% } %>
+  }<% [module.basicTypes, module.entities].each { it.each { t-> %><% if (!t.virtual) { %>
+  <% c.method = 'toInternal'; c.capMethod = 'ToInternal'; c.t = t %>
+  ${macros.generate('expectSameObjectByConvert', c)}
+  <% c.method = 'toExternal'; c.capMethod = 'ToExternal'; c.t = t %>
+  ${macros.generate('expectSameObjectByConvert', c)}<% } } } %><% [module.basicTypes, module.entities].each { it.each { t-> %><% if (!t.virtual) { %>
+
+  @Test
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void excpectSameObjectsByConvert${t.cap}sToInternal() {
+    ${c.name('List')} originalList = DATA_FACTORY.new${t.cap}List(1,3);
+    List<$t.cap> convertedList = CONVERTER.convert${t.cap}sToInternal(originalList);
+    assertArrayEquals(originalList.toArray(), convertedList.toArray());
+  }
+
+  @Test
+  public void excpectSameObjectsByConvert${t.cap}sToExternal() {
+    List<$t.cap> originalList = DATA_FACTORY.new${t.cap}List(1,3);
+    List<$t.cap> convertedList = CONVERTER.convert${t.cap}sToExternal(originalList);
+    assertThat(convertedList.size(), is(originalList.size()));
+    for (int i = 0; i < originalList.size(); i++) {
+      $t.cap entity = originalList.get(i);
+      $t.cap convertedEntity = convertedList.get(i);<% t.propsRecursive.each { prop -> if (!prop.derived) { if ((!prop.multi || prop.typeBasicType) && !prop.typeEntity) { %>
+      assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+      assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
+    }
+  }<% } } } %>
+}''')
+  
+  template('converterTest', purpose: UNIT_TEST, body: '''{{imports}}
+public class $className extends ${className}Impl {
+}''')
+  
+  template('initializerMemTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  private ${module.initializerName}Mem initializer = spy(new ${module.initializerName}Mem());
+
+  @Mock
+  private ClusterSingleton clusterSingleton;
+
+  @Before
+  public void before() {
+    initializer.setClusterSingleton(clusterSingleton);
+
+    logAppender = new AssertingAppender(${module.initializerName}Mem.class);
+  }
+
+  @Test
+  public void onLifecycleEvent_initsClusterSingleton() throws Exception {
+    // given
+    final LifecycleEvent event = new LifecycleEvent(LifecyclePhase.INITIALIZE);
+
+    // when
+    initializer.onLifecycleEvent(event);
+
+    // then
+    verify(initializer).init(clusterSingleton);
+  }
+
+  @Test
+  public void onLifecycleEvent_initializationThrowsException_logsError() throws Exception {
+    // given
+    final LifecycleEvent event = new LifecycleEvent(LifecyclePhase.INITIALIZE);
+    doThrow(anException()).when(initializer).init(clusterSingleton);
+
+    // when
+    initializer.onLifecycleEvent(event);
+
+    // then
+    logAppender.hasReceived(withLogLevel(Level.ERROR));
+  }
+}''')
+  
+  template('initializerImplTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${module.initializerName}Impl.class);
+  }
+}''')
 
   template('eventToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
 public class ${className} extends BaseTestCase {
@@ -3686,7 +3838,423 @@ public class ${className} extends BaseTestCase {
   }
 }''')
   
-  template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
+  template('eventToCdiExternalTest', purpose: UNIT_TEST, body: '''
+public class ${className} extends BaseTestCase {
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${module.n.cap.eventToCdiExternal}.class);
+  }
+}''')
+  
+  template('implContainerFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}
+public class ${className}Test extends BaseTestCase {
+  private $className factory;
+
+  @Before
+  public void before() {
+    factory = new ${className}();
+    factory.setModelFactory(mock(${module.capShortName}ModelFactory.class));
+  }
+
+  <% item.entities.each { entity -> %>
+  @Test
+  public void test${entity.cap}Type(){
+    Class<?> clazz = factory.${entity.uncap}Type();
+
+    Assert.assertEquals(${entity.n.cap.impl}.class, clazz);
+  }  <% } %>
+
+  @Test
+  public void testNewInstance() {
+    $item.cap container = factory.newInstance();
+
+    assertThat(container, notNullValue());
+    assertThat(container, instanceOf(${item.n.cap.impl}.class));
+  }
+}''')
+  
+  template('implContainerControllerTestExtends', body: '''{{imports}}<% def controller = item.controller %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${controller.name}BaseTestImpl {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }
+}''')
+  
+  template('implContainerControllerTest', body: '''{{imports}}<% def controller = item.controller %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public abstract class $className extends BaseTestCase {
+
+  @Mock
+  Event<${item.n.cap.event}> publisher;
+
+  @Captor
+  protected ArgumentCaptor<${item.n.cap.event}> eventCaptor;
+
+  protected ${controller.name} controller;
+
+  protected ${module.capShortName}Converter converter;
+<% item.entities.each { entity -> if(entity.commands) { %>
+  protected $entity.comannds.cap $entity.commands.uncap;<% } %><% if(entity.finders) { %>
+  protected $entity.finders.cap $entity.finders.uncap;<% } } %>
+
+  protected EntityManager entityManager;
+<% def parentEntities = []; def notChildEntities = []; def childEntities = []; item.entities.each { entity -> def isParent = false; def isChild = false; entity.propsRecursive.each { prop -> %><% if(prop.relation && prop.oneToMany){ isParent = true} %><% if(prop.relation && prop.manyToOne){ isChild = true} %><% } %><% if(isParent) { parentEntities.add(entity) } %><% if(isChild) { childEntities.add(entity) } else { notChildEntities.add(entity) } %><% } %>
+<% def childEntitiesReferencedInOtherChildEntity = []; childEntities.each { entity -> %><% entity.propsRecursive.each { prop -> if(prop.relation && prop.manyToOne && !prop.oppositeProp && !childEntitiesReferencedInOtherChildEntity.contains(prop.type)){ childEntitiesReferencedInOtherChildEntity.add(prop.type)} %><% } %><% } %>
+  @Before
+  public void before() {
+    ${module.capShortName}CommandsFactoryLocal commandsFactory = SingletonContainer.getSingleton(${module.capShortName}CommandsFactoryLocal.class);
+    ${module.capShortName}FindersFactoryLocal findersFactory = SingletonContainer.getSingleton(${module.capShortName}FindersFactoryLocal.class);
+    commandsFactory.setPublisher(mock(Event.class));
+    FindersFactory.setPublisher(mock(Event.class));
+
+    entityManager = ${component.capShortName}ProducerLocal.entityManager();
+
+  <% item.entities.each { entity -> if(entity.commands) { %>
+    $entity.commands.uncap = managerFactory.get${entity.commands.cap}();<% } %><% if(entity.finders) { %>
+    $entity.finders.uncap = managerFactory.get${entity.finders.cap}();<% } } %>
+
+    ${controller.name}Impl controllerImpl = new ${controller.name}Impl();
+  <% item.entities.each { entity -> if(entity.commands) { %>
+    controllerImpl.set${entity.commands.cap}($entity.commands.uncap)<% } %>;<% if(entity.finders) { %>
+    controllerImpl.set${entity.finders.cap}($entity.finders.uncap);<% } } %>
+
+    converter = new ${module.capShortName}Converter();
+<% if (module.isFacetEnabled('jpa')) { %>
+    converter.setInternal(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    converter.setInternal(new ${module.capShortName}ModelFactorImpl());<% } %><% if (module.isFacetEnabled('entityImpl')) { %>
+    converter.setExternal(new ${module.capShortName}ModelFactorImpl());<% } else if (module.isFacetEnabled('jpa')) { %>
+    converter.setExternal(new ${module.capShortName}ModelFactorEjb());<% } %>
+
+    controllerImpl.set${module.capShortName}Converter(converter);
+    controllerImpl.setPublisher(publisher);
+
+    controller = TransactionProxyHandler.wrapForTransaction(controllerImpl, ${controller.name}.class, entityManager);
+    controller = TraceProxyHandler.wrap(controller, ${controller.name}.class);
+
+<% notChildEntities.each { entity -> %>
+    ${entity.commands.uncap}.deleteAll();<% } %>
+  }
+
+  @After
+  public void after() {<% notChildEntities.each { entity -> %>
+    ${entity.commands.uncap}.deleteAll();<% } %>
+  }
+
+<% if(controller.importChanges) { %>
+<% notChildEntities.each { entity -> %>
+  @Test
+  public void importChangesContainer_withNothingInDatabase_new${entity.cap}_generatedTest() throws Exception {
+    // given
+    ${entity.idProp.computedType(c)} ${entity.uncap}Id = -1L;
+    ${entity.cap} new${entity.cap} = a${entity.cap}().withId(${entity.uncap}Id).build();
+
+    $item.cap changesContainer = a$item.cap().with${entity.cap}s(new${entity.cap}).build();
+
+    // when
+    controller.importChangesContainer(changesContainer);
+
+    // then
+
+    // Check the number of entities in the database
+    checkThatDatabaseContainsNumberOf${entity.cap}s(1);
+
+    // Check the relations between persisted entities
+    ${entity.beanName} ${entity.uncap}Created = get${entity.cap}InDatabaseByIndex(0);
+    assertThat(${entity.uncap}Created.getId(), is(not(${entity.uncap}Id)));
+
+    // Check the content of the event fired
+    $item.cap containerSentWithEvent = getContainerSentWithEvent();
+    ${entity.cap}Cache ${entity.uncap}sInContainerSentWithEvent = containerSentWithEvent.get${entity.cap}s();
+    assertThat(${entity.uncap}sInContainerSentWithEvent.getAll(), containsExactly((${entity.cap}) ${entity.uncap}Created));
+  } <% } %>
+
+<% } %>
+
+  protected $item.cap getContainerSentWithEvent(){
+    verify(publisher).fire(eventCaptor.capture());
+    $item.cap containerInEvent = eventCaptor.getValue().getFirstObject();
+    return containerInEvent;
+  }
+
+  <% item.entities.each { entity -> %>
+  protected void insert${entity.cap}sInDatabase(${entity.cap}... entities) {
+    ${entity.commands.uncap}.updateAll(asList(entities));
+  }
+
+  protected void checkThatDatabaseContainsNumberOf${entity.cap}s(int expectedCount) {
+    List<${entity.cap}> all${entity.cap}s = ${entity.finders.uncap}.findAll();
+    assertThat("Unexpected number of stored ${entity.cap}: " + all${entity.cap}s, all${entity.cap}s, hasSize(expectedCount));
+  }
+
+  protected ${entity.beanName} get${entity.cap}InDatabaseByIndex(int index) {
+    return (${entity.beanName}) ${entity.finders.uncap}.findAll().get(index);
+  }
+  <% } %>
+}''')
+  
+  template('containerControllerDelegateTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller %><% def refs = []; controller.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
+public abstract class $className {
+
+  protected static $controller.n.cap.impl controller;
+  protected static $item.cap container = new $item.n.cap.impl();<% item.entities.each { entity -> %>
+  protected static ArrayList<$entity.cap> ${entity.uncap}Ejbs  = new ArrayList<>();
+  protected static ArrayList<$entity.cap> $entity.uncap = new ArrayList<>();<% } %>
+
+  @BeforeClass
+  @SuppressWarnings("unchecked")
+  public static void beforeClass$className() {
+    controller = new $controller.n.cap.impl();<% refs.each { ref-> %>
+    controller.set${ref.cap}(mock(${ref.cap}.class));<% } %>
+    controller.set${module.capShortName}Converter(mock(${module.capShortName}Converter.class));
+    controller.setPublisher(mock(Event.class));<% if (controller.cache) { %>
+    controller.setCache(mock(${module.capShortName}Cache}.class));<% } %>
+  }
+
+  @After
+  ${macros.generate('afterClass', c)}
+
+  @Before
+  ${macros.generate('beforeClass', c)}
+
+  protected void verifyNoMoreInteractions() {
+    Mockito.verifyNoMoreInteractions(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      controller.${ref.uncap}<% } %>,
+      controller.converter,
+      controller.publisher);
+  }
+
+  protected void resetMocks() {
+    MockitoCg.resetMocks(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      controller.${ref.uncap}<% } %>,
+      controller.converter,
+      controller.publisher);
+  }
+
+  @Test
+  public void importContainer() {
+    controller.importContainer(container);<% if (controller.deleteBeforeImport) { %>
+    verifyDeleteAll();<% } %>
+    verifyImportContainer();
+  }
+
+  protected void verifyImportContainer() {<% item.entities.each { entity -> %>
+    verify(controller.converter).convert${entity.cap}sToInternal(container.get${entity.cap}s().findNew());
+    verify(controller.${entity.commands.uncap}).updateAll(${entity.uncap}Ejbs, false);<% } %>
+    verify(controller.publisher).fire(($item.n.cap.event) argThat(withActionType(ActionType.CREATE_MULTIPLE)));
+  }
+
+  @Test
+  public void deleteAll() {
+    controller.deleteAll();
+    verifyDeleteAll();
+    verify(controller.publisher).fire(($item.n.cap.event) argThat(withActionType(ActionType.DELETE_MULTIPLE)));
+  }
+
+  protected void verifyDeleteAll() {<% item.entities.each { entity -> %>
+    verify(controller.${entity.commands.uncap}).deleteAll(false);<% } %>
+  }
+
+  @Test
+  public void loadAll() {
+    controller.loadAll();
+    verifyLoadAll();
+  }
+
+  protected void verifyLoadAll() {<% item.entities.each { entity -> %>
+    verify(controller.${entity.finders.uncap}).findAll();<% } %><% item.entities.each { entity -> %>
+    verify(controller.converter).convert${entity.cap}sToExternal(${entity.uncap}Ejbs);<% } %>
+  }
+
+  @Test
+  public void loadVersions() {
+    controller.loadVersions();
+    verifyLoadVersions();
+  }
+
+  protected void verifyLoadVersions() {<% if (controller.cache) { %>
+    verifyLoadAll();<% } else { %><% item.entities.each { entity -> %>
+    verify(controller.${entity.finders.uncap}).findVersions();<% } } %>
+  }<% controller.operations.each { opRef-> if(opRef.delegateOp) { def op = opRef.ref; if (op) { def raw = op.rawType || (op.resultExpression && op.ret.multi && op.ret.typeEntity) %>
+  @Test
+  public void ${opRef.nameTest}() {<% if (op.void) { %>
+    controller.${opRef.nameExternal}($opRef.signatureTestValues);<% } else if (op.returnTypeBoolean) { %>
+    when(controller.${op.parent.uncap}.${op.name}($opRef.signatureTestValues)).thenReturn(true);
+    assertTrue(controller.${opRef.name}($opRef.signatureTestValues));<% } else { %>
+    when(controller.${op.parent.uncap}.${op.name}($opRef.signatureTestValues)).thenReturn(null);
+    assertEquals(null, controller.${opRef.name}($opRef.signatureTestValues));<% } %>
+    verify(controller.${op.parent.uncap}).${op.name}($opRef.signatureTestValues);
+  }<% } } } %>
+
+  @Test
+  public void onEventImportsContainer() {
+    <% if (controller.deleteBeforeImport) { %>
+    verifyDeleteAll();<% } %>
+    verifyImportContainer();
+  }
+
+  @Test
+  public void getEventObjectType() {
+    assertEquals(${item.cap}.class, controller.getEventObjectType());
+  }
+}''')
+  
+  template('containerControllerDelegateTestExtends', purpose: UNIT_TEST, body: '''
+public class $className extends ${className}Base {
+}''')
+  
+  template('implContainerVersionsTest', purpose: UNIT_TEST, body:'''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+
+  @Override
+  @Test
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    String source = "source";
+    // when
+    // then
+    assertThat(new $item.n.cap.versionsImpl(), is(notNullValue()));
+    assertThat(new $item.n.cap.versionsImpl(source), is(notNullValue()));
+  }<% item.entities.each { entity -> %>
+
+  @Test
+  public void test${entity.cap}sCount() {
+    $item.n.cap.versionsImpl versions = new $item.n.cap.versionsImpl();
+    assertThat(versions.get${entity.cap}sCount(), is(0));
+
+    versions.set${entity.cap}s(CollectionUtils.asMap($entity.idProp.testValue, 1L));
+    assertThat(versions.get${entity.cap}sCount() == versions.get${entity.cap}s().size(), is(true));
+  }<% } %>
+}''')
+  
+  template('implContainerVersionsTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.n.cap.versionsImpl}TestBase {
+
+}''')
+  
+  template('containerBuilderTest', purpose: UNIT_TEST, body: '''<% def entityNames = item.entities.collect { it.name } as Set; def entityOneToManyNoOppositeProps = [:]; def entityManyToOneProps = [:]; item.entities.each { entity ->
+entityOneToManyNoOppositeProps[entity] = []; entityManyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if (prop.type) {
+        if (((prop.oneToMany && !prop.oppositeProp) || (prop.mm)) && entityNames.contains(prop.type.name)) { entityToOneToManyNoOppositeProps[entity] << prop }
+        if (prop.manyToOne && entityNames.contains(prop.type.name)) { entityToManyToOneProps[entity] << prop } } } } %>
+public abstract class $className {
+  <% item.entities.each { entity -> %>
+  protected List<${entity.cap}> $entity.uncap = new ArrayList<>();<% } %>
+
+  public $item.cap build() {
+    $item.cap container = buildContainer();<% item.entities.each { entity -> %>
+    add${entity.cap}s(container);<% } %>
+    return container;
+  }
+
+  protected $item.cap buildContainer() {
+   return new $item.n.cap.impl();
+  }
+
+  <% item.entities.each { entity -> %>
+  protected void add${entity.cap}s($item.cap container) {
+    for ($entity.cap next : $entity.uncap) {
+      container.get${entity.cap}s().put(next);
+    }
+  }<% } %>
+
+  <% item.entities.each { entity -> %>@SafeVarargs
+  public final $item.n.cap.builder with${entity.cap}s(Builder<? extends ${entity.cap}>... toAdd) {
+    List<${entity.cap}> instances = new ArrayList<>();
+    for (Builder<? extends ${entity.cap}> builder : toAdd) {
+      instances.add(builder.build());
+    }
+    return with${entity.cap}s(instances);
+  }
+
+  public $item.n.cap.builder with${entity.cap}s(${entity.cap}... toAdd) {
+    return with${entity.cap}s(asList(toAdd));
+  }
+
+  public $item.n.cap.builder with${entity.cap}s(List<? extends ${entity.cap}> toAdd) {
+    ${entity.uncap}.addAll(toAdd);
+    return ($item.n.cap.builder) this;
+  }<% } %>
+}''')
+  
+  template('containerBuilderTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+public class $className extends ${item.cap}BuilderBase{
+}''')
+  
+  template('commandsTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp; def idConverter %>
+<% if(idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
+@Alternative
+public abstract class $className extends ManagerTestBase<${item.idProp.type.name}, ${item.cap}, ${commands.cap}> {
+
+  protected static ${module.capShortName}DataFactoryBase dataFactory;
+
+  @BeforeClass
+  public static void before$className() {<% if (module.isFacetEnabled('jpa')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryEjb(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryImpl(new ${module.capShortName}ModelFactoryImpl());<% } %>
+  }<% commands.creators.each { op -> %>
+
+  @Test
+  public void test${op.cap}() {
+    ${item.cap} entity = entityForCreation(1);
+    ${item.cap} createdEntity = commands.${op.uncap}(${op.propGetters});<% op.props.each { prop -> %>
+    assertThat(createdEntity.get${prop.cap}(), is(entity.get${prop.cap}()));<% } %>
+  }<% } %><% commands.deleters.each { op-> %>
+
+  @Test
+  public void test${op.cap}() {
+    commands.deleteAll();
+    ${item.cap} entity = commands.create(entityForCreation(1));
+    commands.${op.uncap}(${op.propGetters});
+    ${c.name('List')}<${item.cap}> allEntities = commands.findAll();
+    assertThat(allEntities.size(), is(0));
+  }<% } %>
+
+  @Override
+  protected ${item.idProp.type.name} sampleEntityId(int entityNumber) {
+    return $idConverter;
+  }
+
+  @Override
+  protected $item.cap entityForCreation(int entityNumber) {
+    ${item.cap} ret = dataFactory.new${item.cap}(entityNumber);
+    return ret;
+  }
+}''')
+  
+  template('commandsMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
+@Alternative
+public class $className extends ${commands.name}TestImpl {
+
+  @BeforeClass
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static void before$className() {
+    ${module.capShortName}CommandsFactoryMemory commandsFactory = SingletonContainer.getSingleton(${module.capShortName}CommandsFactoryMemory.class);
+    preparedManager = commandsFactory.get${commands.cap}((Event)publisher);
+  }
+}''')
+  
+  template('findersMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders %>
+@Alternative
+public class $className extends ${finders.name}TestImpl {
+
+  @BeforeClass
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static void before$className() {
+    ${module.capShortName}FindersFactoryMemory findersFactory = SingletonContainer.getSingleton(${module.capShortName}FindersFactoryMemory.class);
+    preparedManager = findersFactory.get${finders.cap}((Event)publisher);
+  }
+}''')
+  
+  template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -4213,7 +4781,7 @@ public class $className extends ${view.n.cap.mediatorBase-"View"} {
 }
 ''')
   
-  template('dialogGuidoBase', body: '''{{imports}}<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
+  template('dialogGuido', body: '''{{imports}}<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
 /** Base Guido implementation of ${item.name}. */
 public abstract class $c.className extends ${c.name('DialogView')} {
   public static final String ID = ${item.dialog.cap}Guido.class.getName();
@@ -4242,7 +4810,7 @@ public abstract class $c.className extends ${c.name('DialogView')} {
   }
 }''')
   
-  template('dialogGuido', body: '''<% def dialog = item.dialog %>{{imports}}
+  template('dialogGuidoExtends', body: '''<% def dialog = item.dialog %>{{imports}}
 /** Guido implementation of ${item.name}. */
 @${c.name('RootScoped')}(${c.name('RootType')}.NEW)
 @${c.name('View')}
@@ -4256,6 +4824,30 @@ public class $className extends ${dialog.cap}GuidoBase {
   protected void initEventHandling() {
     super.initEventHandling();
   }
+}''')
+  
+  template('dialogDriver', body: '''{{imports}}<% def dialog = item.dialog; def viewClassName = item.dialog.n.cap.guido; def contentViewDriverClassName = item.n.cap.driver %>
+/** Base class for {@link $viewClassName} driver. */
+public class $className extends ViewDriver<$viewClassName> {
+  private $contentViewDriverClassName contentView;
+
+  public $className() {
+    super(${viewClassName}.class);
+  }
+
+  @OnEventThread(CallType.SYNC)
+  public $contentViewDriverClassName contentView() {
+    if (contentView == null) {
+      contentView = newDriver(new $contentViewDriverClassName(view().contentView));
+    }
+    return contentView;
+  }
+}''')
+  
+  template('dialogDriverExtends', body: '''{{imports}}<% def dialog = item.dialog; def viewClassName = item.dialog.n.cap.guido %>
+/** Driver for {@link $viewClassName} view. */
+public class $className extends ${item.n.cap.driverBase} {
+  ${macros.generate('superclassConstructor', c)}
 }''')
   
   template('viewGuido', body: '''{{imports}}<% def baseClass = item.dialog ? c.name('DialogContentView') : c.name('BaseView') %>
@@ -4283,6 +4875,62 @@ public abstract class $className extends $baseClass implements $item.cap {
     ${control.fieldName}.setTextML(${control.parent.underscored}_${control.underscored}_${control.widgetTypeShort});<% } } %> <% item.views.each { def view-> %>
     ${view.uncap}Panel.addView(${view.uncap});<% } %>
   }
+}''')
+  
+  template('viewDriverGuido', body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
+/** Base class for {@link $viewClassName} driver. */
+public class $className extends ViewDriver<$viewClassName> {
+  <% item.controls.each { def control -> if (!control.static) { def widgetType = control.guidWidget %>private ${widgetType}Driver ${control.fieldName};
+  <% } } %>
+  <% item.views.each { def view -> %>private ${view.n.cap.driver} ${view.uncap};
+  <% } %>
+  public $className() {
+    super(${viewClassName}.class);
+  }
+
+  public $className($viewClassName view) {
+    super(view);
+  }
+  <% item.views.each { def view -> %>
+  public ${view.n.cap.driver} ${view.uncap}() {
+    if (${view.uncap} == null) {
+      ${view.uncap} = newDriver(new ${view.n.cap.driver}(view().${view.uncap}));
+    }
+    return ${view.uncap};
+  }
+  <% } %>
+  <% item.controls.each { def control -> if (!control.static) { def widgetType = control.widgetType %>
+  public ${widgetType}Driver $control.fieldName() {
+    if ($control.fieldName == null) {
+      $control.fieldName = driverFactory().new${widgetType}Driver(view().$control.fieldName);
+    }
+    return $control.fieldName;
+  }
+  <% } } %>
+}''')
+  
+  template('viewDriverGuidoExtends', body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
+/** Driver for {@link $viewClassName} view. */
+@Driver<% if (item.main) { %>
+@${c.name('ApplicationScoped')}<% } %>
+public class $className extends ${item.n.cap.driverBase} {
+  ${macros.generate('superclassConstructor', c)}
+
+  public $className($viewClassName view) {
+    super(view);
+  }
+}''')
+  
+  template('fxDialog', body: '''{{imports}}
+public class $className {
+
+}''')
+  
+  template('fxDialogExtends', body: '''{{imports}}
+@${c.name('RootScoped')}(RootType.NEW)
+@${c.name('View')}
+public class $className extends ${item.n.cap.fxBase} {
+
 }''')
   
   
@@ -6967,6 +7615,14 @@ private void initMlKey($item.n.cap.event event) {
     ret.set${prop.cap}(Long.valueOf(entityNumber));<% } else if (prop.type == 'Integer') { %>
     ret.set${prop.cap}(Integer.valueOf(entityNumber));<% } else if (prop.type == 'Date') { %>
     ret.set${prop.cap}(TimeUtils.now());<% } } %><% } } %>''')
+  
+  template('expectSameObjectByConvert', body: '''@Test
+  public void expectSameObjectByConvert${c.t.cap}$c.capMethod() {
+    $c.t.cap entity = DATA_FACTORY.new${c.t.cap}(1);
+    $c.t.cap convertedEntity = CONVERTER.$c.method(entity);<% c.t.propsRecursive.each { prop -> if (!prop.derived) { if ((!prop.multi || prop.typeBasicType) && !prop.typeEntity) { %>
+    assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
+    assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
+  }''')
   
   template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
