@@ -140,7 +140,7 @@ class GenerateJsTest {
 
     generator.builder.typeResolver.printNotResolved()
 
-    generator.generate(model, new File('temp'))
+    generator.generate(model, new File('temp'), null)
 
     model.extend {
       component('Foo') {

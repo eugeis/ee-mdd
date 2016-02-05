@@ -70,11 +70,12 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		<link rel="stylesheet" href="stylesheet.css">
  	</head>
 	<body>
+		<lightbox></lightbox>
 \
 \
 		<!-- Include ViewRefs -->
 <% item.viewRefs.each { viewRef -> %>\
-		<ee-view template="${viewRef.view.name}" ng-controller="${viewRef.view.name}Controller"></ee-view>
+		<ee-view template="${viewRef.view.name}" ng-controller="${viewRef.view.name}Controller as ctrl"></ee-view>
 <% } %>\
 \
 
@@ -97,6 +98,13 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		<!-- View implementation -->
 		<script src="src-gen/base/View.js" type="text/javascript"></script>
 
+		<!-- Lightbox implementation -->
+		<script src="src-gen/base/Lightbox.js" type="text/javascript"></script>
+		<script src="src-gen/base/ComLightbox.js" type="text/javascript"></script>
+
+		<!-- Injections dependencies -->
+		<script src="src/Injections.js" type="text/javascript"></script>
+
 		<!-- Include ViewRef-Javascript -->
 <% item.viewRefs.each { viewRef -> %>\
 		<script src="src-gen/views/${viewRef.view.name}.js" type="text/javascript"></script>
@@ -111,7 +119,8 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 	template('appjs', body: '''\
 (function(){
-	var app = angular.module("${item.name}",[\
+	var dependencies = ["Injections", "Table", "View", "Lightbox"];
+	var views = [\
 <%
 	for (int i = 0; i < item.viewRefs.size(); i++) {
 		def iterator = item.viewRefs[i];
@@ -125,7 +134,8 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		}
 	}
 %>\
-]);
+];
+	var app = angular.module("TaskEditorView",dependencies.concat(views));
 }());
 ''')
 
@@ -141,6 +151,10 @@ section {
 /*  width: 800px; */
 }
 
+.entityTable tr.selected {
+	outline: 1px solid #999;
+}
+
 .entityTable .tableInput {
     background-color:rgba(0, 0, 0, 0);
     color:black;
@@ -154,8 +168,33 @@ section {
 }
 
 .entityTable .idcolumn span:hover {
-  font-weight: bold;
-  cursor: pointer;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.lightboxBG {
+	background: rgba(0,0,0,0.6);
+	width: 100%;
+	height: 100%;
+	z-index: 100;
+	position: absolute;
+	margin: 0px;
+	padding: 0px;
+	top: 0px;
+	left: 0px;
+}
+
+.lightbox {
+	background: white;
+	margin: 0px auto;
+	width: 500px;
+	top: 50%;
+	transform: translateY(-50%);
+	position: relative;
+}
+
+.lightbox>div{
+	padding: 20px;
 }
 ''')
 
@@ -164,10 +203,11 @@ section {
 	<tr>
 		<th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
 	</tr>
-	<tr ng-repeat="row in tableCtrl.data">
-		<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, row)">{{row[column]}}</td>
+	<tr ng-repeat="row in tableCtrl.data" ng-class="{selected: tableCtrl.selected==\\$index}">
+		<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, \\$parent.\\$index)">{{row[column]}}</td>
 	</tr>
 </table>
+
 ''')
 
 	template('tablejs', body: '''\
@@ -181,12 +221,6 @@ section {
 			replace: true
 		};
 	});
-
-	app.baseClass = {};
-	app.baseClass["TableBase"] = function (\\$scope) {
-		var self = this;
-		self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
-	}
 }());
 ''')
 
@@ -256,31 +290,184 @@ section {
 (function(){
 	var app = angular.module("Manipulator",[]);
 
-	app.manipulator = new function() {
-		var self = this;
+	//app.manipulator
+	//returns: object
+	// - func: getInstance(id)
+	// - var:  instances
 
-		self.instances = {};
-		self.getInstance = function(id) {
-			if (!self.instances[id]) {
-				self.instances[id] = {
-					injections: [],
-					add: function(name, func) {
-						this.injections.push({name: name, func: func});
-						return this;
-					},
-					inject: function(obj) {
-						this.injections.forEach(function(d,i) {
-							obj[d.name] = d.func;
-						});
-						return this;
+	//getInstance(id)
+	//returns: object
+	// - func: add(name, func)
+	// - func: inject(obj)
+	// - var:  injections
+
+	//when 'getInstance' is called:
+	//if no object of this id exists in 'instances', it is created, saved to 'instances' and returned
+	//otherwise the object in 'instances' is returned
+
+	//when 'add' is called:
+	//save an object with a name associated with a function to 'injections'
+
+	//when 'inject' is called:
+	//go through the 'injections'-array and bind the function and name to the object
+
+	app.factory("\\$manipulator", function() {
+		return {
+			instances : {},
+			getInstance : function(id) {
+				if (!this.instances[id]) {
+					this.instances[id] = {
+						injections: [],
+						add: function(name, func) {
+							this.injections.push({name: name, func: func});
+							return this;
+						},
+						inject: function(obj) {
+							this.injections.forEach(function(d,i) {
+								obj[d.name] = d.func;
+							});
+							return this;
+						}
 					}
 				}
+				return this.instances[id];
 			}
-			return self.instances[id];
-		}
-	}
+		};
+	});
 }());
 ''')
+
+	template('injectionsjs', body: '''\
+(function(){
+	var app = angular.module("Injections",[]);
+}());
+''')
+
+	template('lightboxhtml', body: '''\
+<div class="lightboxBG ng-cloak" ng-click="lightboxCtrl.hide()" ng-show="lightboxCtrl.show">
+    <div class="lightbox" ng-click="lightboxCtrl.prevent(\\$event)">
+      <div>
+          <form ng-if="lightboxCtrl.type=='add'" ng-submit="lightboxCtrl.submit('add')">
+            <div class="form-group" ng-repeat="column in lightboxCtrl.columnInfo">
+              <label for="{{ 'lightboxcolumn' + \\$id}}">{{column.name}}</label>
+              <input type="text" class="form-control" ng-model="column.value" ng-attr-id="{{ 'lightboxcolumn' + \\$id}}" placeholder="{{column.name}}" required>
+            </div>
+            <button type="submit" class="btn btn-default">Add</button>
+          </form>
+          <form ng-if="lightboxCtrl.type=='delete'" ng-submit="lightboxCtrl.submit('delete')">
+            <div class="form-group" ng-repeat="column in lightboxCtrl.columnInfo">
+                <label for="{{ 'lightboxcolumn' + \\$id}}">{{column.name}}</label>
+                <input type="text" class="form-control" ng-model="column.value" ng-attr-id="{{ 'lightboxcolumn' + \\$id}}" ng-readonly="true">
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" ng-model="lightboxCtrl.checked" required> Are you sure, you want to delete this entry?
+              </label>
+            </div>
+            <button type="submit" class="btn btn-default" ng-class="{disabled: !lightboxCtrl.checked}">Delete</button>
+          </form>
+      </div>
+    </div>
+</div>
+''')
+
+
+	template('lightboxjs', body: '''\
+(function(){
+    var app = angular.module("Lightbox",["ComLightbox"]);
+
+    app.directive("lightbox", ["\\$document", "\\$rootScope", function(\\$document, \\$rootScope) {
+        return {
+            restrict: 'E',
+            templateUrl: "src-gen/templates/lightbox.html",
+            controller: ["\\$scope", "\\$lightbox", "\\$rootScope", LightboxController],
+            controllerAs: 'lightboxCtrl',
+            link: function() {
+                \\$document.bind('keydown', function(e) {
+                    \\$rootScope.\\$broadcast("keypress", e);
+                });
+            }
+        };
+    }]);
+
+    function LightboxController(\\$scope, \\$lightbox, \\$rootScope) {
+      var self = this;
+      \\$lightbox.setLightBox(this);
+
+      self.columnInfo = undefined;
+      self.type = undefined;
+      self.caller = undefined;
+      self.rowNr = undefined;
+      self.show = false;
+
+      self.create = function (info) {
+        if (info.type !== "add" && info.type !== "delete") {
+          return self.hide();
+        }
+
+        if (info.type === "add") {
+          if (self.type !== "add") {
+            self.columnInfo = info.columnInfo;
+          }
+        } else if (info.type === "delete") {
+          self.rowNr = info.rowNr;
+          self.columnInfo = info.columnInfo;
+        }
+
+        self.caller = info.caller;
+        self.type = info.type;
+        self.show = true;
+      };
+
+      self.submit = function (type) {
+        var success;
+        if (type === "add") {
+          success = self.caller.add(self.columnInfo);
+        } else if (type === "delete") {
+          success = self.caller.delete(self.rowNr);
+        } else {
+          success = false;
+        }
+
+        if (success) {
+          return self.hide();
+        }
+      };
+
+      self.hide = function() {
+        self.checked = false;
+        self.show = false;
+      }
+      self.prevent = function(e) {
+          e.stopPropagation();
+      };
+      \\$rootScope.\\$on("keypress", function(onEvent, keyEvent) {
+        var key = (keyEvent.charCode || keyEvent.keyCode);
+        if (key == 27) {
+            \\$scope.\\$apply(self.hide());
+        }
+      });
+    }
+}());
+''')
+
+	template('comlightboxjs', body: '''\
+(function(){
+	var app = angular.module("ComLightbox",[]);
+
+	app.factory("\\$lightbox", function() {
+		return {
+			lightBoxCtrl : {},
+			setLightBox : function(lbCtrl) {
+				this.lightBoxCtrl = lbCtrl;
+			},
+			create : function(info) {
+				this.lightBoxCtrl.create(info);
+			}
+		};
+	});
+}());
+''');
 
 	template('framehtml', body: '''\
 <section id="${item.name}">
@@ -289,7 +476,23 @@ section {
 		if (control.widgetType == "Button") {
 %>\
 \
-		<input type="button" value="${control.name.capitalize()}">
+		<input type="button" value="${control.name.capitalize()}" ng-click="ctrl.lightbox('\
+<%
+	if (control.name.capitalize().startsWith("Add")) {
+%>\
+add\
+<%
+	} else if (control.name.capitalize().startsWith("Delete")) {
+%>\
+delete\
+<%
+	} else {
+%>\
+search\
+<%
+	}
+%>\
+')">
 \
 <%
 		}
@@ -325,14 +528,8 @@ section {
 		}
 		hasControl[control.widgetType]++;
 	}
-	if (hasControl["Table"] > 0) {
 %>\
-"Table",\
-<%
-	}
-%>\
-"View"]);
-	var manipulator = angular.module("Manipulator").manipulator;
+"Manipulator", "ComLightbox"]);
 <%
 	if (hasControl["Table"] > 0) {
 %>\
@@ -342,7 +539,7 @@ section {
 	// e.g. a table-controller.
 	// This is used for data-transmission between views.
 
-	function ${item.name}(\\$scope, \\$dispatcher) {
+	app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox) {
 		var self = this;
 		self.id = "${item.name}";
 
@@ -364,11 +561,35 @@ section {
 			});
 		}
 
-		manipulator.getInstance("${item.name}").inject(self);
+		self.lightbox = function(type) {
+			if (type === "add") {
+				\\$lightbox.create({
+					caller: this,
+					type: type,
+					columnInfo: [{name: "name"}, {name: "age"}]
+				});
+			} else if (type === "delete") {
+				\\$lightbox.create({
+					caller: this,
+					type: type,
+					columnInfo: [{name: "name", value: "Jonas"}, {name: "age", value: "20"}],
+					rowNr: 3
+				});
+			}
+		};
+
+		self.add = function() {
+			return true;
+		}
+
+		self.delete = function() {
+			return true;
+		}
+
+		\\$manipulator.getInstance("${item.name}").inject(self);
 		self.subscribeToDispatcher();
 		self.registerClickEvent();
-	}
-	app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher',  ${item.name}]);
+	}]);
 <%
 	}
 	item.controls.each { control ->
@@ -393,7 +614,7 @@ section {
 %>\
 
 
-	function ${item.name}${control.name.capitalize()}(\\$scope, \\$http) {
+	  app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
 		var self = this;
 
 		self.id = "${item.name}${control.name.capitalize()}";
@@ -402,8 +623,7 @@ section {
 		self.\\$scope = \\$scope;
 		self.\\$http = \\$http;
 
-		self.parent = angular.module("Table").baseClass["TableBase"];
-		self.parent.call(this, \\$scope);
+		self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
 		self.currentRow = undefined;
 
 		self.columns = [\
@@ -438,7 +658,8 @@ section {
 				}
 %>\
 
-		self.click = function(column, row) {
+		self.click = function(column, rowNr) {
+			self.selected = rowNr;
 			\\$scope.\\$emit("click", {
 				childSource: self,
 				sourceEntity: self.entity,
@@ -459,7 +680,7 @@ section {
 %>\
 ],
 				column: column,
-				row: row
+				row: self.data[rowNr]
 			});
 		}
 <%
@@ -500,18 +721,15 @@ section {
 <%
 		}
 %>\
-
-		manipulator.getInstance("${item.name}${control.name.capitalize()}").inject(self);
+		\\$manipulator.getInstance("TaskDetailsViewActions").inject(self);
 <%
 		if (hasOpposite) {
 %>\
 		self.registerEvent();
 <%
 		}
-%>
-	}
-	${item.name}${control.name.capitalize()}.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
-	app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', ${item.name}${control.name.capitalize()}]);
+%>\
+	}]);
 <%
 		}
 	}
@@ -523,27 +741,29 @@ section {
 (function(){
 	var app = angular.module("${item.name}Injector", ["Manipulator"]);
 
-	var manipulator = angular.module("Manipulator").manipulator.getInstance("${item.name}");
-	manipulator.add("functionName", function() {
-		// This could be your code
-		// Include this file in the index.html
+	app.run(["\\$manipulator", function(\\$manipulator) {
+		var manipulator = \\$manipulator.getInstance("${item.name}");
+		manipulator.add("functionName", function() {
+			// This could be your code
+			// Include this file in the index.html
 
-		// To manipulate the object just refer to self
-		var self = this;
-		console.info("This function has been injected");
-	});
+			// To manipulate the object just refer to self
+			// The callback-function can take arguments (e.g. row, column)
+			var self = this;
+			console.info("This function has been injected");
+		});
 <%
 	item.controls.each { control ->
 		if (control.widgetType == "Table") {
 %>
-	var manipulator_${control.name.capitalize()} = angular.module("Manipulator").manipulator.getInstance("${item.name}${control.name.capitalize()}");
-	manipulator_${control.name.capitalize()}.add("functionName", function() {
-
-	});
+		var manipulator_${control.name.capitalize()} = \\$manipulator.getInstance("${item.name}${control.name.capitalize()}");
+		manipulator_${control.name.capitalize()}.add("click", function() {
+		});
 <%
 		}
 	}
 %>\
+	}]);
 }());
 ''')
 }

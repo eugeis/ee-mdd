@@ -54,6 +54,10 @@ templates ('common') {
   			template('viewjs', body: '''<% c.path = "${c.filepath}/src-gen/base/View.js" %>${macros.generate('viewjs', c)}''')
   			template('dispatcherjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
   			template('manipulatorjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Manipulator.js" %>${macros.generate('manipulatorjs', c)}''')
+  			template('lightboxhtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/lightbox.html" %>${macros.generate('lightboxhtml', c)}''')
+  			template('lightboxjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Lightbox.js" %>${macros.generate('lightboxjs', c)}''')
+  			template('comlightboxjs', body: '''<% c.path = "${c.filepath}/src-gen/base/ComLightbox.js" %>${macros.generate('comlightboxjs', c)}''')
+  			template('injectionsjs', body: '''<% c.src = true %><% c.path = "${c.filepath}/src/Injections.js" %>${macros.generate('injectionsjs', c)}''')
   		}
 
   	templates ('frameView',
@@ -61,6 +65,6 @@ templates ('common') {
   		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'ee-mdd_example-ui' } ) {
  			template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
   			template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
-  			template('framesrcjs', body: '''<% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
+  			template('framesrcjs', body: '''<% c.src = true %><% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
   		}
 }
