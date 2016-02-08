@@ -51,7 +51,16 @@ templates('test', purpose: UNIT_TEST) {
     template('moduleCacheTestExtends', appendName: true, body: '''<% if (module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheTest" %> ${macros.generate('moduleCacheTestExtends', c)}<% } %>''')
   }
   
-  templates ('bridgeTests',
+  templates('cacheTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'cache'] ) } ) {
+    template('cacheTest', appendName: true, body: '''<% if(item.cache.base) { c.className = item.cache.n.cap.testBase } else { c.className = item.cache.n.cap.test } %> ${macros.generate('cacheTest', c)}''')
+    template('cacheTestExtends', appendName: true, body: '''<% c.className = item.cache.n.cap.test %> ${macros.generate('cacheTestExtends', c)} ''')
+    template('cacheOverrideTest', appendName: true, body: '''<% c.className = item.cache.n.cap.overrideTestBase %><% c.override = true %> ${macros.generate('cacheTest', c)}''')
+    template('cacheOverrideTestExtends', appendName: true, body: '''<% c.className = item.cache.n.cap.overrideTest %><% c.override = true %> ${macros.generate('cacheTestExtends', c)}''')
+  }
+    
+  templates ('bridgeTest',
   items: { c -> c.model.findAllRecursiveDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
 
@@ -62,7 +71,7 @@ templates('test', purpose: UNIT_TEST) {
     template('eventToCdiExternalTest', appendName: true, body: '''<% if(module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiExternalTest %> ${macros.generate('eventToCdiExternalTest, c)}<% } %>''')
   }
   
-  templates('containerTests',
+  templates('containerTest',
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implContainerFactoryTest', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implFactoryTest %> ${macros.generate('implContainerFactoryTest', c)} <% } %>''')

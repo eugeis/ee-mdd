@@ -4343,6 +4343,60 @@ public class $className extends ${finders.name}TestImpl {
   }
 }''')
   
+  template('cacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def commands = item.commands; def finders = item.finders; def type = item.virtual?'E':item.cap; def cacheSuper; def idConverter %>
+<% if (idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
+<% if (!c.override) { if(superUnit) { cacheSuper = "${superUnit.cache.n.cap.test}<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "CacheTestBase<$idProp.type.name, $type>" } %>
+<% } else { if(superUnit) { cacheSuper = "${superUnit.cache.n.cap.overrideTest}<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "CacheOverrideTestBase<$idProp.type.name, $type>" } } %>
+public abstract class <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (!item.virtual) { %>
+  protected static ${module.capShortName}DataFactoryBase dataFactory;
+
+  @BeforeClass
+  public static void before$className() {<% if (!c.override) { %>
+    preparedCache = new ${item.cache.n.cap.impl}();<% } else { %>
+    preparedCache = new ${item.cache.n.cap.override}();<% } %><% if (module.isFacetEnabled('entityImpl')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryImpl(new ${module.capShortName}ModelFactoryImpl());<% } else if (module.isFacetEnabled('jpa')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryEjb(new ${module.capShortName}ModelFactoryEjb());<% } %>
+  }<% } %><% if (finders) { finders.finders.each { op -> if (!op.originalParent) { %>
+
+  @Test
+  public void test${op.cap}() {
+  }<% } } } %><% item.props.each { prop -> if (prop.type && prop.manyToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
+
+  @Test
+  public void testFindBy${prop.cap}${relationIdProp.cap}() {
+  }<% } else if (prop.type && prop.oneToOne && prop.type.idProp) { def relationIdProp = prop.type.idProp %>
+
+  @Test
+  public void testFindBy${prop.cap}${relationIdProp.cap}() {
+  }<% } } %><% if (!superUnit) { %>
+
+  @Test
+  public void testFindNew() {
+  }<% } %><% if (!item.virtual) { %>
+
+  @Override
+  protected ${item.idProp.type.name} sampleEntityId(int entityNumber) {
+    return $idConverter;
+  }
+
+  @Override
+  protected $item.cap entityForCreation(int entityNumber) {
+    ${item.cap} ret = dataFactory.new${item.cap}(entityNumber);
+    return ret;
+  }<% } %><% item.cache.operations.each { op -> %>
+
+  public abstract void test${op.cap}();<% } %>
+}''')
+  
+  template('cacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% if(c.override) { %>
+public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${item.cache.n.cap.overrideTestBase}<${item.simpleGenericSgn}E><% } else { %>class $className extends ${item.cache.n.cap.overrideTestBase}<% } %> { <% } else { %>
+public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${item.cache.n.cap.testBase}<${item.simpleGenericSgn}E><% } else { %>class $className extends ${item.cache.n.cap.testBase}<% } }%> { <% item.cache.operations.each { op -> %>
+  @Test
+  @Override
+  public void test${op.cap}() {
+  }<% } %>
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
