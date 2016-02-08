@@ -4319,6 +4319,32 @@ public abstract class $className extends ${item.commands.n.cap.baseTestImpl} {
 public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
 }''')
   
+  template('commandsLocalTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
+@Alternative
+public class $className extends ${commands.name}TestImpl {
+
+  @BeforeClass
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static void before$className() {
+    ${module.capShortName}CommandsFactoryLocal commandsFactory = SingletonContainer.getSingleton(${module.capShortName}CommandsFactoryLocal.class);
+    commandsFactory.setPublisher((Event) publisher);
+    preparedManager = commandsFactory.get${commands.cap}();
+  }
+}''')
+  
+  template('findersLocalTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders %>
+@Alternative
+public class $className extends ${finders.name}TestImpl {
+
+  @BeforeClass
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static void before$className() {
+    ${module.capShortName}FindersFactoryLocal findersFactory = SingletonContainer.getSingleton(${module.capShortName}FindersFactoryLocal.class);
+    findersFactory.setPublisher((Event) publisher);
+    preparedManager = findersFactory.get${finders.cap}();
+  }
+}''')
+  
   template('commandsMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {
