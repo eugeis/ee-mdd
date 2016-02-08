@@ -4,7 +4,7 @@ class OnAction extends Listener {
   boolean init() {
     super.init()
     eventType = 'ActionEvent'
-    callbackBaseName = "${parent.capName}"
+    callbackBaseName = "${parent.cap}"
     signatureValue = ''
     true
   }

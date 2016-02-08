@@ -6,7 +6,7 @@ class OnChange extends Listener {
     eventTypeRawType = "ChangeEvent"
     eventType = "$eventTypeRawType<$eventValueType>"
     signatureValue = "$eventValueType value"
-    callbackBaseName = "${parent.capName}Changed"
+    callbackBaseName = "${parent.cap}Changed"
     true
   }
 

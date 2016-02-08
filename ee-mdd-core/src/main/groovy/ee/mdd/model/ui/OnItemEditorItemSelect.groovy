@@ -6,7 +6,7 @@ class OnItemEditorItemSelect extends Listener {
     super.init()
     forward = false
     eventType = "ItemEditorItemSelectionEvent"
-    callbackBaseName = "${parent.capName}ItemSelected"
+    callbackBaseName = "${parent.cap}ItemSelected"
     true
   }
 

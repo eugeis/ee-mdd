@@ -6,7 +6,7 @@ class OnSelect extends Listener {
     super.init()
     eventType = 'SelectionEvent'
     eventValueType = 'String'
-    callbackBaseName = "${parent.capName}Selected"
+    callbackBaseName = "${parent.cap}Selected"
     true
   }
 

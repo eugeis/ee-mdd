@@ -4,7 +4,7 @@ class OnContextMenuRequest extends Listener {
   boolean init() {
     super.init()
     eventType = "ContextMenuRequestEvent"
-    callbackBaseName = "${parent.capName}ContextMenuRequested"
+    callbackBaseName = "${parent.cap}ContextMenuRequested"
     eventValueType = 'String'
     signatureValue = 'String value'
     true

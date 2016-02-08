@@ -37,7 +37,7 @@ class Listener extends Operation {
     observerCall = "$observerName(value)"
     signatureEvent = "$eventType event"
     if (widget.domainType) {
-      eventDomainType = widget.domainType.capName
+      eventDomainType = widget.domainType.cap
       signatureValue = "$eventDomainType value"
       eventValueType = "$eventDomainType"
     } else {

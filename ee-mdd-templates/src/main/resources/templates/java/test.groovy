@@ -24,6 +24,7 @@ import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Module
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.StateMachine
+import ee.mdd.model.ui.View
 
 /**
  *
@@ -163,7 +164,15 @@ templates('test', purpose: UNIT_TEST) {
   templates('constantsTest',
   items: { c -> c.model.findAllRecursiveDown( {Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('constantsTest', appendName: true, body: '''<% c.className = c.item.n.cap.constantsTest%><% c.path = "ee-mdd_example-shared/src-gen/test/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constantsTest', c)}''')
+    template('constantsTest', appendName: true, body: '''<% c.className = c.item.n.cap.constantsTest %><% c.path = "ee-mdd_example-shared/src-gen/test/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constantsTest', c)}''')
   }
+  
+  templates('presenterTest',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('presenterTest', appendName: true, body: '''<% c.className = "${item.presenter.cap}TestBase" %> ${macros.generate('presenterTest', c)}''')
+    template('presenterTestExtends', appendName: true, body: '''<% c.className = "${item.presenter.cap}Test" %> ${macros.generate('presenterTestExtends', c)}''')
+  }
+    
   
 }

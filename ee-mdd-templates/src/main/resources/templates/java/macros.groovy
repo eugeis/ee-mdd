@@ -4798,7 +4798,7 @@ public abstract class $className {
   }
 }''')
   
-  template('conditionHandlerTestExtends', purpose: UNIT_TEST, body: '''
+  template('conditionHandlerTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @${c.name('RunWith')}(MockitoJUnitRunner.class)
@@ -4814,7 +4814,71 @@ public class $className extends ${item.cap}TestBase {
   // tests
 }''')
   
+  template('presenterTest', purpose: UNIT_TEST, body: '''{{imports}}<% def presenter = item.presenter %>
+//CHECKSTYLE_OFF: MethodName
+  //'_' allowed in test method names for better readability
+public class $className extends PresenterTestCase<$presenter.cap> {
+  @Mock
+  protected $item.cap view;
+  <% item.controls.each { def control -> if (!control.static) { %>protected $control.widgetInterface $control.fieldName;
+  <% } } %>
+  <% if (presenter.withMediator) { %>@Mock
+  protected $presenter.n.cap.Events forward;
+  <% } %>
+  @Override
+  protected $presenter.cap instantiatePresenterUnderTest() {
+    return spy(new $presenter.cap());
+  }
 
+  @Override
+  protected void initPresenterDependencies() {
+    super.initPresenterDependencies();
+    presenter.setView(view); <% if (presenter.withMediator) { %>
+    presenter.set$presenter.n.cap.Events(forward);<% } %>
+  }
+
+  @Override
+  protected void initViewDependencies() {
+    <% item.controls.each { def control -> if (!control.static) { %>$control.fieldName = mock(${control.widgetInterface}.class, RETURNS_SMART_DEFAULTS);
+    when(view.$control.getter).thenReturn($control.fieldName);
+    <% } } %>
+  }
+
+  <% if (presenter.withMediator) { %>@Test
+  public void registersItselfAtMediator() throws Exception {
+    // given
+    reset(forward);
+    // when
+    presenter.set$presenter.n.cap.Events(forward);
+    // then
+    verify(forward).set$presenter.cap(presenter);
+  } <% } %>
+  <% item.controls.each { def control -> control.operations.each { def op -> if (presenter.withMediator && op.forward) { %>
+  @Test
+  public void ${op.receiverName}_forwardsValueToMediator() throws Exception {
+    // given
+    $op.eventType event = events.create$op.eventTypeRawType(<% if (op.eventValueType) { %>defaultValue(${op.eventDomainType}.class)<% } %>);
+    // when
+    presenter.$op.receiverName(event);
+    // then
+    verify(forward).$op.receiverCallValue;
+  }
+  <% } } } %>
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    assertThat(new $presenter.cap(), is(notNullValue()));
+  }
+}''')
+  
+  template('presenterTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def presenter = item.presenter %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${presenter.cap}TestBase {
+  ${macros.generate('setUpSuper', c)}
+}''')
 
   //metaAttributes
 
@@ -4877,6 +4941,13 @@ ${ret-newLine}''')
   
   template('entityPropsToString', body: '''<% c.props.each { prop -> if(!prop.relation && !prop.lob && prop.type.name.matches('(String|Boolean|Long|Integer)')) { %>
   expectedResult.append("$prop.name=").append(entity.${prop.getter}).append(SEPARATOR);<% } } %>''')
+  
+  template('setUpSuper', body: '''
+  @Before
+  @Override
+  public void setUp() {
+    super.setUp();
+  }''')
   
   template('hashCodeAndEquals', body: '''<% if (item.propsForHashCode) { %>
 

@@ -4,7 +4,7 @@ class OnActivation extends Listener {
   boolean init() {
     super.init()
     eventType = "ActivationEvent"
-    callbackBaseName = "${parent.capName}Activated"
+    callbackBaseName = "${parent.cap}Activated"
     eventValueType = 'String'
     signatureValue = 'String value'
     true
