@@ -57,7 +57,7 @@ templates ('common') {
   			template('lightboxhtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/lightbox.html" %>${macros.generate('lightboxhtml', c)}''')
   			template('lightboxjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Lightbox.js" %>${macros.generate('lightboxjs', c)}''')
   			template('comlightboxjs', body: '''<% c.path = "${c.filepath}/src-gen/base/ComLightbox.js" %>${macros.generate('comlightboxjs', c)}''')
-  			template('injectionsjs', body: '''<% c.src = true %><% c.path = "${c.filepath}/src/Injections.js" %>${macros.generate('injectionsjs', c)}''')
+  			template('injectionsjs', body: '''<%  %><% c.path = "${c.filepath}/src/Injections.js" %>${macros.generate('injectionsjs', c)}''')
   		}
 
   	templates ('frameView',
@@ -65,6 +65,6 @@ templates ('common') {
   		context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
  			template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
   			template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
-  			template('framesrcjs', body: '''<% c.src = true; c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
+  			template('framesrcjs', body: '''<%  %><% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
   		}
 }

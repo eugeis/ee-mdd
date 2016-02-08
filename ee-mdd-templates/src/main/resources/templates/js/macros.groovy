@@ -70,14 +70,8 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		<link rel="stylesheet" href="stylesheet.css">
  	</head>
 	<body>
+		<h1 style="text-align:center">GENERATED</h1>
 		<lightbox></lightbox>
-\
-\
-		<!-- Include ViewRefs -->
-<% item.viewRefs.each { viewRef -> %>\
-		<ee-view template="${viewRef.view.name}" ng-controller="${viewRef.view.name}Controller as ctrl"></ee-view>
-<% } %>\
-\
 
 		<!-- Include MainView -->
 		<ee-view template="$item.name"></ee-view>
@@ -106,10 +100,17 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 		<script src="src/Injections.js" type="text/javascript"></script>
 
 		<!-- Include ViewRef-Javascript -->
-<% item.viewRefs.each { viewRef -> %>\
-		<script src="src-gen/views/${viewRef.view.name}.js" type="text/javascript"></script>
-<% } %>\
+<%
+def traverse
+traverse = {v ->
+    v.viewRefs.each { ref ->
+		traverse(ref.view);%>\
+		<script src="src-gen/views/${ref.view.name}.js" type="text/javascript"></script>
+<%	}
+}
 
+traverse(item);
+%>
 		<!-- Include ViewRef-Source-Dependencies-Javascript -->
 
 	</body>
@@ -118,16 +119,29 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 
 	template('appjs', body: '''\
+"use strict";
 (function(){
 	var dependencies = ["Injections", "Table", "View", "Lightbox"];
 	var views = [\
 <%
-	for (int i = 0; i < item.viewRefs.size(); i++) {
-		def iterator = item.viewRefs[i];
+def list = [];
+
+def traverse
+traverse = {v ->
+    v.viewRefs.each { ref ->
+		traverse(ref.view)
+		list.add(ref.view)
+	}
+}
+
+traverse(item);
+
+	for (int i = 0; i < list.size(); i++) {
+		def iterator = list[i];
 %>\
 "$iterator.view.name"\
 <%
-		if (i < item.viewRefs.size() - 1)  {
+		if (i < list.size() - 1)  {
 %>\
 ,\
 <%
@@ -153,7 +167,7 @@ section {
 
 .entityTable tr.selected {
 	border-left: 2px solid #0d355a;
-	border-right1: 2px solid #0d355a;
+	border-right: 2px solid #0d355a;
 }
 
 .entityTable .tableInput {
@@ -178,7 +192,7 @@ section {
 	width: 100%;
 	height: 100%;
 	z-index: 100;
-	position: absolute;
+	position: fixed;
 	margin: 0px;
 	padding: 0px;
 	top: 0px;
@@ -208,10 +222,10 @@ section {
 		<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, \\$parent.\\$index)">{{row[column]}}</td>
 	</tr>
 </table>
-
 ''')
 
 	template('tablejs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("Table",["Dispatcher"]);
 
@@ -226,13 +240,13 @@ section {
 ''')
 
 	template('viewjs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("View",[]);
 
 	app.directive("eeView", function() {
 		return {
 			restrict: 'E',
-			controllerAs: 'ctrl',
 			templateUrl: function(elem, attrs) {
 				return "src-gen/templates/" + attrs.template + ".html";
 			},
@@ -246,6 +260,7 @@ section {
 ''')
 
 	template('dispatcherjs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("Dispatcher",[]);
 
@@ -288,6 +303,7 @@ section {
 ''')
 
 	template('manipulatorjs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("Manipulator",[]);
 
@@ -339,6 +355,7 @@ section {
 ''')
 
 	template('injectionsjs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("Injections",[]);
 }());
@@ -374,6 +391,7 @@ section {
 
 
 	template('lightboxjs', body: '''\
+"use strict";
 (function(){
     var app = angular.module("Lightbox",["ComLightbox"]);
 
@@ -392,67 +410,69 @@ section {
     }]);
 
     function LightboxController(\\$scope, \\$lightbox, \\$rootScope) {
-      var self = this;
-      \\$lightbox.setLightBox(this);
+		var self = this;
+		\\$lightbox.setLightBox(this);
 
-      self.columnInfo = undefined;
-      self.type = undefined;
-      self.caller = undefined;
-      self.rowNr = undefined;
-      self.show = false;
+		self.columnInfo = undefined;
+		self.type = undefined;
+		self.caller = undefined;
+		self.rowNr = undefined;
+		self.show = false;
 
-      self.create = function (info) {
-        if (info.type !== "add" && info.type !== "delete") {
-          return self.hide();
-        }
+		self.create = function (info) {
+			if (info.type !== "add" && info.type !== "delete") {
+				return self.hide();
+			}
 
-        if (info.type === "add") {
-          if (self.type !== "add") {
-            self.columnInfo = info.columnInfo;
-          }
-        } else if (info.type === "delete") {
-          self.rowNr = info.rowNr;
-          self.columnInfo = info.columnInfo;
-        }
+			if (info.type === "add") {
+				if (self.type !== "add") {
+					self.columnInfo = info.columnInfo;
+				}
+			} else if (info.type === "delete") {
+				self.rowNr = info.rowNr;
+				self.columnInfo = info.columnInfo;
+			}
 
-        self.caller = info.caller;
-        self.type = info.type;
-        self.show = true;
-      };
+			self.caller = info.caller;
+			self.type = info.type;
+			self.show = true;
+		};
 
-      self.submit = function (type) {
-        var success;
-        if (type === "add") {
-          success = self.caller.add(self.columnInfo);
-        } else if (type === "delete") {
-          success = self.caller.delete(self.rowNr);
-        } else {
-          success = false;
-        }
+		self.submit = function (type) {
+			var success;
+			if (type === "add") {
+				success = self.caller.add(self.columnInfo);
+			} else if (type === "delete") {
+				success = self.caller.delete(self.rowNr);
+			} else {
+				success = false;
+			}
 
-        if (success) {
-          return self.hide();
-        }
-      };
+			if (success) {
+				return self.hide();
+			}
+		};
 
-      self.hide = function() {
-        self.checked = false;
-        self.show = false;
-      }
-      self.prevent = function(e) {
-          e.stopPropagation();
-      };
-      \\$rootScope.\\$on("keypress", function(onEvent, keyEvent) {
-        var key = (keyEvent.charCode || keyEvent.keyCode);
-        if (key == 27) {
-            \\$scope.\\$apply(self.hide());
-        }
-      });
-    }
+		self.hide = function() {
+			self.checked = false;
+			self.show = false;
+		}
+
+		self.prevent = function(e) {
+			e.stopPropagation();
+		};
+		\\$rootScope.\\$on("keypress", function(onEvent, keyEvent) {
+			var key = (keyEvent.charCode || keyEvent.keyCode);
+			if (key == 27) {
+				\\$scope.\\$apply(self.hide());
+			}
+		});
+	}
 }());
 ''')
 
 	template('comlightboxjs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("ComLightbox",[]);
 
@@ -472,12 +492,16 @@ section {
 
 	template('framehtml', body: '''\
 <section id="${item.name}">
+<h4 style="padding-left:10px">${item.name}</h4>
+<% item.viewRefs.each { viewRef -> %>\
+	<ee-view template="${viewRef.view.name}" ng-controller="${viewRef.view.name}Controller as ${viewRef.view.name.toLowerCase()}Ctrl"></ee-view>
+<% } %>\
 <%
 	item.controls.each { control ->
 		if (control.widgetType == "Button") {
 %>\
 \
-		<input type="button" value="${control.name.capitalize()}" ng-click="ctrl.lightbox('\
+		<input type="button" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('\
 <%
 	if (control.name.capitalize().startsWith("Add")) {
 %>\
@@ -486,6 +510,14 @@ add\
 	} else if (control.name.capitalize().startsWith("Delete")) {
 %>\
 delete\
+<%
+	} else if (control.name.capitalize().startsWith("Accept")) {
+%>\
+accept\
+<%
+	} else if (control.name.capitalize().startsWith("Discard")) {
+%>\
+discard\
 <%
 	} else {
 %>\
@@ -500,9 +532,7 @@ search\
 		if (control.widgetType == "Table") {
 %>\
 \
-	<section id="$item.name-Table-${control.name.capitalize()}">
 		<ee-table ng-controller="${item.name}${control.name.capitalize()}Controller as tableCtrl"></ee-table>
-	</section>
 \
 <%
 		}
@@ -519,6 +549,7 @@ search\
 ''')
 
 	template('framejs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("$item.name",[\
 <%
@@ -615,7 +646,7 @@ search\
 %>\
 
 
-	  app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
+	app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
 		var self = this;
 
 		self.id = "${item.name}${control.name.capitalize()}";
@@ -739,6 +770,7 @@ search\
 ''')
 
 	template('framesrcjs', body: '''\
+"use strict";
 (function(){
 	var app = angular.module("${item.name}Injector", ["Manipulator"]);
 
