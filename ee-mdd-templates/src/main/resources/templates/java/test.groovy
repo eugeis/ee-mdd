@@ -93,8 +93,10 @@ templates('test', purpose: UNIT_TEST) {
   templates('commandsFindersTest',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('commandsTest', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseTestImpl %> ${macros.generate('commandsTest', c)}<% } %> ''')
-    template('findersTest', appendName: true, body: '''<% if (item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.baseTestImpl %> ${macros.generate('findersTest', c)}<% } %>''')
+    template('commandsTest', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% if(item.commands.base) { c.className = item.commands.n.cap.baseTestImpl } else { c.className = item.commands.n.cap.testImpl } %> ${macros.generate('commandsTest', c)}<% } %>''')
+    template('commandsTestExtends', appendName: true, body: '''<% if (item.commands && item.commands.base && !item.virtual) { %><% c.className = item.commands.n.cap.testImpl %> ${macros.generate('commandsTestExtends', c)}<% } %>''')
+    template('findersTest', appendName: true, body: '''<% if (item.finders && !item.virtual) { %><% if(item.commands.base) { c.className = item.finders.n.cap.baseTestImpl } else { c.className = item.finders.n.cap.testImpl } %> ${macros.generate('findersTest', c)}<% } %>''')
+    template('findersTestExtends', appendName: true, body: ''' <% if (item.finders && item.finders.base && !item.virtual) { %><% c.className = item.finders.n.cap.testImpl %> ${macros.generate('findersTestExtends', c)}<% } %>''')
   }
     
   

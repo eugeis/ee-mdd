@@ -4309,6 +4309,16 @@ public abstract class $className extends ManagerTestBase<${item.idProp.type.name
   }
 }''')
   
+  template('commandsTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+@${c.name('Alternative')}
+public abstract class $className extends ${item.commands.n.cap.baseTestImpl} {
+}''')
+  
+  template('findersTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+@${c.name('Alternative')}
+public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
+}''')
+  
   template('commandsMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {
