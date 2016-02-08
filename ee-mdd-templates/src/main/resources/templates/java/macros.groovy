@@ -4397,6 +4397,30 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   }<% } %>
 }''')
   
+  template('deltaCacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def idType = idProp.type.name; def type = item.virtual?'E':item.cap; def deltaCacheImpl = item.deltaCache.n.cap.impl; cacheImpl = item.cache.n.cap.impl; def deltaCacheSuper %>
+<% if (superUnit) { deltaCacheSuper = "${superUnit.deltaCache.n.cap.test}<${item.simpleSuperGenericSgn}$type>" } else { deltaCacheSuper = "DeltaCacheTestBase<$idProp.type.name, $type>" } %>
+public abstract class <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${deltaCacheSuper}<% } else { %>$className extends DeltaCacheTestBase<${idType}, ${type}><% } %> {
+
+  @Override
+  protected DeltaCache<${idType}, ${type}> createDeltaCache(boolean threadSafe) {
+    return new ${deltaCacheImpl}(threadSafe);
+  }
+
+  @Override
+  protected Class<? extends Cache<${idType}, ${type}>> getCacheClass() {
+    return ${cacheImpl}.class;
+  }
+}''')
+  
+  template('deltaCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${item.deltaCache.n.cap.testBase}<${item.simpleGenericSgn}E><% } else { %>class $className extends ${item.deltaCache.n.cap.testBase} <% } %> {
+<% item.deltaCache.operations.each { op -> %>
+  @Test
+  @Override
+  public void test${op.cap}() {
+  }<% } %>
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {

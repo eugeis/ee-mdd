@@ -54,10 +54,12 @@ templates('test', purpose: UNIT_TEST) {
   templates('cacheTest',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'cache'] ) } ) {
-    template('cacheTest', appendName: true, body: '''<% if(item.cache.base) { c.className = item.cache.n.cap.testBase } else { c.className = item.cache.n.cap.test } %> ${macros.generate('cacheTest', c)}''')
+    template('cacheTest', appendName: true, body: '''<% c.className = item.cache.n.cap.testBase %> ${macros.generate('cacheTest', c)}''')
     template('cacheTestExtends', appendName: true, body: '''<% c.className = item.cache.n.cap.test %> ${macros.generate('cacheTestExtends', c)} ''')
     template('cacheOverrideTest', appendName: true, body: '''<% c.className = item.cache.n.cap.overrideTestBase %><% c.override = true %> ${macros.generate('cacheTest', c)}''')
     template('cacheOverrideTestExtends', appendName: true, body: '''<% c.className = item.cache.n.cap.overrideTest %><% c.override = true %> ${macros.generate('cacheTestExtends', c)}''')
+    template('deltaCacheTest', appendName: true, body: '''<% c.className = item.deltaCache.n.cap.testBase %> ${macros.generate('deltaCacheTest', c)}''')
+    template('deltaCacheTestExtends', appendName: true, body: '''<% c.className = item.deltaCache.n.cap.test %> ${macros.generate('deltaCacheTestExtends', c)}''')
   }
     
   templates ('bridgeTest',
