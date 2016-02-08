@@ -93,7 +93,8 @@ templates('test', purpose: UNIT_TEST) {
   templates('commandsFindersTest',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('commandsTest', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseTestImpl %> ${macros.generate('commandsTest', c)} <% } %> ''')
+    template('commandsTest', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.commands.n.cap.baseTestImpl %> ${macros.generate('commandsTest', c)}<% } %> ''')
+    template('findersTest', appendName: true, body: '''<% if (item.finders && !item.virtual) { %><% c.className = item.finders.n.cap.baseTestImpl %> ${macros.generate('findersTest', c)}<% } %>''')
   }
     
   

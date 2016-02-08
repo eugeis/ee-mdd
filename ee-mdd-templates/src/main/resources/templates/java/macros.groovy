@@ -4207,16 +4207,95 @@ public abstract class $className extends ManagerTestBase<${item.idProp.type.name
     ${item.cap} entity = entityForCreation(1);
     ${item.cap} createdEntity = commands.${op.uncap}(${op.propGetters});<% op.props.each { prop -> %>
     assertThat(createdEntity.get${prop.cap}(), is(entity.get${prop.cap}()));<% } %>
-  }<% } %><% commands.deleters.each { op-> %>
+  }<% } %><% commands.deleters.each { op -> %>
 
   @Test
   public void test${op.cap}() {
     commands.deleteAll();
     ${item.cap} entity = commands.create(entityForCreation(1));
     commands.${op.uncap}(${op.propGetters});
-    ${c.name('List')}<${item.cap}> allEntities = commands.findAll();
+    ${c.name('List')}<${item.cap}> allEntities = finders.findAll();
     assertThat(allEntities.size(), is(0));
   }<% } %>
+
+  @Override
+  protected ${item.idProp.type.name} sampleEntityId(int entityNumber) {
+    return $idConverter;
+  }
+
+  @Override
+  protected $item.cap entityForCreation(int entityNumber) {
+    ${item.cap} ret = dataFactory.new${item.cap}(entityNumber);
+    return ret;
+  }
+}''')
+  
+  template('findersTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp; def idConverter %>
+<% if(idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
+@Alternative
+public abstract class $className extends ManagerTestBase<${item.idProp.type.name}, ${item.cap}, ${finders.cap}> {
+
+  protected static  ${module.capShortName}DataFactoryBase dataFactory;
+
+  @BeforeClass
+  public static void before$className() {<% if (module.isFacetEnabled('jpa')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryEjb(new ${module.capShortName}ModelFactoryEjb());<% } else if (module.isFacetEnabled('entityImpl')) { %>
+    dataFactory = new ${module.capShortName}DataFactoryImpl(new ${module.capShortName}ModelFactoryImpl());<% } %>
+  }<% finders.counters.each { op-> %>
+
+  @Test
+  public void test${op.cap}() {
+    commands.deleteAll();
+    long count = finders.${op.cap}(${op.propGetters});
+    assertThat(count, is(0));
+    ${item.cap} entity = commands.create(entityForCreation(1));
+    count = finders.${op.cap}(${op.propGetters});
+    assertThat(count, is(1));
+  }<% } %><% finders.existers.each { op-> %>
+
+  @Test
+  public void test${op.cap}() {
+    commands.deleteAll();
+    ${item.cap} entity = entityForCreation(1);
+    boolean exists = finders.${op.uncap}(${op.propGetters});
+    assertThat(exists, is(false));
+    entity = commands.create(entity);
+    exists = finders.${op.uncap}(${op.propGetters});
+    assertThat(exists, is(true));
+  }<% } %><% finders.finders.each { op-> %>
+<% if(op.oneOfPropsRelationId) { %>
+  /* TODO: For the moment (2015-08-24), the generator doesn't support finders using relations in the manager. Generator has to be improved<% } %>
+
+  @Test
+  public void test${op.cap}() {
+    commands.deleteAll();
+    $item.cap entity = entityForCreation(1);
+    $op.returnTypeExternal ret = manager.${op.uncap}(${op.propGetters});<% if (op.unique) { %>
+    assertThat(ret, nullValue());<% } else { %>
+    assertThat(ret.size(), is(0));<% } %>
+    entity = commands.create(entity);
+    ret = manager.${op.uncap}(${op.propGetters});<% if (op.unique) { %>
+    assertThat(ret, notNullValue());<% } else { %>
+    assertThat(ret.size(), is(1));<% } %>
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void test${op.cap}StrictNotFound() {
+    manager.deleteAll();
+    $item.cap entity = entityForCreation(1);
+    $op.returnTypeExternal ret = manager.${op.uncap}Strict(${op.propGetters});
+  }
+
+  @Test
+  public void test${op.cap}StrictFound() {
+    commands.deleteAll();
+    $item.cap entity = entityForCreation(1);
+    entity = manager.create(entity);
+    $op.returnTypeExternal ret = manager.${op.uncap}Strict(${op.propGetters});
+    assertThat(ret, is(manager.${op.uncap}(${op.propGetters})));
+  }
+
+<% if(op.oneOfPropsRelationId) { %>*/<% } %><% } %>
 
   @Override
   protected ${item.idProp.type.name} sampleEntityId(int entityNumber) {

@@ -887,7 +887,7 @@ class EnhancerForJava {
       }
       
       getPropGetters << {
-        delegate.paramsWithoutDefaults.collect { Prop prop = param.prop; prop.multi?"CollectionUtils.asList(entity.${prop.getterWithIdIfRelation})": "entity.${prop.getterWithIdIfRelation}" }.join(", ")
+        delegate.paramsWithoutDefaults.collect { Prop prop = it.prop; prop.multi?"CollectionUtils.asList(entity.${prop.getterWithIdIfRelation})": "entity.${prop.getterWithIdIfRelation}" }.join(", ")
       }
       
       getParamsWithoutDefaults << { 
