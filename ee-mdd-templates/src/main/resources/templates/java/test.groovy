@@ -39,16 +39,15 @@ templates('test', purpose: UNIT_TEST) {
   templates ('modelTest',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
-
     template('test', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.n.cap.test}Base"; c.itemInit = "new $item.n.cap.impl()" %>${macros.generate('test', c)}<% } %>''')
     template('testExtends', appendName: true, body: '''<% if(!item.virtual) { c.className = item.n.cap.test %>${macros.generate('testExtends', c)}<% } %>''')
   }
   
-  templates('moduleCacheTest',
-  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('moduleCacheTest', appendName: true, body: '''<% def cachedContainers = module.containers.findAll {it.controller && it.controller.cache}; if (cachedContainers) { %><% c.className = "${module.capShortName}CacheTestBase" %> ${macros.generate('moduleCacheTest', c)}<% } %>''')
-    template('moduleCacheTestExtends', appendName: true, body: '''<% if (module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheTest" %> ${macros.generate('moduleCacheTestExtends', c)}<% } %>''')
+  templates('beanTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb'] ) } ) {
+    template('beanTest', appendName: true, body: '''<% c.className = item.beanTestBaseName %> ${macros.generate('beanTest', c)}''')
+    template('beanTestExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.beanTestName %> ${macros.generate('beanTestExtends', c)}<% } %>''')
   }
   
   templates('cacheTest',
@@ -60,6 +59,13 @@ templates('test', purpose: UNIT_TEST) {
     template('cacheOverrideTestExtends', appendName: true, body: '''<% c.className = item.cache.n.cap.overrideTest %><% c.override = true %> ${macros.generate('cacheTestExtends', c)}''')
     template('deltaCacheTest', appendName: true, body: '''<% c.className = item.deltaCache.n.cap.testBase %> ${macros.generate('deltaCacheTest', c)}''')
     template('deltaCacheTestExtends', appendName: true, body: '''<% c.className = item.deltaCache.n.cap.test %> ${macros.generate('deltaCacheTestExtends', c)}''')
+  }
+  
+  templates('moduleCacheTest',
+  items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('moduleCacheTest', appendName: true, body: '''<% def cachedContainers = module.containers.findAll {it.controller && it.controller.cache}; if (cachedContainers) { %><% c.className = "${module.capShortName}CacheTestBase" %> ${macros.generate('moduleCacheTest', c)}<% } %>''')
+    template('moduleCacheTestExtends', appendName: true, body: '''<% if (module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheTest" %> ${macros.generate('moduleCacheTestExtends', c)}<% } %>''')
   }
     
   templates ('bridgeTest',

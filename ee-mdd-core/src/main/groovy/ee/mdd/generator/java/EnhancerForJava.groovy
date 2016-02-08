@@ -228,6 +228,50 @@ class EnhancerForJava {
         properties[key]
       }
       
+      getBeanGenericName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'beanGenericName'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.beanName+delegate.genericSgn
+        }
+      }
+      
+      getBeanTestName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'beanTestName'
+        if(!properties.containsKey(key)) {
+         properties[key] = delegate.virtual ? "${delegate.n.cap.beanTestAbstract}" : "${delegate.n.cap.beanTest}"
+        }
+        properties[key]
+      }
+      
+      getBeanTestBaseName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'beanTestBaseName'
+        if(!properties.containsKey(key)) {
+         properties[key] = delegate.virtual ? "${delegate.n.cap.beanTestAbstract}" : "${delegate.n.cap.beanTestBase}"
+        }
+        properties[key]
+      }
+      
+      getBeanTestGenericName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'beanTestGenericName'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.beanTestName+delegate.genericSgn
+          properties[key] = ret
+        }
+      }
+      
+      getBeanTestGenericBaseName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'beanTestGenericBaseName'
+        if(!properties.containsKey(key)) {
+          def ret = delegate.beanTestBaseName+delegate.genericSgn
+          properties[key] = ret
+        }
+      }
+      
       getBaseGenericName << {
         ->
         def key = System.identityHashCode(delegate) + 'baseGenericName'

@@ -4421,6 +4421,182 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   }<% } %>
 }''')
   
+  template('beanTest', purpose: UNIT_TEST, body: '''{{imports}}<% def multiProp = item.props.find { it.multi }; def props = item.props.findAll{!it.primaryKey}; c.props = props %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability<% if (item.superUnit) { %>
+public abstract class $item.beanTestGenericBaseName extends ${item.superUnit.beanTestBaseName}${item.superGenericSgn} { <% } else { %>
+public abstract class $item.beanTestGenericBaseName extends BaseEntityImplTestCase {<% } %>
+  <% if (multiProp) { %>@SuppressWarnings("unchecked")<% } %><% if (item.virtual) { %>
+  public void testGetterSettersOf${item.cap}(${item.beanGenericName} entity) {<% } else { %>
+  @Test
+  public void testGetterSettersOf${item.cap}() {
+    ${item.beanName} entity = new ${item.beanName}();<% } %><% if (item.superUnit) { %>
+    super.testGetterSettersOf${item.superUnit.cap}(entity);<% } %><% item.props.each { prop -> if (!prop.derived) { if (!prop.multi) {  if (prop.type.name == 'String') { %>
+    entity.set${prop.cap}("$prop.cap");
+    assertThat(entity.${prop.getter}, is("$prop.cap"));<% } else if (prop.type.name == 'Long') { %>
+    entity.set${prop.cap}(Long.valueOf(1));
+    assertThat(entity.${prop.getter}, is(Long.valueOf(1)));<% } else if (prop.type.name == 'long') { %>
+    entity.set${prop.cap}(1);
+    assertThat(entity.${prop.getter}, is(1L));<% } else if (prop.type.name == 'int') { %>
+    entity.set${prop.cap}(1);
+    assertThat(entity.${prop.getter}, is(1));<% } else if (prop.type.name == 'Integer') { %>
+    entity.set${prop.cap}(Integer.valueOf(1));
+    assertThat(entity.${prop.getter}, is(Integer.valueOf(1)));<% } else if (prop.type.name == 'boolean') { %>
+    entity.set${prop.cap}(true);
+    assertThat(entity.${prop.getter}, is(true));<% } else if (prop.type.name == 'Date') { %>
+    Date $prop.uncap = TimeUtils.now();
+    entity.set${prop.cap}($prop.uncap);
+    assertThat(entity.${prop.getter}, is($prop.uncap));<% } else if (prop.type.name.startsWith('Map<')) { %>
+    entity.set${prop.cap}(null);
+    assertThat(entity.${prop.getter}.isEmpty(), is(true));<% } else { %>
+    entity.set${prop.cap}(null);
+    assertThat(entity.${prop.getter}, is(nullValue()));<% } %><% } else { %>
+    entity.set${prop.cap}(null);
+    assertThat(entity.${prop.getter}.isEmpty(), is(true));
+    entity.set${prop.cap}(Collections.EMPTY_LIST);
+    assertThat(entity.${prop.getter}.isEmpty(), is(true));<% } %><% } } %>
+  }
+  <% if (item.virtual) { %>
+  public void fillToTestString(${item.beanGenericName} entity, StringBuffer expectedResult) throws Exception {
+    super.fillToTestString(entity, expectedResult);
+    ${macros.generate('entityPropsToString', c)}
+  }
+  <% } else { %>
+  @Test
+  public void testFillToString${item.cap}() throws Exception {
+    ${item.beanName} entity = new ${item.beanName}();
+    StringBuffer buffer = new StringBuffer();
+
+    // when
+    entity.fillToString(buffer);
+
+    // then
+    StringBuffer expectedResult = new StringBuffer();
+    super.fillToTestString(entity, expectedResult);
+    ${macros.generate('entityPropsToString', c)}
+
+    assertTrue(buffer.toString().equals(expectedResult.toString()));
+  }
+<% } %><% if(item.attributeChangeFlag) {%>
+  @Test
+  public void attributesChanged___whenNothingDone___returnsFalse() {
+    //given
+    ${item.beanName} entity = new ${item.beanName}();
+    entity.clearAttributesChanged();
+
+    //when
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+  }
+  <% item.props.each { prop -> if (prop != item.idProp && !prop.multi && !prop.ignoreInChangeFlag) {  if (prop.type.name == 'String') { %>
+
+  @Test
+  public void attributesChanged___dependingOn${prop.cap}IsChanged___returnsTrue() {
+    //given
+    ${item.beanName} entity = new ${item.beanName}();
+    entity.set${prop.cap}("");
+    entity.clearAttributesChanged();
+
+    //when not changed
+    entity.set${prop.cap}("");
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+
+    //when changed
+    entity.set${prop.cap}("$prop.cap");
+    //then
+    assertThat(entity.attributesChanged(), is(true));
+  }<% } else if (prop.type.name == 'Long'||prop.type.name == 'long'||prop.type.name == 'int'||prop.type.name == 'Integer') { %>
+
+  @Test
+  public void attributesChanged___dependingOn${prop.cap}IsChanged___returnsTrue() {
+    //given
+    ${item.beanName} entity = new ${item.beanName}();
+    entity.set${prop.cap}(Integer.valueOf(0));
+    entity.clearAttributesChanged();
+
+    //when not changed
+    entity.set${prop.cap}(Integer.valueOf(0));
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+
+    //when changed
+    entity.set${prop.cap}(Integer.valueOf(1));
+    //then
+    assertThat(entity.attributesChanged(), is(true));
+  }<% } else if (prop.type.name == 'boolean'||prop.type.name == 'Boolean') { %>
+
+  @Test
+  public void attributesChanged___dependingOn${prop.cap}IsChanged___returnsTrue() {
+    //given
+    ${item.beanName} entity = new ${item.beanName}();
+    entity.set${prop.cap}(false);
+    entity.clearAttributesChanged();
+
+    //when not changed
+    entity.set${prop.cap}(false);
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+
+    //when changed
+    entity.set${prop.cap}(true);
+    //then
+    assertThat(entity.attributesChanged(), is(true));
+  }<% } else if (prop.type.name == 'Date') { %>
+
+  @Test
+  public void attributesChanged___dependingOn${prop.cap}IsChanged___returnsTrue() {
+    //given
+    ${item.beanName} entity = new ${item.beanName}();
+    Date $prop.uncap= TimeUtils.yesterday();
+    entity.set${prop.cap}($prop.uncap);
+    entity.clearAttributesChanged();
+
+    //when not changed
+    entity.set${prop.cap}($prop.uncap);
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+
+    //when changed
+    $prop.uncap = TimeUtils.now();
+    entity.set${prop.cap}($prop.uncap);
+    //then
+    assertThat(entity.attributesChanged(), is(true));
+  }<% } } %><% } %>
+  <% item.props.each { prop -> if (prop != item.idProp && !prop.multi && prop.ignoreInChangeFlag) {  if (prop.type.name == 'Date') { %>
+
+  @Test
+  public void attributesChanged___unDependent${prop.capName}IsChanged___returnsFalse() {
+    //given
+    ${item.beanName} entity = new ${item.beanName}();
+    Date $prop.uncap = TimeUtils.yesterday();
+    entity.set${prop.cap}($prop.uncap);
+    entity.clearAttributesChanged();
+
+    //when not changed
+    entity.set${prop.cap}($prop.uncap);
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+
+    //when changed
+    $prop.uncap = TimeUtils.now();
+    entity.set${prop.cap}($prop.uncap);
+    //then
+    assertThat(entity.attributesChanged(), is(false));
+  }  <% } } %><% } %><% } %>
+}''')
+  
+  template('beanTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def multiProp = item.props.find { it.multi }; def props = item.props.findAll {!it.primaryKey} %> 
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $item.beanTestGenericName extends ${item.beanTestGenericName}Base {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }
+}''')
+  
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
@@ -4672,6 +4848,9 @@ ${ret-newLine}''')
     b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
   }''')
+  
+  template('entityPropsToString', body: '''<% c.props.each { prop -> if(!prop.relation && !prop.lob && prop.type.name.matches('(String|Boolean|Long|Integer)')) { %>
+  expectedResult.append("$prop.name=").append(entity.${prop.getter}).append(SEPARATOR);<% } } %>''')
   
   template('hashCodeAndEquals', body: '''<% if (item.propsForHashCode) { %>
 
