@@ -4982,6 +4982,106 @@ public class $className extends ${className}Base {
   }
 }''')
 
+  
+  template('viewGuidoTest', purpose: UNIT_TEST, body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
+public abstract class $className extends GuidoViewTestCase<$viewClassName> {
+
+  <% item.views.each { def view -> %>@Mock
+  protected ${view.cap}Guido ${view.uncap};
+  <% } %>@Mock
+  protected $item.presenter.cap presenter;
+
+  ${macros.generate('setUpSuper', c)}
+
+  @Override
+  protected $viewClassName instantiateViewUnderTest() {
+    return spy(new $viewClassName());
+  }
+
+  @Override
+  protected void beforeViewCreated() {
+    super.beforeViewCreated();
+    view.setPresenter(presenter);
+    <% item.views.each { def view-> %>view.set${view.cap}(${view.uncap});
+    <% } %>
+  }
+
+  @Override
+  protected void afterViewCreated() {
+  }
+
+  @Test
+  public void registersItselfAtPresenter() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then
+    verify(presenter).setView(view);
+  }
+
+  @Test
+  public void callsInitMethodsIfCreated() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then
+    InOrder inOrder = inOrder(view, presenter);
+    inOrder.verify(view).initWidgets();
+    inOrder.verify(view).initEventHandling();
+    inOrder.verify(presenter).postViewCreated();
+  }
+
+  @Test
+  public void createsWidgetInstances() throws Exception {
+    // when
+    createViewUnderTest();
+    // then <% item.controls.each { def control-> %>
+    assertThat(view.${control.fieldName}, is(notNullValue()));<% } %>
+  }
+
+  @Test
+  public void addsSubViewsToPanels() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then <% item.views.each { def view-> %>
+    verify(view.${view.uncap}Panel).addView(view.${view.uncap});<% } %>
+  }
+
+  @Test
+  public void initializesMlTexts() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then <% item.controls.each { def control-> if (control.ml) { %>
+    verify(view.${control.fieldName}).setTextML($control.mlKeyConstant);<% } } %>
+  }
+
+  @Test
+  public void implementsViewInterface() throws Exception {
+    // when
+    createViewUnderTest();
+    // then <% item.controls.each { def control-> if (!control.static) { %>
+    assertThat(view.${control.getter}, is(($control.widgetInterface) view.${control.fieldName}));
+    <% } } %>
+  }
+  <% item.controls.each { def control -> control.listener.each { def op -> def guidoEventClass = macros.guidoEvents[control.widgetType][op.name]+"Event" %>
+  @Test
+  public void ${control.fieldName}${guidoEventClass}IsForwardedToPresenter() throws Exception {
+    // given
+    createViewUnderTest();
+    // when
+    <% if (op.name == 'OnChange') { %>@SuppressWarnings("unchecked")<% } %>
+    ${op.eventType} event = testEvents().eventReceived(view.${control.fieldName}, ${op.eventTypeRawType}.class);
+    // then
+    verify(presenter).${op.receiverName}(event);
+  }
+  <% } } %>
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    assertThat(new ${viewClassName}(), is(notNullValue()));
+  }
+}''')
+  
+  
   //metaAttributes
 
 

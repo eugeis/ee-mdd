@@ -56,11 +56,13 @@ import ee.mdd.model.ui.GroupBoxHeader
 import ee.mdd.model.ui.GroupContentFrame
 import ee.mdd.model.ui.Header
 import ee.mdd.model.ui.Label
+import ee.mdd.model.ui.Listener
 import ee.mdd.model.ui.Panel
 import ee.mdd.model.ui.Spinner
 import ee.mdd.model.ui.Table
 import ee.mdd.model.ui.TextField
 import ee.mdd.model.ui.TimeField
+import ee.mdd.model.ui.Widget
 
 
 
@@ -1698,6 +1700,29 @@ class EnhancerForJava {
       }
     }
     
+    Widget.metaClass {
+      
+      getMlKeyName << {
+        ->
+        def key = System.identityHashCode(delegate) + 'mlKeyName'
+        if(!properties.containsKey(key)) {
+          def parent = delegate.parent
+          properties[key] = "${parent.underscored}_$delegate.underscored_${widgetTypeShort}"
+        }
+        properties[key]
+      }
+      
+      getMlKeyConstant << {
+        ->
+        def key = System.identityHashCode(delegate) + 'mlKeyConstant'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.mlKeyName.toUpperCase()
+        }
+        properties[key]
+      }
+      
+    }
+    
     Control.metaClass {
       
       getGuidWidget {
@@ -1738,9 +1763,22 @@ class EnhancerForJava {
           properties[key] = ret
         }
         properties[key]
-      }      
-    }
+      }
       
+      getListener << {
+        ->
+        def key = System.identityHashCode(delegate) + 'listener'
+        if(!properties.containsKey(key)) {
+          def ret = []
+          delegate.children.each {
+            if(Listener.isInstance(it))
+              ret.add(it)
+          }
+          properties[key] = ret
+        }
+      }
+      
+    } 
       
 
     Channel.metaClass {
