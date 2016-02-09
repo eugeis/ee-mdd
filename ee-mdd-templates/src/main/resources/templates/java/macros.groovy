@@ -4879,6 +4879,97 @@ public class $className extends PresenterTestCase<$presenter.cap> {
 public class $className extends ${presenter.cap}TestBase {
   ${macros.generate('setUpSuper', c)}
 }''')
+  
+  template('viewModelTest', purpose: UNIT_TEST, body: '''{{imports}}<% def model = item.model %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseModelTestCase<$model.cap> {
+  @Mock
+  protected $model.n.cap.Events forward;
+
+  @Override
+  protected $model.cap instantiateModelUnderTest() {
+    return spy(new $model.cap());
+  }
+
+  @Override
+  protected void initModelDependencies() {
+    super.initModelDependencies();
+    model.set$model.n.cap.Events(forward);
+  }
+
+  public void registersItselfAtMediator() throws Exception {
+    // given
+    reset(forward);
+    // when
+    model.set$model.n.cap.Events(forward);
+    // then
+    verify(forward).set$model.cap(model);
+  }
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    assertThat(new $model.cap(), is(notNullValue()));
+  }
+}''')
+  
+  template('viewModelTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def model = item.model %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${model.cap}TestBase {
+  ${macros.generate('setUpSuper', c)}
+}''')
+  
+  template('mediatorTest', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
+public class $className extends BaseTestCase {
+protected $view.names.mediator mediator;<% view.mediatorDelegates.each{ delegate -> %>
+  @Mock
+  protected $delegate.names.clazz $delegate.uncapName; <% } %>
+
+  @Before
+  public void setUp() {
+    mediator = instantiateMediatorUnderTest();
+    initMediatorDependencies();
+  }
+
+  protected $view.names.mediator instantiateMediatorUnderTest() {
+    return spy(new $view.names.mediator());
+  }
+
+  protected void initMediatorDependencies() {<% view.mediatorDelegates.each{ delegate -> %>
+    mediator.set$delegate.names.clazz($delegate.uncapName);<% } %>
+  }
+  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control-> control.operations.each { def op -> if (op.forward) { %>
+  @Test
+  public void ${op.receiverName}_forwardsToHandler() throws Exception {
+    <% if (op.eventValueType) { %>// given
+    $op.eventValueType value = ${op.eventDefaultValue};
+    // when
+    mediator.$op.receiverName(value);
+    <% } else { %>
+    // when
+    mediator.$op.receiverName();
+    <% } %>// then <% op.handlers.each{ def handler -> %>
+    verify($handler.uncapName).$op.handlerCall;<% } %>
+  }
+  <% } } } } %><% def model = view.model; if (model) { model.handlers.each { def op -> if (op.forward) { %>
+  @Test
+  public void ${op.receiverName}_forwardsToObserver() throws Exception {
+    <% if (op.eventValueType) { %>// given
+    $op.eventValueType value = ${op.eventDefaultValue};
+    // when
+    mediator.$op.observerName(value);
+    <% } else { %>
+    // when
+    mediator.$op.observerName();
+    <% } %>// then <% op.observers.each{ def observer -> %>
+    verify($observer.uncapName).$op.observerCall;<% } %>
+  }
+  <% } } } %>
+}
+''')
 
   //metaAttributes
 
