@@ -4924,9 +4924,9 @@ public class $className extends ${model.cap}TestBase {
   
   template('mediatorTest', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
 public class $className extends BaseTestCase {
-protected $view.names.mediator mediator;<% view.mediatorDelegates.each{ delegate -> %>
+protected ${view.domainName}Mediator mediator;<% view.mediatorDelegates.each{ delegate -> %>
   @Mock
-  protected $delegate.names.clazz $delegate.uncapName; <% } %>
+  protected $delegate.cap $delegate.uncap; <% } %>
 
   @Before
   public void setUp() {
@@ -4934,14 +4934,14 @@ protected $view.names.mediator mediator;<% view.mediatorDelegates.each{ delegate
     initMediatorDependencies();
   }
 
-  protected $view.names.mediator instantiateMediatorUnderTest() {
-    return spy(new $view.names.mediator());
+  protected ${view.domainName}Mediator instantiateMediatorUnderTest() {
+    return spy(new ${view.domainName}Mediator());
   }
 
   protected void initMediatorDependencies() {<% view.mediatorDelegates.each{ delegate -> %>
-    mediator.set$delegate.names.clazz($delegate.uncapName);<% } %>
+    mediator.set$delegate.cap($delegate.uncap);<% } %>
   }
-  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control-> control.operations.each { def op -> if (op.forward) { %>
+  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control -> control.operations.each { def op -> if (op.forward) { %>
   @Test
   public void ${op.receiverName}_forwardsToHandler() throws Exception {
     <% if (op.eventValueType) { %>// given
@@ -4952,7 +4952,7 @@ protected $view.names.mediator mediator;<% view.mediatorDelegates.each{ delegate
     // when
     mediator.$op.receiverName();
     <% } %>// then <% op.handlers.each{ def handler -> %>
-    verify($handler.uncapName).$op.handlerCall;<% } %>
+    verify($handler.uncap).$op.handlerCall;<% } %>
   }
   <% } } } } %><% def model = view.model; if (model) { model.handlers.each { def op -> if (op.forward) { %>
   @Test
@@ -4965,11 +4965,22 @@ protected $view.names.mediator mediator;<% view.mediatorDelegates.each{ delegate
     // when
     mediator.$op.observerName();
     <% } %>// then <% op.observers.each{ def observer -> %>
-    verify($observer.uncapName).$op.observerCall;<% } %>
+    verify($observer.uncap).$op.observerCall;<% } %>
   }
   <% } } } %>
 }
 ''')
+  
+  template('mediatorTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${className}Base {
+  @Override
+  public void setUp() {
+    super.setUp();
+  }
+}''')
 
   //metaAttributes
 
@@ -5290,23 +5301,7 @@ public interface $className extends ${className}Base {
 }''')
   
   template('mediatorBase', body: '''<% def view = item.view %>{{imports}}
-public abstract class $className implements $view.mediatorImplements { <% view.mediatorDelegates.each{ delegate -> %>
-  protected $delegate.cap $delegate.uncap; <% } %>
-  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control -> control.operations.each { def op -> if (op.forward) { %>
-  @Override
-  public void $op.receiverName($op.signatureValue) {<% op.handlers.each{ def handler -> %>
-    $handler.uncap.$op.handlerCall;<% } %>
-  }
-  <% } } } } %><% def model = view.model; if (model) { model.handlers.each { def op -> if (op.forward) { %>
-  @Override
-  public void $op.observerName($op.signatureValue) {<% op.observers.each{ def observer -> %>
-    $observer.uncap.$op.observerCall;<% } %>
-  }
-  <% } } } %><% view.mediatorDelegates.each{ delegate -> %>
-  @Override
-  public void set$delegate.cap($delegate.cap $delegate.uncap) {
-    this.$delegate.uncap= $delegate.uncap;
-  }<% } %>
+public abstract class $className implements $view.mediatorImplements {
 }''')
   
   template('mediator', body: '''<% def view = item.view %>

@@ -182,10 +182,11 @@ templates('test', purpose: UNIT_TEST) {
   }
   
   templates('mediatorTest',
-    items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-      template('mediatorTest', appendName: true, body: '''<% if (item.withMediator) { %><% c.className = "${item.domainName}MediatorTestBase" %> ${macros.generate('mediatorTest', c)} <% } %>''')
-    }
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('mediatorTest', appendName: true, body: '''<% if (item.withMediator) { %><% c.className = "${item.domainName}MediatorTestBase" %> ${macros.generate('mediatorTest', c)} <% } %>''')
+    template('mediatorTestExtends', appendName: true, body: '''<% if (item.withMediator) { %><% c.className = "${item.domainName}MediatorTest" %> ${macros.generate('mediatorTestExtends', c)} <% } %>''')
+  }
     
     
   
