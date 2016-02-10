@@ -1,0 +1,6 @@
+EE_HOME=$PWD
+CLASSPATH="${EE_HOME}/ee-mdd-core/src/main/groovy;""${EE_HOME}/ee-mdd-templates/src/main/resources"
+export EE_HOME
+export CLASSPATH
+echo $CLASSPATH
+groovy ${EE_HOME}/task/$*
