@@ -42,7 +42,7 @@ class View extends Widget {
   }
 
   def getMediatorImplements() {
-    mediatorDelegates.collect{it.names.eventForwarder}.join(', ')
+    mediatorDelegates.collect{it.cap+"Events"}.join(', ')
   }
 
   List<Presenter> getMediatorPresenters() {

@@ -173,6 +173,25 @@ templates('test', purpose: UNIT_TEST) {
     template('presenterTest', appendName: true, body: '''<% c.className = "${item.presenter.cap}TestBase" %> ${macros.generate('presenterTest', c)}''')
     template('presenterTestExtends', appendName: true, body: '''<% c.className = "${item.presenter.cap}Test" %> ${macros.generate('presenterTestExtends', c)}''')
   }
-    
+  
+  templates('viewModelTest',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('viewModelTest', appendName: true, body: '''<% if (item.model) { %><% c.className = "${item.model.cap}TestBase" %> ${macros.generate('viewModelTest', c)} <% } %>''')
+    template('viewModelTestExtends', appendName: true, body: '''<% if (item.model) { %><% c.className = "${item.model.cap}Test" %> ${macros.generate('viewModelTestExtends', c)} <% } %>''')
+  }
+  
+  templates('mediatorTest',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('mediatorTest', appendName: true, body: '''<% if (item.withMediator) { %><% c.className = "${item.domainName}MediatorTestBase" %> ${macros.generate('mediatorTest', c)} <% } %>''')
+    template('mediatorTestExtends', appendName: true, body: '''<% if (item.withMediator) { %><% c.className = "${item.domainName}MediatorTest" %> ${macros.generate('mediatorTestExtends', c)} <% } %>''')
+  }
+  
+  templates('viewGuidoTest',
+  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('viewGuidoTest', appendName: true, body: '''<% c.className = item.n.cap.guidoTestBase %> ${macros.generate('viewGuidoTest', c)}''')
+  }
   
 }

@@ -4879,7 +4879,209 @@ public class $className extends PresenterTestCase<$presenter.cap> {
 public class $className extends ${presenter.cap}TestBase {
   ${macros.generate('setUpSuper', c)}
 }''')
+  
+  template('viewModelTest', purpose: UNIT_TEST, body: '''{{imports}}<% def model = item.model %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseModelTestCase<$model.cap> {
+  @Mock
+  protected $model.n.cap.Events forward;
 
+  @Override
+  protected $model.cap instantiateModelUnderTest() {
+    return spy(new $model.cap());
+  }
+
+  @Override
+  protected void initModelDependencies() {
+    super.initModelDependencies();
+    model.set$model.n.cap.Events(forward);
+  }
+
+  public void registersItselfAtMediator() throws Exception {
+    // given
+    reset(forward);
+    // when
+    model.set$model.n.cap.Events(forward);
+    // then
+    verify(forward).set$model.cap(model);
+  }
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    assertThat(new $model.cap(), is(notNullValue()));
+  }
+}''')
+  
+  template('viewModelTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def model = item.model %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${model.cap}TestBase {
+  ${macros.generate('setUpSuper', c)}
+}''')
+  
+  template('mediatorTest', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
+public class $className extends BaseTestCase {
+protected ${view.domainName}Mediator mediator;<% view.mediatorDelegates.each{ delegate -> %>
+  @Mock
+  protected $delegate.cap $delegate.uncap; <% } %>
+
+  @Before
+  public void setUp() {
+    mediator = instantiateMediatorUnderTest();
+    initMediatorDependencies();
+  }
+
+  protected ${view.domainName}Mediator instantiateMediatorUnderTest() {
+    return spy(new ${view.domainName}Mediator());
+  }
+
+  protected void initMediatorDependencies() {<% view.mediatorDelegates.each{ delegate -> %>
+    mediator.set$delegate.cap($delegate.uncap);<% } %>
+  }
+  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control -> control.operations.each { def op -> if (op.forward) { %>
+  @Test
+  public void ${op.receiverName}_forwardsToHandler() throws Exception {
+    <% if (op.eventValueType) { %>// given
+    $op.eventValueType value = ${op.eventDefaultValue};
+    // when
+    mediator.$op.receiverName(value);
+    <% } else { %>
+    // when
+    mediator.$op.receiverName();
+    <% } %>// then <% op.handlers.each{ def handler -> %>
+    verify($handler.uncap).$op.handlerCall;<% } %>
+  }
+  <% } } } } %><% def model = view.model; if (model) { model.handlers.each { def op -> if (op.forward) { %>
+  @Test
+  public void ${op.receiverName}_forwardsToObserver() throws Exception {
+    <% if (op.eventValueType) { %>// given
+    $op.eventValueType value = ${op.eventDefaultValue};
+    // when
+    mediator.$op.observerName(value);
+    <% } else { %>
+    // when
+    mediator.$op.observerName();
+    <% } %>// then <% op.observers.each{ def observer -> %>
+    verify($observer.uncap).$op.observerCall;<% } %>
+  }
+  <% } } } %>
+}
+''')
+  
+  template('mediatorTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${className}Base {
+  @Override
+  public void setUp() {
+    super.setUp();
+  }
+}''')
+
+  
+  template('viewGuidoTest', purpose: UNIT_TEST, body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
+public abstract class $className extends GuidoViewTestCase<$viewClassName> {
+
+  <% item.views.each { def view -> %>@Mock
+  protected ${view.cap}Guido ${view.uncap};
+  <% } %>@Mock
+  protected $item.presenter.cap presenter;
+
+  ${macros.generate('setUpSuper', c)}
+
+  @Override
+  protected $viewClassName instantiateViewUnderTest() {
+    return spy(new $viewClassName());
+  }
+
+  @Override
+  protected void beforeViewCreated() {
+    super.beforeViewCreated();
+    view.setPresenter(presenter);
+    <% item.views.each { def view-> %>view.set${view.cap}(${view.uncap});
+    <% } %>
+  }
+
+  @Override
+  protected void afterViewCreated() {
+  }
+
+  @Test
+  public void registersItselfAtPresenter() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then
+    verify(presenter).setView(view);
+  }
+
+  @Test
+  public void callsInitMethodsIfCreated() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then
+    InOrder inOrder = inOrder(view, presenter);
+    inOrder.verify(view).initWidgets();
+    inOrder.verify(view).initEventHandling();
+    inOrder.verify(presenter).postViewCreated();
+  }
+
+  @Test
+  public void createsWidgetInstances() throws Exception {
+    // when
+    createViewUnderTest();
+    // then <% item.controls.each { def control-> %>
+    assertThat(view.${control.fieldName}, is(notNullValue()));<% } %>
+  }
+
+  @Test
+  public void addsSubViewsToPanels() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then <% item.views.each { def view-> %>
+    verify(view.${view.uncap}Panel).addView(view.${view.uncap});<% } %>
+  }
+
+  @Test
+  public void initializesMlTexts() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then <% item.controls.each { def control-> if (control.ml) { %>
+    verify(view.${control.fieldName}).setTextML($control.mlKeyConstant);<% } } %>
+  }
+
+  @Test
+  public void implementsViewInterface() throws Exception {
+    // when
+    createViewUnderTest();
+    // then <% item.controls.each { def control-> if (!control.static) { %>
+    assertThat(view.${control.getter}, is(($control.widgetInterface) view.${control.fieldName}));
+    <% } } %>
+  }
+  <% item.controls.each { def control -> control.listener.each { def op -> def guidoEventClass = macros.guidoEvents[control.widgetType][op.name]+"Event" %>
+  @Test
+  public void ${control.fieldName}${guidoEventClass}IsForwardedToPresenter() throws Exception {
+    // given
+    createViewUnderTest();
+    // when
+    <% if (op.name == 'OnChange') { %>@SuppressWarnings("unchecked")<% } %>
+    ${op.eventType} event = testEvents().eventReceived(view.${control.fieldName}, ${op.eventTypeRawType}.class);
+    // then
+    verify(presenter).${op.receiverName}(event);
+  }
+  <% } } %>
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    assertThat(new ${viewClassName}(), is(notNullValue()));
+  }
+}''')
+  
+  
   //metaAttributes
 
 
@@ -5199,23 +5401,7 @@ public interface $className extends ${className}Base {
 }''')
   
   template('mediatorBase', body: '''<% def view = item.view %>{{imports}}
-public abstract class $className implements $view.mediatorImplements { <% view.mediatorDelegates.each{ delegate -> %>
-  protected $delegate.cap $delegate.uncap; <% } %>
-  <% view.mediatorViews.each{ def presenter = it.presenter; it.controls.each { def control -> control.operations.each { def op -> if (op.forward) { %>
-  @Override
-  public void $op.receiverName($op.signatureValue) {<% op.handlers.each{ def handler -> %>
-    $handler.uncap.$op.handlerCall;<% } %>
-  }
-  <% } } } } %><% def model = view.model; if (model) { model.handlers.each { def op -> if (op.forward) { %>
-  @Override
-  public void $op.observerName($op.signatureValue) {<% op.observers.each{ def observer -> %>
-    $observer.uncap.$op.observerCall;<% } %>
-  }
-  <% } } } %><% view.mediatorDelegates.each{ delegate -> %>
-  @Override
-  public void set$delegate.cap($delegate.cap $delegate.uncap) {
-    this.$delegate.uncap= $delegate.uncap;
-  }<% } %>
+public abstract class $className implements $view.mediatorImplements {
 }''')
   
   template('mediator', body: '''<% def view = item.view %>
