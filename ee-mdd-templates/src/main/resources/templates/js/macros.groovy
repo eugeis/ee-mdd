@@ -60,91 +60,164 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
   $lit.underscored: new $classNameLit($lit.init)${lit == last ? '' : ','}<% } %>
 }''')
 
-	template('indexhtml', body: '''\
+  template('indexhtml', body: '''\
 <!DOCTYPE html>
-<html ng-app="$item.name">
-	<head>
-		<title>$item.name</title>
-		<meta charset="UTF-8">
-		<link rel="stylesheet" href="bootstrap/bootstrap.css">
-		<link rel="stylesheet" href="stylesheet.css">
- 	</head>
-	<body>
-		<lightbox></lightbox>
-\
-\
-		<!-- Include ViewRefs -->
-<% item.viewRefs.each { viewRef -> %>\
-		<ee-view template="${viewRef.view.name}" ng-controller="${viewRef.view.name}Controller as ctrl"></ee-view>
-<% } %>\
-\
+<html ng-app="$project">
+  <head>
+    <title>$project</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="bootstrap/bootstrap.css">
+    <link rel="stylesheet" href="stylesheet.css">
+  	<style>
+	[ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  		display: none !important;
+	}
+  	</style>
+   </head>
+  <body>
+    <h1 style="text-align:center">GENERATED</h1>
+    <lightbox></lightbox>
 
-		<!-- Include MainView -->
-		<ee-view template="$item.name"></ee-view>
+  	<section ng-controller="TabController as tabCtrl" class="ng-cloak">
+  		<ul class="nav nav-tabs topbar">
+  			<li ng-repeat="tab in tabCtrl.tabs" ng-class="{active: tabCtrl.isSelected(tab)}" ng-click="tabCtrl.setTab(tab.url)"><a href="{{tab.url}}" ng-bind="tab.label"></a></li>
+  		</ul>
+  		<br style="clear: both">
+  		<div class="mainView" ng-view></div>
+  	</section>
 
-		<!-- Frameworks -->
-		<script src="angular.js" type="text/javascript"></script>
+    <!-- Frameworks -->
+    <script src="angular.js" type="text/javascript"></script>
+    <script src="angular-route.js" type="text/javascript"></script>
 
-		<!-- Main app -->
-		<script src="app.js" type="text/javascript"></script>
+    <!-- Main app -->
+    <script src="app.js" type="text/javascript"></script>
 
-		<!-- Services -->
-		<script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
-		<script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
+    <!-- Services -->
+    <script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
+    <script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
+    <script src="src-gen/base/ModelHandler.js" type="text/javascript"></script>
 
-		<!-- Table implementation -->
-		<script src="src-gen/base/Table.js" type="text/javascript"></script>
+    <!-- Table implementation -->
+    <script src="src-gen/base/Table.js" type="text/javascript"></script>
 
-		<!-- View implementation -->
-		<script src="src-gen/base/View.js" type="text/javascript"></script>
+    <!-- View implementation -->
+    <script src="src-gen/base/View.js" type="text/javascript"></script>
+    <script src="src-gen/base/TabController.js" type="text/javascript"></script>
 
-		<!-- Lightbox implementation -->
-		<script src="src-gen/base/Lightbox.js" type="text/javascript"></script>
-		<script src="src-gen/base/ComLightbox.js" type="text/javascript"></script>
+    <!-- Lightbox implementation -->
+    <script src="src-gen/base/Lightbox.js" type="text/javascript"></script>
+    <script src="src-gen/base/ComLightbox.js" type="text/javascript"></script>
 
-		<!-- Injections dependencies -->
-		<script src="src/Injections.js" type="text/javascript"></script>
+    <!-- Injections dependencies -->
+    <script src="src/Injections.js" type="text/javascript"></script>
 
-		<!-- Include ViewRef-Javascript -->
-<% item.viewRefs.each { viewRef -> %>\
-		<script src="src-gen/views/${viewRef.view.name}.js" type="text/javascript"></script>
-<% } %>\
-
-		<!-- Include ViewRef-Source-Dependencies-Javascript -->
-
-	</body>
+    <!-- Include View-Javascript -->
+<%
+  	item.children.each { child ->
+%>\
+    <script src="src-gen/views/${child.name}.js" type="text/javascript"></script>
+<%
+  	}
+%>
+  </body>
 </html>
 ''')
 
 
-	template('appjs', body: '''\
+  template('appjs', body: '''\
 (function(){
-	var dependencies = ["Injections", "Table", "View", "Lightbox"];
-	var views = [\
+"use strict";
+  var dependencies = ["ngRoute", "Injections", "Table", "View", "Lightbox", "TabSelection"];
+  var views = [\
 <%
-	for (int i = 0; i < item.viewRefs.size(); i++) {
-		def iterator = item.viewRefs[i];
+  	for (int i = 0; i < item.children.size(); i++) {
+  		def iterator = item.children[i];
 %>\
-"$iterator.view.name"\
+"$iterator.name"\
 <%
-		if (i < item.viewRefs.size() - 1)  {
+    if (i < item.children.size() - 1)  {
 %>\
 ,\
 <%
-		}
-	}
+    }
+  }
 %>\
 ];
-	var app = angular.module("TaskEditorView",dependencies.concat(views));
+  var app = angular.module("$project",dependencies.concat(views));
+
+  app.config(['\\$compileProvider', function (\\$compileProvider) {
+    //\\$compileProvider.debugInfoEnabled(false);
+  }]);
 }());
 ''')
 
+  template('tabctrl', body: '''\
+<%
+def mainView;
+for (int i = 0; i < item.children.size(); i++) {
+  if (item.children[i].main) {
+  	mainView = item.children[i];
+  	i = item.children.size();
+  }
+}
+%>\
+(function(){
+"use strict";
+	var app = angular.module("TabSelection",[]);
 
-	template('stylecss', body: '''\
+	app.config(['\\$routeProvider', '\\$locationProvider', function(\\$routeProvider, \\$locationProvider) {
+	\\$routeProvider.
+<%
+  	item.children.each { v ->
+  		if (v.main) {
+%>\
+			when('/${v.name}', {template: '<ee-view template="${v.name}"></ee-view>'}).
+<%
+  		}
+  	}
+%>\
+			otherwise({redirectTo: '/', template: '<ee-view template="${mainView.name}"></ee-view>'});
+
+			\\$locationProvider.html5Mode(false);
+	}]);
+
+	app.controller("TabController", ['\\$scope', '\\$location', function (\\$scope, \\$location) {
+			this.setTab = function(url) {
+				if (url === "#" || url === "#/") {
+					this.selected = "#/${mainView.name}";
+				} else {
+					this.selected = url;
+				}
+			};
+
+			this.isSelected = function(tab) {
+				return this.selected == tab.url;
+			}
+
+  		this.tabs = [
+<%
+  	item.children.each { v ->
+  		if (v.main) {
+%>\
+			{ url: "#/${v.name}", label: "${v.name}"},
+<%
+  		}
+  	}
+%>\
+			];
+
+			this.setTab("#" + \\$location.url());
+	}]);
+}());
+''')
+
+  template('stylecss', body: '''\
 section {
-	border: 1px solid #000;
-	padding: 25px;
-	margin: 25px;
+/*  border: 1px solid #000; */
+/*  padding: 25px; */
+/*  margin: 25px; */
+clear: both;
 }
 
 .entityTable {
@@ -152,8 +225,8 @@ section {
 }
 
 .entityTable tr.selected {
-	border-left: 2px solid #0d355a;
-	border-right1: 2px solid #0d355a;
+  border-left: 2px solid #0d355a;
+  border-right: 2px solid #0d355a;
 }
 
 .entityTable .tableInput {
@@ -169,182 +242,232 @@ section {
 }
 
 .entityTable .idcolumn span:hover {
-	font-weight: bold;
-	cursor: pointer;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .lightboxBG {
-	background: rgba(0,0,0,0.6);
-	width: 100%;
-	height: 100%;
-	z-index: 100;
-	position: absolute;
-	margin: 0px;
-	padding: 0px;
-	top: 0px;
-	left: 0px;
+  background: rgba(0,0,0,0.6);
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  position: fixed;
+  margin: 0px;
+  padding: 0px;
+  top: 0px;
+  left: 0px;
 }
 
 .lightbox {
-	background: white;
-	margin: 0px auto;
-	width: 500px;
-	top: 50%;
-	transform: translateY(-50%);
-	position: relative;
+  background: white;
+  margin: 0px auto;
+  width: 500px;
+  top: 50%;
+  transform: translateY(-50%);
+  position: relative;
 }
 
 .lightbox>div{
-	padding: 20px;
+  padding: 20px;
+}
+
+.topbar {
+  margin-top: 50px;
+}
+
+.mainView {
+  width: 80%;
+  margin: 0px auto;
+}
+
+.mainView section section{
+  margin-top: 15px;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
+}
+
+.mainView section input.btn {
+  float: right;
+  margin: 4px;
 }
 ''')
 
-	template('tablehtml', body: '''\
+  template('tablehtml', body: '''\
 <table class="entityTable table table-striped table-bordered">
-	<tr>
-		<th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
-	</tr>
-	<tr ng-repeat="row in tableCtrl.data" ng-class="{selected: tableCtrl.selected==\\$index}">
-		<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, \\$parent.\\$index)">{{row[column]}}</td>
-	</tr>
+  <tr>
+    <th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
+  </tr>
+  <tr ng-repeat="row in tableCtrl.data" ng-class="{selected: tableCtrl.selected==\\$index}">
+    <td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, \\$parent.\\$index)">{{row[column]}}</td>
+  </tr>
 </table>
-
 ''')
 
-	template('tablejs', body: '''\
+  template('tablejs', body: '''\
 (function(){
-	var app = angular.module("Table",["Dispatcher"]);
+"use strict";
+  var app = angular.module("Table",["Dispatcher"]);
 
-	app.directive("eeTable", function() {
-		return {
-			restrict: 'E',
-			templateUrl: "src-gen/templates/table.html",
-			replace: true
-		};
-	});
+  app.directive("eeTable", function() {
+    return {
+      restrict: 'E',
+      templateUrl: "src-gen/templates/table.html",
+      replace: true
+    };
+  });
 }());
 ''')
 
-	template('viewjs', body: '''\
+  template('viewjs', body: '''\
 (function(){
-	var app = angular.module("View",[]);
+"use strict";
+  var app = angular.module("View",[]);
 
-	app.directive("eeView", function() {
-		return {
-			restrict: 'E',
-			controllerAs: 'ctrl',
-			templateUrl: function(elem, attrs) {
-				return "src-gen/templates/" + attrs.template + ".html";
-			},
-			replace: true,
-			link: function (scope, element, attrs) {
-				element.removeAttr('template');
-			}
-		};
-	});
+  app.directive("eeView", function() {
+    return {
+      restrict: 'E',
+      templateUrl: function(elem, attrs) {
+        return "src-gen/templates/" + attrs.template + ".html";
+      },
+      replace: true,
+      link: function (scope, element, attrs) {
+        element.removeAttr('template');
+      }
+    };
+  });
 }());
 ''')
 
-	template('dispatcherjs', body: '''\
+  template('dispatcherjs', body: '''\
 (function(){
-	var app = angular.module("Dispatcher",[]);
+"use strict";
+  var app = angular.module("Dispatcher",[]);
 
-	// Dispatches a message (including data) to all
-	// subscribed controllers (excluding the one who
-	// dispatched it).
+  // Dispatches a message (including data) to all
+  // subscribed controllers (excluding the one who
+  // dispatched it).
 
-	// The subscribe-method returns the unsubscribe
-	// function
+  // The subscribe-method returns the unsubscribe
+  // function
 
-	app.factory("\\$dispatcher", function() {
-		return {
-			subscribers: [],
-			subscribe : function(obj) {
-				var self = this;
-				self.subscribers.push(obj);
-				return function() {
-					var pos = self.subscribers.indexOf(obj);
-					if (pos >= 0) {
-						self.subscribers.splice(pos,1);
-					}
-				};
-			},
-			dispatch: function(source, args) {
-				var self = this;
-				self.subscribers.forEach(function(d) {
-					if (d !== source) {
-						if (d.event) {
-							d.event(args);
-						} else {
-							console.error("No event-function defined for:");
-							console.log(d);
-						}
-					}
-				});
-			}
-		};
-	});
+  app.factory("\\$dispatcher", function() {
+    return {
+      subscribers: [],
+      subscribe : function(obj) {
+        var self = this;
+        self.subscribers.push(obj);
+        return function() {
+          var pos = self.subscribers.indexOf(obj);
+          if (pos >= 0) {
+            self.subscribers.splice(pos,1);
+          }
+        };
+      },
+      dispatch: function(args) {
+        var self = this;
+        args.observerRefs.forEach(function(d) {
+          self.subscribers.forEach(function(e) {
+            if (d === e.id + ".presenter") {
+              if (e.event) {
+                e.event(args);
+              } else {
+                console.error("No event-function defined for:");
+                console.log(e);
+              }
+            }
+          });
+        });
+      }
+    };
+  });
 }());
 ''')
 
-	template('manipulatorjs', body: '''\
+  template('manipulatorjs', body: '''\
 (function(){
-	var app = angular.module("Manipulator",[]);
+"use strict";
+  var app = angular.module("Manipulator",[]);
 
-	//app.manipulator
-	//returns: object
-	// - func: getInstance(id)
-	// - var:  instances
+  //app.manipulator
+  //returns: object
+  // - func: getInstance(id)
+  // - var:  instances
 
-	//getInstance(id)
-	//returns: object
-	// - func: add(name, func)
-	// - func: inject(obj)
-	// - var:  injections
+  //getInstance(id)
+  //returns: object
+  // - func: add(name, func)
+  // - func: inject(obj)
+  // - var:  injections
 
-	//when 'getInstance' is called:
-	//if no object of this id exists in 'instances', it is created, saved to 'instances' and returned
-	//otherwise the object in 'instances' is returned
+  //when 'getInstance' is called:
+  //if no object of this id exists in 'instances', it is created, saved to 'instances' and returned
+  //otherwise the object in 'instances' is returned
 
-	//when 'add' is called:
-	//save an object with a name associated with a function to 'injections'
+  //when 'add' is called:
+  //save an object with a name associated with a function to 'injections'
 
-	//when 'inject' is called:
-	//go through the 'injections'-array and bind the function and name to the object
+  //when 'inject' is called:
+  //go through the 'injections'-array and bind the function and name to the object
 
-	app.factory("\\$manipulator", function() {
-		return {
-			instances : {},
-			getInstance : function(id) {
-				if (!this.instances[id]) {
-					this.instances[id] = {
-						injections: [],
-						add: function(name, func) {
-							this.injections.push({name: name, func: func});
-							return this;
-						},
-						inject: function(obj) {
-							this.injections.forEach(function(d,i) {
-								obj[d.name] = d.func;
-							});
-							return this;
-						}
-					}
-				}
-				return this.instances[id];
-			}
-		};
-	});
+  app.factory("\\$manipulator", function() {
+    return {
+      instances : {},
+      getInstance : function(id) {
+        if (!this.instances[id]) {
+          this.instances[id] = {
+            injections: [],
+            add: function(name, func) {
+              this.injections.push({name: name, func: func});
+              return this;
+            },
+            inject: function(obj) {
+              this.injections.forEach(function(d,i) {
+                obj[d.name] = d.func(obj);
+              });
+              return this;
+            }
+          }
+        }
+        return this.instances[id];
+      }
+    };
+  });
 }());
 ''')
 
-	template('injectionsjs', body: '''\
+  template('modelhandlerjs', body: '''\
 (function(){
-	var app = angular.module("Injections",[]);
+"use strict";
+  var app = angular.module("ModelHandler",[]);
+
+  app.factory("\\$model", function() {
+    return {
+    refs: [],
+      views: {},
+      addView: function(view) {
+        this.refs.push(view.id);
+        this.views[view.id] = {
+          view: view,
+          children: view.viewRefs
+        };
+      },
+      getControl : function(model, type) {
+
+      }
+  };
+  });
 }());
 ''')
 
-	template('lightboxhtml', body: '''\
+
+  template('injectionsjs', body: '''\
+(function(){
+"use strict";
+  var app = angular.module("Injections",[]);
+}());
+''')
+
+  template('lightboxhtml', body: '''\
 <div class="lightboxBG ng-cloak" ng-click="lightboxCtrl.hide()" ng-show="lightboxCtrl.show">
     <div class="lightbox" ng-click="lightboxCtrl.prevent(\\$event)">
       <div>
@@ -353,7 +476,7 @@ section {
               <label for="{{ 'lightboxcolumn' + \\$id}}">{{column.name}}</label>
               <input type="text" class="form-control" ng-model="column.value" ng-attr-id="{{ 'lightboxcolumn' + \\$id}}" placeholder="{{column.name}}" required>
             </div>
-            <button type="submit" class="btn btn-default">Add</button>
+            <button type="submit" class="btn btn-primary">Add</button>
           </form>
           <form ng-if="lightboxCtrl.type=='delete'" ng-submit="lightboxCtrl.submit('delete')">
             <div class="form-group" ng-repeat="column in lightboxCtrl.columnInfo">
@@ -365,7 +488,7 @@ section {
                 <input type="checkbox" ng-model="lightboxCtrl.checked" required> Are you sure, you want to delete this entry?
               </label>
             </div>
-            <button type="submit" class="btn btn-default" ng-class="{disabled: !lightboxCtrl.checked}">Delete</button>
+            <button type="submit" class="btn btn-danger" ng-class="{disabled: !lightboxCtrl.checked}">Delete</button>
           </form>
       </div>
     </div>
@@ -373,8 +496,9 @@ section {
 ''')
 
 
-	template('lightboxjs', body: '''\
+  template('lightboxjs', body: '''\
 (function(){
+"use strict";
     var app = angular.module("Lightbox",["ComLightbox"]);
 
     app.directive("lightbox", ["\\$document", "\\$rootScope", function(\\$document, \\$rootScope) {
@@ -392,379 +516,442 @@ section {
     }]);
 
     function LightboxController(\\$scope, \\$lightbox, \\$rootScope) {
-      var self = this;
-      \\$lightbox.setLightBox(this);
+    var self = this;
+    \\$lightbox.setLightBox(this);
 
-      self.columnInfo = undefined;
-      self.type = undefined;
-      self.caller = undefined;
-      self.rowNr = undefined;
-      self.show = false;
+    self.columnInfo = undefined;
+    self.type = undefined;
+    self.caller = undefined;
+    self.rowNr = undefined;
+    self.show = false;
 
-      self.create = function (info) {
-        if (info.type !== "add" && info.type !== "delete") {
-          return self.hide();
-        }
+    self.create = function (info) {
+      if (info.type !== "add" && info.type !== "delete") {
+        return self.hide();
+      }
 
-        if (info.type === "add") {
-          if (self.type !== "add") {
-            self.columnInfo = info.columnInfo;
-          }
-        } else if (info.type === "delete") {
-          self.rowNr = info.rowNr;
+      if (info.type === "add") {
+        if (self.type !== "add") {
           self.columnInfo = info.columnInfo;
         }
-
-        self.caller = info.caller;
-        self.type = info.type;
-        self.show = true;
-      };
-
-      self.submit = function (type) {
-        var success;
-        if (type === "add") {
-          success = self.caller.add(self.columnInfo);
-        } else if (type === "delete") {
-          success = self.caller.delete(self.rowNr);
-        } else {
-          success = false;
-        }
-
-        if (success) {
-          return self.hide();
-        }
-      };
-
-      self.hide = function() {
-        self.checked = false;
-        self.show = false;
+      } else if (info.type === "delete") {
+        self.rowNr = info.rowNr;
+        self.columnInfo = info.columnInfo;
       }
-      self.prevent = function(e) {
-          e.stopPropagation();
-      };
-      \\$rootScope.\\$on("keypress", function(onEvent, keyEvent) {
-        var key = (keyEvent.charCode || keyEvent.keyCode);
-        if (key == 27) {
-            \\$scope.\\$apply(self.hide());
-        }
-      });
+
+      self.caller = info.caller;
+      self.type = info.type;
+      self.show = true;
+    };
+
+    self.submit = function (type) {
+      var success;
+      if (type === "add") {
+        success = self.caller.add(self.columnInfo);
+      } else if (type === "delete") {
+        success = self.caller.delete(self.rowNr);
+      } else {
+        success = false;
+      }
+
+      if (success) {
+        return self.hide();
+      }
+    };
+
+    self.hide = function() {
+      self.checked = false;
+      self.show = false;
     }
+
+    self.prevent = function(e) {
+      e.stopPropagation();
+    };
+    \\$rootScope.\\$on("keypress", function(onEvent, keyEvent) {
+      var key = (keyEvent.charCode || keyEvent.keyCode);
+      if (key == 27) {
+        \\$scope.\\$apply(self.hide());
+      }
+    });
+  }
 }());
 ''')
 
-	template('comlightboxjs', body: '''\
+  template('comlightboxjs', body: '''\
 (function(){
-	var app = angular.module("ComLightbox",[]);
+"use strict";
+  var app = angular.module("ComLightbox",[]);
 
-	app.factory("\\$lightbox", function() {
-		return {
-			lightBoxCtrl : {},
-			setLightBox : function(lbCtrl) {
-				this.lightBoxCtrl = lbCtrl;
-			},
-			create : function(info) {
-				this.lightBoxCtrl.create(info);
-			}
-		};
-	});
+  app.factory("\\$lightbox", function() {
+    return {
+      lightBoxCtrl : {},
+      setLightBox : function(lbCtrl) {
+        this.lightBoxCtrl = lbCtrl;
+      },
+      create : function(info) {
+        this.lightBoxCtrl.create(info);
+      }
+    };
+  });
 }());
 ''');
 
-	template('framehtml', body: '''\
-<section id="${item.name}">
+  template('framehtml', body: '''\
+<section class="${item.name}">
+<h4 style="padding-left:10px">${item.name}</h4>
 <%
-	item.controls.each { control ->
-		if (control.widgetType == "Button") {
+  item.controls.each { control ->
+    if (control.widgetType == "Button") {
 %>\
 \
-		<input type="button" value="${control.name.capitalize()}" ng-click="ctrl.lightbox('\
 <%
-	if (control.name.capitalize().startsWith("Add")) {
+  if (control.name.capitalize().startsWith("Add")) {
 %>\
-add\
+    <input type="button" class="btn btn-primary" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('add',\
 <%
-	} else if (control.name.capitalize().startsWith("Delete")) {
+  } else if (control.name.capitalize().startsWith("Delete")) {
 %>\
-delete\
+    <input type="button" class="btn btn-danger btn-xs" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('delete',\
 <%
-	} else {
+  } else if (control.name.capitalize().startsWith("Accept")) {
 %>\
-search\
+    <input type="button" class="btn btn-primary" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('accept',\
 <%
-	}
+  } else if (control.name.capitalize().startsWith("Discard")) {
 %>\
-')">
+    <input type="button" class="btn btn-warning" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('discard',\
+<%
+  } else {
+%>\
+    <input type="button" class="btn btn-info" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('search',\
+<%
+  }
+%>\
+<%
+      if (control.onAction) {
+%>\
+'$control.onAction.name'\
+<%
+      } else {
+%>\
+''
+<%
+      }
+%>\
+)">
 \
 <%
-		}
-		if (control.widgetType == "Table") {
+    }
+    if (control.widgetType == "Table") {
 %>\
 \
-	<section id="$item.name-Table-${control.name.capitalize()}">
-		<ee-table ng-controller="${item.name}${control.name.capitalize()}Controller as tableCtrl"></ee-table>
-	</section>
+    <ee-table ng-controller="${item.name}${control.name.capitalize()}Controller as tableCtrl"></ee-table>
 \
 <%
-		}
-		if (control.widgetType == "TextField") {
+    }
+    if (control.widgetType == "TextField") {
 %>\
 \
-		<label>${control.name.capitalize()}</label> <input readonly>
+    <label>${control.name.capitalize()}</label> <input type="text" placeholder="${control.name.capitalize()}">
 \
 <%
-		}
-	}
+    }
+  }
 %>\
+<% item.viewRefs.each { viewRef -> %>\
+  <ee-view template="${viewRef.view.name}" ng-controller="${viewRef.view.name}Controller as ${viewRef.view.name.toLowerCase()}Ctrl"></ee-view>
+<% } %>\
 </section>
 ''')
 
-	template('framejs', body: '''\
+  template('framejs', body: '''\
 (function(){
-	var app = angular.module("$item.name",[\
+"use strict";
+  var app = angular.module("$item.name",[\
 <%
-	def hasControl = [:];
-	item.controls.each { control ->
-		if(!hasControl[control.widgetType]) {
-			hasControl[control.widgetType] = 0;
-		}
-		hasControl[control.widgetType]++;
-	}
+  def hasControl = [:];
+  item.controls.each { control ->
+    if(!hasControl[control.widgetType]) {
+      hasControl[control.widgetType] = 0;
+    }
+    hasControl[control.widgetType]++;
+  }
 %>\
-"Manipulator", "ComLightbox"]);
+"Manipulator", "ComLightbox","ModelHandler"]);
 <%
-	if (hasControl["Table"] > 0) {
-%>\
-
-	// The ${item.name}Controller broadcasts incoming
-	// events from other view-controllers to child-controllers
-	// e.g. a table-controller.
-	// This is used for data-transmission between views.
-
-	app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox) {
-		var self = this;
-		self.id = "${item.name}";
-
-		self.\\$scope = \\$scope;
-		self.\\$dispatcher = \\$dispatcher;
-
-		self.event = function(args) {
-			\\$scope.\\$broadcast("event", args);
-		}
-
-		self.subscribeToDispatcher = function() {
-			\\$dispatcher.subscribe(self);
-		}
-
-		self.registerClickEvent = function() {
-			\\$scope.\\$on("click", function(e, args) {
-				// If the onselect is set add:
-				\\$dispatcher.dispatch(self,args);
-			});
-		}
-
-		self.lightbox = function(type) {
-			if (type === "add") {
-				\\$lightbox.create({
-					caller: this,
-					type: type,
-					columnInfo: [{name: "name"}, {name: "age"}]
-				});
-			} else if (type === "delete") {
-				\\$lightbox.create({
-					caller: this,
-					type: type,
-					columnInfo: [{name: "name", value: "Jonas"}, {name: "age", value: "20"}],
-					rowNr: 3
-				});
-			}
-		};
-
-		self.add = function() {
-			return true;
-		}
-
-		self.delete = function() {
-			return true;
-		}
-
-		\\$manipulator.getInstance("${item.name}").inject(self);
-		self.subscribeToDispatcher();
-		self.registerClickEvent();
-	}]);
-<%
-	}
-	item.controls.each { control ->
-		if (control.widgetType == "Table") {
-
-			def hasMulti = false;
-			def hasOpposite = false;
-
-			def multi = [];
-			def opposite = [];
-
-			control.type.props.each { prop ->
-				if (prop.multi) {
-					hasMulti = true;
-					multi.push(prop);
-				}
-				if (prop.opposite) {
-					hasOpposite = true;
-					opposite.push(prop);
-				}
-			}
+  if (hasControl["Table"] > 0) {
 %>\
 
-
-	  app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
-		var self = this;
-
-		self.id = "${item.name}${control.name.capitalize()}";
-		self.entity = "${control.type.name}";
-
-		self.\\$scope = \\$scope;
-		self.\\$http = \\$http;
-
-		self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
-		self.currentRow = undefined;
-
-		self.columns = [\
+  app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', '\\$model', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox, \\$model) {
+    var self = this;
+    self.id = "${item.name}";
+    self.model = \
 <%
-			for (def i = 0; i < control.type.props.size(); i++) {
-				def prop = control.type.props[i]
+    if (item.model) {
 %>\
-"$prop.name"\
+$item.viewModel
+.name\
 <%
-				if(i < control.type.props.size()-1) {
+    } else {
+%>\
+false\
+<%
+  	}
+%>\
+;
+
+    self.\\$scope = \\$scope;
+    self.\\$dispatcher = \\$dispatcher;
+
+    self.viewRefs = [\
+<%
+    if (item.viewRefs) {
+      for (def i = 0; i < item.viewRefs.size(); i++) {
+        def viewRef = item.viewRefs[i]
+%>\
+"$viewRef.view.name"\
+<%
+        if(i < item.viewRefs.size()-1) {
 %>\
 ,\
 <%
-				}
-			}
+        }
+      }
+    }
+%>\
+];
+
+    self.event = function(args) {
+      self.\\$scope.\\$broadcast("transEvent", args);
+    }
+
+    self.subscribeToDispatcher = function() {
+      self.\\$dispatcher.subscribe(self);
+    }
+
+    self.registerClickEvent = function() {
+      self.\\$scope.\\$on("subEvent", function(e, args) {
+        self.\\$dispatcher.dispatch(args);
+      });
+    }
+
+    self.lightbox = function(type, model) {
+      var \\$model = {getInfo: function() { return false; }};
+
+      if (type === "add") {
+        \\$lightbox.create({
+          caller: this,
+          type: type,
+          columnInfo: [{name: "name"}, {name: "age"}]
+        });
+      } else if (type === "delete") {
+        \\$lightbox.create({
+          caller: this,
+          type: type,
+          columnInfo: [{name: "name", value: "Jonas"}, {name: "age", value: "20"}],
+          rowNr: 3
+        });
+      }
+    };
+
+    self.add = function() {
+      return true;
+    }
+
+    self.delete = function() {
+      return true;
+    }
+
+    self.init = function() {};
+
+    \\$manipulator.getInstance("${item.name}").inject(self);
+    \\$model.addView(self);
+    self.subscribeToDispatcher();
+    self.registerClickEvent();
+    self.init();
+  }]);
+<%
+  }
+  item.controls.each { control ->
+    if (control.widgetType == "Table") {
+
+      def hasMulti = false;
+      def hasOpposite = false;
+
+      def multi = [];
+      def opposite = [];
+
+      control.type.props.each { prop ->
+        if (prop.multi) {
+          hasMulti = true;
+          multi.push(prop);
+        }
+        if (prop.opposite) {
+          hasOpposite = true;
+          opposite.push(prop);
+        }
+      }
+%>\
+
+
+  app.controller("${item.name}${control.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
+    var self = this;
+
+    self.id = "${item.name}${control.name.capitalize()}";
+    self.entity = "${control.type.name}";
+    self.parentView = "${item.name}";
+
+    self.\\$scope = \\$scope;
+    self.\\$http = \\$http;
+
+    self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
+    self.currentRow = undefined;
+
+    self.columns = [\
+<%
+      for (def i = 0; i < control.type.props.size(); i++) {
+        def prop = control.type.props[i]
+%>\
+"$prop.name"\
+<%
+        if(i < control.type.props.size()-1) {
+%>\
+,\
+<%
+        }
+      }
 %>\
 ];
 
 <%
-			if (hasMulti) {
-				if (!hasOpposite) {
+      if (hasMulti) {
+        if (!hasOpposite) {
 %>\
-		self.data = \\$http.get('data/${item.name}.json')
-			.success(function(data, status, headers, config) {
-				self.data = data;
-			})
-			.error(function(data, status, headers, config) {
-				console.error("HTTP - ERROR: " + status);
-				self.data = {};
-			});
+    self.data = self.\\$http.get('data/${item.name}.json')
+      .success(function(data, status, headers, config) {
+        self.data = data;
+      })
+      .error(function(data, status, headers, config) {
+        console.error("HTTP - ERROR: " + status);
+        self.data = {};
+      });
 <%
-				}
+        }
 %>\
 
-		self.click = function(column, rowNr) {
-			self.selected = rowNr;
-			\\$scope.\\$emit("click", {
-				childSource: self,
-				sourceEntity: self.entity,
-				targetView: [\
+    self.click = function(column, rowNr) {
+      self.selected = rowNr;
+      \\$scope.\\$emit("subEvent", {
+        type: "click",
+        eventSource: self,
+        sourceEntity: self.entity,
+        observerRefs: [\
 <%
-				if (control.onSelect.observerRefs) {
-					for (def i = 0; i < control.onSelect.observerRefs.size(); i++) {
+        if (control.onSelect.observerRefs) {
+          for (def i = 0; i < control.onSelect.observerRefs.size(); i++) {
 %>\
 "${control.onSelect.observerRefs[i]}"\
 <%
-						if(i < control.onSelect.observerRefs.size() - 1) {
+            if(i < control.onSelect.observerRefs.size() - 1) {
 %>\
 ,\
 <%
-						}
-					}
-				}
+            }
+          }
+        }
 %>\
 ],
-				column: column,
-				row: self.data[rowNr]
-			});
-		}
+        column: column,
+        row: self.data[rowNr]
+      });
+    }
 <%
-			}
-			if (hasOpposite) {
+      }
+      if (hasOpposite) {
 %>
-		self.fetchData = function(id) {
-			self.data = \\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${control.name.capitalize()}')
-				.success(function(data, status, headers, config) {
-					self.data = data;
-				})
-				.error(function(data, status, headers, config) {
-					console.error("HTTP - ERROR: " + status);
-					self.data = {};
-				});
-		};
+    self.fetchData = function(id) {
+      self.data = self.\\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${control.name.capitalize()}')
+        .success(function(data, status, headers, config) {
+          self.data = data;
+        })
+        .error(function(data, status, headers, config) {
+          console.error("HTTP - ERROR: " + status);
+          self.data = {};
+        });
+    };
 
-		self.registerEvent = function() {
-			\\$scope.\\$on("event", function(e, args) {
+    self.registerEvent = function() {
+      self.\\$scope.\\$on("transEvent", function(e, args) {
 <%
-				opposite.each { prop ->
+        opposite.each { prop ->
 %>\
-				if (args.targetView.some(function(d) {
-					return d === "${item.name}.presenter";
-				})){
-					if (args.sourceEntity === "${prop.type.name}") {
-						if (args.row && self.currentRow !== args.row.id) {
-							self.fetchData(args.row.id);
-							self.currentRow = args.row.id;
-						}
-					}
-				}
+        if (args.observerRefs.some(function(d) {
+          return d === "${item.name}.presenter";
+        })){
+          if (args.sourceEntity === "${prop.type.name}") {
+            if (args.row && self.currentRow !== args.row.id) {
+              self.fetchData(args.row.id);
+              self.currentRow = args.row.id;
+            }
+          }
+        }
 <%
-				}
+        }
 %>\
-			});
-		}
+      });
+    }
 <%
-		}
+    }
 %>\
-		\\$manipulator.getInstance("TaskDetailsViewActions").inject(self);
+    self.init = function() {};
+    \\$manipulator.getInstance("${item.name}${control.name.capitalize()}").inject(self);
 <%
-		if (hasOpposite) {
+    if (hasOpposite) {
 %>\
-		self.registerEvent();
+    self.registerEvent();
 <%
-		}
+    }
 %>\
-	}]);
+    self.init();
+  }]);
 <%
-		}
-	}
+    }
+  }
 %>\
 }());
 ''')
 
-	template('framesrcjs', body: '''\
+  template('framesrcjs', body: '''\
 (function(){
-	var app = angular.module("${item.name}Injector", ["Manipulator"]);
+"use strict";
+  var app = angular.module("${item.name}Injector", ["Manipulator"]);
 
-	app.run(["\\$manipulator", function(\\$manipulator) {
-		var manipulator = \\$manipulator.getInstance("${item.name}");
-		manipulator.add("functionName", function() {
-			// This could be your code
-			// Include this file in the index.html
+  app.run(["\\$manipulator", function(\\$manipulator) {
+    var manipulator = \\$manipulator.getInstance("${item.name}");
+    manipulator.add("functionName", function(self) {
+      return function() {
+        // This could be your code
+        // Include this file in the index.html
 
-			// To manipulate the object just refer to self
-			// The callback-function can take arguments (e.g. row, column)
-			var self = this;
-			console.info("This function has been injected");
-		});
+        // To manipulate the object just refer to self
+        // The callback-function can take arguments (e.g. row, column)
+        console.info("This function has been injected");
+      };
+    });
 <%
-	item.controls.each { control ->
-		if (control.widgetType == "Table") {
+  item.controls.each { control ->
+    if (control.widgetType == "Table") {
 %>
-		var manipulator_${control.name.capitalize()} = \\$manipulator.getInstance("${item.name}${control.name.capitalize()}");
-		manipulator_${control.name.capitalize()}.add("click", function() {
-		});
+    var manipulator_${control.name.capitalize()} = \\$manipulator.getInstance("${item.name}${control.name.capitalize()}");
+    manipulator_${control.name.capitalize()}.add("click", function(self) {
+      return function() {
+      };
+    });
 <%
-		}
-	}
+    }
+  }
 %>\
-	}]);
+  }]);
 }());
 ''')
 }
