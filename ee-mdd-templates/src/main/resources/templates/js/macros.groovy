@@ -79,25 +79,16 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
     <lightbox></lightbox>
 
   	<section ng-controller="TabController as tabCtrl" class="ng-cloak">
-  		<ul class="nav nav-tabs">
-  			<li ng-repeat="tab in tabCtrl.tabs" ng-class="{active: tabCtrl.selected==tab}" ng-click="tabCtrl.selected = tab"><a href="#" ng-bind="tab"></a></li>
+  		<ul class="nav nav-tabs topbar">
+  			<li ng-repeat="tab in tabCtrl.tabs" ng-class="{active: tabCtrl.isSelected(tab)}" ng-click="tabCtrl.setTab(tab.url)"><a href="{{tab.url}}" ng-bind="tab.label"></a></li>
   		</ul>
   		<br style="clear: both">
-<%
-  	for (int i = 0; i < item.children.size(); i++) {
-  		def iterator = item.children[i];
-  		if (!iterator.main) {
-  			continue;
-  		}
-%>\
-  		<ee-view template="$iterator.name" ng-show="tabCtrl.selected == '$iterator.name'"></ee-view>
-<%
-  }
-%>\
+  		<div class="mainView" ng-view></div>
   	</section>
 
     <!-- Frameworks -->
     <script src="angular.js" type="text/javascript"></script>
+    <script src="angular-route.js" type="text/javascript"></script>
 
     <!-- Main app -->
     <script src="app.js" type="text/javascript"></script>
@@ -135,9 +126,9 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 
   template('appjs', body: '''\
-"use strict";
 (function(){
-  var dependencies = ["Injections", "Table", "View", "Lightbox", "TabSelection"];
+"use strict";
+  var dependencies = ["ngRoute", "Injections", "Table", "View", "Lightbox", "TabSelection"];
   var views = [\
 <%
   	for (int i = 0; i < item.children.size(); i++) {
@@ -154,44 +145,79 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 %>\
 ];
   var app = angular.module("$project",dependencies.concat(views));
+
+  app.config(['\\$compileProvider', function (\\$compileProvider) {
+    //\\$compileProvider.debugInfoEnabled(false);
+  }]);
 }());
 ''')
 
   template('tabctrl', body: '''\
-"use strict";
+<%
+def mainView;
+for (int i = 0; i < item.children.size(); i++) {
+  if (item.children[i].main) {
+  	mainView = item.children[i];
+  	i = item.children.size();
+  }
+}
+%>\
 (function(){
+"use strict";
 	var app = angular.module("TabSelection",[]);
 
-	app.controller("TabController", ['\\$scope', function (\\$scope) {
-  		this.selected = "${item.children[0].name}";
-  		this.tabs = [\
+	app.config(['\\$routeProvider', '\\$locationProvider', function(\\$routeProvider, \\$locationProvider) {
+	\\$routeProvider.
 <%
-  	for (int i = 0; i < item.children.size(); i++) {
-  		def iterator = item.children[i];
-  		if (!iterator.main) {
-  			continue;
+  	item.children.each { v ->
+  		if (v.main) {
+%>\
+			when('/${v.name}', {template: '<ee-view template="${v.name}"></ee-view>'}).
+<%
   		}
+  	}
 %>\
-"$iterator.name"\
-<%
-    if (i < item.children.size() - 1)  {
-%>\
-,\
-<%
-    }
-  }
-%>\
-];
+			otherwise({redirectTo: '/', template: '<ee-view template="${mainView.name}"></ee-view>'});
 
+			\\$locationProvider.html5Mode(false);
+	}]);
+
+	app.controller("TabController", ['\\$scope', '\\$location', function (\\$scope, \\$location) {
+			this.setTab = function(url) {
+				if (url === "#" || url === "#/") {
+					this.selected = "#/${mainView.name}";
+				} else {
+					this.selected = url;
+				}
+			};
+
+			this.isSelected = function(tab) {
+				return this.selected == tab.url;
+			}
+
+  		this.tabs = [
+<%
+  	item.children.each { v ->
+  		if (v.main) {
+%>\
+			{ url: "#/${v.name}", label: "${v.name}"},
+<%
+  		}
+  	}
+%>\
+			];
+
+			this.setTab("#" + \\$location.url());
 	}]);
 }());
 ''')
 
   template('stylecss', body: '''\
 section {
-  border: 1px solid #000;
-  padding: 25px;
-  margin: 25px;
+/*  border: 1px solid #000; */
+/*  padding: 25px; */
+/*  margin: 25px; */
+clear: both;
 }
 
 .entityTable {
@@ -244,6 +270,26 @@ section {
 .lightbox>div{
   padding: 20px;
 }
+
+.topbar {
+  margin-top: 50px;
+}
+
+.mainView {
+  width: 80%;
+  margin: 0px auto;
+}
+
+.mainView section section{
+  margin-top: 15px;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
+}
+
+.mainView section input.btn {
+  float: right;
+  margin: 4px;
+}
 ''')
 
   template('tablehtml', body: '''\
@@ -258,8 +304,8 @@ section {
 ''')
 
   template('tablejs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("Table",["Dispatcher"]);
 
   app.directive("eeTable", function() {
@@ -273,8 +319,8 @@ section {
 ''')
 
   template('viewjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("View",[]);
 
   app.directive("eeView", function() {
@@ -293,8 +339,8 @@ section {
 ''')
 
   template('dispatcherjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("Dispatcher",[]);
 
   // Dispatches a message (including data) to all
@@ -338,8 +384,8 @@ section {
 ''')
 
   template('manipulatorjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("Manipulator",[]);
 
   //app.manipulator
@@ -390,8 +436,8 @@ section {
 ''')
 
   template('modelhandlerjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("ModelHandler",[]);
 
   app.factory("\\$model", function() {
@@ -415,8 +461,8 @@ section {
 
 
   template('injectionsjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("Injections",[]);
 }());
 ''')
@@ -430,7 +476,7 @@ section {
               <label for="{{ 'lightboxcolumn' + \\$id}}">{{column.name}}</label>
               <input type="text" class="form-control" ng-model="column.value" ng-attr-id="{{ 'lightboxcolumn' + \\$id}}" placeholder="{{column.name}}" required>
             </div>
-            <button type="submit" class="btn btn-default">Add</button>
+            <button type="submit" class="btn btn-primary">Add</button>
           </form>
           <form ng-if="lightboxCtrl.type=='delete'" ng-submit="lightboxCtrl.submit('delete')">
             <div class="form-group" ng-repeat="column in lightboxCtrl.columnInfo">
@@ -442,7 +488,7 @@ section {
                 <input type="checkbox" ng-model="lightboxCtrl.checked" required> Are you sure, you want to delete this entry?
               </label>
             </div>
-            <button type="submit" class="btn btn-default" ng-class="{disabled: !lightboxCtrl.checked}">Delete</button>
+            <button type="submit" class="btn btn-danger" ng-class="{disabled: !lightboxCtrl.checked}">Delete</button>
           </form>
       </div>
     </div>
@@ -451,8 +497,8 @@ section {
 
 
   template('lightboxjs', body: '''\
-"use strict";
 (function(){
+"use strict";
     var app = angular.module("Lightbox",["ComLightbox"]);
 
     app.directive("lightbox", ["\\$document", "\\$rootScope", function(\\$document, \\$rootScope) {
@@ -532,8 +578,8 @@ section {
 ''')
 
   template('comlightboxjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("ComLightbox",[]);
 
   app.factory("\\$lightbox", function() {
@@ -551,38 +597,36 @@ section {
 ''');
 
   template('framehtml', body: '''\
-<section id="${item.name}">
+<section class="${item.name}">
 <h4 style="padding-left:10px">${item.name}</h4>
 <%
   item.controls.each { control ->
     if (control.widgetType == "Button") {
 %>\
 \
-    <input type="button" class="btn btn-default" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('\
 <%
   if (control.name.capitalize().startsWith("Add")) {
 %>\
-add\
+    <input type="button" class="btn btn-primary" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('add',\
 <%
   } else if (control.name.capitalize().startsWith("Delete")) {
 %>\
-delete\
+    <input type="button" class="btn btn-danger btn-xs" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('delete',\
 <%
   } else if (control.name.capitalize().startsWith("Accept")) {
 %>\
-accept\
+    <input type="button" class="btn btn-primary" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('accept',\
 <%
   } else if (control.name.capitalize().startsWith("Discard")) {
 %>\
-discard\
+    <input type="button" class="btn btn-warning" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('discard',\
 <%
   } else {
 %>\
-search\
+    <input type="button" class="btn btn-info" value="${control.name.capitalize()}" ng-click="${item.name.toLowerCase()}Ctrl.lightbox('search',\
 <%
   }
 %>\
-',\
 <%
       if (control.onAction) {
 %>\
@@ -608,7 +652,7 @@ search\
     if (control.widgetType == "TextField") {
 %>\
 \
-    <label>${control.name.capitalize()}</label> <input readonly>
+    <label>${control.name.capitalize()}</label> <input type="text" placeholder="${control.name.capitalize()}">
 \
 <%
     }
@@ -621,8 +665,8 @@ search\
 ''')
 
   template('framejs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("$item.name",[\
 <%
   def hasControl = [:];
@@ -755,7 +799,7 @@ false\
 
     self.id = "${item.name}${control.name.capitalize()}";
     self.entity = "${control.type.name}";
-    self.parentView = ${item.name};
+    self.parentView = "${item.name}";
 
     self.\\$scope = \\$scope;
     self.\\$http = \\$http;
@@ -878,8 +922,8 @@ false\
 ''')
 
   template('framesrcjs', body: '''\
-"use strict";
 (function(){
+"use strict";
   var app = angular.module("${item.name}Injector", ["Manipulator"]);
 
   app.run(["\\$manipulator", function(\\$manipulator) {
