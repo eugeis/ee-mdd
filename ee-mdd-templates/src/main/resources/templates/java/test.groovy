@@ -188,10 +188,13 @@ templates('test', purpose: UNIT_TEST) {
     template('mediatorTestExtends', appendName: true, body: '''<% if (item.withMediator) { %><% c.className = "${item.domainName}MediatorTest" %> ${macros.generate('mediatorTestExtends', c)} <% } %>''')
   }
   
-  templates('viewGuidoTest',
+  templates('guidoTest',
   items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('viewGuidoTest', appendName: true, body: '''<% c.className = item.n.cap.guidoTestBase %> ${macros.generate('viewGuidoTest', c)}''')
+    template('viewGuidoTestExtends', appendName: true, body: '''<% c.className = item.n.cap.guidoTest %> ${macros.generate('guidoTestExtends', c)}''')
+    template('dialogGuidoTest', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.guidoTestBase %> ${macros.generate('dialogGuidoTest', c)}<% } %>''')
+    template('dialogGuidoTestExtends', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.guidoTest %> ${macros.generate('guidoTestExtends', c)}<% } %>''')
   }
   
 }

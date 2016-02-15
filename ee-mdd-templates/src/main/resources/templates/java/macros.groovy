@@ -5082,6 +5082,53 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
 }''')
   
   
+  template('dialogGuidoTest', purpose: UNIT_TEST, body: '''{{imports}}<% def viewClassName = item.dialog.n.cap.guido; def contentViewClassName = item.n.cap.guido %>
+public abstract class $className extends GuidoViewTestCase<$viewClassName> {
+
+  @Mock
+  protected $contentViewClassName contentView;
+
+  ${macros.generate('setUpSuper', c)}
+
+  @Override
+  protected $viewClassName instantiateViewUnderTest() {
+    return spy(new $viewClassName());
+  }
+
+  @Override
+  protected void beforeViewCreated() {
+    super.beforeViewCreated();
+    view.setContentView(contentView);
+  }
+
+  @Test
+  public void callsInitMethodsIfCreated() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then
+    InOrder inOrder = inOrder(view);
+    inOrder.verify(view).initWidgets();
+    inOrder.verify(view).addContent(contentView);
+    inOrder.verify(view).initEventHandling();
+  }
+
+  @Test
+  public void defaultConstructorForCoverage() throws Exception {
+    assertThat(new ${viewClassName}(), is(notNullValue()));
+  }
+}''')
+  
+  template('guidoTestExtends', purpose: UNIT_TEST, body: '''
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${className}Base {
+  ${macros.generate('setUpSuper', c)}
+}
+
+''')
+  
+  
   //metaAttributes
 
 
