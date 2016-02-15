@@ -18,6 +18,7 @@ import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Component
+import ee.mdd.model.component.Config
 import ee.mdd.model.component.Container
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
@@ -204,6 +205,13 @@ templates('test', purpose: UNIT_TEST) {
     template('serviceDelegateTest', appendName: true, body: '''<% c.className = item.n.cap.delegateTestBase %> ${macros.generate('serviceDelegateTest', c)}''')
     template('serviceDelegateTestExtends', appendName: true, body: '''<% c.className = item.n.cap.delegateTest %> ${macros.generate('serviceDelegateTestExtends', c)}''')
   }
+  
+  templates('implControllerTest',
+  items: { c -> c.model.findAllRecursiveDown( {Config.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
+    template('implControllerTest', appendName: true, body: '''<% if(item.controller && item.controller.base) { %><% c.className = item.controller.n.cap.impl %> ${macros.generate('implControllerTest', c)} <% } %>''')
+  }
+    
     
   
 }

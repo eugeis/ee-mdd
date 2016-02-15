@@ -3786,6 +3786,20 @@ public class $className {
   }<% } %>
 }''')
   
+  template('implControllerTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${controller.n.cap.impl}.class);
+  }
+
+}''')
+  
   template('implConverterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className {
   protected final static ${module.capShortName}DataFactoryBase DATA_FACTORY;
