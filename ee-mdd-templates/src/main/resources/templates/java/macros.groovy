@@ -3845,6 +3845,33 @@ public class $className {
 public class $className extends ${className}Impl {
 }''')
   
+  template('containerProducerInternalTest', purpose: UNIT_TEST, body: '''{{imports}}
+/** Server CDI container producer for '$module.name' */
+
+public class ${className}Test extends BaseTestCase {
+  private ${className} instance;
+
+  @Before
+  public void before() {
+    instance = new ${className}();
+  }
+
+<% module.containers.each { container -> if(container.controller) { %>
+
+  @Test
+  public void testGet${container.cap}() {
+    $container.controller.cap controller = mock(${container.controller.cap}.class);
+    $container.cap container = mock(${container.cap}.class);
+    when(controller.loadAll()).thenReturn(container);
+
+    ClassUtils.setPrivateField(instance, "${container.controller.uncap}", controller);
+
+    $container.cap result = instance.get${container.cap}();
+
+    assertThat(result, is(container));
+  }<% } } %>
+}''')
+  
   template('initializerMemTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability

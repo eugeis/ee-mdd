@@ -211,6 +211,13 @@ templates('test', purpose: UNIT_TEST) {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
     template('implControllerTest', appendName: true, body: '''<% if(item.controller && item.controller.base) { %><% c.className = item.controller.n.cap.impl %> ${macros.generate('implControllerTest', c)} <% } %>''')
   }
+  
+  templates('containerProducerInternalTest',
+  items: { c -> c.model.findAllRecursiveDown( {Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('containerProducerInternalTest', appendName: true, body: '''<% if(module.containers) { %><% c.className = "${module.capShortName}ContainerProducerInternal" %> ${macros.generate('containerProducerInternalTest', c)} ''')
+  }
+    
     
     
   
