@@ -5061,7 +5061,7 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
     assertThat(view.${control.getter}, is(($control.widgetInterface) view.${control.fieldName}));
     <% } } %>
   }
-  <% item.controls.each { def control -> control.listener.each { def op -> def guidoEventClass = macros.guidoEvents[control.widgetType][op.name]+"Event" %>
+  <% item.controls.each { def control -> control.listener.each { def op -> def guidoEventClass = op.guidoEvent+"Event" %>
   @Test
   public void ${control.fieldName}${guidoEventClass}IsForwardedToPresenter() throws Exception {
     // given

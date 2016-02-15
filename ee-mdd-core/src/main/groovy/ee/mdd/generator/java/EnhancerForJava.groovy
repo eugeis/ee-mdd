@@ -57,6 +57,9 @@ import ee.mdd.model.ui.GroupContentFrame
 import ee.mdd.model.ui.Header
 import ee.mdd.model.ui.Label
 import ee.mdd.model.ui.Listener
+import ee.mdd.model.ui.OnContextMenuRequest
+import ee.mdd.model.ui.OnItemEditorItemSelect
+import ee.mdd.model.ui.OnSelect
 import ee.mdd.model.ui.Panel
 import ee.mdd.model.ui.Spinner
 import ee.mdd.model.ui.Table
@@ -1776,6 +1779,45 @@ class EnhancerForJava {
           }
           properties[key] = ret
         }
+      }
+      
+    }
+    
+    Listener.metaClass {
+      
+      getGuidoEvent << {
+        ->
+        def key = System.identityHashCode(delegate) + 'guidoEvent'
+        if(!properties.containsKey(key)) {
+          def ret = ''
+          def listener = delegate
+          def widget = delegate.parent
+          if(Button.isInstance(widget))
+            ret = 'Clicked'
+          else if(ComboBox.isInstance(widget))
+            ret = 'ActivatedIndex'
+          else if(CheckBox.isInstance(widget))
+            ret = 'StateChanged'  
+          else if(ContextMenu.isInstance(widget))
+            ret = 'ActivatedPopupMenuItem'
+          else if(DateField.isInstance(widget))
+            ret = 'DateChanged'
+          else if(Spinner.isInstance(widget))
+            ret = 'ValueChanged'
+          else if(Table.isInstance(widget)) {
+            if(OnContextMenuRequest.isInstance(listener))
+              ret = 'ContextMenuRequested'
+            else if(OnSelect.isInstance(listener))
+              ret = 'SelectionChanged'
+            else if(OnItemEditorItemSelect.isInstance(listener))
+              ret = 'ItemEditorItemSelected'
+          } else if(TextField.isInstance(widget))
+            ret = 'TextChanged' 
+          else if(TimeField.isInstance(widget))
+            ret = 'TimeChanged'
+          properties[key] = ret
+        }
+        properties[key]
       }
       
     } 
