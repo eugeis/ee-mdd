@@ -3617,6 +3617,65 @@ public abstract class $className extends BaseTestCase {
   template('moduleCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${module.capShortName}CacheTestBase {
 }''')
+  
+  template('serviceDelegateTest', purpose: UNIT_TEST, body: '''{{imports}}<% def refs = item.logicUnits %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className {
+  <% if (item.useConverter) { %>
+  @Mock
+  ${module.capShortName}Converter converter;<% } %>
+
+  protected static $item.beanName $item.uncap;
+
+  @BeforeClass
+  public static void beforeClass$className() {
+    $item.uncap = new $item.beanName();<% refs.each { ref-> %>
+    ${item.uncap}.set${ref.cap}(mock(${ref.cap}.class));<% } %><% item.props.each { ref -> if(ref.typeContainer) { %>
+    ${item.uncap}.set${ref.cap}(mock(${ref.cap}.class));<% } } %>
+  }
+
+  @After
+  ${macros.generate('afterClass', c)}
+
+  @Before
+  ${macros.generate('beforeClass', c)}
+
+  protected void verifyNoMoreInteractions() {
+    <% if (!item.operationRefs.isEmpty()) { %>Mockito.verifyNoMoreInteractions(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      ${item.uncap}.${ref.uncap}<% } %><% item.props.each { ref -> if(ref.typeContainer) { if (first) { first = false } else { %>,<% } } %>
+      ${item.uncap}.${ref.uncap}<% } %>);<% } %>
+  }
+
+  protected void resetMocks() {
+    MockitoCg.resetMocks(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      ${item.uncap}.${ref.uncap}<% } %><% item.props.each { ref -> if(ref.typeContainer) { if (first) { first = false } else { %>,<% } } %>
+      ${item.uncap}.${ref.uncap}<% } %>);<% if (item.useConverter) { %>
+      ${item.uncap}.set$module.names.converter(converter);<% } %>
+  }<% item.operationRefs.each { opRef -> def op = opRef.ref; if (op) { def raw = op.rawType || (op.resultExpression && OpRef.ref.multi && OpRef.ref.typeEntity) %>
+
+  @Test
+  public void ${opRef.nameTest}_calls_${op.name}() {<% if (op.void) { %>
+    ${item.uncap}.${opRef.name}($opRef.signatureTestValues);<% } else if (op.returnTypeBoolean) { %>
+    when(${item.uncap}.${op.parent.uncap}.${op.name}($opRef.signatureTestValuesExternal)).thenReturn(true);
+    assertTrue(${item.uncap}.${opRef.name}($opRef.signatureTestValues));<% } else { %>
+    when(${item.uncap}.${op.parent.uncap}.${op.name}($opRef.signatureTestValues)).thenReturn(null);
+    assertEquals(null, ${item.uncap}.${opRef.nameExternal}($opRef.signatureTestValues));<% } %>
+    verify(${item.uncap}.${op.parent.uncap}).${op.name}($opRef.signatureTestValues);
+  }<% } } %>
+}''')
+  
+  template('serviceDelegateTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${className}Base {
+
+<% if (item.operationRefs.isEmpty()) { %>
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }<% } %>
+}''')
 
   template('notificationPluginTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName

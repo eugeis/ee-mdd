@@ -26,6 +26,7 @@ import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
+import ee.mdd.model.component.Container
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.DataTypeProp
@@ -186,6 +187,15 @@ class EnhancerForJava {
           }
           delegate.props.each { ret << it }
           properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      getOperationRefs << {
+        ->
+        def key = System.identityHashCode(delegate) + 'operationRefs'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.operations.findAll { OperationRef.isInstance(it) }
         }
         properties[key]
       }
@@ -651,6 +661,16 @@ class EnhancerForJava {
         }
         metasForService
       }
+      
+      getLogicUnits << {
+        ->
+        def key = System.identityHashCode(delegate) + 'logicUnits'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.children.findAll { LogicUnit.isInstance(it) } 
+        }
+        properties[key]
+      }
+      
     }
 
 
@@ -1504,6 +1524,20 @@ class EnhancerForJava {
           def prop = delegate
           def ret = false
           if(Entity.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      isTypeContainer << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeContainer'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Container.isInstance(prop.type)) {
             ret = true
           }
           properties[key] = ret

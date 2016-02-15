@@ -21,6 +21,7 @@ import ee.mdd.model.component.Component
 import ee.mdd.model.component.Container
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
+import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Module
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.StateMachine
@@ -196,5 +197,13 @@ templates('test', purpose: UNIT_TEST) {
     template('dialogGuidoTest', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.guidoTestBase %> ${macros.generate('dialogGuidoTest', c)}<% } %>''')
     template('dialogGuidoTestExtends', appendName: true, body: '''<% if(item.dialog) { %><% c.className = item.dialog.n.cap.guidoTest %> ${macros.generate('guidoTestExtends', c)}<% } %>''')
   }
+  
+  templates('serviceDelegateTest',
+  items: { c -> c.model.findAllRecursiveDown( {Facade.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('serviceDelegateTest', appendName: true, body: '''<% c.className = item.n.cap.delegateTestBase %> ${macros.generate('serviceDelegateTest', c)}''')
+    template('serviceDelegateTestExtends', appendName: true, body: '''<% c.className = item.n.cap.delegateTest %> ${macros.generate('serviceDelegateTestExtends', c)}''')
+  }
+    
   
 }
