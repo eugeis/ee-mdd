@@ -4419,6 +4419,54 @@ public abstract class $className extends ${item.commands.n.cap.baseTestImpl} {
 public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
 }''')
   
+  template('commandsFactoryImplTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands }; def commands = entitiesWithCommands.collect { it.commands } %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  private ${module.capShortName}CommandsFactoryImpl commandsFactory = new ${module.capShortName}CommandsFactoryImpl();<% commands.each { command -> %>
+
+  @Mock
+  private $command.name $command.uncap;<% }; commands.each { command -> %>
+
+  @Test
+  public void set${commands.cap}_get${commands.cap}returns$command.name() throws Exception {
+    // given
+    commandsFactory.set${command.cap}($command.uncap);
+
+    // when
+    $command.name currentCommand = commandsFactory.get${command.cap}();
+
+    // then
+    assertThat(currentCommand, is(sameInstance($command.uncap)));
+  }<% } %>
+}''')
+  
+  template('findersFactoryImplTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders }; def finders = entitiesWithFinders.collect { it.finders } %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  private ${module.capShortName}FindersFactoryImpl findersFactory = new ${module.capShortName}FindersFactoryImpl();<% finders.each { finder -> %>
+
+  @Mock
+  private $finder.name $finder.uncap;<% }; finders.each { finder -> %>
+
+  @Test
+  public void set${finders.cap}_get${finder.cap}returns$finder.name() throws Exception {
+    // given
+    findersFactory.set${finder.cap}($finder.uncap);
+
+    // when
+    $finder.name currentFinder = findersFactory.get${finder.cap}();
+
+    // then
+    assertThat(currentFinder, is(sameInstance($finder.uncap)));
+  }<% } %>
+}''')
+  
   template('commandsLocalTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {
