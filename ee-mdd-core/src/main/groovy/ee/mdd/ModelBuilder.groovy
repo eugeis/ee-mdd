@@ -58,6 +58,7 @@ import ee.mdd.model.component.Find
 import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Initializer
+import ee.mdd.model.component.InterfType
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Message
@@ -129,6 +130,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def channel = new CompositeFactory(beanClass: Channel, childFactories: ['meta', 'message'])
   private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate', 'cache'], parent: type)
   private def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
+  private def interfType = new CompositeFactory(beanClass: InterfType, parent: cu)
   private def typeRef = new CompositeFactory(beanClass: TypeRef)
   private def message = new CompositeFactory(beanClass: Message,  childFactories: ['meta'], parent: typeRef)
   private def basicType = new CompositeFactory(beanClass: BasicType, parent: dataType)
@@ -222,7 +224,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
-  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine'], parent: su)
+  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine', 'interf'], parent: su)
 
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
@@ -272,6 +274,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'delegate', operationRef
     registerFactory 'index', index
     registerFactory 'initializer', initializer
+    registerFactory 'interf', interfType
     registerFactory 'count', counter
     registerFactory 'create', create
     registerFactory 'delete', delete
