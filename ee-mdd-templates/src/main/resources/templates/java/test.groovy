@@ -225,7 +225,12 @@ templates('test', purpose: UNIT_TEST) {
     template('containerProducerInternalTest', appendName: true, body: '''<% if(module.containers) { %><% c.className = "${module.capShortName}ContainerProducerInternal" %> ${macros.generate('containerProducerInternalTest', c)}<% } %> ''')
   }
     
-    
+  templates('unitTestHelper',
+  items: { c -> c.model.findAllRecursiveDown( {Module.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('unitTestHelper', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}UnitTestHelperBase" %> ${macros.generate('unitTestHelper', c)}<% } %>''')
+  }
+      
     
   
 }

@@ -5287,6 +5287,40 @@ public class $className extends ${className}Base {
 
 ''')
   
+  template('unitTestHelper', body: '''{{imports}}
+public class ${className}<T> extends UnitTestHelperBackend<T> {
+
+  public ${className}() {
+    super("${component.key}Pu",  "META-INF/persistence-h2-local.xml");
+  }
+  
+  @Override
+  protected void doInit(UnitTestMode mode) {
+    switch (mode) {
+    case BACKEND_LOCAL:
+      registerLocalManagers();
+      break;
+    default:
+      registerMemoryManagers();
+    }
+  }
+  
+  private void registerLocalManagers() {
+    server().register(EntityManager.class, entityManager(), ${component.capShortName}Qualifier.class);
+    server().addExtension(createTransactionalExtension("${component.namespace}"));
+    <% module.entities.findAll { !it.virtual && (it.commands || it.finders)}.each { def entity = it; def commands = entity.commands; def finders = entity.finders %><% if(commands) { %>
+    server().registerImpl(${commands.name}.class, ${commands.n.cap.impl}.class);<% } %><% if(finders) { %>
+    server().registerImpl(${finders.name}.class, ${finders.n.cap.impl}.class);<% } %>
+    server().registerImpl(${entity.n.cap.factory}.class, ${entity.beanName}Factory.class);<% } %>
+  }
+  
+  private void registerMemoryManagers() {<% module.entities.findAll { !it.virtual && it.manager }.each { def entity = it; def commands = entity.commands; def finders = entity.finders %><% if(commands) { %>
+    server().registerImpl(${commands.name}.class, ${commands.n.cap.mem}.class);<% } %><% if(finders) { %>
+    server().registerImpl(${finders.name}.class, ${finders.n.cap.mem}.class);<% } %>
+    server().registerImpl(${entity.n.cap.factory}.class, ${entity.beanName}Factory.class);<% } %>
+  }
+}''')
+  
   
   //metaAttributes
 
