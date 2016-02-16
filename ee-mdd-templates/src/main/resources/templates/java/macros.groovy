@@ -5283,9 +5283,76 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
 @RunWith(MockitoJUnitRunner.class)
 public class $className extends ${className}Base {
   ${macros.generate('setUpSuper', c)}
-}
+}''')
+  
+  template('configTest', purpose: UNIT_TEST, body: '''
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public<% if (item.base) {%> abstract<% } %> class $className extends BaseTestCase {
 
-''')
+  protected $item.cap $item.uncap;
+
+  protected $item.cap createInstanceByConstructor(){<% if (item.constructors.isEmpty()) { %>
+   return new $item.cap();<% } else { %> <% def constructor = item.constructors.first() %>
+   return new $item.cap(<% constructor.params.each { def param -> def prop = param.prop; %>
+        $prop.testValue<% if (constructor.params.last() != param) { %>,<% } %><% } %> ); <% } %>
+  }
+
+  @Test
+  public void newInstanceByConstructor_defaultValuesAreUsed() throws Exception {
+   // given
+   // when
+   $item.uncap = createInstanceByConstructor();
+
+   // then<% item.props.each { prop -> c.type = prop.type.name %> <% if (prop.defaultValue != null) { %>
+   assertThat(${item.uncap}.${prop.getter}, equalTo(<% if (prop.type.name == 'String') {%>"<% }%>$prop.defaultValue<% if (prop.type.name == 'String') {%>"<% }%>${macros.generate('suffixDependingOnType', c)}));<% } } %>
+  }<% if (item.propSetters) { %>
+
+  @Test
+  public void loadDefaultConfig_valuesOfDefaultConfigAreUsed() throws Exception {
+   // given
+   // when
+   $item.uncap = ConfigUtils.loadConfig(${item.cap}.class);
+
+   // then<% item.props.each { prop -> c.type = prop.type.name %> <% if (prop.valueInDefaultConfig != null) { %>
+   assertThat(${item.uncap}.${prop.getter}, equalTo(<% if (prop.type.name == 'String') {%>"<% }%><% if (prop.type.name == 'Color') { %>new Color(<% }%>$prop.valueInDefaultConfig${macros.generate('suffixDependingOnType', c)}<% if (prop.type.name == 'String') {%>"<% }%><% if (prop.type.name == 'Color') { %>)<% } %>));<% } } %>
+  }
+
+  @Test
+  public void udpdate_replaceAllValuesByOnesFromGivenConfig() throws Exception {
+   // given
+   ${item.uncap} = $item.uncap = ConfigUtils.loadConfig(${item.cap}.class);
+
+   // when
+   $item.cap ${item.uncap}WithDefaultValues = createInstanceByConstructor();
+   ${item.uncap}.update(${item.uncap}WithDefaultValues);
+
+   // then<% item.props.each { prop-> %>
+   assertThat(${item.uncap}.${prop.getter}, equalTo(${item.uncap}WithDefaultValues.${prop.getter}));<% }  %>
+  }
+
+  @Test
+  public void udpdate_allValuesFromGivenConfigAreRead_doubleCheckInCaseOfValueRemainsTheSame() throws Exception {
+   // given
+   $item.uncap = createInstanceByConstructor();
+
+   // when
+   $item.cap ${item.uncap}WithDefaultValues = mock(${item.cap}.class);
+   ${item.uncap}.update(${item.uncap}WithDefaultValues);
+
+   // then
+  <% item.props.each { prop-> %>
+   verify(${item.uncap}WithDefaultValues).${prop.getter};<% } %>
+  }<% } %>
+
+  @Test
+  @Override
+  public void testGettersSetters() throws Exception {
+    $item.uncap = createInstanceByConstructor();
+    getterSetterTester.verifyAllGettersAndSetters($item.uncap);
+  }
+
+}''')
   
   template('unitTestHelper', body: '''{{imports}}
 public class ${className}<T> extends UnitTestHelperBackend<T> {
@@ -8525,6 +8592,8 @@ private void initMlKey($item.n.cap.event event) {
     assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
     assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
   }''')
+  
+  template('suffixDependingOnType', body: '''<% if (c.type == 'Long' || c.type == 'long') { %>L<% } %>''')
   
   template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -34,7 +34,7 @@ class CompilationUnit extends Type {
   List<String> superGenericRefs
   List<String> interfs = []
   List<Prop> props
-  List<Constructor> constructors
+  List<Constructor> constructors = []
   List<Operation> operations
   List<String> generics
   Set types = []
