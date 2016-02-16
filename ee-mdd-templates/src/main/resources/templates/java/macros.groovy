@@ -105,6 +105,9 @@ templates ('macros') {
 
   void $prop.setter;<% } } %>''')
   
+  template('interPropGetters', body: '''<% def prop = c.prop %>${prop.description ? "   /** $prop.description */" : ''}
+  ${prop.computedType(c)} <% if( prop.type.name == 'Boolean' || prop.type.name == 'boolean') { %>is<% } else { %>get<%}%>${prop.cap}();''')
+  
   template('interPropSetters', body: '''void set${c.prop.cap}(${c.prop.computedType(c)} $c.prop.name);''')
 
   template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
@@ -765,6 +768,14 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
 
 
   //classes
+  
+  template('interfs', body: '''{{imports}}<% def superUnit = item.superUnit %>
+${item.description?"/*** $item.description */":''}
+public interface $className extends <% if (superUnit) { %>$superUnit.name<% } else { %>Serializable<% } %> { <% item.props.each { prop -> c.prop = prop %>
+  ${macros.generate('interPropGetters', c)}
+  ${macros.generate('interPropSetters', c)}<% } %>
+  ${macros.generate('interfaceBody', c)}
+}''')
   
   template('serviceEmpty', body: '''{{imports}}
 /** Empty implementation of {@link $item.name} what shall be extended by Test/Mock implementation in order to avoid unnecessary work by extension of the interface. */

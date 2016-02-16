@@ -11,6 +11,7 @@ import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Finders
+import ee.mdd.model.component.InterfType
 import ee.mdd.model.component.Module
 import ee.mdd.model.component.Pojo
 
@@ -76,13 +77,19 @@ templates ('common') {
     template('implBasicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('implFactory', c)}<% } %>''')
   }
     
-
   templates ('modelImplEntity', type: API_IMPL,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implEntity', appendName: true, body: '''<% c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
     template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
-  }    
+  }
+  
+  templates('interfsBase', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { InterfType.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('interfs', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.base %><% } else { %><% c.className = item.cap %><% } %> ${macros.generate('interfs', c)} ''')
+  }
+        
     
   templates('cache', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
