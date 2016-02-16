@@ -3958,6 +3958,52 @@ public class ${className} extends BaseTestCase {
   }
 }''')
   
+  template('implContainerTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    String source = "source";
+    boolean override = false;
+    boolean threadSafe = true;
+    // when
+    // then
+    constructorTester.verifyDefaultConstructor(${item.n.cap.impl}.class);
+    assertThat(new $item.n.cap.impl(), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(source, override, threadSafe), is(notNullValue()));
+  }
+
+}''')
+  
+  template('implContainerTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.n.cap.impl}TestBase {
+
+  @Override
+  @Test
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    String source = "source";
+    boolean override = false;
+    boolean threadSafe = true;
+    $item.name parentContainer = mock(${item.name}.class);
+    // when
+    // then
+    super.testConstructorsForCoverage();
+    assertThat(new $item.n.cap.impl(source), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(override), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(override, threadSafe), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(source, override, threadSafe), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(parentContainer), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(parentContainer, threadSafe), is(notNullValue()));
+  }
+
+}''')
+  
   template('implContainerFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class ${className}Test extends BaseTestCase {
   private $className factory;
@@ -4298,6 +4344,30 @@ public abstract class $className {
   
   template('containerBuilderTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${item.cap}BuilderBase{
+}''')
+  
+  template('containerIdsTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends $item.n.cap.idsTestCase {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+
+  }
+
+}''')
+  
+  template('containerIdsTestCase', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public abstract class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.ids}.class);
+  }
 }''')
   
   template('commandsTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp; def idConverter %>
