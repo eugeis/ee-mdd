@@ -119,11 +119,11 @@ templates('test', purpose: UNIT_TEST) {
     template('findersTestExtends', appendName: true, body: ''' <% if (item.finders && item.finders.base && !item.virtual) { %><% c.className = item.finders.n.cap.testImpl %> ${macros.generate('findersTestExtends', c)}<% } %>''')
   }
   
-  templates('commandsFindersFactoryImplTest',
+  templates('implCommandsFindersFactoryTest',
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
-    template('commandsFactoryImplTest', appendName: true, body: '''<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands } %><% if(entitiesWithCommands) { %><% c.className = "${module.capShortName}CommandsFactoryImplTest" %>${macros.generate('commandsFactoryImplTest', c)}<% } %> ''')
-    template('findersFactoryImplTest', appendName: true, body: '''<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders } %><% if(entitiesWithFinders) { %><% c.className = "${module.capShortName}FindersFactoryImplTest" %>${macros.generate('findersFactoryImplTest', c)}<% } %> ''')
+    template('implCommandsFactoryTest', appendName: true, body: '''<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands } %><% if(entitiesWithCommands) { %><% c.className = "${module.capShortName}CommandsFactoryImplTest" %>${macros.generate('implCommandsFactoryTest', c)}<% } %> ''')
+    template('implFindersFactoryTest', appendName: true, body: '''<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders } %><% if(entitiesWithFinders) { %><% c.className = "${module.capShortName}FindersFactoryImplTest" %>${macros.generate('implFindersFactoryTest', c)}<% } %> ''')
   }
   
   templates('commandsFindersLocalTest',

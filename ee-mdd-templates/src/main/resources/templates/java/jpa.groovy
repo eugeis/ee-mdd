@@ -84,6 +84,7 @@ templates('jpa') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('producerLocal', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerLocal" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/jse/${c.className}.java" %> ${macros.generate('producerLocal', c)}''')
     template('producerServer', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerServer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producerServer', c)}''')
+    template('producer', appendName: true, body: '''<% c.className = "${component.capShortName}Producer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producer', c)}''')
   }
   
   templates('jpaSchemaGenerator', type: SHARED,

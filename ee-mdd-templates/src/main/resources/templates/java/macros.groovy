@@ -4419,7 +4419,7 @@ public abstract class $className extends ${item.commands.n.cap.baseTestImpl} {
 public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
 }''')
   
-  template('commandsFactoryImplTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands }; def commands = entitiesWithCommands.collect { it.commands } %>
+  template('implCommandsFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands }; def commands = entitiesWithCommands.collect { it.commands } %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @RunWith(MockitoJUnitRunner.class)
@@ -4443,7 +4443,7 @@ public class $className extends BaseTestCase {
   }<% } %>
 }''')
   
-  template('findersFactoryImplTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders }; def finders = entitiesWithFinders.collect { it.finders } %>
+  template('implFindersFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders }; def finders = entitiesWithFinders.collect { it.finders } %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @RunWith(MockitoJUnitRunner.class)
@@ -7780,6 +7780,23 @@ public class $className extends ${module.initializerName}Base {
   @Inject
   public void setClusterSingleton(ClusterSingleton clusterSingleton) {
     this.clusterSingleton = clusterSingleton;
+  }
+}''')
+  
+ template('producer', body: '''{{imports}}
+/** Resources producer for '$module.name' for server and client in production mode */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')}, SERVER }))
+@${c.name('Traceable')}
+public class $className {
+
+  private JmsDestinationConfigImpl notificationTopic =
+    new JmsDestinationConfigImpl(JMS_NOTIFICATION_TOPIC, JMS_CONNECTION_FACTORY, false);
+
+  @${c.name('Produces')}
+  @${component.capShortName}Qualifier
+  public JmsDestinationConfig getNotificationTopicConfig() {
+    return notificationTopic;
   }
 }''')
  
