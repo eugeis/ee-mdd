@@ -64,6 +64,13 @@ templates('test', purpose: UNIT_TEST) {
     template('deltaCacheTestExtends', appendName: true, body: '''<% c.className = item.deltaCache.n.cap.test %> ${macros.generate('deltaCacheTestExtends', c)}''')
   }
   
+  templates('implCacheTest',
+  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
+    template('implDeltaCacheTest', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.deltaCache.n.cap.implTestBase %>${macros.generate('implDeltaCacheTest', c)}<% } %>''')
+    template('implDeltaCacheTestExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.deltaCache.n.cap.implTest %>${macros.generate('implDeltaCacheTestExtends', c)}<% } %>''')
+  }
+    
   templates('moduleCacheTest',
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {

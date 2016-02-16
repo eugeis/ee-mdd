@@ -4606,6 +4606,28 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   }<% } %>
 }''')
   
+  template('implDeltaCacheTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+  @Override
+  @Test
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    // when
+    // then
+    constructorTester.verifyDefaultConstructor(${item.deltaCache.n.cap.impl}.class);
+  }
+}''')
+  
+  template('implDeltaCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.deltaCache.n.cap.implTestBase} {
+
+}''')
+  
   template('beanTest', purpose: UNIT_TEST, body: '''{{imports}}<% def multiProp = item.props.find { it.multi }; def props = item.props.findAll{!it.primaryKey}; c.props = props %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability<% if (item.superUnit) { %>
