@@ -4298,6 +4298,28 @@ public class $className extends ${item.n.cap.versionsImpl}TestBase {
 
 }''')
   
+  template('implContainerDeltaTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.deltaImpl}.class);
+    <% def signature = item.entities.collect { entity -> "mock(${entity.deltaCache.cap}.class)" }.join(", ") %>
+    assertThat(new $item.n.cap.deltaImpl( $signature ), is(notNullValue()));
+  }
+
+}''')
+  
+  template('implContainerDeltaTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.n.cap.deltaImplTestBase} {
+
+}''')
+  
   template('containerBuilderTest', purpose: UNIT_TEST, body: '''<% def entityNames = item.entities.collect { it.name } as Set; def entityOneToManyNoOppositeProps = [:]; def entityManyToOneProps = [:]; item.entities.each { entity ->
 entityOneToManyNoOppositeProps[entity] = []; entityManyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if (prop.type) {
         if (((prop.oneToMany && !prop.oppositeProp) || (prop.mm)) && entityNames.contains(prop.type.name)) { entityToOneToManyNoOppositeProps[entity] << prop }
