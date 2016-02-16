@@ -116,6 +116,13 @@ templates('test', purpose: UNIT_TEST) {
     template('containerIdsTest', appendName: true, body: '''<% c.className = item.n.cap.idsTest %> ${macros.generate('containerIdsTest', c)}''')
     template('containerIdsTestCase', appendName: true, body: '''<% c.className = item.n.cap.idsTestCase %> ${macros.generate('containerIdsTestCase', c)}''')
   }
+  
+  templates('containerDiffTest',
+  items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('containerDiffTest', appendName: true, body: '''<% c.className = item.n.cap.diffTest %> ${macros.generate('containerDiffTest', c)}''')
+    template('containerDiffTestCase', appendName: true, body: '''<% c.className = item.n.cap.diffTestCase %> ${macros.generate('containerDiffTestCase', c)}''')
+  }
     
   
   templates('converterTest',

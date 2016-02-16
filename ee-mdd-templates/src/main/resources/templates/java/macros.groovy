@@ -4370,6 +4370,30 @@ public abstract class $className extends BaseTestCase {
   }
 }''')
   
+  template('containerDiffTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends $item.n.cap.diffTestCase {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+
+  }
+
+}''')
+  
+  template('containerDiffTestCase', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public abstract class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.diff}.class);
+  }
+}''')
+  
   template('commandsTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp; def idConverter %>
 <% if(idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
 @Alternative
