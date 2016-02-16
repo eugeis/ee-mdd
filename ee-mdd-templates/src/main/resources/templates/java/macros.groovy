@@ -5354,6 +5354,17 @@ public<% if (item.base) {%> abstract<% } %> class $className extends BaseTestCas
 
 }''')
   
+  template('configTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.cap}TestBase {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }
+
+}''')
+  
   template('unitTestHelper', body: '''{{imports}}
 public class ${className}<T> extends UnitTestHelperBackend<T> {
 

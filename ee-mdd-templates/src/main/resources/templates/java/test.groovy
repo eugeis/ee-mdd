@@ -223,6 +223,7 @@ templates('test', purpose: UNIT_TEST) {
   items: { c -> c.model.findAllRecursiveDown( {Config.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('configTest', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.testBase %><% } else { %><% c.className = item.n.cap.test %><% } %> ${macros.generate('configTest', c)} ''')
+    template('configTestExtends', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.test %> ${macros.generate('configTestExtends', c)} <% } %>''')
   }
   
   templates('containerProducerInternalTest',
