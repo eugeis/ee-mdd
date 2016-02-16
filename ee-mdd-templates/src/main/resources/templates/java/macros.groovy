@@ -8231,6 +8231,22 @@ public abstract class $className {
 public class $className extends ${module.capShortName}CacheBase {
 }''')
   
+  template('cacheSynchronizerPeriodic', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
+@Singleton
+public class $className {<% cachedContainers.each { container -> def controller = container.controller %>
+  private $controller.cap $controller.uncap;<% } %>
+
+  @Schedule(minute = "*/2", hour = "*")
+  public void synchronizeCache() {<% cachedContainers.each { container -> def controller = container.controller %>
+    ${controller.uncap}.synchronizeCache();<% } %>
+  }
+  <% cachedContainers.each { container -> def controller = container.controller %>
+  @Inject
+  public void set$controller.cap($controller.cap $controller.uncap) {
+    this.$controller.uncap = $controller.uncap;
+  }<% } %>
+}''')
+  
   template('builderFactory', body: '''{{imports}}
 /** Base implementation of builder factory for '$module.name' */
 public abstract class $className {<% module.entities.each { entity -> if (!entity.virtual) { %>

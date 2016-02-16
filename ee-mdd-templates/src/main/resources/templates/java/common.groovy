@@ -377,6 +377,7 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('moduleCache', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}CacheBase" %> ${macros.generate('moduleCache', c)}<% } %>''')
     template('moduleCacheExtends', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}Cache" %> ${macros.generate('moduleCacheExtends', c)}<% } %>''')
+    template('cacheSynchronizerPeriodic', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheSynchronizerPeriodic" %> ${macros.generate('cacheSynchronizerPeriodic', c)} <% } %> ''')
   }
   
   templates('builderFactory', type: API,
