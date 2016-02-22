@@ -15,6 +15,7 @@
  */
 package ee.mdd.model.ui
 
+import ee.mdd.model.component.Component
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Module
 import ee.mdd.model.component.Names
@@ -45,6 +46,10 @@ class Widget extends LogicUnit {
 
   Module getModule() {
     parent.module
+  }
+  
+  Component getComponent() {
+    parent.component
   }
 
   View getView() {

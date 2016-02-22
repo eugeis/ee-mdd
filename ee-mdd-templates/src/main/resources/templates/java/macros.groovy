@@ -16,6 +16,7 @@
 
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
+import ee.mdd.generator.OutputType
 
 /**
  *
@@ -2164,12 +2165,11 @@ public class $className extends ${item.n.cap.factoryBase} {
   }
 }''')
   
-  template('containerFactoryBean', body: '''{{imports}}
+  template('containerFactoryBean', type: API, body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
 public class $className extends ${item.n.cap.factoryBase} {
-
   public $className() {
     super(${item.n.cap.impl}.class);
   }
@@ -8271,7 +8271,7 @@ public class $className {
 public class $className extends ${module.capShortName}ConverterBase {
 }''')
   
-  template('implDataFactory', body: '''
+  template('implDataFactory', body: '''{{imports}}
 /** Data factory implementation for '$module.name' based on Internal model factory */
 @${c.name('ApplicationScoped')}
 @${c.name('Default')}
