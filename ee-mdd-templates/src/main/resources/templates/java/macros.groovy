@@ -2049,7 +2049,7 @@ public abstract class $className extends $c.baseClass<${c.name(item.cap)}> imple
   }
 }''')
   
-  template('containerFactory', body: '''{{imports}}
+  template('containerFactory', type: API, body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap> implements $item.n.cap.factory {
 
@@ -3450,6 +3450,7 @@ public class $className extends PluginActivator {
   template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>{{imports}}
 /** Constants for '${c.item.name}' */
 public class $className {
+  public static final String APPLICATION = ${c.name('StringUtils')}.formatApplicationName("${component.artifact}");
   public static final String JMS_CONNECTION_FACTORY = com.siemens.ra.cg.pl.common.base.integ.CommonConstants.JMS_CONNECTION_FACTORY;
   public static final String JMS_CONNECTION_FACTORY_NOT_XA = com.siemens.ra.cg.pl.common.base.integ.CommonConstants.JMS_CONNECTION_FACTORY_NOT_XA;
   public static final String JMS_NOTIFICATION_TOPIC = "java:global/jms/cg/${component.key}/NotificationTopic";
@@ -3458,8 +3459,15 @@ public class $className {
   public static final String MODULE_${depModule.underscored} = "$depModule.uncap";<% depModule.services.each { service -> %>
   public static final String SERVICE_${service.underscored} = "${service.name}";<% } %><% depModule.containers.each { container -> %>
   public static final String JMS_MESSAGE_SELECTOR_${container.underscored} = "$container.uncap";
-  public static final String JMS_MESSAGE_SELECTOR_${container.underscored}_DATA = "${container.uncap}_data";<% } %>
-<% } } %>
+  public static final String JMS_MESSAGE_SELECTOR_${container.underscored}_DATA = "${container.uncap}_data";<% } } } %>
+<% if (component.componentProfile) { %>
+  // component profile filename
+  public static final String COMPONENT_PROFILE_FILENAME = "/${component.artifact}/${component.componentProfile.cfgFile}";
+  public static final String COMPONENT_PROFILE_NAME_PREFIX = "component";
+  public static final String COMPONENT_PROFILE_NAME = "${component.artifact}";
+
+  // component profile keys<% component.componentProfile.props.each { prop -> %>
+  public static final String COMPONENT_PROFILE_${prop.underscoredName} = "${prop.name}"; <% } } %>
 }''')
 
   template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
@@ -7711,7 +7719,6 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
 @${c.name('Qualifier')}
 @${c.name('Retention')}(${c.name('RetentionPolicy')}.RUNTIME)
 @${c.name('Target')}({ ${c.name('ElementType')}.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.CONSTRUCTOR })
-@${c.name('DependsOnExecutionType')}
 public @interface $className {
 }''')
  
@@ -7960,22 +7967,22 @@ public class $className extends ${module.initializerName}Base {
 public class $className extends ${component.capShortName}InitializerBase {
 }''')
  
- template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% startupInitializers.each { %>
+ template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% def profile = component.hasProfiles %><% startupInitializers.each { %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${it.initializerName};<% } %>
 /** Initializer for '$module.name' */
 //TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
 @${c.name('Alternative')}
-public class $className extends ApplicationInitializerBase {
-  protected ${c.name('ProfileManager')} profileManager;<% startupInitializers.each { %>
-  protected ${it.initializerName} ${it.uncapShortName}Initializer;<% } %>
+public class $className extends ${c.name('ApplicationInitializerBase')} {<% if(profile) { %>
+  protected ${c.name('ProfileManager')} profileManager;<% } %><% startupInitializers.each { %>
+  protected ${it.initializerName} ${it.uncapShortName}InitializerInstance;<% } %>
 
   public $className() {
-    super(new ApplicationMeta(${component.capShortName}ConstantsBase.APPLICATION));
+    super(new ${c.name('ApplicationMeta')}(${component.capShortName}ConstantsBase.APPLICATION));
   }<% if (component.modules.find { !it.entities.empty } ) { %>
 
   @Override
-  protected void initAsStandaloneOrMaster(ClusterSingleton clusterSingleton) {
-    profileManager.importProfile(${component.capShortName}ConstantsBase.COMPONENT_PROFILE_FILENAME);
+  protected void initAsStandaloneOrMaster(${c.name('ClusterSingleton')} clusterSingleton) {<% if(profile) { %>
+    profileManager.importProfile(${component.capShortName}ConstantsBase.COMPONENT_PROFILE_FILENAME);<% } %>
   }<% } %><% if(startupInitializers) { %>
 
   @Override
@@ -7985,13 +7992,13 @@ public class $className extends ApplicationInitializerBase {
 
   @${c.name('Inject')}
   public void set${component.capShortName}${it.cap}Initializer(${component.capShortName}${it.cap}Initializer ${it.uncapShortName}Initializer) {
-    this.${it.uncapShortName}Initializer = ${it.uncapShortName}InitializerInstance;
-  }<% } } %>
+    this.${it.uncapShortName}InitializerInstance = ${it.uncapShortName}InitializerInstance;
+  }<% } } %><% if (profile) { %>
 
   @Inject
   public void setProfileManager(ProfileManager profileManager) {
     this.profileManager = profileManager;
-  }
+  }<% } %>
 }''')
  
   template('initializerWakeup', body: '''{{imports}}

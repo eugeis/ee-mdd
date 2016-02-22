@@ -22,11 +22,14 @@ import ee.mdd.model.realm.Realm
 /**
  *
  * @author Eugen Eisler
+ * @author Niklas Cappelmann
  */
 class Component extends StructureUnit {
 	List<Module> modules = []
   Module shared
   Realm realm
+  ComponentProfile componentProfile
+  UserProfile userProfile
   
 	protected boolean init() {
 		if(!namespace) { namespace = new Namespace(name: key ?: name); namespace.checkAndInit(this) }
@@ -34,6 +37,8 @@ class Component extends StructureUnit {
 	}
 
   Component getComponent() { this }
+  
+  boolean hasProfiles() { componentProfile || userProfile }
 
 	def add(Module child) {
 		modules << child; super.add(child)

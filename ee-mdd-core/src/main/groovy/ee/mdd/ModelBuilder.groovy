@@ -35,6 +35,7 @@ import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
+import ee.mdd.model.component.ComponentProfile
 import ee.mdd.model.component.ConditionParam
 import ee.mdd.model.component.Config
 import ee.mdd.model.component.ConfigController
@@ -70,11 +71,13 @@ import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Param
 import ee.mdd.model.component.Pojo
+import ee.mdd.model.component.Profile
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.component.UserProfile
 import ee.mdd.model.component.XmlController
 import ee.mdd.model.realm.Realm
 import ee.mdd.model.realm.RealmGroup
@@ -167,6 +170,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   private ModelFactory model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   private def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
+  
+  private def profile = new CompositeFactory(beanClass: Profile)
+  private def componentProfile = new CompositeFactory(beanClass: ComponentProfile)
+  private def userProfile = new CompositeFactory(beanClass: UserProfile)
   
   private def realm = new CompositeFactory(beanClass: Realm, childFactories: ['group', 'role', 'user'])
   private def realmGroup = new CompositeFactory(beanClass: RealmGroup)
@@ -300,6 +307,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'namespace', namespace
     registerFactory 'channel', channel
     registerFactory 'message', message
+    
+    registerFactory 'profile', profile
+    registerFactory 'componentProfile', componentProfile
+    registerFactory 'userProfile', userProfile
     
     registerFactory 'realm' , realm
     registerFactory 'group', realmGroup
