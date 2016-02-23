@@ -1,0 +1,25 @@
+<div class="lightboxBG ng-cloak" ng-click="lightboxCtrl.hide()" ng-show="lightboxCtrl.show">
+    <div class="lightbox" ng-click="lightboxCtrl.prevent($event)">
+      <div>
+          <form ng-if="lightboxCtrl.type=='add'" ng-submit="lightboxCtrl.submit('add')">
+            <div class="form-group" ng-repeat="column in lightboxCtrl.columnInfo">
+              <label for="{{ 'lightboxcolumn' + $id}}">{{column.name}}</label>
+              <input type="text" class="form-control" ng-model="column.value" ng-attr-id="{{ 'lightboxcolumn' + $id}}" placeholder="{{column.name}}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add</button>
+          </form>
+          <form ng-if="lightboxCtrl.type=='delete'" ng-submit="lightboxCtrl.submit('delete')">
+            <div class="form-group" ng-repeat="column in lightboxCtrl.columnInfo">
+                <label for="{{ 'lightboxcolumn' + $id}}">{{column.name}}</label>
+                <input type="text" class="form-control" ng-model="column.value" ng-attr-id="{{ 'lightboxcolumn' + $id}}" ng-readonly="true">
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" ng-model="lightboxCtrl.checked" required> Are you sure, you want to delete this entry?
+              </label>
+            </div>
+            <button type="submit" class="btn btn-danger" ng-class="{disabled: !lightboxCtrl.checked}">Delete</button>
+          </form>
+      </div>
+    </div>
+</div>

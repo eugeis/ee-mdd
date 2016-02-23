@@ -1,0 +1,14 @@
+<div class="panelcontainer">
+  <div class="navcontainer">
+    <div class="tabcontainer">
+      <ul class="nav nav-tabs">
+        <li ng-class="{active: panelCtrl.isActive($index)}" ng-click="panelCtrl.setActive($index)" ng-repeat="tab in panelCtrl.tabs track by $index">
+          <span class="closex" ng-click="panelCtrl.remove($index)">x</span>
+          <a href="">{{tab}}</a>
+        </li>
+      </ul>
+    </div>
+    <div class="viewclose" ng-click="panelCtrl.close()"></div>
+  </div>
+  <div class="viewcontainer" ng-repeat="view in panelCtrl.tabs track by $index" ng-if="panelCtrl.isActive($index)"><ee-view data-template="{{view}}"></ee-view></div>
+</div>

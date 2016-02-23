@@ -165,7 +165,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   private ModelFactory model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   private def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
-  
+
   private def realm = new CompositeFactory(beanClass: Realm, childFactories: ['group', 'role', 'user'])
   private def realmGroup = new CompositeFactory(beanClass: RealmGroup)
   private def realmRole = new CompositeFactory(beanClass: RealmRole)
@@ -207,7 +207,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryOnContextMenuRequest = new MddFactory(beanClass: OnContextMenuRequest, childFactories: [], parent: factoryListener)
   private def factoryOnItemEditorItemSelect = new MddFactory(beanClass: OnItemEditorItemSelect, childFactories: [], parent: factoryListener)
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
-  
+
   //StateMachine
   private def factoryStateMachine = new CompositeFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController', 'context'])
   private def factoryAction = new MddFactory(beanClass: Action, childFactories:[], parent: cu)
@@ -218,7 +218,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryHistory = new MddFactory(beanClass: History, childFactories: [], parent: lu)
   private def factoryStateMachineController = new MddFactory(beanClass: StateMachineController, childFactories: [], parent: controller)
   private def factoryContext = new MddFactory(beanClass: Context, childFactories: [], parent: pojo)
-  
+
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
@@ -297,7 +297,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'namespace', namespace
     registerFactory 'channel', channel
     registerFactory 'message', message
-    
+
     registerFactory 'realm' , realm
     registerFactory 'group', realmGroup
     registerFactory 'role', realmRole
@@ -330,9 +330,9 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'onContextMenuRequest', factoryOnContextMenuRequest
     registerFactory 'onItemEditorItemSelect', factoryOnItemEditorItemSelect
     registerFactory 'onSelect', factoryOnSelect
-    
+
     //StateMachine
-    
+
     registerFactory 'stateMachine', factoryStateMachine
     registerFactory 'action', factoryAction
     registerFactory 'condition', factoryCondition

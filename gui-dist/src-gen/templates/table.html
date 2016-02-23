@@ -1,0 +1,8 @@
+<table class="entityTable table table-striped table-bordered">
+  <tr>
+    <th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
+  </tr>
+  <tr ng-repeat="row in tableCtrl.data" ng-class="{selected: tableCtrl.selected==$index}">
+    <td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, $parent.$index)">{{row[column]}}</td>
+  </tr>
+</table>

@@ -1,0 +1,4 @@
+<div class="eeaxis" ng-class="{vert: tree.split=='vert', hor: tree.split=='hor'}">
+  <node ng-repeat-start="node in tree.panels"></node>
+  <div ng-repeat-end class="separator {{tree.split}}" draggable="true" separator></div>
+</div>

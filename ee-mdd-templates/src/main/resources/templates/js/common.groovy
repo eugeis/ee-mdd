@@ -17,6 +17,7 @@
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.ui.View
+import ee.mdd.model.ui.Table
 import ee.mdd.model.component.Module
 
 /**
@@ -49,31 +50,28 @@ templates ('common') {
 	context: { c -> def module = c.item; c.putAll( [ component: module.component, module: module, subPkg: 'impl', project: "eeMddUi"] ); c.filepath = 'generated' } ) {
 		template('indexhtml', body: '''<% c.path = "${c.filepath}/index.html" %>${macros.generate('indexhtml', c)}''')
 		template('appjs', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
-		template('stylecss', body: '''<% c.path = "${c.filepath}/stylesheet.css" %>${macros.generate('stylecss', c)}''')
-		template('tablehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/table.html" %>${macros.generate('tablehtml', c)}''')
-		template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/base/Table.js" %>${macros.generate('tablejs', c)}''')
-		template('tabctrl', body: '''<% c.path = "${c.filepath}/src-gen/base/TabController.js" %>${macros.generate('tabctrl', c)}''')
-		template('viewjs', body: '''<% c.path = "${c.filepath}/src-gen/base/View.js" %>${macros.generate('viewjs', c)}''')
-		template('dispatcherjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Dispatcher.js" %>${macros.generate('dispatcherjs', c)}''')
-		template('manipulatorjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Manipulator.js" %>${macros.generate('manipulatorjs', c)}''')
-		template('modelhandlerjs', body: '''<% c.path = "${c.filepath}/src-gen/base/ModelHandler.js" %>${macros.generate('modelhandlerjs', c)}''')
-		template('lightboxhtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/lightbox.html" %>${macros.generate('lightboxhtml', c)}''')
-		template('lightboxjs', body: '''<% c.path = "${c.filepath}/src-gen/base/Lightbox.js" %>${macros.generate('lightboxjs', c)}''')
-		template('comlightboxjs', body: '''<% c.path = "${c.filepath}/src-gen/base/ComLightbox.js" %>${macros.generate('comlightboxjs', c)}''')
-		template('injectionsjs', body: '''<%  %><% c.path = "${c.filepath}/src/Injections.js" %>${macros.generate('injectionsjs', c)}''')
 	}
 
 
 	templates ('mainViews',
 	items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && it.main}) },
 	context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
+		template('framehtml', body: '''<% c.main = true; c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
+		template('framejs', body: '''<% c.main = true; c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
+		template('framesrcjs', body: '''<% c.main = true; c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
 	}
 
-	templates ('frameView',
-	items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) }) },
+	templates ('frameViews',
+	items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && !it.main}) },
 	context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
 		template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
 		template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
 		template('framesrcjs', body: '''<%  %><% c.path = "${c.filepath}/src/${item.name}.js" %>${macros.generate('framesrcjs', c)}''')
+	}
+
+	templates ('tableViews',
+		items: { c -> c.model.findAllRecursiveDown( { Table.isInstance(it) }) },
+		context: { c -> def control = c.item; c.filepath = 'generated' } ) {
+		template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/controls/${item.view.name}${item.type.name}.js" %>${macros.generate('tablejs', c)}''')
 	}
 }
