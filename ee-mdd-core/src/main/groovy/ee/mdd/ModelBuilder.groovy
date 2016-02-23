@@ -35,6 +35,7 @@ import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
+import ee.mdd.model.component.ComponentProfile
 import ee.mdd.model.component.ConditionParam
 import ee.mdd.model.component.Config
 import ee.mdd.model.component.ConfigController
@@ -58,6 +59,7 @@ import ee.mdd.model.component.Find
 import ee.mdd.model.component.Finders
 import ee.mdd.model.component.Index
 import ee.mdd.model.component.Initializer
+import ee.mdd.model.component.InterfType
 import ee.mdd.model.component.Literal
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Message
@@ -69,11 +71,13 @@ import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Param
 import ee.mdd.model.component.Pojo
+import ee.mdd.model.component.Profile
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
 import ee.mdd.model.component.TypeRef
 import ee.mdd.model.component.Update
+import ee.mdd.model.component.UserProfile
 import ee.mdd.model.component.XmlController
 import ee.mdd.model.realm.Realm
 import ee.mdd.model.realm.RealmGroup
@@ -129,6 +133,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def channel = new CompositeFactory(beanClass: Channel, childFactories: ['meta', 'message'])
   private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate', 'cache'], parent: type)
   private def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
+  private def interfType = new CompositeFactory(beanClass: InterfType, parent: cu)
   private def typeRef = new CompositeFactory(beanClass: TypeRef)
   private def message = new CompositeFactory(beanClass: Message,  childFactories: ['meta'], parent: typeRef)
   private def basicType = new CompositeFactory(beanClass: BasicType, parent: dataType)
@@ -165,6 +170,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def finder = new CompositeFactory(beanClass: Finders, childFactories: ['exist', 'count', 'findBy'], parent: controller)
   private ModelFactory model = new ModelFactory(childFactories: ['model', 'component'], parent: su)
   private def metaAttribute = new CompositeFactory(beanClass: MetaAttribute, parent: attr)
+
+  private def profile = new CompositeFactory(beanClass: Profile)
+  private def componentProfile = new CompositeFactory(beanClass: ComponentProfile)
+  private def userProfile = new CompositeFactory(beanClass: UserProfile)
 
   private def realm = new CompositeFactory(beanClass: Realm, childFactories: ['group', 'role', 'user'])
   private def realmGroup = new CompositeFactory(beanClass: RealmGroup)
@@ -222,7 +231,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
-  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine'], parent: su)
+  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine', 'interf'], parent: su)
 
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
@@ -272,6 +281,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'delegate', operationRef
     registerFactory 'index', index
     registerFactory 'initializer', initializer
+    registerFactory 'interf', interfType
     registerFactory 'count', counter
     registerFactory 'create', create
     registerFactory 'delete', delete
@@ -297,6 +307,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'namespace', namespace
     registerFactory 'channel', channel
     registerFactory 'message', message
+
+    registerFactory 'profile', profile
+    registerFactory 'componentProfile', componentProfile
+    registerFactory 'userProfile', userProfile
 
     registerFactory 'realm' , realm
     registerFactory 'group', realmGroup

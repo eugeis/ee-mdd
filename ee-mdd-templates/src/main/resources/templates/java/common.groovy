@@ -11,6 +11,7 @@ import ee.mdd.model.component.Entity
 import ee.mdd.model.component.EnumType
 import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Finders
+import ee.mdd.model.component.InterfType
 import ee.mdd.model.component.Module
 import ee.mdd.model.component.Pojo
 
@@ -76,13 +77,19 @@ templates ('common') {
     template('implBasicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('implFactory', c)}<% } %>''')
   }
     
-
   templates ('modelImplEntity', type: API_IMPL,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implEntity', appendName: true, body: '''<% c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
     template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
-  }    
+  }
+  
+  templates('interfsBase', type: API,
+  items: { c -> c.model.findAllRecursiveDown( { InterfType.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('interfs', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.base %><% } else { %><% c.className = item.cap %><% } %> ${macros.generate('interfs', c)} ''')
+  }
+        
     
   templates('cache', type: API,
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
@@ -205,7 +212,7 @@ templates ('common') {
     template('implContainerFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.implFactory %> ${macros.generate('implContainerFactory', c)}<% } %>''' )
   }
   
-  templates('containerFactoryBean', type: API,
+  templates('containerFactoryBean',
   items: { c -> c.model.findAllRecursiveDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb'] ) } ) {
     template('containerFactoryBean', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.beanFactory %> ${macros.generate('containerFactoryBean', c)}<% } %>''' )
@@ -351,7 +358,7 @@ templates ('common') {
     template('implInitializer', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}Impl" %> ${macros.generate('implInitializer', c)} <% } %>''')
   }
   
-  templates('intializerComponent', type: API,
+  templates('intializerComponent',
   items: { c -> c.model.findAllRecursiveDown( { Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ'] ) } ) {
     template('implInitializerComponent', appendName:true,  body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerImpl" %><% c.path = "ee-mdd_example-backend/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %>  ${macros.generate('implInitializerComponent', c)}<% } %>''')
@@ -370,6 +377,7 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('moduleCache', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}CacheBase" %> ${macros.generate('moduleCache', c)}<% } %>''')
     template('moduleCacheExtends', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}Cache" %> ${macros.generate('moduleCacheExtends', c)}<% } %>''')
+    template('cacheSynchronizerPeriodic', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheSynchronizerPeriodic" %> ${macros.generate('cacheSynchronizerPeriodic', c)} <% } %> ''')
   }
   
   templates('builderFactory', type: API,

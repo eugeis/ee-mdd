@@ -26,6 +26,7 @@ import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
+import ee.mdd.model.component.Container
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.DataTypeProp
@@ -57,6 +58,9 @@ import ee.mdd.model.ui.GroupContentFrame
 import ee.mdd.model.ui.Header
 import ee.mdd.model.ui.Label
 import ee.mdd.model.ui.Listener
+import ee.mdd.model.ui.OnContextMenuRequest
+import ee.mdd.model.ui.OnItemEditorItemSelect
+import ee.mdd.model.ui.OnSelect
 import ee.mdd.model.ui.Panel
 import ee.mdd.model.ui.Spinner
 import ee.mdd.model.ui.Table
@@ -183,6 +187,15 @@ class EnhancerForJava {
           }
           delegate.props.each { ret << it }
           properties[key] = ret
+        }
+        properties[key]
+      }
+      
+      getOperationRefs << {
+        ->
+        def key = System.identityHashCode(delegate) + 'operationRefs'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.operations.findAll { OperationRef.isInstance(it) }
         }
         properties[key]
       }
@@ -648,6 +661,16 @@ class EnhancerForJava {
         }
         metasForService
       }
+      
+      getLogicUnits << {
+        ->
+        def key = System.identityHashCode(delegate) + 'logicUnits'
+        if(!properties.containsKey(key)) {
+          properties[key] = delegate.children.findAll { LogicUnit.isInstance(it) } 
+        }
+        properties[key]
+      }
+      
     }
 
 
@@ -1507,6 +1530,20 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      isTypeContainer << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeContainer'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Container.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       isTypeBasicType << {
         ->
@@ -1776,6 +1813,45 @@ class EnhancerForJava {
           }
           properties[key] = ret
         }
+      }
+      
+    }
+    
+    Listener.metaClass {
+      
+      getGuidoEvent << {
+        ->
+        def key = System.identityHashCode(delegate) + 'guidoEvent'
+        if(!properties.containsKey(key)) {
+          def ret = ''
+          def listener = delegate
+          def widget = delegate.parent
+          if(Button.isInstance(widget))
+            ret = 'Clicked'
+          else if(ComboBox.isInstance(widget))
+            ret = 'ActivatedIndex'
+          else if(CheckBox.isInstance(widget))
+            ret = 'StateChanged'  
+          else if(ContextMenu.isInstance(widget))
+            ret = 'ActivatedPopupMenuItem'
+          else if(DateField.isInstance(widget))
+            ret = 'DateChanged'
+          else if(Spinner.isInstance(widget))
+            ret = 'ValueChanged'
+          else if(Table.isInstance(widget)) {
+            if(OnContextMenuRequest.isInstance(listener))
+              ret = 'ContextMenuRequested'
+            else if(OnSelect.isInstance(listener))
+              ret = 'SelectionChanged'
+            else if(OnItemEditorItemSelect.isInstance(listener))
+              ret = 'ItemEditorItemSelected'
+          } else if(TextField.isInstance(widget))
+            ret = 'TextChanged' 
+          else if(TimeField.isInstance(widget))
+            ret = 'TimeChanged'
+          properties[key] = ret
+        }
+        properties[key]
       }
       
     } 

@@ -24,6 +24,7 @@ import ee.mdd.model.Element
  * @author Niklas Cappelmann
  */
 class Prop extends Attribute {
+  Object valueInDefaultConfig
   boolean api = true
   boolean derived = false
   boolean readable = true

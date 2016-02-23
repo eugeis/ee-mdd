@@ -16,6 +16,7 @@
 
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
+import ee.mdd.generator.OutputType
 
 /**
  *
@@ -104,6 +105,9 @@ templates ('macros') {
   template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
 
   void $prop.setter;<% } } %>''')
+  
+  template('interPropGetters', body: '''<% def prop = c.prop %>${prop.description ? "   /** $prop.description */" : ''}
+  ${prop.computedType(c)} <% if( prop.type.name == 'Boolean' || prop.type.name == 'boolean') { %>is<% } else { %>get<%}%>${prop.cap}();''')
   
   template('interPropSetters', body: '''void set${c.prop.cap}(${c.prop.computedType(c)} $c.prop.name);''')
 
@@ -765,6 +769,14 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
 
 
   //classes
+  
+  template('interfs', body: '''{{imports}}<% def superUnit = item.superUnit %>
+${item.description?"/*** $item.description */":''}
+public interface $className extends <% if (superUnit) { %>$superUnit.name<% } else { %>Serializable<% } %> { <% item.props.each { prop -> c.prop = prop %>
+  ${macros.generate('interPropGetters', c)}
+  ${macros.generate('interPropSetters', c)}<% } %>
+  ${macros.generate('interfaceBody', c)}
+}''')
   
   template('serviceEmpty', body: '''{{imports}}
 /** Empty implementation of {@link $item.name} what shall be extended by Test/Mock implementation in order to avoid unnecessary work by extension of the interface. */
@@ -2037,7 +2049,7 @@ public abstract class $className extends $c.baseClass<${c.name(item.cap)}> imple
   }
 }''')
   
-  template('containerFactory', body: '''{{imports}}
+  template('containerFactory', type: API, body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap> implements $item.n.cap.factory {
 
@@ -2153,12 +2165,11 @@ public class $className extends ${item.n.cap.factoryBase} {
   }
 }''')
   
-  template('containerFactoryBean', body: '''{{imports}}
+  template('containerFactoryBean', type: API, body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
 public class $className extends ${item.n.cap.factoryBase} {
-
   public $className() {
     super(${item.n.cap.impl}.class);
   }
@@ -3439,6 +3450,7 @@ public class $className extends PluginActivator {
   template('constants', body: '''<% if (!c.className) { c.className = item.n.cap.constantsBase } %>{{imports}}
 /** Constants for '${c.item.name}' */
 public class $className {
+  public static final String APPLICATION = ${c.name('StringUtils')}.formatApplicationName("${component.artifact}");
   public static final String JMS_CONNECTION_FACTORY = com.siemens.ra.cg.pl.common.base.integ.CommonConstants.JMS_CONNECTION_FACTORY;
   public static final String JMS_CONNECTION_FACTORY_NOT_XA = com.siemens.ra.cg.pl.common.base.integ.CommonConstants.JMS_CONNECTION_FACTORY_NOT_XA;
   public static final String JMS_NOTIFICATION_TOPIC = "java:global/jms/cg/${component.key}/NotificationTopic";
@@ -3447,8 +3459,15 @@ public class $className {
   public static final String MODULE_${depModule.underscored} = "$depModule.uncap";<% depModule.services.each { service -> %>
   public static final String SERVICE_${service.underscored} = "${service.name}";<% } %><% depModule.containers.each { container -> %>
   public static final String JMS_MESSAGE_SELECTOR_${container.underscored} = "$container.uncap";
-  public static final String JMS_MESSAGE_SELECTOR_${container.underscored}_DATA = "${container.uncap}_data";<% } %>
-<% } } %>
+  public static final String JMS_MESSAGE_SELECTOR_${container.underscored}_DATA = "${container.uncap}_data";<% } } } %>
+<% if (component.componentProfile) { %>
+  // component profile filename
+  public static final String COMPONENT_PROFILE_FILENAME = "/${component.artifact}/${component.componentProfile.cfgFile}";
+  public static final String COMPONENT_PROFILE_NAME_PREFIX = "component";
+  public static final String COMPONENT_PROFILE_NAME = "${component.artifact}";
+
+  // component profile keys<% component.componentProfile.props.each { prop -> %>
+  public static final String COMPONENT_PROFILE_${prop.underscoredName} = "${prop.name}"; <% } } %>
 }''')
 
   template('constantsExtends', body: '''<% if (!c.className) { c.className = item.n.cap.constants } %>
@@ -3617,6 +3636,65 @@ public abstract class $className extends BaseTestCase {
   template('moduleCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${module.capShortName}CacheTestBase {
 }''')
+  
+  template('serviceDelegateTest', purpose: UNIT_TEST, body: '''{{imports}}<% def refs = item.logicUnits %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className {
+  <% if (item.useConverter) { %>
+  @Mock
+  ${module.capShortName}Converter converter;<% } %>
+
+  protected static $item.beanName $item.uncap;
+
+  @BeforeClass
+  public static void beforeClass$className() {
+    $item.uncap = new $item.beanName();<% refs.each { ref-> %>
+    ${item.uncap}.set${ref.cap}(mock(${ref.cap}.class));<% } %><% item.props.each { ref -> if(ref.typeContainer) { %>
+    ${item.uncap}.set${ref.cap}(mock(${ref.cap}.class));<% } } %>
+  }
+
+  @After
+  ${macros.generate('afterClass', c)}
+
+  @Before
+  ${macros.generate('beforeClass', c)}
+
+  protected void verifyNoMoreInteractions() {
+    <% if (!item.operationRefs.isEmpty()) { %>Mockito.verifyNoMoreInteractions(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      ${item.uncap}.${ref.uncap}<% } %><% item.props.each { ref -> if(ref.typeContainer) { if (first) { first = false } else { %>,<% } } %>
+      ${item.uncap}.${ref.uncap}<% } %>);<% } %>
+  }
+
+  protected void resetMocks() {
+    MockitoCg.resetMocks(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
+      ${item.uncap}.${ref.uncap}<% } %><% item.props.each { ref -> if(ref.typeContainer) { if (first) { first = false } else { %>,<% } } %>
+      ${item.uncap}.${ref.uncap}<% } %>);<% if (item.useConverter) { %>
+      ${item.uncap}.set$module.names.converter(converter);<% } %>
+  }<% item.operationRefs.each { opRef -> def op = opRef.ref; if (op) { def raw = op.rawType || (op.resultExpression && OpRef.ref.multi && OpRef.ref.typeEntity) %>
+
+  @Test
+  public void ${opRef.nameTest}_calls_${op.name}() {<% if (op.void) { %>
+    ${item.uncap}.${opRef.name}($opRef.signatureTestValues);<% } else if (op.returnTypeBoolean) { %>
+    when(${item.uncap}.${op.parent.uncap}.${op.name}($opRef.signatureTestValuesExternal)).thenReturn(true);
+    assertTrue(${item.uncap}.${opRef.name}($opRef.signatureTestValues));<% } else { %>
+    when(${item.uncap}.${op.parent.uncap}.${op.name}($opRef.signatureTestValues)).thenReturn(null);
+    assertEquals(null, ${item.uncap}.${opRef.nameExternal}($opRef.signatureTestValues));<% } %>
+    verify(${item.uncap}.${op.parent.uncap}).${op.name}($opRef.signatureTestValues);
+  }<% } } %>
+}''')
+  
+  template('serviceDelegateTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${className}Base {
+
+<% if (item.operationRefs.isEmpty()) { %>
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }<% } %>
+}''')
 
   template('notificationPluginTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = c.item.n.cap.notificationPluginTest } %><% def modules = []; modules.addAll(component.backends.findAll { m -> m.entities }) %>{{imports}}
 //CHECKSTYLE_OFF: MethodName
@@ -3727,6 +3805,20 @@ public class $className {
   }<% } %>
 }''')
   
+  template('implControllerTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${controller.n.cap.impl}.class);
+  }
+
+}''')
+  
   template('implConverterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className {
   protected final static ${module.capShortName}DataFactoryBase DATA_FACTORY;
@@ -3770,6 +3862,33 @@ public class $className {
   
   template('converterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${className}Impl {
+}''')
+  
+  template('containerProducerInternalTest', purpose: UNIT_TEST, body: '''{{imports}}
+/** Server CDI container producer for '$module.name' */
+
+public class ${className}Test extends BaseTestCase {
+  private ${className} instance;
+
+  @Before
+  public void before() {
+    instance = new ${className}();
+  }
+
+<% module.containers.each { container -> if(container.controller) { %>
+
+  @Test
+  public void testGet${container.cap}() {
+    $container.controller.cap controller = mock(${container.controller.cap}.class);
+    $container.cap container = mock(${container.cap}.class);
+    when(controller.loadAll()).thenReturn(container);
+
+    ClassUtils.setPrivateField(instance, "${container.controller.uncap}", controller);
+
+    $container.cap result = instance.get${container.cap}();
+
+    assertThat(result, is(container));
+  }<% } } %>
 }''')
   
   template('initializerMemTest', purpose: UNIT_TEST, body: '''{{imports}}
@@ -3845,6 +3964,52 @@ public class ${className} extends BaseTestCase {
   public void testConstructorsForCoverage() throws Exception {
     constructorTester.verifyDefaultConstructor(${module.n.cap.eventToCdiExternal}.class);
   }
+}''')
+  
+  template('implContainerTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    String source = "source";
+    boolean override = false;
+    boolean threadSafe = true;
+    // when
+    // then
+    constructorTester.verifyDefaultConstructor(${item.n.cap.impl}.class);
+    assertThat(new $item.n.cap.impl(), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(source, override, threadSafe), is(notNullValue()));
+  }
+
+}''')
+  
+  template('implContainerTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.n.cap.impl}TestBase {
+
+  @Override
+  @Test
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    String source = "source";
+    boolean override = false;
+    boolean threadSafe = true;
+    $item.name parentContainer = mock(${item.name}.class);
+    // when
+    // then
+    super.testConstructorsForCoverage();
+    assertThat(new $item.n.cap.impl(source), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(override), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(override, threadSafe), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(source, override, threadSafe), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(parentContainer), is(notNullValue()));
+    assertThat(new $item.n.cap.impl(parentContainer, threadSafe), is(notNullValue()));
+  }
+
 }''')
   
   template('implContainerFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}
@@ -4141,6 +4306,28 @@ public class $className extends ${item.n.cap.versionsImpl}TestBase {
 
 }''')
   
+  template('implContainerDeltaTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.deltaImpl}.class);
+    <% def signature = item.entities.collect { entity -> "mock(${entity.deltaCache.cap}.class)" }.join(", ") %>
+    assertThat(new $item.n.cap.deltaImpl( $signature ), is(notNullValue()));
+  }
+
+}''')
+  
+  template('implContainerDeltaTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.n.cap.deltaImplTestBase} {
+
+}''')
+  
   template('containerBuilderTest', purpose: UNIT_TEST, body: '''<% def entityNames = item.entities.collect { it.name } as Set; def entityOneToManyNoOppositeProps = [:]; def entityManyToOneProps = [:]; item.entities.each { entity ->
 entityOneToManyNoOppositeProps[entity] = []; entityManyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if (prop.type) {
         if (((prop.oneToMany && !prop.oppositeProp) || (prop.mm)) && entityNames.contains(prop.type.name)) { entityToOneToManyNoOppositeProps[entity] << prop }
@@ -4187,6 +4374,54 @@ public abstract class $className {
   
   template('containerBuilderTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${item.cap}BuilderBase{
+}''')
+  
+  template('containerIdsTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends $item.n.cap.idsTestCase {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+
+  }
+
+}''')
+  
+  template('containerIdsTestCase', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public abstract class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.ids}.class);
+  }
+}''')
+  
+  template('containerDiffTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends $item.n.cap.diffTestCase {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+
+  }
+
+}''')
+  
+  template('containerDiffTestCase', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public abstract class $className extends BaseTestCase {
+
+  @Test
+  @Override
+  public void testConstructorsForCoverage() throws Exception {
+    constructorTester.verifyDefaultConstructor(${item.n.cap.diff}.class);
+  }
 }''')
   
   template('commandsTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp; def idConverter %>
@@ -4319,6 +4554,54 @@ public abstract class $className extends ${item.commands.n.cap.baseTestImpl} {
 public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
 }''')
   
+  template('implCommandsFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands }; def commands = entitiesWithCommands.collect { it.commands } %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  private ${module.capShortName}CommandsFactoryImpl commandsFactory = new ${module.capShortName}CommandsFactoryImpl();<% commands.each { command -> %>
+
+  @Mock
+  private $command.name $command.uncap;<% }; commands.each { command -> %>
+
+  @Test
+  public void set${commands.cap}_get${commands.cap}returns$command.name() throws Exception {
+    // given
+    commandsFactory.set${command.cap}($command.uncap);
+
+    // when
+    $command.name currentCommand = commandsFactory.get${command.cap}();
+
+    // then
+    assertThat(currentCommand, is(sameInstance($command.uncap)));
+  }<% } %>
+}''')
+  
+  template('implFindersFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders }; def finders = entitiesWithFinders.collect { it.finders } %>
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends BaseTestCase {
+
+  private ${module.capShortName}FindersFactoryImpl findersFactory = new ${module.capShortName}FindersFactoryImpl();<% finders.each { finder -> %>
+
+  @Mock
+  private $finder.name $finder.uncap;<% }; finders.each { finder -> %>
+
+  @Test
+  public void set${finders.cap}_get${finder.cap}returns$finder.name() throws Exception {
+    // given
+    findersFactory.set${finder.cap}($finder.uncap);
+
+    // when
+    $finder.name currentFinder = findersFactory.get${finder.cap}();
+
+    // then
+    assertThat(currentFinder, is(sameInstance($finder.uncap)));
+  }<% } %>
+}''')
+  
   template('commandsLocalTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {
@@ -4445,6 +4728,28 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   @Override
   public void test${op.cap}() {
   }<% } %>
+}''')
+  
+  template('implDeltaCacheTest', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends BaseTestCase {
+
+  @Override
+  @Test
+  public void testConstructorsForCoverage() throws Exception {
+    // given
+    // when
+    // then
+    constructorTester.verifyDefaultConstructor(${item.deltaCache.n.cap.impl}.class);
+  }
+}''')
+  
+  template('implDeltaCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.deltaCache.n.cap.implTestBase} {
+
 }''')
   
   template('beanTest', purpose: UNIT_TEST, body: '''{{imports}}<% def multiProp = item.props.find { it.multi }; def props = item.props.findAll{!it.primaryKey}; c.props = props %>
@@ -5061,7 +5366,7 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
     assertThat(view.${control.getter}, is(($control.widgetInterface) view.${control.fieldName}));
     <% } } %>
   }
-  <% item.controls.each { def control -> control.listener.each { def op -> def guidoEventClass = macros.guidoEvents[control.widgetType][op.name]+"Event" %>
+  <% item.controls.each { def control -> control.listener.each { def op -> def guidoEventClass = op.guidoEvent+"Event" %>
   @Test
   public void ${control.fieldName}${guidoEventClass}IsForwardedToPresenter() throws Exception {
     // given
@@ -5078,6 +5383,165 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
   @Override
   public void testConstructorsForCoverage() throws Exception {
     assertThat(new ${viewClassName}(), is(notNullValue()));
+  }
+}''')
+  
+  
+  template('dialogGuidoTest', purpose: UNIT_TEST, body: '''{{imports}}<% def viewClassName = item.dialog.n.cap.guido; def contentViewClassName = item.n.cap.guido %>
+public abstract class $className extends GuidoViewTestCase<$viewClassName> {
+
+  @Mock
+  protected $contentViewClassName contentView;
+
+  ${macros.generate('setUpSuper', c)}
+
+  @Override
+  protected $viewClassName instantiateViewUnderTest() {
+    return spy(new $viewClassName());
+  }
+
+  @Override
+  protected void beforeViewCreated() {
+    super.beforeViewCreated();
+    view.setContentView(contentView);
+  }
+
+  @Test
+  public void callsInitMethodsIfCreated() throws Exception {
+    // when
+    createViewUnderTestWithoutResetMocks();
+    // then
+    InOrder inOrder = inOrder(view);
+    inOrder.verify(view).initWidgets();
+    inOrder.verify(view).addContent(contentView);
+    inOrder.verify(view).initEventHandling();
+  }
+
+  @Test
+  public void defaultConstructorForCoverage() throws Exception {
+    assertThat(new ${viewClassName}(), is(notNullValue()));
+  }
+}''')
+  
+  template('guidoTestExtends', purpose: UNIT_TEST, body: '''
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+@RunWith(MockitoJUnitRunner.class)
+public class $className extends ${className}Base {
+  ${macros.generate('setUpSuper', c)}
+}''')
+  
+  template('configTest', purpose: UNIT_TEST, body: '''
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public<% if (item.base) {%> abstract<% } %> class $className extends BaseTestCase {
+
+  protected $item.cap $item.uncap;
+
+  protected $item.cap createInstanceByConstructor(){<% if (item.constructors.isEmpty()) { %>
+   return new $item.cap();<% } else { %> <% def constructor = item.constructors.first() %>
+   return new $item.cap(<% constructor.params.each { def param -> def prop = param.prop; %>
+        $prop.testValue<% if (constructor.params.last() != param) { %>,<% } %><% } %> ); <% } %>
+  }
+
+  @Test
+  public void newInstanceByConstructor_defaultValuesAreUsed() throws Exception {
+   // given
+   // when
+   $item.uncap = createInstanceByConstructor();
+
+   // then<% item.props.each { prop -> c.type = prop.type.name %> <% if (prop.defaultValue != null) { %>
+   assertThat(${item.uncap}.${prop.getter}, equalTo(<% if (prop.type.name == 'String') {%>"<% }%>$prop.defaultValue<% if (prop.type.name == 'String') {%>"<% }%>${macros.generate('suffixDependingOnType', c)}));<% } } %>
+  }<% if (item.propSetters) { %>
+
+  @Test
+  public void loadDefaultConfig_valuesOfDefaultConfigAreUsed() throws Exception {
+   // given
+   // when
+   $item.uncap = ConfigUtils.loadConfig(${item.cap}.class);
+
+   // then<% item.props.each { prop -> c.type = prop.type.name %> <% if (prop.valueInDefaultConfig != null) { %>
+   assertThat(${item.uncap}.${prop.getter}, equalTo(<% if (prop.type.name == 'String') {%>"<% }%><% if (prop.type.name == 'Color') { %>new Color(<% }%>$prop.valueInDefaultConfig${macros.generate('suffixDependingOnType', c)}<% if (prop.type.name == 'String') {%>"<% }%><% if (prop.type.name == 'Color') { %>)<% } %>));<% } } %>
+  }
+
+  @Test
+  public void udpdate_replaceAllValuesByOnesFromGivenConfig() throws Exception {
+   // given
+   ${item.uncap} = $item.uncap = ConfigUtils.loadConfig(${item.cap}.class);
+
+   // when
+   $item.cap ${item.uncap}WithDefaultValues = createInstanceByConstructor();
+   ${item.uncap}.update(${item.uncap}WithDefaultValues);
+
+   // then<% item.props.each { prop-> %>
+   assertThat(${item.uncap}.${prop.getter}, equalTo(${item.uncap}WithDefaultValues.${prop.getter}));<% }  %>
+  }
+
+  @Test
+  public void udpdate_allValuesFromGivenConfigAreRead_doubleCheckInCaseOfValueRemainsTheSame() throws Exception {
+   // given
+   $item.uncap = createInstanceByConstructor();
+
+   // when
+   $item.cap ${item.uncap}WithDefaultValues = mock(${item.cap}.class);
+   ${item.uncap}.update(${item.uncap}WithDefaultValues);
+
+   // then
+  <% item.props.each { prop-> %>
+   verify(${item.uncap}WithDefaultValues).${prop.getter};<% } %>
+  }<% } %>
+
+  @Test
+  @Override
+  public void testGettersSetters() throws Exception {
+    $item.uncap = createInstanceByConstructor();
+    getterSetterTester.verifyAllGettersAndSetters($item.uncap);
+  }
+
+}''')
+  
+  template('configTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
+//CHECKSTYLE_OFF: MethodName
+//'_' allowed in test method names for better readability
+public class $className extends ${item.cap}TestBase {
+
+  @Test
+  public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
+   }
+
+}''')
+  
+  template('unitTestHelper', body: '''{{imports}}
+public class ${className}<T> extends UnitTestHelperBackend<T> {
+
+  public ${className}() {
+    super("${component.key}Pu",  "META-INF/persistence-h2-local.xml");
+  }
+  
+  @Override
+  protected void doInit(UnitTestMode mode) {
+    switch (mode) {
+    case BACKEND_LOCAL:
+      registerLocalManagers();
+      break;
+    default:
+      registerMemoryManagers();
+    }
+  }
+  
+  private void registerLocalManagers() {
+    server().register(EntityManager.class, entityManager(), ${component.capShortName}Qualifier.class);
+    server().addExtension(createTransactionalExtension("${component.namespace}"));
+    <% module.entities.findAll { !it.virtual && (it.commands || it.finders)}.each { def entity = it; def commands = entity.commands; def finders = entity.finders %><% if(commands) { %>
+    server().registerImpl(${commands.name}.class, ${commands.n.cap.impl}.class);<% } %><% if(finders) { %>
+    server().registerImpl(${finders.name}.class, ${finders.n.cap.impl}.class);<% } %>
+    server().registerImpl(${entity.n.cap.factory}.class, ${entity.beanName}Factory.class);<% } %>
+  }
+  
+  private void registerMemoryManagers() {<% module.entities.findAll { !it.virtual && it.manager }.each { def entity = it; def commands = entity.commands; def finders = entity.finders %><% if(commands) { %>
+    server().registerImpl(${commands.name}.class, ${commands.n.cap.mem}.class);<% } %><% if(finders) { %>
+    server().registerImpl(${finders.name}.class, ${finders.n.cap.mem}.class);<% } %>
+    server().registerImpl(${entity.n.cap.factory}.class, ${entity.beanName}Factory.class);<% } %>
   }
 }''')
   
@@ -7255,7 +7719,6 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
 @${c.name('Qualifier')}
 @${c.name('Retention')}(${c.name('RetentionPolicy')}.RUNTIME)
 @${c.name('Target')}({ ${c.name('ElementType')}.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.CONSTRUCTOR })
-@${c.name('DependsOnExecutionType')}
 public @interface $className {
 }''')
  
@@ -7504,22 +7967,22 @@ public class $className extends ${module.initializerName}Base {
 public class $className extends ${component.capShortName}InitializerBase {
 }''')
  
- template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% startupInitializers.each { %>
+ template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% def profile = component.hasProfiles %><% startupInitializers.each { %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${it.initializerName};<% } %>
 /** Initializer for '$module.name' */
 //TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
 @${c.name('Alternative')}
-public class $className extends ApplicationInitializerBase {
-  protected ${c.name('ProfileManager')} profileManager;<% startupInitializers.each { %>
-  protected ${it.initializerName} ${it.uncapShortName}Initializer;<% } %>
+public class $className extends ${c.name('ApplicationInitializerBase')} {<% if(profile) { %>
+  protected ${c.name('ProfileManager')} profileManager;<% } %><% startupInitializers.each { %>
+  protected ${it.initializerName} ${it.uncapShortName}InitializerInstance;<% } %>
 
   public $className() {
-    super(new ApplicationMeta(${component.capShortName}ConstantsBase.APPLICATION));
+    super(new ${c.name('ApplicationMeta')}(${component.capShortName}ConstantsBase.APPLICATION));
   }<% if (component.modules.find { !it.entities.empty } ) { %>
 
   @Override
-  protected void initAsStandaloneOrMaster(ClusterSingleton clusterSingleton) {
-    profileManager.importProfile(${component.capShortName}ConstantsBase.COMPONENT_PROFILE_FILENAME);
+  protected void initAsStandaloneOrMaster(${c.name('ClusterSingleton')} clusterSingleton) {<% if(profile) { %>
+    profileManager.importProfile(${component.capShortName}ConstantsBase.COMPONENT_PROFILE_FILENAME);<% } %>
   }<% } %><% if(startupInitializers) { %>
 
   @Override
@@ -7529,13 +7992,13 @@ public class $className extends ApplicationInitializerBase {
 
   @${c.name('Inject')}
   public void set${component.capShortName}${it.cap}Initializer(${component.capShortName}${it.cap}Initializer ${it.uncapShortName}Initializer) {
-    this.${it.uncapShortName}Initializer = ${it.uncapShortName}InitializerInstance;
-  }<% } } %>
+    this.${it.uncapShortName}InitializerInstance = ${it.uncapShortName}InitializerInstance;
+  }<% } } %><% if (profile) { %>
 
   @Inject
   public void setProfileManager(ProfileManager profileManager) {
     this.profileManager = profileManager;
-  }
+  }<% } %>
 }''')
  
   template('initializerWakeup', body: '''{{imports}}
@@ -7585,6 +8048,23 @@ public class $className extends ${module.initializerName}Base {
   @Inject
   public void setClusterSingleton(ClusterSingleton clusterSingleton) {
     this.clusterSingleton = clusterSingleton;
+  }
+}''')
+  
+ template('producer', body: '''{{imports}}
+/** Resources producer for '$module.name' for server and client in production mode */
+@${c.name('ApplicationScoped')}
+@${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')}, SERVER }))
+@${c.name('Traceable')}
+public class $className {
+
+  private JmsDestinationConfigImpl notificationTopic =
+    new JmsDestinationConfigImpl(JMS_NOTIFICATION_TOPIC, JMS_CONNECTION_FACTORY, false);
+
+  @${c.name('Produces')}
+  @${component.capShortName}Qualifier
+  public JmsDestinationConfig getNotificationTopicConfig() {
+    return notificationTopic;
   }
 }''')
  
@@ -7798,7 +8278,7 @@ public class $className {
 public class $className extends ${module.capShortName}ConverterBase {
 }''')
   
-  template('implDataFactory', body: '''
+  template('implDataFactory', body: '''{{imports}}
 /** Data factory implementation for '$module.name' based on Internal model factory */
 @${c.name('ApplicationScoped')}
 @${c.name('Default')}
@@ -8006,6 +8486,22 @@ public abstract class $className {
     @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })
 @${c.name('ApplicationScoped')}
 public class $className extends ${module.capShortName}CacheBase {
+}''')
+  
+  template('cacheSynchronizerPeriodic', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
+@Singleton
+public class $className {<% cachedContainers.each { container -> def controller = container.controller %>
+  private $controller.cap $controller.uncap;<% } %>
+
+  @Schedule(minute = "*/2", hour = "*")
+  public void synchronizeCache() {<% cachedContainers.each { container -> def controller = container.controller %>
+    ${controller.uncap}.synchronizeCache();<% } %>
+  }
+  <% cachedContainers.each { container -> def controller = container.controller %>
+  @Inject
+  public void set$controller.cap($controller.cap $controller.uncap) {
+    this.$controller.uncap = $controller.uncap;
+  }<% } %>
 }''')
   
   template('builderFactory', body: '''{{imports}}
@@ -8252,6 +8748,8 @@ private void initMlKey($item.n.cap.event event) {
     assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
     assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
   }''')
+  
+  template('suffixDependingOnType', body: '''<% if (c.type == 'Long' || c.type == 'long') { %>L<% } %>''')
   
   template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
