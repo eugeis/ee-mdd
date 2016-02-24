@@ -36,7 +36,13 @@
             },
             inject: function(obj) {
               this.injections.forEach(function(d,i) {
-                obj[d.name] = d.func(obj);
+								var injection = d.func(obj);
+								if (injection.exec) {
+									obj[d.name] = injection.func;
+									obj[d.name]();
+								} else {
+									obj[d.name] = d.injection;
+								}
               });
               return this;
             }

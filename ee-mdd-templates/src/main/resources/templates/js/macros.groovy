@@ -154,8 +154,6 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 
   template('appjs', body: '''\
-(function(){
-"use strict";
   var dependencies = ["Injections", "Table", "View", "Lightbox", "eeTree"];
   var views = [\
 <%
@@ -172,12 +170,10 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
   }
 %>\
 ];
-  var app = angular.module("$project",dependencies.concat(views));
-
-  app.config(['\\$compileProvider', function (\\$compileProvider) {
+  angular.module("$project",dependencies.concat(views))
+  .config(['\\$compileProvider', function (\\$compileProvider) {
     //\\$compileProvider.debugInfoEnabled(false);
   }]);
-}());
 ''')
 
   template('framehtml', body: '''\
@@ -249,9 +245,7 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 ''')
 
   template('framejs', body: '''\
-(function(){
-"use strict";
-  var app = angular.module("$item.name",[\
+  angular.module("$item.name",[\
 <%
   def hasControl = [:];
   item.controls.each { control ->
@@ -261,19 +255,18 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
     hasControl[control.widgetType]++;
   }
 %>\
-"Manipulator", "ComLightbox","ModelHandler"]);
+"Manipulator", "ComLightbox","ModelHandler"])
 <%
   if (c.main) {
 %>\
-  app.controller("${item.name}Controller", angular.noop);
+  .controller("${item.name}Controller", angular.noop);
 <%
   }
 %>\
 <%
   if (hasControl["Table"] > 0) {
 %>\
-
-  app.controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', '\\$model', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox, \\$model) {
+  .controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', '\\$model', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox, \\$model) {
     var self = this;
     self.id = "${item.name}";
     self.model = \
@@ -357,57 +350,50 @@ false\
       return true;
     }
 
-    self.init = function() {};
-
     \\$manipulator.getInstance("${item.name}").inject(self);
     \\$model.addView(self);
     self.subscribeToDispatcher();
     self.registerClickEvent();
-    self.init();
   }]);
 <%
   }
 %>\
-}());
 ''')
 
   template('framesrcjs', body: '''\
-(function(){
-"use strict";
-  var app = angular.module("${item.name}Injector", ["Manipulator"]);
+  angular.module("${item.name}Injector", ["Manipulator"])
+    .run(["\\$manipulator", function(\\$manipulator) {
+      var manipulator = \\$manipulator.getInstance("${item.name}");
+      manipulator.add("functionName", function(self) {
+        return function() {
+          // This could be your code
+          // Include this file in the index.html
 
-  app.run(["\\$manipulator", function(\\$manipulator) {
-    var manipulator = \\$manipulator.getInstance("${item.name}");
-    manipulator.add("functionName", function(self) {
-      return function() {
-        // This could be your code
-        // Include this file in the index.html
-
-        // To manipulate the object just refer to self
-        // The callback-function can take arguments (e.g. row, column)
-        console.info("This function has been injected");
-      };
-    });
+          // To manipulate the object just refer to self
+          // The callback-function can take arguments (e.g. row, column)
+          console.info("This function has been injected");
+        };
+      });
 <%
   item.controls.each { control ->
     if (control.widgetType == "Table") {
 %>
-    var manipulator_${control.name.capitalize()} = \\$manipulator.getInstance("${item.name}${control.name.capitalize()}");
-    manipulator_${control.name.capitalize()}.add("click", function(self) {
-      return function() {
-      };
-    });
+      var manipulator_${control.name.capitalize()} = \\$manipulator.getInstance("${item.name}${control.name.capitalize()}");
+      manipulator_${control.name.capitalize()}.add("click", function(self) {
+        return {
+          exec: true,
+          func: function() {
+          }
+        };
+      });
 <%
     }
   }
 %>\
   }]);
-}());
 ''')
 
   template('tablejs', body: '''\
-(function(){
-"use strict";
 <%
   def view = item.view;
 
@@ -428,9 +414,8 @@ false\
     }
   }
 %>\
-  var app = angular.module("$view.name");
-
-  app.controller("${view.name}${item.type.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
+  angular.module("$view.name")
+  .controller("${view.name}${item.type.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
     var self = this;
 
     self.id = "${view.name}${item.type.name.capitalize()}";
@@ -439,9 +424,6 @@ false\
 
     self.\\$scope = \\$scope;
     self.\\$http = \\$http;
-
-    self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
-    self.currentRow = undefined;
 
     self.columns = [\
 <%
@@ -460,7 +442,7 @@ false\
 ];
 
 <%
-      if (hasMulti) {
+	if (hasMulti) {
         if (!hasOpposite) {
 %>\
     self.data = self.\\$http.get('data/${view.name}.json')
@@ -471,10 +453,10 @@ false\
         console.error("HTTP - ERROR: " + status);
         self.data = {};
       });
+
 <%
         }
 %>\
-
     self.click = function(column, rowNr) {
       self.selected = rowNr;
       \\$scope.\\$emit("subEvent", {
@@ -501,10 +483,16 @@ false\
         row: self.data[rowNr]
       });
     }
+
+<%
+      } else {
+%>\
+    self.click = function(column, row) { console.info("TableBase: click() is not defined"); };
+
 <%
       }
       if (hasOpposite) {
-%>
+%>\
     self.fetchData = function(id) {
       self.data = self.\\$http.get('data/TaskDetailsView.php?id=' + id + '&type=${item.name.capitalize()}')
         .success(function(data, status, headers, config) {
@@ -536,10 +524,10 @@ false\
 %>\
       });
     }
+
 <%
     }
 %>\
-    self.init = function() {};
     \\$manipulator.getInstance("${view.name}${item.name.capitalize()}").inject(self);
 <%
     if (hasOpposite) {
@@ -548,9 +536,7 @@ false\
 <%
     }
 %>\
-    self.init();
   }]);
-})();
 ''')
 
   template('nop', body: '''nop''')
