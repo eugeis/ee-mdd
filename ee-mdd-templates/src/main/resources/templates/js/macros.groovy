@@ -110,8 +110,8 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
     <script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
 
     <!-- Lightbox implementation -->
-    <script src="src-gen/base/Lightbox.js" type="text/javascript"></script>
-    <script src="src-gen/base/ComLightbox.js" type="text/javascript"></script>
+    <script src="src-gen/base/lightbox/Lightbox.js" type="text/javascript"></script>
+    <script src="src-gen/base/lightbox/ComLightbox.js" type="text/javascript"></script>
 
     <!-- Injections dependencies -->
     <script src="src/Injections.js" type="text/javascript"></script>
@@ -123,11 +123,11 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
     <script src="src-gen/base/View.js" type="text/javascript"></script>
 
     <!-- Include tree-script -->
-    <script src="src-gen/base/Node.js" type="text/javascript"></script>
-    <script src="src-gen/base/Nodeaxis.js" type="text/javascript"></script>
-    <script src="src-gen/base/Panel.js" type="text/javascript"></script>
-    <script src="src-gen/base/Separator.js" type="text/javascript"></script>
-    <script src="src-gen/base/Tree.js" type="text/javascript"></script>
+    <script src="src-gen/base/tree/Node.js" type="text/javascript"></script>
+    <script src="src-gen/base/tree/Nodeaxis.js" type="text/javascript"></script>
+    <script src="src-gen/base/tree/Panel.js" type="text/javascript"></script>
+    <script src="src-gen/base/tree/Separator.js" type="text/javascript"></script>
+    <script src="src-gen/base/tree/Tree.js" type="text/javascript"></script>
 
     <!-- Include View-Javascript -->
 <%
