@@ -1,27 +1,62 @@
 ### Table of Contents
+* [Filesystem](#Filesystem)
 * [Architecture](#Architecture)
-  * [View](#View)
-  * [Directives and Templates](#Directives)
-  * [Controllers](#Controllers)
-    * [View-Controllers](#ViewControllers)
-    * [Sub-Controllers](#SubControllers)
+  * [Views](#Views)
+  * [Panel Tree-Structure](#PanelTreeStructure)
   * [Services](#Services)
     * [Dispatcher](#Dispatcher)
     * [Manipulator](#Manipulator)
-    * [Extensibility](#Extensibility)
-* [Structure](#Structure)
 * [Troubleshooting](#Troubleshooting)
   * [Anything XAMPP related](#XAMPP)
   * [Website is blank](#blank)
 
+<a name="Filesystem" />
+# Filesystem
+
+* /
+  * [angular.js](https://code.angularjs.org/1.4.2/angular.js)
+  * app.js
+  * index.html
+  * stylesheet.css
+* /bootstrap
+  * [bootstrap.css](http://getbootstrap.com/)
+* /src
+  * [Injections.js](#Manipulator)
+  * {SomeViewsName}.js
+* /src-gen/
+  * /base
+      * [/lightbox](#Lightbox)
+          * ComLightbox.js	 
+          * Lightbox.js 
+      * [/tree](#PanelTreeStructure)
+	      * Node.js
+		  * Nodeaxis.js
+		  * Panel.js
+		  * Separator.js
+		  * Tree.js
+      * [Dispatcher.js](#Dispatcher)
+      * [Manipulator.js](#Manipulator)
+      * Table.js
+	  * [View.js](#View)
+  * /controls
+      * {SomeControlsName}.js
+  * /templates
+      * lightbox.html
+      * nodeaxis.html
+      * panel.html
+      * table.html
+      * {SomeViewsName}.js
+  * /views
+      * {SomeViewsName}.js
+  
 <a name="Architecture" />
 # Architecture
 
-<a name="View" />
+<a name="Views" />
 ## Views
 
-In the DSL a view is defined as either the main-view (main: true) or
-a referenced view (sub-view):
+In the DSL a view is defined as either a main-view (main: true) or
+a sub-view. Each view can reference another view or own controls.
 
 ```
 	view ('TaskEditor', main: true) {
@@ -37,128 +72,34 @@ a referenced view (sub-view):
 	}
 ```
 
-main-view: 'TaskEditor'
+In this snippet "TaskEditor" is a main-view, which references a sub-view called
+"TaskExplorer". Moreover, "TaskEditor" owns a button and "TaskExplorer" owns a table.
 
-sub-view: 'TaskExplorer'
-
-All views can own controls:
+Views can own these controls (for more see *Control.groovy*'s subclasses):
 * button
 * table
 * textField
-* *See Control.groovy's subclasses*
+* ...
 
-<a name="Directives" />
-### Directives and Templates
+![The website consists of different panels, which contain the views.](https://github.com/eugeis/ee-mdd/blob/master/documentation/images/site.png "The website's base frame")
 
-Angular comes with a handy option for creating custom html-elements called [directive](https://docs.angularjs.org/guide/directive). 
-These directives are used to include templates for the views. Each view is represented
-by a ee-view-element, which is defined in View.js:
+The website is parted into panels. Panels can be created (not yet implemented), deleted and resized. They
+contain a list of main-views (the tabs), which define the content of the panel. In the picture above the
+main-views are FileView, TaskEditorView, TaskWatchView, ConsoleView, StateView, DependencyView, WindowView and
+TreeView (note that these are only example names).
 
-```javascript
-	app.directive("eeView", function() {
-		return {
-			restrict: 'E',
-			controllerAs: 'ctrl',
-			templateUrl: function(elem, attrs) {
-				return "src-gen/templates/" + attrs.template + ".html";
-			},
-			replace: true,
-			link: function (scope, element, attrs) {
-				element.removeAttr('template');
-			}
-		};
-	});
-```
+<a name="PanelTreeStructure" />
+## Panel-Tree-Structure
 
-In this example the directive eeView has several properties:
-* "restrict: 'E'" - it is used for an html-element (as opposed to e.g. an attribute)
-* "controllerAs: 'ctrl'" - it uses a controller alias; this reduces scope problems and makes templates more flexible
-* "templateUrl: ..." - the template's url is calculated using the template-attribute of the html-element
-* "replace: true" - the custom directive gets replaced by the root element of the template
-* "link: ..." - the template attribute is removed
+![The website with the tree's first children colored](https://github.com/eugeis/ee-mdd/blob/master/documentation/images/grid.png "The website with the tree's first children colored")
 
-The directive could be used like this snippet in the html-file.
-Notice the translation from camelCase to dash-case (eeView -> ee-view).
+Every node in the tree has a size attribute and is either an axis or a panel. The size-attribute determines
+how much space of the parent-node the node occupies relativ to its siblings. Every axis-node introduces a new
+split - if the parent was horizontal split, the axis is vertical split and vice versa. Additionally, they have
+a list of child-nodes (so either panels or axis) called "panels". Panels on the other hand have the size-attribute
+and - this is not depicted in the image - a list of tabs.
 
-```html
-	<!-- index.html -->
-	<ee-view template="TaskExplorerView" ng-controller="TaskExplorerViewController"></ee-view>
-```
-
-A typicall view might look like this:
-* two buttons
-* a table
-
-```html
-	<!-- TaskExplorerView.html -->
-	<section id="TaskExplorerView">
-			<input type="button" value="AddTask">
-			<input type="button" value="DeleteTask">
-		<section id="TaskExplorerView-Table-Tasks">
-			<ee-table ng-controller="TaskExplorerViewTasksController as tableCtrl"></ee-table>
-		</section>
-	</section>
-```
-
-The table directive (ee-table) is again replaced with the table-template.
-
-```html
-	<!-- table.html -->
-	<table class="entityTable table table-striped table-bordered">
-		<tr>
-			<th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
-		</tr>
-		<tr ng-repeat="row in tableCtrl.data">
-			<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, row)">{{row[column]}}</td>
-		</tr>
-	</table>
-```
-
-<a name="Controllers" />
-### Controllers
-
-In AngularJS controllers are used for the business logic in a website. They add behaviour and a state to their
-scope.
-
-Currently there are two types of controllers used in the application. For convenience they are called:
-  1. view-controllers
-  2. sub-controllers
-
-<a name="ViewControllers" />
-#### View-Controllers
-
-These controllers (e.g. TaskExplorerViewController) are attributed to a view-directive:
-
-```html
-	<!-- index.html -->
-	<ee-view template="TaskExplorerView" ng-controller="TaskExplorerViewController"></ee-view>
-```
-
-On creation they register by default at the $dispatcher.
-
-Any view-controller can wrap several sub-controllers forming a parent-child relationship; view-controllers
-are usually siblings to each other.
-These relationships are used by the $dispatcher to create a broadcast-system for e.g. event-handling.
-
-<a name="SubControllers" />
-#### Sub-Controllers
-
-A sub-controller manages the view's controls. 
-
-```html
-	<!-- TaskExplorerView.html -->
-	<section id="TaskExplorerView"> <!-- ngController: TaskExplorerViewController -->
-		<section id="TaskExplorerView-Table-Tasks">
-			<ee-table ng-controller="TaskExplorerViewTasksController as tableCtrl"></ee-table>
-		</section>
-	</section>
-```
-
-When a sub-controller emits an event, the view-controller dispatches the event to all view-controllers.
-These broadcast the event to their sub-controllers resulting in a event-broadcast-system. The sub-controllers
-can then decide whether to react to an event on let it pass.
-
-**Table-Controller** -- *emits* --> **View-Controller** -- *dispatches* --> **View-Controllers** -- *broadcasts* --> **Table-Controllers**
+![The tree structure for the image above](https://github.com/eugeis/ee-mdd/blob/master/documentation/images/tree.png "The tree structure for the image above")
 
 <a name="Services" />
 ## Services
@@ -181,66 +122,77 @@ inside your view.
 
 [Click here to see the svg.](https://github.com/eugeis/ee-mdd/blob/master/documentation/images/dispatcher.svg)
 
+<a name="Lightbox" />
+### Lightbox
+
+The lightbox is a popup-like formular. This allows the user to add, edit or delete
+data. When the dependency "ComLightbox" is available, a lightbox can be created with
+
+```javascript
+	$lightbox.create(info)
+```
+
+"info" is an object containing information relevant to the lightbox:
+  *  caller - which controller created the lightbox
+  *  type - add / delete / edit (or custom)
+  *  columnInfo - information which is to displayed to the user
 
 <a name="Manipulator" />
 ### Manipulator
 
-The manipulator ist used to inject and manipulate functions of the
+The manipulator is used to inject and manipulate functions of the
 controllers. Manipulators are Singeltons created for every controller
 using the getInstance()-method. Injectors located in /src/ can invoke
 a manipulator and add functions to the manipulator's controller.
 
-Invoking a manipulator for "MyView"
+Getting a manipulator for "MyView":
 
 ```javascript
-	var manipulator = angular.module("Manipulator").getInstance("MyView");
+	var manipulator = $manipulator.getInstance("MyView");
 ```
 
-Adding a function to inject
+Replacing / Adding the "click"-function in "MyView":
 
 ```javascript
-	manipulator.add("click", function(column, row) {
-		console.log([column, row]);
-	}
+	manipulator.add("click", function(self) {
+		return function() {
+			console.log("This will add this function as 'click' to 'MyView'");
+		};
+	});
 ```
 
-<a name="Extensibility" />
-### Extensibility
+The closure's "self"-argument refers to the controller. This allows for further
+manipulation. Moreover, it's possible to invoke the function after the injection.
+
+```javascript
+	var manipulator = $manipulator.getInstance("MyView");
+	manipulator.add("exampleInit", function(self) {
+		return {
+			exec: true,
+			func: function() {
+				self.id = "Init-Id"
+			}
+		};
+	});
+```
 
 Using the manipulator you can extend the functionality of the generated controllers.
 By convention the views' controllers are manipulated in their complement js-file in
 the src-folder.
 
-After using the manipulator to add functions to the controller, you need to add this
-snippet to your index.html.
+After using the manipulator to add functions to the controller, you need to load
+the injection in your index.html (e.g. "src/MyView.js").
 
 ```html
 	<!-- Include ViewRef-Source-Dependencies-Javascript -->
 	<script src="src/{InjectionFile}.js" type="text/javascript"></script>
 ```
 
-<a name="Structure" />
-# Structure
+and set a dependency in src/Injections.js (e.g. "MyViewInjector"):
 
-* /
-  * [angular.js](https://code.angularjs.org/1.4.2/angular.js)
-  * app.js
-  * index.html
-  * stylesheet.css
-* /bootstrap
-  * [bootstrap.css](http://getbootstrap.com/)
-* /src
-  * {SomeViewsName}.js
-* /src-gen/
-  * /base
-      * Dispatcher.js
-      * Manipulator.js
-      * Table.js
-  * /scripts
-      * {SomeViewsName}.js
-  * /templates
-      * table.html
-      * {SomeViewsName}.js
+```html
+	angular.module("Injections",["{InjectionModule}"]);
+```
 
 <a name="Troubleshooting" />
 # Troubleshooting
