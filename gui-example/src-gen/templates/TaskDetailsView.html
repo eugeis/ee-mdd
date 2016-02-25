@@ -1,13 +1,6 @@
-<section id="TaskDetailsView">
-<!--
-The template for TaskDetailsView consists of a label and two tables.
-The tables are built from table.html. The tables' directive is defined in src-gen/base/Table.js.
--->
-		<label>TaskName</label> <input readonly>
-	<section id="TaskDetailsView-Table-Actions">
-		<ee-table ng-controller="TaskDetailsViewActionsController as tableCtrl"></ee-table>
-	</section>
-	<section id="TaskDetailsView-Table-Comments">
-		<ee-table ng-controller="TaskDetailsViewCommentsController as tableCtrl"></ee-table>
-	</section>
+<section class="TaskDetailsView" ng-controller="TaskDetailsViewController as taskdetailsviewCtrl">
+<h4 style="padding-left:10px">TaskDetailsView</h4>
+    <label>TaskName</label> <input type="text" placeholder="TaskName">
+    <ee-table ng-controller="TaskDetailsViewTaskActionController as tableCtrl"></ee-table>
+    <ee-table ng-controller="TaskDetailsViewCommentController as tableCtrl"></ee-table>
 </section>

@@ -1,42 +1,90 @@
 <!DOCTYPE html>
-<html ng-app="TaskEditorView">
-	<head>
-		<title>TaskEditorView</title>
-		<meta charset="UTF-8">
-		<link rel="stylesheet" href="bootstrap/bootstrap.min.css">
-		<link rel="stylesheet" href="stylesheet.css">
- 	</head>
-	<body>
-		<!-- Include ViewRefs -->
-		<ee-view template="TaskExplorerView" ng-controller="TaskExplorerViewController"></ee-view>
-		<ee-view template="TaskDetailsView" ng-controller="TaskDetailsViewController"></ee-view>
-		<ee-view template="TaskSearchView" ng-controller="TaskSearchViewController"></ee-view>
+<html ng-app="eeMddUi">
+  <head>
+    <title>eeMddUi</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="bootstrap/bootstrap.css">
+    <link rel="stylesheet" href="stylesheet.css">
+  	<style>
+	[ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  		display: none !important;
+	}
+  	</style>
+   </head>
+  <body>
+    <div style="position: absolute; right: 0px;bottom: 0px; size: 10px;z-index:100000">
+      <span id="x">0</span>
+      <span id="y">0</span>
+      <br>
+      <span id="a">0</span>
+      <span id="b">0</span>
+    </div>
+    <script>
+      function $(a) {
+        return document.getElementById(a);
+      }
+      document.body.onmousemove = function(e) {
+        $("x").innerHTML = e.x;
+        $("y").innerHTML = e.y;
 
-		<!-- Include MainView -->
-		<ee-view template="TaskEditorView"></ee-view>
 
-		<!-- Frameworks -->
-		<script src="angular.js" type="text/javascript"></script>
+        $("a").innerHTML = e.clientX;
+        $("b").innerHTML = e.clientY;
+      }
+    </script>
 
-		<!-- Main app -->
-		<script src="app.js" type="text/javascript"></script>
+    <lightbox></lightbox>
+    <tree data-url="data.php"></tree>
 
-		<!-- Services -->
-		<script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
-		<script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
+    <!-- Frameworks -->
+    <script src="angular.js" type="text/javascript"></script>
 
-		<!-- Table implementation -->
-		<script src="src-gen/base/Table.js" type="text/javascript"></script>
+    <!-- Main app -->
+    <script src="app.js" type="text/javascript"></script>
 
-		<!-- View implementation -->
-		<script src="src-gen/base/View.js" type="text/javascript"></script>
+    <!-- Services -->
+    <script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
+    <script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
 
-		<!-- Include ViewRef-Javascript -->
-		<script src="src-gen/views/TaskExplorerView.js" type="text/javascript"></script>
-		<script src="src-gen/views/TaskDetailsView.js" type="text/javascript"></script>
-		<script src="src-gen/views/TaskSearchView.js" type="text/javascript"></script>
+    <!-- Lightbox implementation -->
+    <script src="src-gen/base/Lightbox.js" type="text/javascript"></script>
+    <script src="src-gen/base/ComLightbox.js" type="text/javascript"></script>
 
-		<!-- Include ViewRef-Source-Dependencies-Javascript -->
+    <!-- Injections dependencies -->
+    <script src="src/Injections.js" type="text/javascript"></script>
 
-	</body>
+    <!-- Table implementation -->
+    <script src="src-gen/base/Table.js" type="text/javascript"></script>
+
+    <!-- View implementation -->
+    <script src="src-gen/base/View.js" type="text/javascript"></script>
+
+    <!-- Include tree-script -->
+    <script src="src-gen/base/Node.js" type="text/javascript"></script>
+    <script src="src-gen/base/Nodeaxis.js" type="text/javascript"></script>
+    <script src="src-gen/base/Panel.js" type="text/javascript"></script>
+    <script src="src-gen/base/Separator.js" type="text/javascript"></script>
+    <script src="src-gen/base/Tree.js" type="text/javascript"></script>
+
+    <!-- Include View-Javascript -->
+
+        <!-- Include TaskEditorView and its controls -->
+        <script src="src-gen/views/TaskEditorView.js" type="text/javascript"></script>
+
+        <!-- Include TaskEditor2View and its controls -->
+        <script src="src-gen/views/TaskEditor2View.js" type="text/javascript"></script>
+
+        <!-- Include TaskExplorerView and its controls -->
+        <script src="src-gen/views/TaskExplorerView.js" type="text/javascript"></script>
+        <script src="src-gen/controls/TaskExplorerViewTask.js" type="text/javascript"></script>
+
+        <!-- Include TaskDetailsView and its controls -->
+        <script src="src-gen/views/TaskDetailsView.js" type="text/javascript"></script>
+        <script src="src-gen/controls/TaskDetailsViewTaskAction.js" type="text/javascript"></script>
+        <script src="src-gen/controls/TaskDetailsViewComment.js" type="text/javascript"></script>
+
+        <!-- Include TaskSearchView and its controls -->
+        <script src="src-gen/views/TaskSearchView.js" type="text/javascript"></script>
+        <script src="src-gen/controls/TaskSearchViewTaskAction.js" type="text/javascript"></script>
+  </body>
 </html>

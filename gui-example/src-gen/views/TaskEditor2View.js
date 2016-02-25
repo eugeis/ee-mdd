@@ -1,13 +1,13 @@
-  angular.module("TaskEditorView",["Manipulator", "ComLightbox"])
-  .controller("TaskEditorViewController", ['$scope', '$dispatcher', '$manipulator', '$lightbox', function ($scope, $dispatcher, $manipulator, $lightbox) {
+  angular.module("TaskEditor2View",["Manipulator", "ComLightbox"])
+  .controller("TaskEditor2ViewController", ['$scope', '$dispatcher', '$manipulator', '$lightbox', function ($scope, $dispatcher, $manipulator, $lightbox) {
     var self = this;
     self.model = false;
-    self.presenter = "TaskEditorPresenter";
+    self.presenter = "TaskEditor2Presenter";
 
     self.$scope = $scope;
     self.$dispatcher = $dispatcher;
 
-    self.viewRefs = ["TaskExplorerView","TaskDetailsView"];
+    self.viewRefs = ["TaskDetailsView"];
 
     self.lightbox = function(type, model) {
       if (type === "add") {
@@ -26,5 +26,5 @@
       }
     };
 
-    $manipulator.getInstance("TaskEditorView").inject(self);
+    $manipulator.getInstance("TaskEditor2View").inject(self);
   }]);

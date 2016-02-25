@@ -67,6 +67,6 @@ if ($id == 4) {
 		]';
 	}
 } else {
-	http_response_code(404);
+	echo "[]";
 }
 ?>

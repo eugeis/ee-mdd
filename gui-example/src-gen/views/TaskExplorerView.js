@@ -1,81 +1,44 @@
-(function(){
-	var app = angular.module("TaskExplorerView",["Table","View"]);
-	var manipulator = angular.module("Manipulator").manipulator;
+  angular.module("TaskExplorerView",["Manipulator", "ComLightbox"])
+  .controller("TaskExplorerViewController", ['$scope', '$dispatcher', '$manipulator', '$lightbox', function ($scope, $dispatcher, $manipulator, $lightbox) {
+    var self = this;
+    self.model = false;
+    self.presenter = "TaskExplorerPresenter";
 
-	// The TaskExplorerViewController broadcasts incoming
-	// events from other view-controllers to child-controllers
-	// e.g. a table-controller.
-	// This is used for data-transmission between views.
+    self.$scope = $scope;
+    self.$dispatcher = $dispatcher;
 
-	function TaskExplorerView($scope, $dispatcher) {
-		var self = this;
-		self.id = "TaskExplorerView";
+    self.viewRefs = ["TaskSearchView"];
 
-		self.$scope = $scope;
-		self.$dispatcher = $dispatcher;
+    self.$destroy = self.$scope.$on("$destroy", function() {
+      self.unsubscribe();
+    });
 
-		self.event = function(args) {
-			$scope.$broadcast("event", args);
-		}
+    self.event = function(args) {
+      self.$scope.$broadcast("transEvent", args);
+    }
 
-		self.subscribeToDispatcher = function() {
-			$dispatcher.subscribe(self);
-		}
+    self.unsubscribe = self.$dispatcher.subscribe(self);
 
-		self.registerClickEvent = function() {
-			$scope.$on("click", function(e, args) {
-				// If the onselect is set add:
-				$dispatcher.dispatch(self,args);
-			});
-		}
+    self.subEvent = self.$scope.$on("subEvent", function(e, args) {
+        self.$dispatcher.dispatch(args);
+    });
 
-		manipulator.getInstance("TaskExplorerView").inject(self);
-		self.subscribeToDispatcher();
-		self.registerClickEvent();
-	}
-	app.controller("TaskExplorerViewController", ['$scope', '$dispatcher',  TaskExplorerView]);
+    self.lightbox = function(type, model) {
+      if (type === "add") {
+        $lightbox.create({
+          caller: this,
+          type: type,
+          columnInfo: [{name: "name"}, {name: "age"}]
+        });
+      } else if (type === "delete") {
+        $lightbox.create({
+          caller: this,
+          type: type,
+          columnInfo: [{name: "name", value: "Jonas"}, {name: "age", value: "20"}],
+          rowNr: 3
+        });
+      }
+    };
 
-	//The table-controllers (called sub-controllers in gui-documentation) are so far used for displaying
-	//data, fetching data, reacting to events and broadcasting events.
-	function TaskExplorerViewTasks($scope, $http) {
-		var self = this;
-
-		self.id = "TaskExplorerViewTasks";
-		self.entity = "Task";
-
-		//This is done to use $scope and $http in the injection.
-		self.$scope = $scope;
-		self.$http = $http;
-
-		self.parent = angular.module("Table").baseClass["TableBase"];
-		self.parent.call(this, $scope);
-		self.currentRow = undefined;
-
-		self.columns = ["id","comments","created","closed","actions","size","order"];
-
-		self.data = $http.get('data/TaskExplorerView.json')
-			.success(function(data, status, headers, config) {
-				self.data = data;
-			})
-			.error(function(data, status, headers, config) {
-				console.error("HTTP - ERROR: " + status);
-				self.data = {};
-			});
-			
-		//the click event emits (sends a message to a PARENT-controller) relevant data
-		self.click = function(column, row) {
-			$scope.$emit("click", {
-				childSource: self,
-				sourceEntity: self.entity,
-				targetView: ["TaskDetailsView.presenter"],
-				column: column,
-				row: row
-			});
-		}
-
-		manipulator.getInstance("TaskExplorerViewTasks").inject(self);
-
-	}
-	TaskExplorerViewTasks.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
-	app.controller("TaskExplorerViewTasksController", ['$scope', '$http', TaskExplorerViewTasks]);
-}());
+    $manipulator.getInstance("TaskExplorerView").inject(self);
+  }]);

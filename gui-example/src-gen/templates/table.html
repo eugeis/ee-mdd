@@ -1,13 +1,8 @@
 <table class="entityTable table table-striped table-bordered">
-<!-- 
-This table-template is defined by angularjs repeat directive.
-The table-header consists of the controller's columns (the controller is defined in index.html).
-The table-data is inserted by iterating over the data (each entry is a row) and columns.
--->
-	<tr>
-		<th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
-	</tr>
-	<tr ng-repeat="row in tableCtrl.data">
-		<td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, row)">{{row[column]}}</td>
-	</tr>
+  <tr>
+    <th ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column)">{{column}}</th>
+  </tr>
+  <tr ng-repeat="row in tableCtrl.data" ng-class="{selected: tableCtrl.selected==$index}">
+    <td ng-repeat="column in tableCtrl.columns" ng-click="tableCtrl.click(column, $parent.$index)">{{row[column]}}</td>
+  </tr>
 </table>

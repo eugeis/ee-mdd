@@ -1,7 +1,7 @@
-<section id="TaskEditorView">
-<!--
-The template for TaskEditorView consists of two buttons.
--->
-		<input type="button" value="Accept">
-		<input type="button" value="Discard">
+<section class="TaskEditorView" ng-controller="TaskEditorViewController as taskeditorviewCtrl">
+<h4 style="padding-left:10px">TaskEditorView</h4>
+    <input type="button" class="btn btn-primary" value="Accept" ng-click="taskeditorviewCtrl.lightbox('accept','[TaskEditorView.model]')">
+    <input type="button" class="btn btn-warning" value="Discard" ng-click="taskeditorviewCtrl.lightbox('discard','[TaskEditorView.model]')">
+  <ee-view template="TaskExplorerView"></ee-view>
+  <ee-view template="TaskDetailsView"></ee-view>
 </section>

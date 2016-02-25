@@ -1,89 +1,44 @@
-(function(){
-	var app = angular.module("TaskSearchView",["Table","View"]);
-	var manipulator = angular.module("Manipulator").manipulator;
+  angular.module("TaskSearchView",["Manipulator", "ComLightbox"])
+  .controller("TaskSearchViewController", ['$scope', '$dispatcher', '$manipulator', '$lightbox', function ($scope, $dispatcher, $manipulator, $lightbox) {
+    var self = this;
+    self.model = false;
+    self.presenter = "TaskSearchPresenter";
 
-	// The TaskSearchViewController broadcasts incoming
-	// events from other view-controllers to child-controllers
-	// e.g. a table-controller.
-	// This is used for data-transmission between views.
+    self.$scope = $scope;
+    self.$dispatcher = $dispatcher;
 
-	function TaskSearchView($scope, $dispatcher) {
-		var self = this;
-		self.id = "TaskSearchView";
+    self.viewRefs = [];
 
-		self.$scope = $scope;
-		self.$dispatcher = $dispatcher;
+    self.$destroy = self.$scope.$on("$destroy", function() {
+      self.unsubscribe();
+    });
 
-		self.event = function(args) {
-			$scope.$broadcast("event", args);
-		}
+    self.event = function(args) {
+      self.$scope.$broadcast("transEvent", args);
+    }
 
-		self.subscribeToDispatcher = function() {
-			$dispatcher.subscribe(self);
-		}
+    self.unsubscribe = self.$dispatcher.subscribe(self);
 
-		self.registerClickEvent = function() {
-			$scope.$on("click", function(e, args) {
-				// If the onselect is set add:
-				$dispatcher.dispatch(self,args);
-			});
-		}
+    self.subEvent = self.$scope.$on("subEvent", function(e, args) {
+        self.$dispatcher.dispatch(args);
+    });
 
-		manipulator.getInstance("TaskSearchView").inject(self);
-		self.subscribeToDispatcher();
-		self.registerClickEvent();
-	}
-	app.controller("TaskSearchViewController", ['$scope', '$dispatcher',  TaskSearchView]);
+    self.lightbox = function(type, model) {
+      if (type === "add") {
+        $lightbox.create({
+          caller: this,
+          type: type,
+          columnInfo: [{name: "name"}, {name: "age"}]
+        });
+      } else if (type === "delete") {
+        $lightbox.create({
+          caller: this,
+          type: type,
+          columnInfo: [{name: "name", value: "Jonas"}, {name: "age", value: "20"}],
+          rowNr: 3
+        });
+      }
+    };
 
-
-	function TaskSearchViewActions($scope, $http) {
-		var self = this;
-
-		self.id = "TaskSearchViewActions";
-		self.entity = "TaskAction";
-
-		self.$scope = $scope;
-		self.$http = $http;
-
-		self.parent = angular.module("Table").baseClass["TableBase"];
-		self.parent.call(this, $scope);
-		self.currentRow = undefined;
-
-		self.columns = ["id","task","name"];
-
-
-		self.fetchData = function(id) {
-			self.data = $http.get('data/TaskDetailsView.php?id=' + id + '&type=Actions')
-				.success(function(data, status, headers, config) {
-					self.data = data;
-				})
-				.error(function(data, status, headers, config) {
-					console.error("HTTP - ERROR: " + status);
-					self.data = {};
-				});
-		};
-		
-		//registerEvent was created to be able to overwrite the "event"-Handler ($scope.$on)
-		//in the manipulator
-		self.registerEvent = function() {
-			$scope.$on("event", function(e, args) {
-				if (args.targetView.some(function(d) {
-					return d === "TaskSearchView.presenter";
-				})){
-					if (args.sourceEntity === "Task") {
-						if (args.row && self.currentRow !== args.row.id) {
-							self.fetchData(args.row.id);
-							self.currentRow = args.row.id;
-						}
-					}
-				}
-			});
-		}
-
-		manipulator.getInstance("TaskSearchViewActions").inject(self);
-		self.registerEvent();
-
-	}
-	TaskSearchViewActions.prototype = Object.create(angular.module("Table").baseClass["TableBase"].prototype);
-	app.controller("TaskSearchViewActionsController", ['$scope', '$http', TaskSearchViewActions]);
-}());
+    $manipulator.getInstance("TaskSearchView").inject(self);
+  }]);
