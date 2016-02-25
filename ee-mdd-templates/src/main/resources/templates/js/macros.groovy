@@ -154,8 +154,8 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
 
   template('appjs', body: '''\
-  var dependencies = ["Injections", "Table", "View", "Lightbox", "eeTree"];
-  var views = [\
+var dependencies = ["Injections", "Table", "View", "Lightbox", "eeTree"];
+var views = [\
 <%
   	for (int i = 0; i < item.children.size(); i++) {
   		def iterator = item.children[i];
@@ -171,8 +171,8 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 %>\
 ];
   angular.module("$project",dependencies.concat(views))
-  .config(['\\$compileProvider', function (\\$compileProvider) {
-    //\\$compileProvider.debugInfoEnabled(false);
+	.config(['\\$compileProvider', function (\\$compileProvider) {
+  	//\\$compileProvider.debugInfoEnabled(false);
   }]);
 ''')
 
@@ -245,36 +245,27 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 ''')
 
   template('framejs', body: '''\
-  angular.module("$item.name",[\
-<%
-  def hasControl = [:];
-  item.controls.each { control ->
-    if(!hasControl[control.widgetType]) {
-      hasControl[control.widgetType] = 0;
-    }
-    hasControl[control.widgetType]++;
-  }
-%>\
-"Manipulator", "ComLightbox","ModelHandler"])
-<%
-  if (c.main) {
-%>\
-  .controller("${item.name}Controller", angular.noop);
-<%
-  }
-%>\
-<%
-  if (hasControl["Table"] > 0) {
-%>\
+  angular.module("$item.name",["Manipulator", "ComLightbox","ModelHandler"])
   .controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', '\\$model', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox, \\$model) {
     var self = this;
-    self.id = "${item.name}";
     self.model = \
 <%
-    if (item.model) {
+    if (item.viewModel) {
 %>\
-$item.viewModel
-.name\
+"$item.viewModel.name"\
+<%
+    } else {
+%>\
+false\
+<%
+  	}
+%>\
+;
+    self.presenter = \
+<%
+    if (item.presenter) {
+%>\
+"$item.presenter.name"\
 <%
     } else {
 %>\
@@ -304,28 +295,28 @@ false\
     }
 %>\
 ];
+<%
+  		if (!c.main) {
+%>\
 
-	self.\\$scope.\\$on("\\$destroy", function() {
+    self.\\$destroy = self.\\$scope.\\$on("\\$destroy", function() {
       self.unsubscribe();
-	});
+    });
 
     self.event = function(args) {
       self.\\$scope.\\$broadcast("transEvent", args);
     }
 
-    self.subscribeToDispatcher = function() {
-      self.unsubscribe = self.\\$dispatcher.subscribe(self);
-    }
+    self.unsubscribe = self.\\$dispatcher.subscribe(self);
 
-    self.registerClickEvent = function() {
-      self.\\$scope.\\$on("subEvent", function(e, args) {
+    self.subEvent = self.\\$scope.\\$on("subEvent", function(e, args) {
         self.\\$dispatcher.dispatch(args);
-      });
-    }
+    });
+<%
+  		}
+%>\
 
     self.lightbox = function(type, model) {
-      var \\$model = {getInfo: function() { return false; }};
-
       if (type === "add") {
         \\$lightbox.create({
           caller: this,
@@ -342,22 +333,8 @@ false\
       }
     };
 
-    self.add = function() {
-      return true;
-    }
-
-    self.delete = function() {
-      return true;
-    }
-
     \\$manipulator.getInstance("${item.name}").inject(self);
-    \\$model.addView(self);
-    self.subscribeToDispatcher();
-    self.registerClickEvent();
   }]);
-<%
-  }
-%>\
 ''')
 
   template('framesrcjs', body: '''\
@@ -417,10 +394,7 @@ false\
   angular.module("$view.name")
   .controller("${view.name}${item.type.name.capitalize()}Controller", ['\\$scope', '\\$http', '\\$manipulator', function (\\$scope, \\$http, \\$manipulator) {
     var self = this;
-
-    self.id = "${view.name}${item.type.name.capitalize()}";
     self.entity = "${item.type.name}";
-    self.parentView = "${view.name}";
 
     self.\\$scope = \\$scope;
     self.\\$http = \\$http;
@@ -504,38 +478,24 @@ false\
         });
     };
 
-    self.registerEvent = function() {
-      self.\\$scope.\\$on("transEvent", function(e, args) {
+    self.transEvent = self.\\$scope.\\$on("transEvent", function(e, args) {
 <%
         opposite.each { prop ->
 %>\
-        if (args.observerRefs.some(function(d) {
-          return d === "${view.name}.presenter";
-        })){
-          if (args.sourceEntity === "${prop.type.name}") {
-            if (args.row && self.currentRow !== args.row.id) {
-              self.fetchData(args.row.id);
-              self.currentRow = args.row.id;
-            }
-          }
-        }
+	  if (args.sourceEntity === "${prop.type.name}") {
+	    if (args.row && self.currentRow !== args.row.id) {
+	      self.fetchData(args.row.id);
+	    }
+	  }
 <%
         }
 %>\
-      });
-    }
+    });
 
 <%
     }
 %>\
     \\$manipulator.getInstance("${view.name}${item.name.capitalize()}").inject(self);
-<%
-    if (hasOpposite) {
-%>\
-    self.registerEvent();
-<%
-    }
-%>\
   }]);
 ''')
 

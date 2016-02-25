@@ -10,5 +10,5 @@
     </div>
     <div class="viewclose" ng-click="panelCtrl.close()"></div>
   </div>
-  <div class="viewcontainer" ng-repeat="view in panelCtrl.tabs track by $index" ng-if="panelCtrl.isActive($index)"><ee-view data-template="{{view}}"></ee-view></div>
+  <div class="viewcontainer" ng-repeat="view in panelCtrl.tabs track by $index" ng-show="panelCtrl.isActive($index)"><ee-view data-template="{{view}}"></ee-view></div>
 </div>

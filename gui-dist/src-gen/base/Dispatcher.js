@@ -26,10 +26,11 @@
         };
       },
       dispatch: function(args) {
+	console.warn("Presenter reference needs to be resolved");
         var self = this;
         args.observerRefs.forEach(function(d) {
           self.subscribers.forEach(function(e) {
-            if (d === e.id + ".presenter") {
+            if (e.presenter && d.replace("View.presenter", "Presenter") === e.presenter) {
               if (e.event) {
                 e.event(args);
               } else {
