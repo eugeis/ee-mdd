@@ -101,7 +101,6 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
 
     <!-- Frameworks -->
     <script src="angular.js" type="text/javascript"></script>
-    <script src="angular-route.js" type="text/javascript"></script>
 
     <!-- Main app -->
     <script src="app.js" type="text/javascript"></script>
@@ -109,7 +108,6 @@ var $c.className = {<% last = item.literals.last(); item.literals.each { lit -> 
     <!-- Services -->
     <script src="src-gen/base/Dispatcher.js" type="text/javascript"></script>
     <script src="src-gen/base/Manipulator.js" type="text/javascript"></script>
-    <script src="src-gen/base/ModelHandler.js" type="text/javascript"></script>
 
     <!-- Lightbox implementation -->
     <script src="src-gen/base/Lightbox.js" type="text/javascript"></script>
@@ -245,8 +243,8 @@ var views = [\
 ''')
 
   template('framejs', body: '''\
-  angular.module("$item.name",["Manipulator", "ComLightbox","ModelHandler"])
-  .controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', '\\$model', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox, \\$model) {
+  angular.module("$item.name",["Manipulator", "ComLightbox"])
+  .controller("${item.name}Controller", ['\\$scope', '\\$dispatcher', '\\$manipulator', '\\$lightbox', function (\\$scope, \\$dispatcher, \\$manipulator, \\$lightbox) {
     var self = this;
     self.model = \
 <%
