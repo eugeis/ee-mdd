@@ -54,7 +54,7 @@ class GeneratorFactoryBase {
   }
 
 
-  void generate(Model model, File target, Closure targetModuleResolver) {
+  void generate(Model model, File target, Closure targetModuleResolver, String targetLayout) {
     FacetTemplateLoader templateLoader = new FacetTemplateLoader()
 
     Generator generator = new Generator()
@@ -68,8 +68,10 @@ class GeneratorFactoryBase {
     generator.add(processorFactory.fileProcessor(target))
 
 
-    Context c = new Context(name: model.name)
+    Context c = new Context(name: model.name, 
+      outputType:  OutputType.LOGIC, outputPurpose: OutputPurpose.PRODUCTION)
     c.model = model
+    c.targetLayout = targetLayout
 
     generator.generate(c)
   }

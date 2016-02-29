@@ -5,6 +5,7 @@ import ee.mdd.model.Element
 
 class Mdd {
   def target = './temp/'
+  def targetLayout = 'standard'
   Closure targetModuleResolver
   def modelSource = 'model.groovy'
   Closure facet

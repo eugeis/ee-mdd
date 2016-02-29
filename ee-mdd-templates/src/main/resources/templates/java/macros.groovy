@@ -16,7 +16,6 @@
 
 import static ee.mdd.generator.OutputPurpose.*
 import static ee.mdd.generator.OutputType.*
-import ee.mdd.generator.OutputType
 
 /**
  *
@@ -560,7 +559,7 @@ public interface $className {<% [module.basicTypes, module.entities, module.cont
   <E> Factory<E> findFactoryByType(Class<E> type);
 }''')
 
-  template('ifcEntity', body: '''{{imports}}
+  template('ifcEntity', type: FRONTEND, body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
   public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}><% } %> {
     /** A unique URI prefix for RESTful services and multi-language support */
@@ -2049,7 +2048,7 @@ public abstract class $className extends $c.baseClass<${c.name(item.cap)}> imple
   }
 }''')
   
-  template('containerFactory', type: API, body: '''{{imports}}
+  template('containerFactory', body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap> implements $item.n.cap.factory {
 
@@ -2094,7 +2093,7 @@ public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap>
   }
 }''')
   
-  template('factoryExtends', body: '''{{imports}}
+  template('factoryExtends', type: RESOURCE, body: '''{{imports}}
 public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
 }''')
   
@@ -2165,7 +2164,7 @@ public class $className extends ${item.n.cap.factoryBase} {
   }
 }''')
   
-  template('containerFactoryBean', type: API, body: '''{{imports}}
+  template('containerFactoryBean', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
@@ -5767,7 +5766,7 @@ public interface $className extends ${c.name(baseClass)} {<% item.controls.each 
   <% } } %>
 }''')
 
-  template('viewModel', body: '''<% def model = item.model %>{{imports}}
+  template('viewModel', type: FRONTEND, body: '''<% def model = item.model %>{{imports}}
 /** View model implementation for ${item.name}. */
 @${c.name('RootScoped')}
 @${c.name('Model')}
@@ -5775,7 +5774,7 @@ public class $className extends $model.n.cap.base {
   ${macros.generate('implOperations', c)}
 }''')
 
-  template('viewModelBase', body: '''<% def model = item.model %>{{imports}}
+  template('viewModelBase', type: FRONTEND, body: '''<% def model = item.model %>{{imports}}
 /** Base view model implementation for ${item.name}. */
 public abstract class $className extends ${c.name('BaseModel')} { <% def listProps = model.props.findAll { prop -> prop.multi } %>
   protected $model.n.cap.events forward;
