@@ -3603,7 +3603,7 @@ public class $c.className {
   
   template('constantsTest', purpose: UNIT_TEST, body: '''{{imports}}
 /** Test for Constants for '$module.name' */
-public class ${className} extends BaseTestCase {
+public class ${className} extends ${c.name('BaseTestCase')} {
   @Test
   @Override
   public void testConstructorsForCoverage() throws Exception {
@@ -3612,7 +3612,7 @@ public class ${className} extends BaseTestCase {
 }''')
   
   template('moduleCacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def cachedContainers =  module.containers.findAll { it.controller && it.controller.cache } %>
-public abstract class $className extends BaseTestCase {
+public abstract class $className extends ${c.name('BaseTestCase')} {
 
   protected ${module.capShortName}Cache instance = new ${module.capShortName}Cache();<% cachedContainers.each { container -> %>
 
@@ -3690,7 +3690,7 @@ public class $className {
 public class $className extends ${className}Base {
 
 <% if (item.operationRefs.isEmpty()) { %>
-  @Test
+  @${c.name('Test')}
   public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
    }<% } %>
 }''')
@@ -3808,7 +3808,7 @@ public class $className {
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @RunWith(MockitoJUnitRunner.class)
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   @Test
   @Override
@@ -3866,7 +3866,7 @@ public class $className extends ${className}Impl {
   template('containerProducerInternalTest', purpose: UNIT_TEST, body: '''{{imports}}
 /** Server CDI container producer for '$module.name' */
 
-public class ${className}Test extends BaseTestCase {
+public class ${className}Test extends ${c.name('BaseTestCase')} {
   private ${className} instance;
 
   @Before
@@ -3894,7 +3894,7 @@ public class ${className}Test extends BaseTestCase {
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @RunWith(MockitoJUnitRunner.class)
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   private ${module.initializerName}Mem initializer = spy(new ${module.initializerName}Mem());
 
@@ -3937,10 +3937,10 @@ public class $className extends BaseTestCase {
   template('initializerImplTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-@RunWith(MockitoJUnitRunner.class)
-public class $className extends BaseTestCase {
+@${c.name('RunWith')}(MockitoJUnitRunner.class)
+public class $className extends ${c.name('BaseTestCase')} {
 
-  @Test
+  @${c.name('Test')}
   @Override
   public void testConstructorsForCoverage() throws Exception {
     constructorTester.verifyDefaultConstructor(${module.initializerName}Impl.class);
@@ -3948,7 +3948,7 @@ public class $className extends BaseTestCase {
 }''')
 
   template('eventToCdiTest', purpose: UNIT_TEST, body: '''<% if(!c.className) { c.className = item.n.cap.eventToCdiTest } %>{{imports}}
-public class ${className} extends BaseTestCase {
+public class ${className} extends ${c.name('BaseTestCase')} {
   @${c.name('Test')}
   @Override
   public void testConstructorsForCoverage() throws Exception {
@@ -3957,7 +3957,7 @@ public class ${className} extends BaseTestCase {
 }''')
   
   template('eventToCdiExternalTest', purpose: UNIT_TEST, body: '''
-public class ${className} extends BaseTestCase {
+public class ${className} extends ${c.name('BaseTestCase')} {
   @Test
   @Override
   public void testConstructorsForCoverage() throws Exception {
@@ -3968,7 +3968,7 @@ public class ${className} extends BaseTestCase {
   template('implContainerTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   @Override
   public void testConstructorsForCoverage() throws Exception {
@@ -4012,7 +4012,7 @@ public class $className extends ${item.n.cap.impl}TestBase {
 }''')
   
   template('implContainerFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}
-public class ${className}Test extends BaseTestCase {
+public class ${className}Test extends ${c.name('BaseTestCase')} {
   private $className factory;
 
   @Before
@@ -4051,7 +4051,7 @@ public class $className extends ${controller.name}BaseTestImpl {
   template('implContainerControllerTest', body: '''{{imports}}<% def controller = item.controller %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public abstract class $className extends BaseTestCase {
+public abstract class $className extends ${c.name('BaseTestCase')} {
 
   @Mock
   Event<${item.n.cap.event}> publisher;
@@ -4274,7 +4274,7 @@ public class $className extends ${className}Base {
   template('implContainerVersionsTest', purpose: UNIT_TEST, body:'''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
 
   @Override
@@ -4308,7 +4308,7 @@ public class $className extends ${item.n.cap.versionsImpl}TestBase {
   template('implContainerDeltaTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   @Test
   @Override
@@ -4390,7 +4390,7 @@ public class $className extends $item.n.cap.idsTestCase {
   template('containerIdsTestCase', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public abstract class $className extends BaseTestCase {
+public abstract class $className extends ${c.name('BaseTestCase')} {
 
   @Test
   @Override
@@ -4414,7 +4414,7 @@ public class $className extends $item.n.cap.diffTestCase {
   template('containerDiffTestCase', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public abstract class $className extends BaseTestCase {
+public abstract class $className extends ${c.name('BaseTestCase')} {
 
   @Test
   @Override
@@ -4557,7 +4557,7 @@ public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @RunWith(MockitoJUnitRunner.class)
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   private ${module.capShortName}CommandsFactoryImpl commandsFactory = new ${module.capShortName}CommandsFactoryImpl();<% commands.each { command -> %>
 
@@ -4581,7 +4581,7 @@ public class $className extends BaseTestCase {
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 @RunWith(MockitoJUnitRunner.class)
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   private ${module.capShortName}FindersFactoryImpl findersFactory = new ${module.capShortName}FindersFactoryImpl();<% finders.each { finder -> %>
 
@@ -4732,7 +4732,7 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   template('implDeltaCacheTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 
   @Override
   @Test
@@ -5227,7 +5227,7 @@ public class $className extends ${model.cap}TestBase {
 }''')
   
   template('mediatorTest', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
-public class $className extends BaseTestCase {
+public class $className extends ${c.name('BaseTestCase')} {
 protected ${view.domainName}Mediator mediator;<% view.mediatorDelegates.each{ delegate -> %>
   @Mock
   protected $delegate.cap $delegate.uncap; <% } %>
@@ -5433,7 +5433,7 @@ public class $className extends ${className}Base {
   template('configTest', purpose: UNIT_TEST, body: '''
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
-public<% if (item.base) {%> abstract<% } %> class $className extends BaseTestCase {
+public<% if (item.base) {%> abstract<% } %> class $className extends ${c.name('BaseTestCase')} {
 
   protected $item.cap $item.uncap;
 

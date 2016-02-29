@@ -20,6 +20,7 @@ import ee.mdd.generator.Processor
 import ee.mdd.model.Element
 import ee.mdd.model.component.Module
 
+
 /**
  *
  * @author Eugen Eisler
@@ -29,52 +30,68 @@ class ProcessorsForJava {
   Closure targetModuleResolver = { Context c ->
     def outType = c.outputType
     def outPurp = c.outputPurpose
+    def defaultType = (outType.logic ? true : false)
+    def defaultPurp = (outPurp.production ? true : false)
     def modules = c.component.modules
     def targetLayout = c.targetLayout
 
     if(targetLayout.equals('standard')) {
-
-      if(outType.logic || outType.integ) {
+    
+      if(defaultPurp) {
+        
+        if(outType.logic || outType.integ) {
+          c.module
+        } else if(outType.api) {
+          modules.find { it.name.equals('api') }
+        } else if(outType.apiImpl) {
+          modules.find { it.name.equals('api_impl') }
+        } else if(outType.shared) { 
+          modules.find { it.name.equals('shared') }
+        } else if(outType.frontend) {
+          modules.find { it.name.equals('ui') }
+        } else if(outType.resource) {
+          modules.find { it.name.equals('resource') }
+        }
+        
+      } else if (defaultType) {
+        
+        if(outPurp.simulation) {
+          modules.find { it.name.equals('simulation') }
+        } else if(outPurp.production) {
+          modules.find { it.name.equals('production') }
+        } else if(outPurp.isTest) {
+          modules.find { it.name.equals('test') }
+        }
+        
+      } else {
         c.module
-      } else if(outType.api) {
-        modules.find { it.name.equals('api') }
-      } else if(outType.apiImpl) {
-        modules.find { it.name.equals('api_impl') }
-      } else if(outType.shared) { 
-        modules.find { it.name.equals('shared') }
-      } else if(outType.frontend) {
-        modules.find { it.name.equals('ui') }
-      } else if(outType.resource) {
-        modules.find { it.name.equals('resource') }
-      } else if(outPurp.simulation) {
-        modules.find { it.name.equals('simulation') }
-      } else if(outPurp.production) {
-        modules.find { it.name.equals('production') }
-      } else if(outPurp.isTest) {
-        modules.find { it.name.equals('test') }
-      }
+      }  
     
     } else if (targetLayout.equals('shared')) {
     
-      if(outType.logic || outType.integ || outType.api || outType.apiImpl || outType.shared) {
-        modules.find { it.name.equals('shared') } 
-      } else if(outType.frontend) {
-        modules.find { it.name.equals('ui') }
-      } else if(outPurp.simulation) {
-        modules.find { it.name.equals('simulation') }
-      } else if(outPurp.production) {
-        modules.find { it.name.equals('production') }
-      } else if(outPurp.isTest) {
-        modules.find { it.name.equals('test') }
-      }
+      if(defaultPurp) {
+    
+        if(outType.logic || outType.integ || outType.api || outType.apiImpl || outType.shared) {
+          modules.find { it.name.equals('shared') } 
+        } else if(outType.frontend) {
+          modules.find { it.name.equals('ui') }
+        }
+          
+      } else if (defaultType) {
       
+        if(outPurp.simulation) {
+          modules.find { it.name.equals('simulation') }
+        } else if(outPurp.production) {
+          modules.find { it.name.equals('production') }
+        } else if(outPurp.isTest) {
+          modules.find { it.name.equals('test') }
+        }
+      } 
     } else {
       c.module
     }
-    
-    
   }
-
+  
   Processor javaImportsPathProcessor() {
     Processor ret = new Processor(name: 'javaImportsPath')
 
