@@ -59,7 +59,7 @@ class ProcessorsForJava {
           modules.find { it.name.equals('simulation') }
         } else if(outPurp.production) {
           modules.find { it.name.equals('production') }
-        } else if(outPurp.isTest) {
+        } else if(outPurp.test) {
           modules.find { it.name.equals('test') }
         }
         
@@ -83,7 +83,7 @@ class ProcessorsForJava {
           modules.find { it.name.equals('simulation') }
         } else if(outPurp.production) {
           modules.find { it.name.equals('production') }
-        } else if(outPurp.isTest) {
+        } else if(outPurp.test) {
           modules.find { it.name.equals('test') }
         }
       } 

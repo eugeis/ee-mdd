@@ -559,7 +559,7 @@ public interface $className {<% [module.basicTypes, module.entities, module.cont
   <E> Factory<E> findFactoryByType(Class<E> type);
 }''')
 
-  template('ifcEntity', type: FRONTEND, body: '''{{imports}}
+  template('ifcEntity', body: '''{{imports}}
   ${item.description?"/*** $item.description */":''}
   public interface $className${item.genericSgn} extends<% if (item.superUnit) { %> ${c.name(item.superUnit.name)}${item.superGenericSgn} <% } else { %> ${c.name('BaseEntity')}<${item.idProp.type.name}>, ${c.name('IdSetter')}<${item.idProp.type.name}><% } %> {
     /** A unique URI prefix for RESTful services and multi-language support */
@@ -771,7 +771,7 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
   
   template('interfs', body: '''{{imports}}<% def superUnit = item.superUnit %>
 ${item.description?"/*** $item.description */":''}
-public interface $className extends <% if (superUnit) { %>$superUnit.name<% } else { %>Serializable<% } %> { <% item.props.each { prop -> c.prop = prop %>
+public interface $className extends <% if (superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> { <% item.props.each { prop -> c.prop = prop %>
   ${macros.generate('interPropGetters', c)}
   ${macros.generate('interPropSetters', c)}<% } %>
   ${macros.generate('interfaceBody', c)}
@@ -780,16 +780,16 @@ public interface $className extends <% if (superUnit) { %>$superUnit.name<% } el
   template('serviceEmpty', body: '''{{imports}}
 /** Empty implementation of {@link $item.name} what shall be extended by Test/Mock implementation in order to avoid unnecessary work by extension of the interface. */
 @${c.name('Alternative')}
-public abstract class $className implements $item.name {<% item.operations.each { op -> %>
+public abstract class $className implements $item.name {<% item.operations.each { op -> if(!op.delegateOp) { %>
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {<% if (op.returnTypeBoolean) { %>
     return false;<% } else if (!op.void) { %>
     return null;<% } %>
-  }<% } %><% item.operations.each { opRef -> if(opRef.delegateOp) { def op = opRef.ref; if (op) { %>
+  }<% } } %><% item.operations.each { opRef -> if(opRef.delegateOp) { def op = opRef.ref; if (op) { %>
 
   @Override
-  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {<% if (op.typeBoolean) { %>
+  public ${op.returnTypeExternal(c)} ${op.name}(${op.signature(c)}) {<% if (op.returnTypeBoolean) { %>
     return false;<% } else if (!op.void) { %>
     return null;<% } %>
   }<% } %><% } } %>
@@ -2340,9 +2340,9 @@ ${macros.generate('implOperations', c)}
   template('commandsMem', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %>
 /** Memory implementation of {@link $commands.name} */
 <% if (commands.base) { %>@${c.name('Alternative')}<% }else { %>@${c.name('ApplicationScoped')}
-${c.name('@Manager')}
+@Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
-public ${commands.base?'abstract ':''}class $className extends ManagerMemAbstract<${idProp.type.name}, $item.cap> implements $commands.name {
+public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerMemAbstract')}<${idProp.type.name}, $item.cap> implements $commands.name {
   protected Event<${item.n.cap.event}> publisher;<% commands.creators.each { op -> %>
 
   @Override
@@ -2358,7 +2358,7 @@ public ${commands.base?'abstract ':''}class $className extends ManagerMemAbstrac
     }
     if (!toDelete.isEmpty()) {
       removeAll(toDelete);
-      fireEvent(ActionType.DELETE_MULTIPLE);
+      fireEvent(${c.name('ActionType')}.DELETE_MULTIPLE);
     }
   }<% } %><% commands.operationsNotManager.each { op -> c.op = op; if (op.body) { %>
 
@@ -2442,7 +2442,7 @@ public ${commands.base?'abstract ':''}class $className extends ManagerMemAbstrac
   template('findersMem', body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp %>
 /** Memory implementation of {@link $finders.name} */
 <% if (finders.base) { %>@${c.name('Alternative')}<% }else { %>@${c.name('ApplicationScoped')}
-${c.name('@Manager')}
+@Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
 public ${finders.base?'abstract ':''}class $className extends ManagerMemAbstract<${idProp.type.name}, $item.cap> implements $finders.name {
   protected Event<${item.n.cap.event}> publisher;<% finders.counters.each { op -> %>
@@ -8044,7 +8044,7 @@ public class $className extends ${module.initializerName}Base {
     }
   }
 
-  @Inject
+  @${c.name('Inject')}
   public void setClusterSingleton(ClusterSingleton clusterSingleton) {
     this.clusterSingleton = clusterSingleton;
   }

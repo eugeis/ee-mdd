@@ -32,7 +32,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'Receiver' : 'com.siemens.ra.cg.pl.common.base.cdi', 'Cache' : 'com.siemens.ra.cg.pl.common.base.cache', 'DeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
   'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'IntegerEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
   'StringEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'DeltaCacheImpl' : 'com.siemens.ra.cg.pl.common.base.cache', 'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
-  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', '@Manager' : 'com.siemens.ra.cg.pl.common.base.annotations', 'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'DiffIds' : 'com.siemens.ra.cg.pl.common.base.cache', 'ExceptionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
+  'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core', 'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'DiffIds' : 'com.siemens.ra.cg.pl.common.base.cache', 'ExceptionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion', 'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util',
   'Button' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'DialogView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'TextInput' : 'com.siemens.ra.cg.pl.uif.widget', 'Table' : 'com.siemens.ra.cg.pl.uif.widget',
   'ContextMenu' : 'com.siemens.ra.cg.pl.uif.widget', 'RootType' : 'com.siemens.ra.cg.pl.common.base.cdi.root.RootScoped', 'RootScoped' : 'com.siemens.ra.cg.pl.common.base.cdi.root',
@@ -43,7 +43,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'ClusterSingleton' : 'com.siemens.ra.cg.pl.env.integ', 'ModuleInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ', 'DbSchemaGenerator' : 'com.siemens.ra.cg.pl.common.ejb.schemagen',
   'ReconnectServiceProvider' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'ServiceLocatorFactory' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'Internal' : 'com.siemens.ra.cg.pl.common.base.cdi',
   'TransactionProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'TraceProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'ProfileManager' : 'com.siemens.ra.cg.pl.common.profile.core',
-  'ApplicationInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ', 'ApplicationMeta' : 'com.siemens.ra.cg.pl.env.integ', 'BaseTestCase' : 'com.siemens.ra.cg.pl.common.base.testcase'] as TreeMap
+  'ApplicationInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ', 'ApplicationMeta' : 'com.siemens.ra.cg.pl.env.integ', 'BaseTestCase' : 'com.siemens.ra.cg.pl.common.base.testcase', 'ManagerMemAbstract' : 'com.siemens.ra.cg.pl.common.ejb.core.mem'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
