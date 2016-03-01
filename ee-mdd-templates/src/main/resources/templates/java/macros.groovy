@@ -156,8 +156,8 @@ templates ('macros') {
   template('propSettersBasicType', body: ''' <% item.props.each { prop -> if (prop.writable) { %>
   @Override <% if (prop.multi && prop.typeBasicType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public void set${prop.cap}(<% if (prop.multi) { %>${c.name('List')}<$prop.type.name><% } else { %>$prop.type.name<% } %> $prop.name) {
-    this.$prop.name = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeBasicType) { %>($prop.typeEjbMember(c))<% } %>$prop.name;
+  public void set${prop.cap}(${prop.computedType(c)} $prop.name) {
+    this.$prop.name = <% if (prop.multi && prop.typeBasicType) { %>(List)<% } else if (prop.typeEjb) { %>(${prop.typeEjbMember(c)})<% } %>$prop.name;
   }<% } } %>''')
 
 
@@ -2030,7 +2030,7 @@ ${macros.generate('implOperations', c)}
   
   template('factory', body: '''{{imports}}
 @${c.name('Alternative')}
-public abstract class $className extends $c.baseClass<${c.name(item.cap)}> implements $item.n.cap.factory {
+public abstract class $className extends ${c.name(c.baseClass)}<${c.name(item.cap)}> implements $item.n.cap.factory {
 
   protected $className() {
   }
@@ -2337,7 +2337,8 @@ public class $className extends $item.n.cap.baseBean {
 ${macros.generate('implOperations', c)}
 }''')
   
-  template('commandsMem', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %>
+  template('commandsMem', body: '''{{imports}}
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; def idProp = item.idProp %>
 /** Memory implementation of {@link $commands.name} */
 <% if (commands.base) { %>@${c.name('Alternative')}<% }else { %>@${c.name('ApplicationScoped')}
 @Manager
@@ -2433,18 +2434,19 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
 
   ${macros.generate('setPublisher', c)}
 
-  @Inject
+  @${c.name('Inject')}
   public void setFactory($item.n.cap.factory factory) {
     super.setFactory(factory);
   }
 }''')
   
-  template('findersMem', body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp %>
+  template('findersMem', body: '''{{imports}}
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; def idProp = item.idProp %>
 /** Memory implementation of {@link $finders.name} */
 <% if (finders.base) { %>@${c.name('Alternative')}<% }else { %>@${c.name('ApplicationScoped')}
 @Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
-public ${finders.base?'abstract ':''}class $className extends ManagerMemAbstract<${idProp.type.name}, $item.cap> implements $finders.name {
+public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerMemAbstract')}<${idProp.type.name}, $item.cap> implements $finders.name {
   protected Event<${item.n.cap.event}> publisher;<% finders.counters.each { op -> %>
 
   @Override
@@ -2514,35 +2516,38 @@ public ${finders.base?'abstract ':''}class $className extends ManagerMemAbstract
 
   ${macros.generate('setPublisher', c)}
 
-  @Inject
+  @${c.name('Inject')}
   public void setFactory($item.n.cap.factory factory) {
     super.setFactory(factory);
   }
 }''')
   
-  template('commandsMemExtends', body: '''{{imports}}<% def commands = item.commands; c.manager = commands %>
+  template('commandsMemExtends', body: '''{{imports}}
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; c.manager = commands %>
 /** Memory implementation of {@link $commands.name} */
 @${c.name('ApplicationScoped')}
-${c.name('@Manager')}
+@Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
 public class $className extends $commands.n.cap.baseMem {
   ${macros.generate('implOperationsManager', c)}
 }
 ''')
   
-  template('findersMemExtends', body: '''{{imports}}<% def finders = item.finders; c.manager = finders %>
+  template('findersMemExtends', body: '''{{imports}}
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; c.manager = finders %>
 /** Memory implementation of {@link $finders.name} */
 @${c.name('ApplicationScoped')}
-${c.name('@Manager')}
+@Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
 public class $className extends $manager.n.cap.baseMem {
   ${macros.generate('implOperationsManager', c)}
 }
 ''')
   
-  template('implCommands', body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
+  template('implCommands', body: '''{{imports}}
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
 /** JPA implementation of {@link commands.name} */
-<% if (commands.base) { %>@Alternative<% }else { %>${c.name('@Manager')}
+<% if (commands.base) { %>@Alternative<% }else { %>@Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
@@ -7930,7 +7935,7 @@ public class $className extends ${xmlController.n.cap.baseImpl} {
 public class $className extends ${c.name('EventImpl')}<${item.name}> {
   private static final long serialVersionUID = 1L;
 
-  public $item.n.cap.event(${item.name} object, ActionType type, String source) {
+  public $item.n.cap.event(${item.name} object, ${c.name('ActionType')} type, String source) {
     super(object, type, source, ${item.name}.class);
     setUriPrefix(${item.name}.URI_PREFIX);
   }
@@ -8584,7 +8589,7 @@ public class $className {
   
   template('setPublisher', body: '''
   @Inject
-  public void setPublisher(@${component.capShortName} @Backend ${c.name('Event')}<${item.n.cap.event}> publisher) {
+  public void setPublisher(@${component.capShortName} @${c.name('Backend')} ${c.name('Event')}<${item.n.cap.event}> publisher) {
     this.publisher = publisher;
   }''')
   
@@ -8637,7 +8642,7 @@ Object[] mlParameters = new Object[] { ret.$c.idProp.getter, ret.getNaturalKey()
   
   template('sendMlEvent', body: '''
     forceVersionUpdate();
-    $item.n.cap.event event = new $citem.n.cap.event(ret, ActionType.UPDATE, source);
+    $item.n.cap.event event = new $citem.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
     event.initMlKey(${module.capShortName}Ml.ML_BASE, ${module.capShortName}Ml.${c.op.underscored}, mlParameters);
     fireEvent(event);''')
   
@@ -8661,7 +8666,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
   
   template('fireEventEntity', body: '''
   @Override
-  public void fireEvent($item.cap entity, ActionType actionType) {
+  public void fireEvent($item.cap entity, ${c.name('ActionType')} actionType) {
     forceVersionUpdate();
     $item.n.cap.event event = new ${item.n.cap.event}(entity, actionType, source);
     initMlKey(event);
@@ -8670,7 +8675,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
   
   template('fireEventEntities', body: '''
 @Override
-  public void fireEvent(List<$item.cap> entities, ActionType actionType) {
+  public void fireEvent(List<$item.cap> entities, ${c.name('ActionType')} actionType) {
     forceVersionUpdate();
     $item.n.cap.event event = new ${item.n.cap.event}(entities, actionType, source);
     initMlKey(event);
@@ -8679,7 +8684,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
   
   template('fireEvent', body: '''
   @Override
-  public void fireEvent(ActionType actionType) {
+  public void fireEvent(${c.name('ActionType')} actionType) {
     $item.n.cap.event event = new ${item.n.cap.event}(actionType, source);
     initMlKey(event);
     fireEvent(event);
@@ -8687,13 +8692,13 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
   
   template('publisherSendMlEvent', body: '''
     forceVersionUpdate();
-    $item.n.cap.event event = new $item.n.cap.event(ret, ActionType.UPDATE, source);
+    $item.n.cap.event event = new $item.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
     event.initMlKey(${component.capShortName}Ml.ML_BASE, ${component.capShortName}Ml.${c.op.mlKeyConstant}, mlParameters);
     publisher.fire(event);''')
   
   template('initMlKeyForEntityEvent', body: '''
 private void initMlKey($item.n.cap.event event) {
-    List<$item.cap> entities = event.getObjectList();
+    ${c.name('List')}<$item.cap> entities = event.getObjectList();
     boolean multiple = entities.size() != 1;
     String key;
     switch (event.getType()) {
@@ -8711,7 +8716,7 @@ private void initMlKey($item.n.cap.event event) {
     default:
       return;
     }
-    Object[] params = multiple ? CollectionUtils.EMPTY_ARRAY : new Object[] { entities.get(0).getId(), entities.get(0).getNaturalKey() };
+    Object[] params = multiple ? ${c.name('CollectionUtils')}.EMPTY_ARRAY : new Object[] { entities.get(0).getId(), entities.get(0).getNaturalKey() };
     event.initMlKey(${module.capShortName}Ml.ML_BASE, key, params);
   }''')
   
