@@ -44,7 +44,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'ReconnectServiceProvider' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'ServiceLocatorFactory' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'Internal' : 'com.siemens.ra.cg.pl.common.base.cdi',
   'TransactionProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'TraceProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'ProfileManager' : 'com.siemens.ra.cg.pl.common.profile.core',
   'ApplicationInitializerBase' : 'com.siemens.ra.cg.pl.env.bridge.integ', 'ApplicationMeta' : 'com.siemens.ra.cg.pl.env.integ', 'BaseTestCase' : 'com.siemens.ra.cg.pl.common.base.testcase', 'ManagerMemAbstract' : 'com.siemens.ra.cg.pl.common.ejb.core.mem',
-  'ManagerAbstract' : 'com.siemens.ra.cg.pl.common.ejb.core'] as TreeMap
+  'ManagerAbstract' : 'com.siemens.ra.cg.pl.common.ejb.core', 'StringLink' : 'com.siemens.ra.cg.pl.common.base.model'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->

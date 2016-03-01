@@ -980,11 +980,10 @@ class EnhancerForJava {
         properties[key]
       }
       
-      getPropLinks << {
-        ->
+      propLinks << { Context c ->
         def key = System.identityHashCode(delegate) + 'propLinks'
         if(!properties.containsKey(key)) {
-          properties[key] = delegate.params.collect { it.multi ? "new StringLink<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new StringLink<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})" }.join(', ')
+          properties[key] = delegate.params.collect { it.multi ? "new ${c.name('StringLink')}<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new ${c.name('StringLink')}<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})" }.join(', ')
         }
         properties[key]
       }

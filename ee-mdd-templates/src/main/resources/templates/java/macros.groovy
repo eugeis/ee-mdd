@@ -1540,7 +1540,7 @@ import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${it
 public class $className extends ${c.name('EventImpl')}<${item.name}> {
   private static final long serialVersionUID = 1L;
 
-  public $item.n.cap.event(${item.name} object, ActionType type, String source) {
+  public $item.n.cap.event(${item.name} object, ${c.name('ActionType')} type, String source) {
     super(object, type, source, ${item.name}.class);
     setUriPrefix(${item.name}.URI_PREFIX);
   }
@@ -2156,7 +2156,7 @@ public class $className extends ${item.n.cap.factoryBase} {
   }
 
   @Override
-  public $item.cap newInstance() {<% if (multiProps) { %>
+  public ${c.name(item.cap)} newInstance() {<% if (multiProps) { %>
     ${item.cap}${c.bean} ret = new ${item.cap}${c.bean}();<% multiProps.each { prop -> def propType = prop.typeEntity ? prop.typeEjbMember(c) : prop.type.name; %>
     ret.set${prop.cap}(new ArrayList<${propType}>());<% } %>
     return ret;<% } else { %>
@@ -2235,8 +2235,8 @@ public abstract class $className extends ${item.cap}Builder<$item.n.cap.entity> 
   }
   <% item.propsRecursive.each { prop-> if (!prop.derived) { if (prop.multi) { %>
   @SafeVarargs
-  public final $item.n.cap.beanBuilder with$prop.cap(Builder<${prop.relTypeEjb(c)}>... toAdd) {
-    List<${prop.relTypeEjb(c)}> instances = new ${c.name('ArrayList')}<>();
+  public final $item.n.cap.beanBuilder with$prop.cap(${c.name('Builder')}<${prop.relTypeEjb(c)}>... toAdd) {
+    ${c.name('List')}<${prop.relTypeEjb(c)}> instances = new ${c.name('ArrayList')}<>();
     for (Builder<${prop.relTypeEjb(c)}> builder : toAdd) {
       instances.add(builder.build());
     }
@@ -2546,8 +2546,8 @@ public class $className extends $manager.n.cap.baseMem {
   
   template('implCommands', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
-/** JPA implementation of {@link commands.name} */
-<% if (commands.base) { %>@Alternative<% }else { %>@Manager
+/** JPA implementation of {@link $commands.name} */
+<% if (commands.base) { %>@${c.name('Alternative')}<% }else { %>@Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
@@ -2557,13 +2557,13 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% commands.creators.each { op-> %>
 
   @Override
-  @Transactional
+  @${c.name('Transactional')}
   ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op-> %>
 
   @Override
   @Transactional
   public ${op.return} ${op.name}(${op.signature(c)}) {
-    executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks});
+    executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks(c)});
   }<% } %><% commands.operationsNotManager.each { op -> if (op.body) { c.op = op; %>
 
   @Override<% if (op.transactional) { %>
@@ -2649,8 +2649,9 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   }
 }''')
   
-  template('implFinders', body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp %><% def refs = finders.props %>
-/** JPA implementation of {@link finders.name} */
+  template('implFinders', body: '''{{imports}}
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; def idProp = item.idProp %><% def refs = finders.props %>
+/** JPA implementation of {@link $finders.name} */
 <% if (finders.base) { %>@Alternative<% }else { %>@Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
@@ -2662,13 +2663,13 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks});
+    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks(c)});
     return ret.longValue();
   }<% } %><% finders.existers.each { op-> %>
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks});
+    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks(c)});
     return ret > 0;
   }<% } %><% finders.finders.each { op-> %>
 <% if(op.oneOfPropsRelationId) { %>
@@ -2676,7 +2677,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    $op.returnTypeExternal ret = findBy${op.unique?'Unique':''}Properties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks});
+    $op.returnTypeExternal ret = findBy${op.unique?'Unique':''}Properties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks(c)});
     return ret;
   }
 
@@ -2686,7 +2687,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
   }<% if(op.oneOfPropsRelationId) { %>*/<% } %><% } %><% finders.operationsNotManager.each { op -> if (op.body) { c.op = op %>
 
   @Override<% if (op.transactional) { %>
-  @Transactional<% } %><% if (op.rawType) { %>
+  @${c.name('Transactional')}<% } %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   ${macros.generate('operationRawType',c)}<% } } %><% if (item.ordered) { def orderProp = item.resolveProp('order'); %>
 
@@ -7940,24 +7941,24 @@ public class $className extends ${xmlController.n.cap.baseImpl} {
   ${macros.generate('implOperations', c)}
 }''')
   
- template('event', body: '''{{imports}}
+ template('event', body: '''{{imports}}<% def aal = module.facets['aal'] %>
 /** Event object for @$item.name */
-public class $className extends ${c.name('EventImpl')}<${item.name}> {
+public class $className extends ${c.name('EventImpl')}<${c.name(item.name)}> {
   private static final long serialVersionUID = 1L;
 
   public $item.n.cap.event(${item.name} object, ${c.name('ActionType')} type, String source) {
-    super(object, type, source, ${item.name}.class);
-    setUriPrefix(${item.name}.URI_PREFIX);
+    super(object, type, source, ${item.name}.class);<% if(aal) { %>
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %>
   }
 
   public $item.n.cap.event(ActionType type, String source) {
-    super(type, source, ${item.name}.class);
-    setUriPrefix(${item.name}.URI_PREFIX);
+    super(type, source, ${item.name}.class);<% if(aal) { %>
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %>
   }
 
-  public $item.n.cap.event(List<${item.name}> objectList, ActionType type, String source) {
-    super(objectList, type, source, ${item.name}.class);
-    setUriPrefix(${item.name}.URI_PREFIX);
+  public $item.n.cap.event(${c.name('List')}<${item.name}> objectList, ActionType type, String source) {
+    super(objectList, type, source, ${item.name}.class);<% if(aal) { %>
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %<
   }
 }''')
  
