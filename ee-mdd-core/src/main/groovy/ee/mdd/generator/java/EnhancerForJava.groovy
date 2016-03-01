@@ -466,6 +466,18 @@ class EnhancerForJava {
 
 
     Entity.metaClass {
+      
+      
+      getMlKeyConstant << {
+        ->
+        delegate.underscored
+
+      }
+      
+      getMlKey << {
+        ->
+        delegate.underscored.toLowerCase()
+      }
 
       jpaMetasForEntity << { Context c ->
         def key = System.identityHashCode(delegate) + 'jpaMetasforEntity'
@@ -1284,10 +1296,12 @@ class EnhancerForJava {
           def ret = false
           def prop = delegate
           def opposite = prop.opposite
-          if(opposite && opposite.multi && !prop.multi) {
-            ret = true
-          } else if (!opposite && !prop.multi) {
-            ret = true
+          if(prop.typeEntity) {
+            if(opposite && opposite.multi && !prop.multi) {
+              ret = true
+            } else if (!opposite && !prop.multi) {
+              ret = true
+            }
           }
           properties[key] = ret
         }

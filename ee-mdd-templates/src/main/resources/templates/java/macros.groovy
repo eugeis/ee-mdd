@@ -2551,10 +2551,10 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = it
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
-public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<${idProp.type}, $item.cap> implements $commands.name {
+public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${c.name(item.cap)}> implements ${c.name(commands.name)} {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
-  protected $ref.type.name $ref.type.uncap;<% } %><% commands.creators.each { op-> %>
+  protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% commands.creators.each { op-> %>
 
   @Override
   @Transactional
@@ -2621,6 +2621,8 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
 
   ${macros.generate('fireEventEntity', c)}
 
+  ${macros.generate('fireEventWithIds', c)}
+
   ${macros.generate('fireEventEntities', c)}
 
   ${macros.generate('fireEvent', c)}
@@ -2636,7 +2638,7 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
 
   ${macros.generate('setPublisher', c)}<% refs.each { ref -> %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set${ref.name}($ref.name $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
   }<% } %>
@@ -2653,10 +2655,10 @@ public ${commands.base?'abstract ':''}class $className extends ManagerAbstract<$
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
-public ${finders.base?'abstract ':''}class $className extends ManagerAbstract<${idProp.type}, $item.cap> implements $finders.name {
+public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${c.name(item.cap)}> implements ${c.name(finders.name)} {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
-  protected $ref.type.name $ref.type.uncap;<% } %><% finders.counters.each { op-> %>
+  protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% finders.counters.each { op-> %>
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
@@ -2693,6 +2695,8 @@ public ${finders.base?'abstract ':''}class $className extends ManagerAbstract<${
   ${macros.generate('fillOrder', c)}<% } %>
 
   ${macros.generate('fireEventEntity', c)}
+
+  ${macros.generate('fireEventWithIds', c)}
 
   ${macros.generate('fireEventEntities', c)}
 
@@ -3484,14 +3488,20 @@ public class $className extends ${item.n.cap.constantsBase} {
 public class $className {
   //base name for '$item.name' resource bundle
   public static final String ML_BASE = "${component.artifact}.ml_${component.artifact}";<% item.modules.each { depModule -> if(depModule.name != 'shared') { depModule.entities.each { def entity -> def finders = entity.finders; def commands = entity.commands;  %>
-  public static final String $entity.underscored = "${entity.underscored.toLowerCase()}";<% if ( (commands || finders) && !entity.virtual ) { commands.updates.each { def op -> %>
+  public static final String $entity.mlKeyConstant = "${entity.mlKey}";<% if ( (commands || finders) && !entity.virtual ) { %>
+  public static final String ${entity.mlKeyConstant}_CREATED = "${entity.mlKey}_created";
+  public static final String ${entity.mlKeyConstant}_CREATED_MULTIPLE = "${entity.mlKey}_created_multiple";
+  public static final String ${entity.mlKeyConstant}_UPDATED = "${entity.mlKey}_updated";
+  public static final String ${entity.mlKeyConstant}_UPDATED_MULTIPLE = "${entity.mlKey}_updated_multiple";
+  public static final String ${entity.mlKeyConstant}_DELETED = "${entity.mlKey}_deleted";
+  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updates.each { def op -> %>
   public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } %><% depModule.containers.each { def container -> %>
   public static final String $container.underscored = "${container.underscored.toLowerCase()}";
   public static final String ${container.underscored}_IMPORTED = "${container.underscored.toLowerCase()}_imported";
   public static final String ${container.underscored}_IMPORT_FAILED = "${container.underscored.toLowerCase()}_import_failed";
   public static final String ${container.underscored}_DELETED = "${container.underscored.toLowerCase()}_deleted";<% } } %>
   <% depModule.configs.each { def config -> %>
-  public static final String $config.underscored = "${config.underscored.toLowerCase()};
+  public static final String $config.underscored = "${config.underscored.toLowerCase()}";
   public static final String ${config.underscored}_UPDATED = "${config.underscored.toLowerCase()}_updated";<% } } %>
 //StateMachine constants 
   <% item.modules.each { depModule -> depModule.stateMachines.each { sm -> sm.conditions.collect { cond -> cond.underscored+"_FAIL" }.each { failMl -> %> 
@@ -8673,8 +8683,17 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
     fireEvent(event);
   }''')
   
+  template('fireEventWithIds', body: '''<% def idProp = c.item.idProp %>
+  @Override
+  public void fireEventWithIds(List<$idProp.type.name> ids, ${c.name('ActionType')} actionType) {
+    $item.n.cap.event event = new ${item.n.cap.event}(actionType, source);
+    initMlKey(event);
+    fillIds(event, ids);
+    fireEvent(event);
+  }''')
+  
   template('fireEventEntities', body: '''
-@Override
+  @Override
   public void fireEvent(List<$item.cap> entities, ${c.name('ActionType')} actionType) {
     forceVersionUpdate();
     $item.n.cap.event event = new ${item.n.cap.event}(entities, actionType, source);
@@ -8721,8 +8740,8 @@ private void initMlKey($item.n.cap.event event) {
   }''')
   
   template('setEntityManager', body: '''
-  @Inject
-  public void setEntityManager(@${component.capShortName} EntityManager entityManager) {
+  @${c.name('Inject')}
+  public void setEntityManager(@${component.capShortName} ${c.name('EntityManager')} entityManager) {
     this.entityManager = entityManager;
   }''')
   
