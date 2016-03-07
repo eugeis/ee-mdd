@@ -1862,7 +1862,7 @@ public ${controller.base?'abstract ':''}class $className implements ${c.name(con
 
   protected void convertToInternalAndImportNew${entityProp.type.cap}s($item.cap container) {
     boolean fireEvent = false;
-    List<entityProp.type.cap> newEntities = converter.convert${entityProp.type.cap}sToInternal(container.get${entityProp.type.cap}s().findNew());
+    List<${entityProp.type.cap}> newEntities = converter.convert${entityProp.type.cap}sToInternal(container.get${entityProp.type.cap}s().findNew());
     ${entityProp.type.commands.uncap}.updateAll(newEntities, fireEvent);
   }<% } %><% item.props.each { entityProp -> %>
 
@@ -1898,8 +1898,8 @@ public ${controller.base?'abstract ':''}class $className implements ${c.name(con
     $item.cap container = cache.get$item.cap();
     if (container != null) {<% item.props.each { entityProp -> %>
       $entityProp.type.cache.cap $entityProp.type.cache.uncap = container.get${entityProp.type.cap}s();
-      ${c.name('Map')}<${entityProp.type.idProp.type}, Long> ${entityProp.type.uncap}VersionsInDb = ${entityProp.type.finders.uncap}.findVersionsByIds(${entityProp.type.cache.uncap}.getKeys());
-      List<${entityProp.type.idProp.type}> ${entityProp.type.uncap}sOutOfSync = ${entityProp.type.cache.uncap}.findOutOfSync(${entityProp.type.uncap}VersionsInDb);
+      ${c.name('Map')}<${entityProp.type.idProp.type.name}, Long> ${entityProp.type.uncap}VersionsInDb = ${entityProp.type.finders.uncap}.findVersionsByIds(${entityProp.type.cache.uncap}.getKeys());
+      ${c.name('List')}<${entityProp.type.idProp.type.name}> ${entityProp.type.uncap}sOutOfSync = ${entityProp.type.cache.uncap}.findOutOfSync(${entityProp.type.uncap}VersionsInDb);
       if (${c.name('CollectionUtils')}.isNotEmpty(${entityProp.type.uncap}sOutOfSync)) {
         resetCache();
         return;
@@ -7958,7 +7958,7 @@ public class $className extends ${c.name('EventImpl')}<${c.name(item.name)}> {
 
   public $item.n.cap.event(${c.name('List')}<${item.name}> objectList, ActionType type, String source) {
     super(objectList, type, source, ${item.name}.class);<% if(aal) { %>
-    setUriPrefix(${item.name}.URI_PREFIX);<% } %<
+    setUriPrefix(${item.name}.URI_PREFIX);<% } %>
   }
 }''')
  

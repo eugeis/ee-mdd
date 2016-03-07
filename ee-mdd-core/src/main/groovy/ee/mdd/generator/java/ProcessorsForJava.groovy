@@ -21,6 +21,7 @@ import ee.mdd.model.Element
 import ee.mdd.model.component.Module
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -31,13 +32,13 @@ class ProcessorsForJava {
     def outType = c.outputType
     def outPurp = c.outputPurpose
     def defaultType = (outType.logic ? true : false)
-    def defaultPurp = (outPurp.production ? true : false)
+    def defaultPurpose = (outPurp.production ? true : false)
     def modules = c.component.modules
     def targetLayout = c.targetLayout
 
     if(targetLayout.equals('standard')) {
     
-      if(defaultPurp) {
+      if(defaultPurpose) {
         
         if(outType.logic || outType.integ) {
           c.module
@@ -53,23 +54,17 @@ class ProcessorsForJava {
           modules.find { it.name.equals('resource') }
         }
         
-      } else if (defaultType) {
-        
-        if(outPurp.simulation) {
-          modules.find { it.name.equals('simulation') }
-        } else if(outPurp.production) {
-          modules.find { it.name.equals('production') }
-        } else if(outPurp.test) {
-          modules.find { it.name.equals('test') }
-        }
-        
+      } else if(outPurp.simulation) {
+        modules.find { it.name.equals('test') }
+      } else if(outPurp.test) {
+        modules.find { it.name.equals('test') }
       } else {
         c.module
       }  
     
     } else if (targetLayout.equals('shared')) {
     
-      if(defaultPurp) {
+      if(defaultPurpose) {
     
         if(outType.logic || outType.integ || outType.api || outType.apiImpl || outType.shared) {
           modules.find { it.name.equals('shared') } 
@@ -77,16 +72,13 @@ class ProcessorsForJava {
           modules.find { it.name.equals('ui') }
         }
           
-      } else if (defaultType) {
-      
-        if(outPurp.simulation) {
-          modules.find { it.name.equals('simulation') }
-        } else if(outPurp.production) {
-          modules.find { it.name.equals('production') }
-        } else if(outPurp.test) {
-          modules.find { it.name.equals('test') }
-        }
+      } else if(outPurp.simulation) {
+        modules.find { it.name.equals('test') }
+      } else if(outPurp.test) {
+        modules.find { it.name.equals('test') }
       } 
+    } else if (targetLayout.equals('single')) {
+      modules.find {it.name.equals('backend') }  
     } else {
       c.module
     }
