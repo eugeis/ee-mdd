@@ -30,6 +30,7 @@ class Component extends StructureUnit {
   Realm realm
   ComponentProfile componentProfile
   UserProfile userProfile
+  String group
   
 	protected boolean init() {
 		if(!namespace) { namespace = new Namespace(name: key ?: name); namespace.checkAndInit(this) }

@@ -8878,4 +8878,20 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd" vers
     <entry name="java:/jms/cg/${component.uncapShortName}/NotificationTopic"/>
 </jms-topic>''')
   
+  template('build', body: '''
+apply plugin: 'maven'
+apply plugin: 'idea'
+apply plugin: 'groovy'
+
+group = '$component.group'
+version = 'dev-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+  $item.dependencies
+}''')
+  
 }
