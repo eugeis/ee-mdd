@@ -18,7 +18,7 @@
  * @author Eugen Eisler
  */
 
-extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
+extModule(name: 'EeCommonBase', namespace: 'ee.common', artifact: 'ee-common-base') {
   ['EntityIfc' : 'ee.common.model', 'EntityImpl' : 'ee.common.model',
   'Labeled' : 'ee.common.model', 'ConnectionEvent' : 'ee.common.model', 'LinkedObjectCache' : 'ee.common.cache',
   'Finder' : 'ee.common.core', 'MultiTypeEventListener' : 'ee.common.core', 'ServiceLocator' : 'ee.common.locator',
@@ -37,13 +37,13 @@ extModule(name: 'EeCommonBase', artifact: 'ee-common-base') {
   }
 }
 
-extModule(name: 'EeCommonBaseJpa', artifact: 'ee-common-base_jpa') {
+extModule(name: 'EeCommonBaseJpa', namespace: 'ee.common.jpa', artifact: 'ee-common-base_jpa') {
   ['EntityJpa' : 'ee.common.jpa'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
 
-extModule(name: 'EeCommonJms', artifact: 'ee-common-jms') {
+extModule(name: 'EeCommonJms', namespace: 'ee.common.jms', artifact: 'ee-common-jms') {
   ['JmsSendExecutor' : 'ee.common.jms', 'JmsSender' : 'ee.common.jms',
     'JmsDestinationConfig' : 'ee.common.jms',
     'JmsMessagingAdapterTestCase' : 'ee.common.jms',

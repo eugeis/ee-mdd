@@ -22,7 +22,7 @@
  
 def nameToNamespace = ['StateFlowType' : 'ee.common.statemachine'] as TreeMap
 
-extModule(name: 'Sm') {
+extModule(name: 'Sm', namespace: 'ee.common.statemachine', artifact: 'ee-common-base') {
   nameToNamespace.each { n, ns ->
     extType(name: n, namespace: ns)
   }

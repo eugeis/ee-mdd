@@ -20,11 +20,17 @@
  * @author Niklas Cappelmann
  */
 
-def nameToNamespace = ['Test': 'org.junit', 'After' : 'org.junit','Before': 'org.junit', 'BeforeClass' : 'org.junit', 'Assert': 'static junit.framework.Assert.*', 'RunWith' : 'org.junit.runner',
-  'Mock' : 'org.mockito', 'MockitoJUnitRunner' : 'org.mockito.runners'] as TreeMap
+def nameToNamespace = ['Test': 'org.junit', 'After' : 'org.junit','Before': 'org.junit', 'BeforeClass' : 'org.junit', 'Assert': 'static junit.framework.Assert.*', 'RunWith' : 'org.junit.runner'
+  ] as TreeMap
 
-extModule(name: 'test') {
+extModule(name: 'JUnit', namespace: 'org.junit', artifact: 'junit', version: '4.12') {
   nameToNamespace.each { n, ns ->
+    extType(name: n, namespace: ns)
+  }
+}
+
+extModule(name: 'MockitoCore', namespace: 'org.mockito', artifact: 'mockito-core', version: '1.9.5') {
+  ['Mock' : 'org.mockito', 'MockitoJUnitRunner' : 'org.mockito.runners'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }

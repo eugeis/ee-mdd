@@ -19,14 +19,28 @@
   * @author Eugen Eisler
   * @author Niklas Cappelmann
   */
- 
-def nameToNamespace = ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject',
-  'Alternative' : 'javax.enterprise.inject', 'Event' : 'javax.enterprise.event', 'Observes' : 'javax.enterprise.event', 'Reception' : 'javax.enterprise.event',
-  'Resource' : 'javax.annotation', 'PostConstruct' : 'javax.annotation', 'Inject' : 'javax.inject', 'Provider' : 'javax.inject', 'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*',
-  'IF_EXISTS' : 'static javax.enterprise.event.Reception.*', 'Instance' : 'javax.enterprise.inject', 'Default' : 'javax.enterprise.inject'] as TreeMap
 
-extModule(name: 'Cdi') {
-  nameToNamespace.each { n, ns ->
+ extModule(name: 'CdiApi', namespace: 'javax.enterprise', artifact: 'cdi-api', version: '1.2') {
+  ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject','Alternative' : 'javax.enterprise.inject',
+   'Event' : 'javax.enterprise.event', 'Observes' : 'javax.enterprise.event', 'Reception' : 'javax.enterprise.event', 
+   'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*', 'IF_EXISTS' : 'static javax.enterprise.event.Reception.*',
+   'Instance' : 'javax.enterprise.inject', 'Default' : 'javax.enterprise.inject'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
+
+extModule(name: 'AnnotationApi', namespace: 'javax.annotation', artifact: 'annotation-api', version: '1.2') {
+  ['Resource' : 'javax.annotation', 'PostConstruct' : 'javax.annotation'].each { n, ns ->
+    extType(name: n, namespace: ns)
+  }
+}
+
+extModule(name: 'Inject', namespace: 'javax.inject', artifact: 'inject', version: '1') {
+  ['Inject' : 'javax.inject', 'Provider' : 'javax.inject', 'Qualifier' : 'javax.inject'].each { n, ns ->
+    extType(name: n, namespace: ns)
+  }
+}
+
+
+  
+

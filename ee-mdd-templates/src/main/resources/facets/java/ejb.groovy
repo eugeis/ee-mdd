@@ -25,7 +25,7 @@ def nameToNamespace = ['Stateless' : 'javax.ejb', 'Remote' : 'javax.ejb', 'Trans
                        'Singleton' : 'javax.ejb', 'Startup' : 'javax.ejb', 'TransactionManagement' : 'javax.ejb', 'TransactionManagementType' : 'javax.ejb',
                        'Schedule' : 'javax.ejb'] as TreeMap
 
-extModule(name: 'Ejb') {
+extModule(name: 'EjbApi', namespace: 'javax.ejb', artifact: 'jboss-ejb-api_3.2_spec', version: '1.0.0.Final') {
   nameToNamespace.each { n, ns ->
     extType(name: n, namespace: ns)
   }

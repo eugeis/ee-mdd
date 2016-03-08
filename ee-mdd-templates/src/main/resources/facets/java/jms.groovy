@@ -22,7 +22,7 @@
 
 def nameToNamespace = ['ConnectionFactory' : 'javax.jms', 'MessageListener' :'javax.jms', 'Destination' : 'javax.jms', 'Topic' : 'javax.jms'] as TreeMap
 
-extModule(name: 'Jms') {
+extModule(name: 'JmsApi', namespace: 'javax.jms', artifact: 'jms-api', version: '2.0') {
   nameToNamespace.each { n, ns ->
     extType(name: n, namespace: ns)
   }
