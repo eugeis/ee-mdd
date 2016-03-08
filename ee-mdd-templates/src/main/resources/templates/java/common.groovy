@@ -53,8 +53,8 @@ templates ('common') {
   templates ('modelApi',
   items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-    template('ifcEntity', appendName: true, type: API, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifcEntity', c)}''')
-    template('ifcEntityExtends', appendName: true, type: API, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
+    template('ifcEntity', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifcEntity', c)}''')
+    template('ifcEntityExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
   }
   
   templates('ifcFactory',

@@ -8504,16 +8504,16 @@ public class $className extends ${module.capShortName}CacheBase {
 }''')
   
   template('cacheSynchronizerPeriodic', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
-@Singleton
+@${c.name('Singleton')}
 public class $className {<% cachedContainers.each { container -> def controller = container.controller %>
   private $controller.cap $controller.uncap;<% } %>
 
-  @Schedule(minute = "*/2", hour = "*")
+  @${c.name('Schedule')}(minute = "*/2", hour = "*")
   public void synchronizeCache() {<% cachedContainers.each { container -> def controller = container.controller %>
     ${controller.uncap}.synchronizeCache();<% } %>
   }
   <% cachedContainers.each { container -> def controller = container.controller %>
-  @Inject
+  @${c.name('Inject')}
   public void set$controller.cap($controller.cap $controller.uncap) {
     this.$controller.uncap = $controller.uncap;
   }<% } %>
