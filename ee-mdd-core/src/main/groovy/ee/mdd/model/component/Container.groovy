@@ -25,6 +25,8 @@ package ee.mdd.model.component
 class Container extends DataType {
   Controller controller
   XmlController xmlController
+  boolean clientCache = false
+  boolean cacheOverride = false
 
   def add(Controller item) {
     controller = super.add(item)

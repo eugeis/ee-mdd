@@ -42,8 +42,8 @@ templates ('macros') {
   protected ${c.name('List')}<${prop.typeEjbMember(c)}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
-  template('refsMember', body: '''<% def members = [] %><% item.operations.each { delegate -> if(delegate.ref) { if(!members.contains(delegate.ref.parent)) { %>
-  protected ${c.name(delegate.ref.parent.name)} $delegate.ref.parent.uncap;<% } %><% members.add(delegate.ref.parent) %><% } } %>''')
+  template('refsMember', body: '''<% item.props.each { member -> if(member.typeCompilationUnit) { %>
+  protected ${c.name(member.cap)} $member.uncap;<% } } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember(c)}> $idProp.uncap;<% } else { %>

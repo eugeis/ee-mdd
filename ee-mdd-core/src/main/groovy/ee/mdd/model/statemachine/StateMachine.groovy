@@ -112,6 +112,10 @@ class StateMachine extends Composite {
   def add(StateEvent item) {
     stateEvent = super.add(item);
   }
+  
+  def add(Entity item) {
+    _entity = super.add(item);
+  }
  
   def add(History item) {
     println "Enabling history tracking for entity $item.entityRef"; super.add(item); history = item

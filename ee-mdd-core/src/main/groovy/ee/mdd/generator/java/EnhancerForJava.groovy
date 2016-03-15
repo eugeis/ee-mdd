@@ -1557,6 +1557,20 @@ class EnhancerForJava {
         }
         properties[key]
       }
+      
+      isTypeCompilationUnit << {
+        ->
+        def key = System.identityHashCode(delegate) +'typeCompilationUnit'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(CompilationUnit.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
 
       isTypeBasicType << {
         ->

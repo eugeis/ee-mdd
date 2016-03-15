@@ -47,7 +47,7 @@ templates ('common') {
   templates('build',
   items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-    template('build', appendName: true, body: '''<% if (component) { %><% c.path = "${component.artifact}-${module.name}/build.gradle" %>${macros.generate('build', c)}<% } %>''')
+    template('build', appendName: true, body: '''<% if (component) { %><% c.path = "${component.artifact}-${module.key}/build.gradle" %>${macros.generate('build', c)}<% } %>''')
   }
     
   templates ('modelApi',

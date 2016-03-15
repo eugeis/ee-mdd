@@ -27,6 +27,7 @@ class Operation extends LogicUnit {
   boolean transactional = false
   boolean override = false
   String signatureTestValues = ''
+  String signatureNamesExternal
 
   String getNameExternal() {
     name

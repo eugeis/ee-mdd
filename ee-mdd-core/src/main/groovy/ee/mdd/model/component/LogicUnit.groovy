@@ -15,7 +15,7 @@
  */
 package ee.mdd.model.component
 
-import ee.mdd.model.Body;
+import ee.mdd.model.Body
 
 
 /**
@@ -31,7 +31,7 @@ class LogicUnit extends Body {
   String deriveParamsLogicName() {
     paramsLogicName = ''
     params.each {
-      paramsLogicName += 'And'+it.cap
+      paramsLogicName += 'And' + it.cap
     }
     paramsLogicName -= 'And'
   }

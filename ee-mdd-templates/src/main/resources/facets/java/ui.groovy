@@ -22,7 +22,7 @@
  
 def nameToNamespace = ['BaseModel' : 'ee.common.ui'] as TreeMap
 
-extModule(name: 'Ui', namespace: 'ee.common.ui', artifactId: 'EeCommonUi') {
+extModule(name: 'Ui', namespace: 'ee.common.ui', artifact: 'EeCommonUi') {
   nameToNamespace.each { n, ns ->
     extType(name: n, namespace: ns)
   }

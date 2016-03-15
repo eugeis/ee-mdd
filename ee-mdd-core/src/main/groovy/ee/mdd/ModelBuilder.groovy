@@ -83,12 +83,14 @@ import ee.mdd.model.realm.Realm
 import ee.mdd.model.realm.RealmGroup
 import ee.mdd.model.realm.RealmRole
 import ee.mdd.model.realm.RealmUser
+import ee.mdd.model.realm.RealmWorkstationType
 import ee.mdd.model.statemachine.Action
 import ee.mdd.model.statemachine.Condition
 import ee.mdd.model.statemachine.Context
 import ee.mdd.model.statemachine.Event
 import ee.mdd.model.statemachine.History
 import ee.mdd.model.statemachine.State
+import ee.mdd.model.statemachine.StateEvent
 import ee.mdd.model.statemachine.StateMachine
 import ee.mdd.model.statemachine.StateMachineController
 import ee.mdd.model.statemachine.Transition
@@ -175,10 +177,11 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def componentProfile = new CompositeFactory(beanClass: ComponentProfile)
   private def userProfile = new CompositeFactory(beanClass: UserProfile)
 
-  private def realm = new CompositeFactory(beanClass: Realm, childFactories: ['group', 'role', 'user'])
+  private def realm = new CompositeFactory(beanClass: Realm, childFactories: ['group', 'role', 'user', 'workstationType'])
   private def realmGroup = new CompositeFactory(beanClass: RealmGroup)
   private def realmRole = new CompositeFactory(beanClass: RealmRole)
   private def realmUser = new CompositeFactory(beanClass: RealmUser)
+  private def realmWorkstationType = new CompositeFactory(beanClass: RealmWorkstationType)
 
   private def externalModule = new CompositeFactory(beanClass: ExternalModule, childFactories: ['extType'], parent: module)
   private def prop = new PropFactory(parent: attr)
@@ -218,11 +221,12 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryOnSelect = new MddFactory(beanClass: OnSelect, childFactories: [], parent: factoryListener)
 
   //StateMachine
-  private def factoryStateMachine = new CompositeFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'event', 'state', 'history', 'stateMachineController', 'context'])
+  private def factoryStateMachine = new CompositeFactory(beanClass: StateMachine, childFactories: ['controller', 'action', 'condition', 'enumType', 'entity', 'event', 'state', 'stateEvent', 'history', 'stateMachineController', 'context'])
   private def factoryAction = new MddFactory(beanClass: Action, childFactories:[], parent: cu)
   private def factoryCondition = new MddFactory(beanClass: Condition, childFactories:[], parent: cu)
   private def factoryEvent = new MddFactory(beanClass: Event, childFactories: [], parent: cu)
   private def factoryState = new MddFactory(beanClass: State, childFactories: ['on'], parent: lu)
+  private def factoryStateEvent = new MddFactory(beanClass: StateEvent, childFactories: [], parent: cu)
   private def factoryTransition = new MddFactory(beanClass: Transition, childFactories: [])
   private def factoryHistory = new MddFactory(beanClass: History, childFactories: [], parent: lu)
   private def factoryStateMachineController = new MddFactory(beanClass: StateMachineController, childFactories: [], parent: controller)
@@ -316,6 +320,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'group', realmGroup
     registerFactory 'role', realmRole
     registerFactory 'user', realmUser
+    registerFactory 'workstationType', realmWorkstationType
 
     //UI
     registerFactory 'view', factoryView
@@ -352,6 +357,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'condition', factoryCondition
     registerFactory 'event', factoryEvent
     registerFactory 'state', factoryState
+    registerFactory 'stateEvent', factoryStateEvent
     registerFactory 'on', factoryTransition
     registerFactory 'history', factoryHistory
     registerFactory 'stateMachineController', factoryStateMachineController

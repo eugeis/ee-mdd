@@ -29,6 +29,7 @@ class DataType extends CompilationUnit {
   List<Index> indexes
   boolean event = false
   boolean xmlBinding = false
+  boolean toShared = false
 
   def add(Finders item) {
     finders = super.add(item)

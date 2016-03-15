@@ -10,6 +10,7 @@ class Transition extends Element {
   List<String> conditions = []
   List<String> notConditions = []
   List<String> groups = []
+  List<String> workstationTypes = []
   State state
   Event event, redirect
   List<Action> actionObjs
@@ -17,6 +18,7 @@ class Transition extends Element {
   List<Condition> conditionObjs
   List<Condition> notConditionObjs
   List<RealmGroup> groupObjs
+  //List<RealmWorkstationType> workstationTypeObjs
   boolean fireEvent = true
   
   boolean init() {
