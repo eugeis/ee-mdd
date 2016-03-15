@@ -15,8 +15,7 @@
  */
 package ee.mdd.model.component
 
-
-
+import ee.mdd.model.Element
 
 /**
  *
@@ -53,11 +52,31 @@ class CompilationUnit extends Type {
     }
     n
   }
-  
+
+  Element find(Closure matcher) {
+    Element ret = super.find(matcher)
+    if(!ret && superUnit) {
+      ret = superUnit.find(matcher)
+    }
+    ret
+  }
+
+  List findAll(Closure matcher) {
+    def ret = super.findAll(matcher)
+    if(superUnit) {
+      ret.addAll(superUnit.findAll(matcher))
+    }
+    ret
+  }
+
   Prop resolveProp(String propName) {
     Prop ret = props.find { it.name == propName }
-    if(!ret && superUnit) { ret = superUnit.resolveProp(propName) }
-    if(!ret) { println "Prop '$propName' can't be resolved in $name" }
+    if(!ret && superUnit) {
+      ret = superUnit.resolveProp(propName)
+    }
+    if(!ret) {
+      println "Prop '$propName' can't be resolved in $name"
+    }
     ret
   }
 
@@ -84,5 +103,4 @@ class CompilationUnit extends Type {
       generics = []
     }; generics << super.add(item)
   }
-  
 }
