@@ -49,7 +49,12 @@ class GeneratorFactoryBase {
   Model deriveModel(Model model) {
     //create props for delegates
     model.findAllRecursiveDown { OperationRef.isInstance(it) }.each { OperationRef d ->
-      d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+      if(d.ref) {
+        d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
+      else {
+        println "Delegate $d.name was not resolved"
+      }
+    }
     model
   }
 

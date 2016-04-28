@@ -19,6 +19,7 @@ import ee.mdd.model.Composite
 import ee.mdd.model.Element
 
 
+
 /**
  *
  * @author Eugen Eisler
@@ -32,6 +33,7 @@ class GlobalResolveHandler implements ResolveHandler {
   Map<String, Object> resolved
   Map<String, List<Object>> notResolvedToItems = [:]
   Map<String, List<Object>> notResolvedPathToItems = [:]
+  Map<String, List<Object>> notResolvedPathRefToResolvers = [:]
 
   void onElement(Element el) {
     if (type.isInstance(el)) {

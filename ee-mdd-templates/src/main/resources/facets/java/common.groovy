@@ -22,6 +22,8 @@
 
 def primitiveTypes = [
   'int',
+  'byte',
+  'short',
   'long',
   'float',
   'double',
@@ -31,11 +33,12 @@ def primitiveTypes = [
   'Float',
   'Double',
   'Boolean',
-  'String'
+  'String',
+  'byte[]'
 ].sort()
 
-def nameToNamespace = ['Comparator' : 'java.util', 'Date': 'java.util', 'List' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util', 'ArrayList' : 'java.util',
-  'HashMap' : 'java.util' , 'ConcurrentHashMap' : 'java.util.concurrent', 'Serializable': 'java.io', 'HashSet' : 'java.util', 'Collection' : 'java.util', 'Collections' : 'java.util',
+def nameToNamespace = ['Comparator' : 'java.util', 'Date': 'java.util', 'List' : 'java.util', 'List<String>' : 'java.util', 'Map' : 'java.util', 'Set' : 'java.util', 'ArrayList' : 'java.util',
+  'HashMap' : 'java.util' , 'LinkedHashMap' : 'java.util', 'ConcurrentHashMap' : 'java.util.concurrent', 'Serializable': 'java.io', 'HashSet' : 'java.util', 'Collection' : 'java.util', 'Collections' : 'java.util',
   'RunAs' : 'javax.annotation.security', 'PreDestroy' : 'javax.annotation', 'Executors' : 'java.util.concurrent',
   'ScheduledExecutorService' : 'java.util.concurrent' , 'ScheduledFuture' : 'java.util.concurrent', 'TimeUnit' : 'java.util.concurrent', 'ElementType' : 'java.lang.annotation',
   'Retention' : 'java.lang.annotation', 'RetentionPolicy' : 'java.lang.annotation', 'Target' : 'java.lang.annotation', 'Method' : 'java.lang.reflect',

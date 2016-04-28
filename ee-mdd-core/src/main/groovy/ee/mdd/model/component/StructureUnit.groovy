@@ -38,7 +38,7 @@ class StructureUnit extends Composite implements BuilderAware {
     'facade',
     'cfg'] as Set
 
-  String artifact, key, version
+  String artifact, key, superKey, version
   Namespace namespace
   Names n
   Map<String, Facet> facets = [:]

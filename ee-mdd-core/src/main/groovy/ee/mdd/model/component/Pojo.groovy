@@ -25,4 +25,5 @@ package ee.mdd.model.component
  */
 class Pojo extends CompilationUnit {
   boolean event = false
+  boolean toShared = false
 }

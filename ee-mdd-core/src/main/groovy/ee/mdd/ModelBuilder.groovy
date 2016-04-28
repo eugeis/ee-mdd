@@ -131,7 +131,7 @@ import ee.mdd.model.ui.Widget
 class ModelBuilder extends AbstractFactoryBuilder {
   private Facets facets = new Facets()
   private def type = new CompositeFactory(beanClass: Type, childFactories: ['meta'])
-  private def cache = new CompositeFactory(beanClass: Cache, parent: cu)
+  private def cache = new CompositeFactory(beanClass: Cache, childFactories: ['op'], parent: cu)
   private def channel = new CompositeFactory(beanClass: Channel, childFactories: ['meta', 'message'])
   private def cu = new CompositeFactory(beanClass: CompilationUnit, childFactories: ['constr', 'prop', 'op', 'delegate', 'cache'], parent: type)
   private def dataType = new CompositeFactory(beanClass: DataType, childFactories: ['finder', 'commands', 'index'], parent: cu)
@@ -148,7 +148,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def operationRef = new CompositeFactory(beanClass: OperationRef, valueProperty: 'ref', parent: operation)
   private def facet = new FacetFactory(beanClass: Facet, childFactories: ['extModule', 'facet'], facets: facets)
   private def su = new FacetAwareFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'], facets: facets)
-  private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update', 'prop'], parent: controller)
+  private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update', 'prop', 'op'], parent: controller)
   private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'realm'], parent: su)
   private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
   private def config = new CompositeFactory(beanClass: Config, parent: dataType, childFactories: ['configController'])
@@ -204,7 +204,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryLabel = new MddFactory(beanClass: Label, childFactories: ['onSelect'], parent: factoryControl)
   private def factoryHeader = new MddFactory(beanClass: Header, childFactories: ['onSelect'], parent: factoryControl)
   private def factoryPanel = new MddFactory(beanClass: Panel, childFactories: ['onSelect'], parent: factoryControl)
-  private def factorySpinner = new MddFactory(beanClass: Spinner, childFactories: ['onSelect'], parent: factoryControl)
+  private def factorySpinner = new MddFactory(beanClass: Spinner, childFactories: ['onSelect', 'onChange'], parent: factoryControl)
   private def factoryTextField = new MddFactory(beanClass: TextField, childFactories: ['onChange'], parent: factoryControl)
   private def factoryGroupBoxHeader = new MddFactory(beanClass: GroupBoxHeader, childFactories: ['onSelect'], parent: factoryControl)
   private def factoryTimeField = new MddFactory(beanClass: TimeField, childFactories: ['onChange'], parent: factoryControl)
@@ -233,7 +233,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryContext = new MddFactory(beanClass: Context, childFactories: [], parent: pojo)
 
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
-  childFactories: ['dialog', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
+  childFactories: ['dialog', 'header', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'groupContentFrame', 'groupBoxHeader', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
   childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine', 'interf'], parent: su)
 
