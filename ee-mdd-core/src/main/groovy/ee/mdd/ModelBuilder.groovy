@@ -32,6 +32,8 @@ import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Cache
 import ee.mdd.model.component.Channel
+import ee.mdd.model.component.Command
+import ee.mdd.model.component.CommandFactory
 import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
@@ -148,6 +150,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def operationRef = new CompositeFactory(beanClass: OperationRef, valueProperty: 'ref', parent: operation)
   private def facet = new FacetFactory(beanClass: Facet, childFactories: ['extModule', 'facet'], facets: facets)
   private def su = new FacetAwareFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'], facets: facets)
+  private def command = new CompositeFactory(beanClass: Command, parent: dataType)
+  private def commandFactory = new CompositeFactory(beanClass: CommandFactory, parent: dataType)
   private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update', 'prop', 'op'], parent: controller)
   private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'realm'], parent: su)
   private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
@@ -275,6 +279,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'body', body
     registerFactory 'cache', cache
     registerFactory 'cond', condition
+    registerFactory 'command' command
+    registerFactoty 'commandFactory' commandFactory
     registerFactory 'component', component
     registerFactory 'config', config
     registerFactory 'constr', constructor
