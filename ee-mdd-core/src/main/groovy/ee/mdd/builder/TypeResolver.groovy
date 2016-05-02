@@ -44,8 +44,14 @@ class TypeResolver {
         afterSetter(node, resolved)
       }
     } : { node, resolved ->
-      node[name] = converter ? converter(resolved) : resolved; if(afterSetter) {
-        afterSetter(node, resolved)
+      if(Closure.isInstance(node)) {
+        node(converter ? converter(resolved) : resolved); if(afterSetter) {
+          afterSetter(node, resolved)
+        }
+      } else {
+        node[name] = converter ? converter(resolved) : resolved; if(afterSetter) {
+          afterSetter(node, resolved)
+        }
       }
     }
   }

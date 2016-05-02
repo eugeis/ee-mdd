@@ -29,6 +29,7 @@ class Attribute extends Element {
   def value
   boolean multi = false
   boolean generic = false
+  boolean isEnum = false
   
   Names getN() {
     if (!n) {

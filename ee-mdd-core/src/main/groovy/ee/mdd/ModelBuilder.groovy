@@ -150,7 +150,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def operationRef = new CompositeFactory(beanClass: OperationRef, valueProperty: 'ref', parent: operation)
   private def facet = new FacetFactory(beanClass: Facet, childFactories: ['extModule', 'facet'], facets: facets)
   private def su = new FacetAwareFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'], facets: facets)
-  private def command = new CompositeFactory(beanClass: Command, parent: dataType)
+  private def command = new CompositeFactory(beanClass: Command, childFactories: ['prop'], parent: dataType)
   private def commandFactory = new CompositeFactory(beanClass: CommandFactory, parent: dataType)
   private def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update', 'prop', 'op'], parent: controller)
   private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'realm'], parent: su)
@@ -239,7 +239,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
   private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
   childFactories: ['dialog', 'header', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'groupContentFrame', 'groupBoxHeader', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
   private CompositeFactory module = new CompositeFactory(beanClass: Module,
-  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine', 'interf'], parent: su)
+  childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'command', 'commandFactory', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine', 'interf'], parent: su)
 
 
   ModelBuilder(Closure postInstantiateDelegate = null) {
@@ -279,8 +279,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     registerFactory 'body', body
     registerFactory 'cache', cache
     registerFactory 'cond', condition
-    registerFactory 'command' command
-    registerFactoty 'commandFactory' commandFactory
+    registerFactory 'command', command
+    registerFactory 'commandFactory', commandFactory
     registerFactory 'component', component
     registerFactory 'config', config
     registerFactory 'constr', constructor

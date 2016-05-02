@@ -21,6 +21,7 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  */
 class EnumType extends DataType {
+  String naturalKeyBody = 'return name();'
 	List<Literal> literals = []
 	Literal defaultLiteral
 

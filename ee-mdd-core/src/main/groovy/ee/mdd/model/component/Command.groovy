@@ -28,18 +28,11 @@ class Command extends DataType {
   boolean hideInCommandList = false
   boolean allowChangesNotPropogated = false
 
-  List<Attribute> attrs = []
-
   boolean init() {
     super.init()
     if(actionType == null){
       actionType = 'update'
     }
   }
-  
-  def add(Attribute item) {
-    if(!attrs) {
-      attrs = [] 
-    }; attrs << super.add(item) 
-  }
+
 }
