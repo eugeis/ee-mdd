@@ -32,7 +32,7 @@ class FacetFactory extends FacetAwareFactory {
   protected Object createInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) {
     Object ret
     if(beanClass) {
-      ret = super.newInstance(attributes)
+      ret = beanClass.newInstance()
     } else if(facetName) {
       ret = new Facet(name: facetName)
     } else {

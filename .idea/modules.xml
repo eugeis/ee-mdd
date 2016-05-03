@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-core/ee-mdd-core.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-core/ee-mdd-core.iml" group="ee-mdd-core" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-core/ee-mdd-core_main.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-core/ee-mdd-core_main.iml" group="ee-mdd-core" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-core/ee-mdd-core_test.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-core/ee-mdd-core_test.iml" group="ee-mdd-core" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-gradle/ee-mdd-gradle.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-gradle/ee-mdd-gradle.iml" group="ee-mdd-gradle" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-gradle/ee-mdd-gradle_main.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-gradle/ee-mdd-gradle_main.iml" group="ee-mdd-gradle" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-gradle/ee-mdd-gradle_test.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-gradle/ee-mdd-gradle_test.iml" group="ee-mdd-gradle" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-templates/ee-mdd-templates.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-templates/ee-mdd-templates.iml" group="ee-mdd-templates" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-templates/ee-mdd-templates_main.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-templates/ee-mdd-templates_main.iml" group="ee-mdd-templates" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ee-mdd-templates/ee-mdd-templates_test.iml" filepath="$PROJECT_DIR$/.idea/modules/ee-mdd-templates/ee-mdd-templates_test.iml" group="ee-mdd-templates" />
+    </modules>
+  </component>
+</project>
