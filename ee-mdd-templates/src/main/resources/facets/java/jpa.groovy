@@ -33,7 +33,7 @@ def nameToNamespace = ['NamedQuery' : 'javax.persistence',
   'Transactional' : 'javax.transaction', 'Version' : 'javax.persistence', 'EntityManager' : 'javax.persistence', 'EntityManagerFactory' : 'javax.persistence',
   'PersistenceContext' : 'javax.persistence'] as TreeMap
 
-extModule(name: 'Jpa', namespace: 'javax.persistence', artifact: 'persistence', version: '2.1.0') {
+extModule(name: 'Jpa', artifact: 'persistence', version: '2.1.0') {
   nameToNamespace.each { n, ns ->
     extType(name: n, namespace: ns)
   }

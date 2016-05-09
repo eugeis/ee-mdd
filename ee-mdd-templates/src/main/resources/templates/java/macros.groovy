@@ -3033,7 +3033,7 @@ public interface $className extends ${className}Base {
 }''')
   
   template('implCommandsFactory', body: '''{{imports}}<% def commands = module.entities.findAll { !it.virtual && it.commands }.collect { it.commands }; %>
-public abstract class $className implements ${module.capShortName}ManagerFactory {<% commands.each { command -> %>
+public abstract class $className implements ${module.capShortName}CommandsFactory {<% commands.each { command -> %>
 
   protected $command.name $command.uncap;<% }; commands.each { command -> %>
 
@@ -3042,7 +3042,7 @@ public abstract class $className implements ${module.capShortName}ManagerFactory
     return $command.uncap;
   }<% };  commands.each { command -> %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set$command.cap($command.name $command.uncap) {
     this.$command.uncap= $command.uncap;
   }<% }; module.entities.findAll { it.virtual }.each { entity -> def children = module.entities.findAll { it.superUnit == entity &&( (it.finders && !it.virtual) || (it.virtual)) }; %>
@@ -8529,8 +8529,7 @@ public abstract class $className {<% module.entities.each { entity -> if (!entit
 
   public static ${entity.n.cap.EntityBuilder} a${entity.n.cap.entity}() {
     return new ${entity.n.cap.EntityBuilder}();
-  }
-  <% } } %><% module.containers.each { container -> %>
+  } <% } } %><% module.containers.each { container -> %>
   public static ${container.cap}Builder a${container.cap}() {
     return new ${container.cap}Builder();
   }<% } %>
@@ -8538,20 +8537,19 @@ public abstract class $className {<% module.entities.each { entity -> if (!entit
   
   template('builderFactoryExtends', body: '''{{imports}}
 /** Implementation of builder factory for '$module.name' */
-public class $className extends ${module.capShortName}BuilderFactoryBase {
-  <% module.entities.each { entity -> if (!entity.virtual) { %>
+public class $className extends ${module.capShortName}BuilderFactoryBase { <% module.entities.each { entity -> if (!entity.virtual) { %>
+
   public static ${entity.n.cap.implBuilder} a${entity.name}() {
     return ${module.capShortName}BuilderFactoryBase.a${entity.name}();
   }
 
   public static ${entity.n.cap.EntityBuilder} a${entity.n.cap.entity}() {
     return ${module.capShortName}BuilderFactoryBase.a${entity.n.cap.entity}();
-  }<% } } %>
-  <% module.containers.each { container -> %>
+  }<% } } %><% module.containers.each { container -> %>
+
   public static ${container.cap}Builder a${container.cap}() {
     return ${module.capShortName}BuilderFactoryBase.a${container.cap}();
-  }
-  <% } %>
+  } <% } %>
 }''')
   
   template('jpaSchemaGenerator', body: '''{{imports}}<% def entity = module.entities.find { !it.virtual } %>
