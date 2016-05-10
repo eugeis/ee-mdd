@@ -34,7 +34,7 @@ templates ('macros') {
   protected ${c.name(prop.type.name)} $prop.uncap;<% } } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %><% if(relationIdProp) { %><% if(relationIdProp.multi) { %>
   protected ${c.name('List')}<${relationIdProp.type.name}> ${prop.uncap}${relationIdProp.cap};<% } else { %>
   protected ${relationIdProp.type.name} ${prop.uncap}${relationIdProp.cap};<% } } } } %>''')
-  
+
   template('propMembers', body:'''<% item.props.each { prop-> %>
   protected ${prop.computedType(c)} $prop.uncap<% if (prop.defaultValue != null) { %> = ${prop.defaultLiteral}<% if (prop.type.name == 'Long' || prop.type.name == 'long') { %>L<% } %><% } %>;<% } %>''')
 
@@ -42,7 +42,7 @@ templates ('macros') {
   protected ${c.name('List')}<${prop.typeEjbMember(c)}> $prop.uncap;<% } else { %>
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
-  template('refsMember', body: '''<% item.props.each { member -> if(member.typeCompilationUnit) { %>
+  template('refsMember', body: '''<% item.props.each { member -> if(member.typeContainer || member.typeController || member.typeFacade) { %>
   protected ${c.name(member.cap)} $member.uncap;<% } } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
@@ -51,7 +51,7 @@ templates ('macros') {
 
   template('multiSuperProps', body: '''<% def props = c.item.multiSuperProps; if(props) { props.each { prop -> if(!prop.primaryKey) { c.prop = prop%>${macros.generate('metaAttributesProp', c)}
   protected<% if(prop.typeEjb) { %> ${c.name('List')}<${prop.type.n.cap.entity}><% } else  { %> ${c.name('List')}<${prop.type.cap}><% } %> $prop.uncap;<% } } } %>''')
-  
+
   template('propsUpdate', body: '''
   public void update($item.cap $item.uncap) {<% item.props.each { prop-> %><% if (item.propSetters) { %>
     $prop.setterMethodName(${item.uncap}.${prop.getter});<% } else { %>
@@ -62,7 +62,7 @@ templates ('macros') {
   @${c.name('Version')}
   @${c.name('Column')}(name = "VERSION")
   protected Long version;<% } %>''')
-  
+
   template('initFullConstructor', body: '''<% item.props.each { prop -> %>
     this.$prop.name = $prop.name;<% } %>''')
 
@@ -80,7 +80,7 @@ templates ('macros') {
   public $className(${constr.signature(c)}) {
     super($constr.call);
   }<% } %>''')
-  
+
   template('superclassConstructor', body: '''public $c.className() {
   super();
  }''')
@@ -104,10 +104,10 @@ templates ('macros') {
   template('propSettersIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable) { %>
 
   void $prop.setter;<% } } %>''')
-  
+
   template('interPropGetters', body: '''<% def prop = c.prop %>${prop.description ? "   /** $prop.description */" : ''}
   ${prop.computedType(c)} <% if( prop.type.name == 'Boolean' || prop.type.name == 'boolean') { %>is<% } else { %>get<%}%>${prop.cap}();''')
-  
+
   template('interPropSetters', body: '''void set${c.prop.cap}(${c.prop.computedType(c)} $c.prop.name);''')
 
   template('propsSettersEntityIfc', body: '''<% item.props.each { prop -> if (prop.api && prop.writable && !prop.typeEntity && prop.name != 'id') { %>
@@ -278,19 +278,19 @@ templates ('macros') {
   public void setVersion(Long version) {
     this.version = version;
   }<% } %>''')
-  
+
   template('initWidgets', body: '''
   @Override
   protected void initWidgets() {
     super.initWidgets();
   }''')
-  
+
   template('onEventSuper', body: '''
   @Override
   public void onEvent(@${c.name('Observes')}(during = ${c.name('AFTER_COMPLETION')}, notifyObserver = ${c.name('IF_EXISTS')})${item.clientCache?' @Internal':''} ${item.cap}Event event) {
     super.onEvent(event);
   }''')
-  
+
   template('methods', body: '''<% item.operations.each { op -> String ret = '' %>
   <% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
@@ -298,7 +298,7 @@ templates ('macros') {
   public ${op.return} $op.name(${op.signature(c)}) {
   ${op.resolveBody(c)}
   }<% } %>''')
-  
+
   template('propMethods', body: '''<% item.props.each { prop-> %>
   <% if (prop.description) { %>
   /*** $prop.description */<% } %>
@@ -308,7 +308,7 @@ templates ('macros') {
   public void ${prop.getSetter()} {
     this.$prop.uncap= $prop.uncap;
   }<% } %><% } %>''')
-  
+
   template('operationRawType', body: '''<% def op = c.op %>public $op.ret.name ${op.name}($op.signature) {
     $op.body
   }''')
@@ -316,18 +316,18 @@ templates ('macros') {
   template('interfaceBody', body: '''<% item.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
-  
+
   template('interfaceBodyController', body: '''<% def controller = item.controller %><% controller.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
-  
+
   template('interfaceBodyCache', body: '''<% item.cache.operations.each { op -> if (!op.override) { %>
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
 
   template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp) { %>
+  ${op.return} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp && op.ref) { %>
   ${op.description?"   /** $op.description */":''}
   ${op.ref.returnTypeExternal(c)} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
@@ -340,7 +340,7 @@ templates ('macros') {
     return false;<% } else if (op.ret) { %>
     return null; <% } %>
   }<% } } %>''')
-  
+
   template('implOperationsController', body: '''<% item.controller.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
@@ -350,7 +350,7 @@ templates ('macros') {
     return false;<% } else if (op.ret) { %>
     return null; <% } %>
   }<% } } %>''')
-  
+
   template('implOperationsManager', body: '''<% c.manager.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
@@ -360,7 +360,7 @@ templates ('macros') {
     return false;<% } else if (op.ret) { %>
     return null; <% } %>
   }<% } } %>''')
-  
+
   template('implOperationsCache', body: ''' <% item.cache.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
@@ -378,7 +378,7 @@ templates ('macros') {
   public $op.ret ${op.name}($op.signature) {
     $op.body
   }<% } } %>''')
-  
+
   template('implOperationsAndDelegatesController', body: ''' <% item.controller.operations.each { op -> if(op.body) { %>
   <% if (c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
@@ -399,8 +399,8 @@ templates ('macros') {
 
 
   //ifcs
-  
-  
+
+
   template('ifcInitializer', body: '''{{imports}}
 public interface $className {
   void init(${c.name('ClusterSingleton')} clusterSingleton);
@@ -547,7 +547,7 @@ public interface $c.className extends $superClassName {
   public interface $className<% if (item.superUnit) { %> extends ${item.superUnit.cap}<% } %> {
     ${macros.generate('interfaceBody', c)}
   }''')
-  
+
   template('ifcModelFactory', body: '''{{imports}}
 /** Factory for all types of '$module.name' */
 public interface $className {<% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
@@ -591,7 +591,7 @@ public interface $className {<% [module.basicTypes, module.entities, module.cont
    */
   public interface $className extends $item.n.cap.base {
   }''')
-  
+
   template('ifcContainerControllerExtends', body: '''{{imports}}<% c.src = true; def controller = item.controller %>
   /**
    * The $controller.name controller provides internal logic operations for the container '$item.name'.<% if (controller.description) { %>
@@ -601,8 +601,8 @@ public interface $className {<% [module.basicTypes, module.entities, module.cont
    */
   public interface $className extends $controller.n.cap.base {
   }''')
-  
-  
+
+
   template('ifcContainerController', body: '''{{imports}}<% c.src = true; def controller = item.controller %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.versions};
@@ -622,7 +622,7 @@ public interface $className extends ${c.name('EventListener')}<${item.cap}> {
   void synchronizeCache();<% } %>
   ${macros.generate('interfaceBodyController', c)}
 }''')
-  
+
   template('ifcConfigController', body: '''{{imports}}<% def controller = item.controller %>
 /** Base interface of {@link $controller.name} */
 public interface $className {<% if(controller.addDefaultOperations) { %>
@@ -631,7 +631,7 @@ public interface $className {<% if(controller.addDefaultOperations) { %>
   $item.cap load();<% } %>
   ${macros.generate('interfaceBodyController', c)}
 }''')
-  
+
   template('ifcConfigControllerExtends', body: '''{{imports}}<% def controller = item.controller %>
 /**
 * The controller $controller.name provides internal logic operations for the config $item.name.<% if (controller.description) { %>
@@ -641,8 +641,8 @@ public interface $className {<% if(controller.addDefaultOperations) { %>
 */
 public interface $className extends $controller.n.cap.base {
 }''')
-  
-  
+
+
 
   template('ifcFinders', body: '''<% if(!c.className) { c.className = item.n.cap.finders } %><% def finders = item.finders; def idProp = item.idProp; %>{{imports}}
   <% if(finders.description) { %>/**
@@ -680,14 +680,14 @@ public interface $className extends $controller.n.cap.base {
       ${op.return} ${op.name}($item.cap entity, ${op.signature(c)}, boolean fireEvent);
 <% } } %>
   }''')
-  
+
   template('ifcCommandsExtends', body: '''<% def commands = item.commands %>
 <% if (commands.description) { %>/**
 * $commands.description
 */<% } else { %>/** The commands provide CRUD operations for entity {@link $item.cap} */<% } %>
 public interface $className extends $item.n.cap.commandsBase {
 }''')
-  
+
   template('ifcFindersExtends', body: '''<% def finders = item.finders %>
 <% if (finders.description) { %>/**
 * $finders.description
@@ -744,7 +744,7 @@ public interface $className extends $item.n.cap.findersBase {
   template('ifcCacheExtends', body: '''{{imports}}
   public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
   }''')
-  
+
   template('ifcDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def cacheClass = item.n.cap.cache; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>
 <% if (superUnit) { cacheSuper = "$superUnit.n.cap.deltaCache<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "${c.name('DeltaCache')}<$idProp.type.name, $type>" }%>
 public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {
@@ -760,7 +760,7 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
   @Override
   public $cacheClass getRemoved();
 }''')
-  
+
   template('ifcDeltaCacheExtends', body: '''{{imports}}
 public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${item.deltaCache.n.cap.base}<${item.simpleGenericSgn}E><% } else { %>$className extends ${item.deltaCache.n.cap.base}<% } %> {
 }''')
@@ -768,7 +768,7 @@ public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E e
 
 
   //classes
-  
+
   template('interfs', body: '''{{imports}}<% def superUnit = item.superUnit %>
 ${item.description?"/*** $item.description */":''}
 public interface $className extends <% if (superUnit) { %>$superUnit.name<% } else { %>${c.name('Serializable')}<% } %> { <% item.props.each { prop -> c.prop = prop %>
@@ -776,7 +776,7 @@ public interface $className extends <% if (superUnit) { %>$superUnit.name<% } el
   ${macros.generate('interPropSetters', c)}<% } %>
   ${macros.generate('interfaceBody', c)}
 }''')
-  
+
   template('serviceEmpty', body: '''{{imports}}
 /** Empty implementation of {@link $item.name} what shall be extended by Test/Mock implementation in order to avoid unnecessary work by extension of the interface. */
 @${c.name('Alternative')}
@@ -794,7 +794,7 @@ public abstract class $className implements $item.name {<% item.operations.each 
     return null;<% } %>
   }<% } %><% } } %>
 }''')
-  
+
   template('serviceProvider', body: '''{{imports}}
 /** Service provider for remote implementation of {@link $item.name} */
 @${c.name('ApplicationScoped')}
@@ -1152,7 +1152,7 @@ public abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${
   }<% } %>
   ${macros.generate('implOperationsCache', c)}
 }''')
-  
+
   template('implDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual? 'E' : c.name(item.cap); def deltaCacheSuper; def deltaCacheSuperGeneric; if (superUnit) { %>
 <% deltaCacheSuper = "${superUnit.n.cap.deltaCacheImpl}"; deltaCacheSuperGeneric = "${deltaCacheSuper}<${item.simpleSuperGenericSgn}${type}>"%><% } else if (idProp.typeLong) { %>
 <% deltaCacheSuper = c.name('LongEntityDeltaCache'); deltaCacheSuperGeneric = "${deltaCacheSuper}<${type}>" %><% } else if (idProp.typeInteger) { %>
@@ -1197,7 +1197,7 @@ public abstract class $className<% if (item.virtual) { %><${item.simpleGenericSg
     return (${cacheType}) super.getRemoved();
   }
 }''')
-  
+
   template('implDeltaCacheExtends', body: '''{{imports}}<% if (item.virtual) { %>@SuppressWarnings("unchecked")
 public abstract class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${item.n.cap.deltaCacheBaseImpl}<${item.simpleGenericSgn}E><% } else { %>public class $className extends ${item.n.cap.deltaCacheBaseImpl}<% } %> {
   private static final long serialVersionUID = 1L;
@@ -1210,7 +1210,7 @@ public abstract class $className<${item.simpleGenericSgn}E extends ${c.name(item
     this(false);
   }
 }''')
-  
+
   template('config', body: '''{{imports}}
 ${item.description?"/*** $item.description */":''}<% if (!item.base) { %>
 ${macros.generate('configAnnotations', c)} <% } %>
@@ -1230,7 +1230,7 @@ public<% if (item.base) {%> abstract<% } %> class $className extends ${c.name('B
   }
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
-  
+
   template('configExtends', body: '''{{imports}}
 ${macros.generate('configAnnotations', c)}
 public class $className extends $item.n.cap.base {
@@ -1238,12 +1238,12 @@ public class $className extends $item.n.cap.base {
   ${macros.generate('superConstructor', c)}
   ${macros.generate('implOperations', c)}
 }''')
-  
+
   template('configAnnotations', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('Config')}<% if (c.item.onlyInClient) { %>
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }))<% } %>''')
-  
+
   template('implController', body: '''{{imports}}<% if (!item.base) { %>
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -1255,7 +1255,7 @@ public ${item.base?'abstract ':''}class $className<% if (item.superUnit) { %> ex
   ${macros.generate('implOperationsAndDelegates', c)}
   ${macros.generate('implInjects', c)}
 }''')
-  
+
   template('implControllerExtends', body: '''{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -1265,7 +1265,7 @@ public class $className extends $item.n.cap.baseImpl {
   ${macros.generate('implOperations', c)}
 }
  ''')
-  
+
   template('implConfigController', body: '''<% def controller = item.controller %>{{imports}}
 <% if (!controller.base) { %>@${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -1305,14 +1305,14 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
     this.$item.uncap = $item.uncap;
   }<% } %>
 }''')
-  
+
   template('eventReceiver', body: '''{{imports}}
 /** Event receiver for JSE environment only  of {@link $item.n.cap.event} */
 @${c.name('ApplicationScoped')}
 public class $className extends Receiver<${item.n.cap.event}> {
   ${macros.generate('onEventSuper', c)}
 }''')
-  
+
   template('implConfigControllerExtends', body: '''<% def controller = item.controller %>{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -1393,12 +1393,12 @@ public class $c.className extends $item.n.cap.deltaBaseImpl {
     super();
   }
 }''')
-  
+
   template('containerDiffExtends', body: '''
 public class $className extends $item.n.cap.diffBase {
   private static final long serialVersionUID = 1L;
 }''')
-  
+
   template('containerDiff', body: '''{{imports}}
 public class $className extends ${c.name('Base')} {
   private static final long serialVersionUID = 1L;<% item.props.each { prop -> %>
@@ -1417,7 +1417,7 @@ public class $className extends ${c.name('Base')} {
     b.append("${prop.type.instancesName}").append(${prop.type.instancesName}).append(SEPARATOR);<% } %>
   }
 }''')
-  
+
   template('containerVersions', body: '''{{imports}}<% if (!item.base) { %>
 /**
 * The container info is used to transfer bundled information about container data between between server and client.
@@ -1439,7 +1439,7 @@ public interface $className extends ${c.name('Serializable')} {
 
   int get${prop.type.cap}sCount();<% } %>
 }''')
-  
+
   template('containerVersionsExtends', body: '''/**
    * The container info is used to transfer bundled information about container data between between server and client.
    * <p>
@@ -1448,7 +1448,7 @@ public interface $className extends ${c.name('Serializable')} {
    */
    public interface $className extends $item.n.cap.versionsBase {
    }''')
-  
+
   template('implContainerVersions', body: '''{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.versions};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.diff};
@@ -1521,7 +1521,7 @@ public ${item.base?'abstract ':''}class $className extends ${c.name('Base')} imp
     b.append("timestamp=").append(${c.name('StringUtils')}.formatDateLong(timestamp));
   }
 }''')
-  
+
   template('implContainerVersionsExtends', body: '''{{imports}}
 public class $className extends $item.n.cap.versionsBaseImpl {
   private static final long serialVersionUID = 1L;
@@ -1532,7 +1532,7 @@ public class $className extends $item.n.cap.versionsBaseImpl {
     super(source);
   }
 }''')
-  
+
   template('containerEvent', body: '''{{imports}}import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.n.cap.delta};
 
@@ -1565,7 +1565,7 @@ public class $className extends ${c.name('EventImpl')}<${item.name}> {
   }
 }
 ''')
-  
+
   template('implContainerController', body: '''{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.event.${item.n.cap.event};<% def controller = item.controller; def refs = []; controller.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
@@ -1926,7 +1926,7 @@ public ${controller.base?'abstract ':''}class $className implements ${c.name(con
 
   ${macros.generate('setPublisher', c)}
 }''')
-  
+
   template('implContainerControllerExtends', body: '''{{imports}}<% def controller = item.controller %>
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -1960,7 +1960,7 @@ public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends
 public ${c.item.virtual?'abstract ':''}class $c.className extends ${item.cap}BaseImpl {<% if (c.serializable) { %>
   private static final long serialVersionUID = 1L;<% } %>
 }''')
-  
+
   template('entityBuilder', body: '''{{imports}}<% def idProp = item.idProp; def idGenerator; if(!item.manualId) { if(idProp.typeLong) { idGenerator = 'AtomicLong' } else if (idProp.typeInteger) { idGenerator = 'AtomicInteger' } } %> 
 public abstract class $className<T extends ${c.name(item.cap)}> implements ${c.name('Builder')}<T> {<% if (idGenerator) { %>
   protected static final ${c.name(idGenerator)} ID_GENERATOR = new $idGenerator();<% } %>
@@ -1986,7 +1986,7 @@ public abstract class $className<T extends ${c.name(item.cap)}> implements ${c.n
     return (${item.cap}Builder<T>) this;
   }<% } } %>
 }''')
-  
+
   template('entityBuilderExtends', body: '''{{imports}}
 public class $className<T extends ${c.name(item.cap)}> extends ${item.cap}BuilderBase<T> {
 
@@ -1994,7 +1994,7 @@ public class $className<T extends ${c.name(item.cap)}> extends ${item.cap}Builde
     super(instance);
   }
 }''')
-  
+
   template('implEntityBuilder', body: '''{{imports}}
 public abstract class $className extends ${item.cap}Builder<$item.n.cap.impl> {<% item.propsRecursive.each { prop -> if (prop.typeEntity && (prop.manyToOne || prop.oneToOne) ) { def relationIdProp = prop.type.idProp %>
 
@@ -2022,12 +2022,12 @@ public abstract class $className extends ${item.cap}Builder<$item.n.cap.impl> {<
     return ($item.n.cap.implBuilder) super.with$prop.cap($prop.name);
   }<% } } } %>
 }''')
-  
+
   template('implEntityBuilderExtends', body: '''
 public class $className extends ${item.n.cap.implBuilderBase} {
 ${macros.generate('implOperations', c)}
 }''')
-  
+
   template('factory', body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${c.name(c.baseClass)}<${c.name(item.cap)}> implements $item.n.cap.factory {
@@ -2047,7 +2047,7 @@ public abstract class $className extends ${c.name(c.baseClass)}<${c.name(item.ca
     return to;
   }
 }''')
-  
+
   template('containerFactory', body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap> implements $item.n.cap.factory {
@@ -2092,11 +2092,11 @@ public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap>
     return to;
   }
 }''')
-  
+
   template('factoryExtends', type: RESOURCE, body: '''{{imports}}
 public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
 }''')
-  
+
   template('implFactory', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
@@ -2112,7 +2112,7 @@ public class $className extends ${item.n.cap.factoryBase} {
     return new ${item.n.cap.impl}();
   }
 }''')
-  
+
   template('implContainerFactory', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
@@ -2143,7 +2143,7 @@ public class $className extends ${item.n.cap.factoryBase} {
     this.modelFactory = modelFactory;
   }
 }''')
-  
+
   template('factoryBean', body: '''{{imports}}<% def multiProps = item.props.findAll { it.multi } %>
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
@@ -2163,7 +2163,7 @@ public class $className extends ${item.n.cap.factoryBase} {
     return new ${item.cap}${c.bean}();<% } %>
   }
 }''')
-  
+
   template('containerFactoryBean', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
@@ -2215,7 +2215,7 @@ public${c.item.virtual?' abstract':''} class $c.className extends ${item.n.cap.b
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}${macros.generate('implOperations', c)}
 }''')
-  
+
   template('entityBeanBuilder', body: '''{{imports}}
 public abstract class $className extends ${item.cap}Builder<$item.n.cap.entity> {
   <% item.propsRecursive.each { prop -> if (prop.type && prop.manyToOne && !prop.type.virtual) { %>
@@ -2264,11 +2264,11 @@ public abstract class $className extends ${item.cap}Builder<$item.n.cap.entity> 
   }
   <% } } } %>
 }''')
-  
+
   template('entityBeanBuilderExtends', body: '''
 public class $className extends ${item.n.cap.beanBuilderBase} {
 }''')
-  
+
 
   template('basicTypeBaseBean', body: '''<% def superUnit = c.item.superUnit %><% if (!c.className) { c.className = item.beanName } %>{{imports}}
 /** JPA representation of {@link $item.name} */${macros.generate('metaAttributesBasicType', c)}
@@ -2299,7 +2299,7 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item.name
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.return} $op.name(${op.signature(c)}) {
     ${op.resolveBody(c)}
-  }<% } } %><% item.operations.each { op -> if(op.delegateOp) { %><% def ref = op.ref; def raw = ref.rawType || (ref.resultExpression && ref.ret.multi && ref.ret.typeEntity) %>
+  }<% } } %><% item.operations.each { op -> if(op.delegateOp && op.ref) { %><% def ref = op.ref; def raw = ref.rawType || (ref.resultExpression && ref.ret.multi && ref.ret.typeEntity) %>
 
   @Override<% if(raw) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
@@ -2336,7 +2336,7 @@ ${macros.generate('metaAttributesService', c)}
 public class $className extends $item.n.cap.baseBean {
 ${macros.generate('implOperations', c)}
 }''')
-  
+
   template('commandsMem', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; def idProp = item.idProp %>
 /** Memory implementation of {@link $commands.name} */
@@ -2439,7 +2439,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
     super.setFactory(factory);
   }
 }''')
-  
+
   template('findersMem', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; def idProp = item.idProp %>
 /** Memory implementation of {@link $finders.name} */
@@ -2521,7 +2521,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
     super.setFactory(factory);
   }
 }''')
-  
+
   template('commandsMemExtends', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; c.manager = commands %>
 /** Memory implementation of {@link $commands.name} */
@@ -2532,7 +2532,7 @@ public class $className extends $commands.n.cap.baseMem {
   ${macros.generate('implOperationsManager', c)}
 }
 ''')
-  
+
   template('findersMemExtends', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; c.manager = finders %>
 /** Memory implementation of {@link $finders.name} */
@@ -2543,7 +2543,7 @@ public class $className extends $manager.n.cap.baseMem {
   ${macros.generate('implOperationsManager', c)}
 }
 ''')
-  
+
   template('implCommands', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
 /** JPA implementation of {@link $commands.name} */
@@ -2648,7 +2648,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
     return ${item.n.cap.entity}.class;
   }
 }''')
-  
+
   template('implFinders', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; def idProp = item.idProp %><% def refs = finders.props %>
 /** JPA implementation of {@link $finders.name} */
@@ -2724,7 +2724,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
     return ${item.n.cap.entity}.class;
   }
 }''')
-  
+
   template('implCommandsExtends', body: '''{{imports}}<% def commands = item.commands; c.manager = commands %>
 /** JPA implementation of {@link $commands.name} */
 @Manager
@@ -2734,7 +2734,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 public class $className extends $commands.n.cap.baseImpl { 
   ${macros.generate('implOperations', c)}
 }''')
-  
+
   template('implFindersExtends', body: '''{{imports}}<% def finders = item.finders; c.manager = finders %>
 /** JPA implementation of {@link $finders.name} */
 @Manager
@@ -2995,7 +2995,7 @@ public class $className extends $item.n.cap.baseImpl {
 
   ${macros.generate('implOperations', c)}
 }''')
-  
+
   template('commandsFactory', body: '''{{imports}}
 /**
  * Commands factory for all commands in ${module.name}.
@@ -3006,7 +3006,7 @@ public interface $className {<% module.entities.each { entity -> if (entity.comm
 
   Commands<${entity.idProp.type.name}, ${entity.cap}${entity.genericWildcardSgn}> get${entity.cap}Commands(${entity.cap}${entity.genericWildcardSgn} $entity.uncap);<% } } %>
 }''')
-  
+
   template('findersFactory', body: '''{{imports}}
 /**
  * Finders factory for all finders in ${module.name}.
@@ -3017,21 +3017,21 @@ public interface $className {<% module.entities.each { entity -> if (entity.find
 
   Finders<${entity.idProp.type.name}, ${entity.cap}${entity.genericWildcardSgn}> get${entity.cap}Finders(${entity.cap}${entity.genericWildcardSgn} $entity.uncap);<% } } %>
 }''')
-  
+
   template('commandsFactoryExtends', body: '''
 /**
  * Commands factory for all commands in ${module.name}.
  */
 public interface $className extends ${className}Base {
 }''')
-  
+
   template('findersFactoryExtends', body: '''
 /**
  * Finders factory for all finders in ${module.name}.
  */
 public interface $className extends ${className}Base {
 }''')
-  
+
   template('implCommandsFactory', body: '''{{imports}}<% def commands = module.entities.findAll { !it.virtual && it.commands }.collect { it.commands }; %>
 public abstract class $className implements ${module.capShortName}CommandsFactory {<% commands.each { command -> %>
 
@@ -3056,7 +3056,7 @@ public abstract class $className implements ${module.capShortName}CommandsFactor
     return ret;
   }<% } %>
 }''')
-  
+
   template('implFindersFactory', body: '''{{imports}}<% def finders = module.entities.findAll { !it.virtual && it.finders }.collect { it.finders }; %>
 public abstract class $className implements ${module.capShortName}ManagerFactory {<% finders.each { finder -> %>
 
@@ -3081,21 +3081,21 @@ public abstract class $className implements ${module.capShortName}ManagerFactory
     return ret;
   }<% } %>
 }''')
-  
+
   template('implCommandsFactoryExtends', body: '''{{imports}}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
 public class $className extends ${module.capShortName}CommandsFactoryBaseImpl {
 }''')
-  
+
   template('implFindersFactoryExtends', body: '''{{imports}}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
 public class $className extends ${module.capShortName}FindersFactoryBaseImpl {
 }''')
-  
+
   template('commandsFactoryLocal', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className {
@@ -3120,7 +3120,7 @@ public class $className {
     this.publisher = publisher;
   }
 }''')
-  
+
   template('findersFactoryLocal', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className {
@@ -3145,7 +3145,7 @@ public class $className {
     this.publisher = publisher;
   }
 }''')
-  
+
   template('commandsFactoryMem', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className {
@@ -3160,7 +3160,7 @@ public class $className {
     return ret;
   }<% } %>
 }''')
-  
+
   template('findersFactoryMem', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className {
@@ -3175,27 +3175,27 @@ public class $className {
     return ret;
   }<% } %>
 }''')
-  
+
   template('commandsFactoryMemExtends', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className extends ${module.capShortName}CommandsFactoryMemoryBase {
 }''')
-  
+
   template('findersFactoryMemExtends', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className extends ${module.capShortName}FindersFactoryMemoryBase {
 }''')
-  
+
   template('commandsFactoryLocalExtends', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className extends ${module.capShortName}CommandsFactoryLocalBase {
 }''')
-  
+
   template('findersFactoryLocalExtends', body: '''{{imports}}
 @${c.name('Alternative')}
 public class $className extends ${module.capShortName}FindersFactoryLocalBase {
 }''')
-  
+
   template('pojo', body: '''{{imports}}
 ${item.description?"/*** $item.description */":''}
 public class $className extends ${c.name('Base')} {
@@ -3208,7 +3208,7 @@ public class $className extends ${c.name('Base')} {
   ${macros.generate('fillToString', c)}
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
-  
+
   template('pojoExtends', body: '''
 ${item.description?"/*** @see $item.n.cap.base  */":''}
 public class $className extends $item.n.cap.base {
@@ -3241,7 +3241,7 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
     if (ordinal < values().length) {
       return values()[ordinal];
     } else {
-      throw new ${c.name('NotFoundException')}("$className(ordinal)", ordinal);
+      throw new ${c.name('ControlguideNotFoundException')}("$className(ordinal)", ordinal);
     }
   }<% if(item.defaultLiteral) { %>
 
@@ -3337,7 +3337,7 @@ public class $className extends ${c.name('JmsSender')} {
     super.setDestination(destination);
   }
 }''')
-  
+
   template('cdiToAal', body: '''{{imports}}<% def aalEntities = module.entities.findAll {it.aal && !it.virtual}; def aalContainers = module.containers.findAll{it.aal} %>
 /** Cdi to Aal bridge for '${module.name}' */
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
@@ -3513,7 +3513,7 @@ public class $className {
 /** Multi language constants for '${c.item.name}' */
 public class $className extends ${className}Base {
 }''')
-  
+
   template('constantsRealm', body: '''<% if (item.realm && !item.realm.empty) { %>
 /** Role related constants for '$item.name' */
 public class $className {
@@ -3535,7 +3535,7 @@ public class $className {
   public void set${ref.cap}(${c.name(ref.name)} $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
   }<% op << ref %><% } } } %>''')
-  
+
   template('implInjectsController', body: ''' <% def op = []; item.controller.operations.each { opRef -> if(opRef.ref) { def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
   @${c.name('Inject')}
@@ -3616,7 +3616,7 @@ public class $c.className {
     ${c.name('assertFalse')}($c.item.cap.${lit.underscored}.is${item.literals[0].cap}());<% } } %>
   }
 }''')
-  
+
   template('constantsTest', purpose: UNIT_TEST, body: '''{{imports}}
 /** Test for Constants for '$module.name' */
 public class ${className} extends ${c.name('BaseTestCase')} {
@@ -3626,7 +3626,7 @@ public class ${className} extends ${c.name('BaseTestCase')} {
     constructorTester.verifyDefaultConstructor(${module.capShortName}Constants.class);
   }
 }''')
-  
+
   template('moduleCacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def cachedContainers =  module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className extends ${c.name('BaseTestCase')} {
 
@@ -3647,11 +3647,11 @@ public abstract class $className extends ${c.name('BaseTestCase')} {
     assertNull(instance.get$container.cap());<% } %>
   }
 }''')
-  
+
   template('moduleCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${module.capShortName}CacheTestBase {
 }''')
-  
+
   template('serviceDelegateTest', purpose: UNIT_TEST, body: '''{{imports}}<% def refs = item.logicUnits %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -3699,7 +3699,7 @@ public class $className {
     verify(${item.uncap}.${op.parent.uncap}).${op.name}($opRef.signatureTestValues);
   }<% } } %>
 }''')
-  
+
   template('serviceDelegateTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -3819,7 +3819,7 @@ public class $className {
     verify(executor).send(event, destination, connectionFactory);
   }<% } %>
 }''')
-  
+
   template('implControllerTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -3833,7 +3833,7 @@ public class $className extends ${c.name('BaseTestCase')} {
   }
 
 }''')
-  
+
   template('implConverterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className {
   protected final static ${module.capShortName}DataFactoryBase DATA_FACTORY;
@@ -3874,11 +3874,11 @@ public class $className {
     }
   }<% } } } %>
 }''')
-  
+
   template('converterTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${className}Impl {
 }''')
-  
+
   template('containerProducerInternalTest', purpose: UNIT_TEST, body: '''{{imports}}
 /** Server CDI container producer for '$module.name' */
 
@@ -3905,7 +3905,7 @@ public class ${className}Test extends ${c.name('BaseTestCase')} {
     assertThat(result, is(container));
   }<% } } %>
 }''')
-  
+
   template('initializerMemTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -3949,7 +3949,7 @@ public class $className extends ${c.name('BaseTestCase')} {
     logAppender.hasReceived(withLogLevel(Level.ERROR));
   }
 }''')
-  
+
   template('initializerImplTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -3971,7 +3971,7 @@ public class ${className} extends ${c.name('BaseTestCase')} {
     constructorTester.verifyDefaultConstructor(${item.n.cap.eventToCdi}.class);
   }
 }''')
-  
+
   template('eventToCdiExternalTest', purpose: UNIT_TEST, body: '''
 public class ${className} extends ${c.name('BaseTestCase')} {
   @Test
@@ -3980,7 +3980,7 @@ public class ${className} extends ${c.name('BaseTestCase')} {
     constructorTester.verifyDefaultConstructor(${module.n.cap.eventToCdiExternal}.class);
   }
 }''')
-  
+
   template('implContainerTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4000,7 +4000,7 @@ public class $className extends ${c.name('BaseTestCase')} {
   }
 
 }''')
-  
+
   template('implContainerTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4026,7 +4026,7 @@ public class $className extends ${item.n.cap.impl}TestBase {
   }
 
 }''')
-  
+
   template('implContainerFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}
 public class ${className}Test extends ${c.name('BaseTestCase')} {
   private $className factory;
@@ -4053,7 +4053,7 @@ public class ${className}Test extends ${c.name('BaseTestCase')} {
     assertThat(container, instanceOf(${item.n.cap.impl}.class));
   }
 }''')
-  
+
   template('implContainerControllerTestExtends', body: '''{{imports}}<% def controller = item.controller %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4063,7 +4063,7 @@ public class $className extends ${controller.name}BaseTestImpl {
   public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
    }
 }''')
-  
+
   template('implContainerControllerTest', body: '''{{imports}}<% def controller = item.controller %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4176,7 +4176,7 @@ public abstract class $className extends ${c.name('BaseTestCase')} {
   }
   <% } %>
 }''')
-  
+
   template('containerControllerDelegateTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller %><% def refs = []; controller.parent.props.each { entityProp -> if(entityProp.type.finders || entityProp.type.commands) { refs.add(entityProp.type) } } %>
 public abstract class $className {
 
@@ -4282,11 +4282,11 @@ public abstract class $className {
     assertEquals(${item.cap}.class, controller.getEventObjectType());
   }
 }''')
-  
+
   template('containerControllerDelegateTestExtends', purpose: UNIT_TEST, body: '''
 public class $className extends ${className}Base {
 }''')
-  
+
   template('implContainerVersionsTest', purpose: UNIT_TEST, body:'''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4313,14 +4313,14 @@ public class $className extends ${c.name('BaseTestCase')} {
     assertThat(versions.get${entity.cap}sCount() == versions.get${entity.cap}s().size(), is(true));
   }<% } %>
 }''')
-  
+
   template('implContainerVersionsTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 public class $className extends ${item.n.cap.versionsImpl}TestBase {
 
 }''')
-  
+
   template('implContainerDeltaTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4335,14 +4335,14 @@ public class $className extends ${c.name('BaseTestCase')} {
   }
 
 }''')
-  
+
   template('implContainerDeltaTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 public class $className extends ${item.n.cap.deltaImplTestBase} {
 
 }''')
-  
+
   template('containerBuilderTest', purpose: UNIT_TEST, body: '''<% def entityNames = item.entities.collect { it.name } as Set; def entityOneToManyNoOppositeProps = [:]; def entityManyToOneProps = [:]; item.entities.each { entity ->
 entityOneToManyNoOppositeProps[entity] = []; entityManyToOneProps[entity] = []; entity.propsRecursive.each { prop -> if (prop.type) {
         if (((prop.oneToMany && !prop.oppositeProp) || (prop.mm)) && entityNames.contains(prop.type.name)) { entityToOneToManyNoOppositeProps[entity] << prop }
@@ -4386,11 +4386,11 @@ public abstract class $className {
     return ($item.n.cap.builder) this;
   }<% } %>
 }''')
-  
+
   template('containerBuilderTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public class $className extends ${item.cap}BuilderBase{
 }''')
-  
+
   template('containerIdsTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4402,7 +4402,7 @@ public class $className extends $item.n.cap.idsTestCase {
   }
 
 }''')
-  
+
   template('containerIdsTestCase', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4414,7 +4414,7 @@ public abstract class $className extends ${c.name('BaseTestCase')} {
     constructorTester.verifyDefaultConstructor(${item.n.cap.ids}.class);
   }
 }''')
-  
+
   template('containerDiffTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4426,7 +4426,7 @@ public class $className extends $item.n.cap.diffTestCase {
   }
 
 }''')
-  
+
   template('containerDiffTestCase', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4438,7 +4438,7 @@ public abstract class $className extends ${c.name('BaseTestCase')} {
     constructorTester.verifyDefaultConstructor(${item.n.cap.diff}.class);
   }
 }''')
-  
+
   template('commandsTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands; def idProp = item.idProp; def idConverter %>
 <% if(idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
 @Alternative
@@ -4479,7 +4479,7 @@ public abstract class $className extends ManagerTestBase<${item.idProp.type.name
     return ret;
   }
 }''')
-  
+
   template('findersTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders; def idProp = item.idProp; def idConverter %>
 <% if(idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
 @Alternative
@@ -4558,17 +4558,17 @@ public abstract class $className extends ManagerTestBase<${item.idProp.type.name
     return ret;
   }
 }''')
-  
+
   template('commandsTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${item.commands.n.cap.baseTestImpl} {
 }''')
-  
+
   template('findersTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${item.finders.n.cap.baseTestImpl} {
 }''')
-  
+
   template('implCommandsFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithCommands = module.entities.findAll { !it.virtual && it.commands }; def commands = entitiesWithCommands.collect { it.commands } %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4592,7 +4592,7 @@ public class $className extends ${c.name('BaseTestCase')} {
     assertThat(currentCommand, is(sameInstance($command.uncap)));
   }<% } %>
 }''')
-  
+
   template('implFindersFactoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def entitiesWithFinders = module.entities.findAll { !it.virtual && it.finders }; def finders = entitiesWithFinders.collect { it.finders } %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4616,7 +4616,7 @@ public class $className extends ${c.name('BaseTestCase')} {
     assertThat(currentFinder, is(sameInstance($finder.uncap)));
   }<% } %>
 }''')
-  
+
   template('commandsLocalTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {
@@ -4629,7 +4629,7 @@ public class $className extends ${commands.name}TestImpl {
     preparedManager = commandsFactory.get${commands.cap}();
   }
 }''')
-  
+
   template('findersLocalTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders %>
 @Alternative
 public class $className extends ${finders.name}TestImpl {
@@ -4642,7 +4642,7 @@ public class $className extends ${finders.name}TestImpl {
     preparedManager = findersFactory.get${finders.cap}();
   }
 }''')
-  
+
   template('commandsMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def commands = item.commands %>
 @Alternative
 public class $className extends ${commands.name}TestImpl {
@@ -4654,7 +4654,7 @@ public class $className extends ${commands.name}TestImpl {
     preparedManager = commandsFactory.get${commands.cap}((Event)publisher);
   }
 }''')
-  
+
   template('findersMemoryTest', purpose: UNIT_TEST, body: '''{{imports}}<% def finders = item.finders %>
 @Alternative
 public class $className extends ${finders.name}TestImpl {
@@ -4666,7 +4666,7 @@ public class $className extends ${finders.name}TestImpl {
     preparedManager = findersFactory.get${finders.cap}((Event)publisher);
   }
 }''')
-  
+
   template('cacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def commands = item.commands; def finders = item.finders; def type = item.virtual?'E':item.cap; def cacheSuper; def idConverter %>
 <% if (idProp.typeLong) { idConverter = 'Integer.valueOf(entityNumber).longValue()' } else if (idProp.typeInteger) { idConverter = 'Integer.valueOf(entityNumber)' } else { idConverter = 'String.valueOf(entityNumber)' }; %>
 <% if (!c.override) { if(superUnit) { cacheSuper = "${superUnit.cache.n.cap.test}<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "CacheTestBase<$idProp.type.name, $type>" } %>
@@ -4711,7 +4711,7 @@ public abstract class <% if (item.virtual) { %>$className<${item.simpleGenericSg
 
   public abstract void test${op.cap}();<% } %>
 }''')
-  
+
   template('cacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% if(c.override) { %>
 public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${item.cache.n.cap.overrideTestBase}<${item.simpleGenericSgn}E><% } else { %>class $className extends ${item.cache.n.cap.overrideTestBase}<% } %> { <% } else { %>
 public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${item.cache.n.cap.testBase}<${item.simpleGenericSgn}E><% } else { %>class $className extends ${item.cache.n.cap.testBase}<% } }%> { <% item.cache.operations.each { op -> %>
@@ -4720,7 +4720,7 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   public void test${op.cap}() {
   }<% } %>
 }''')
-  
+
   template('deltaCacheTest', purpose: UNIT_TEST, body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def idType = idProp.type.name; def type = item.virtual?'E':item.cap; def deltaCacheImpl = item.deltaCache.n.cap.impl; cacheImpl = item.cache.n.cap.impl; def deltaCacheSuper %>
 <% if (superUnit) { deltaCacheSuper = "${superUnit.deltaCache.n.cap.test}<${item.simpleSuperGenericSgn}$type>" } else { deltaCacheSuper = "DeltaCacheTestBase<$idProp.type.name, $type>" } %>
 public abstract class <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${deltaCacheSuper}<% } else { %>$className extends DeltaCacheTestBase<${idType}, ${type}><% } %> {
@@ -4735,7 +4735,7 @@ public abstract class <% if (item.virtual) { %>$className<${item.simpleGenericSg
     return ${cacheImpl}.class;
   }
 }''')
-  
+
   template('deltaCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSgn}E extends ${item.cap}${item.genericSgn}> extends ${item.deltaCache.n.cap.testBase}<${item.simpleGenericSgn}E><% } else { %>class $className extends ${item.deltaCache.n.cap.testBase} <% } %> {
 <% item.deltaCache.operations.each { op -> %>
@@ -4744,7 +4744,7 @@ public <% if (item.virtual) { %>abstract class $className<${item.simpleGenericSg
   public void test${op.cap}() {
   }<% } %>
 }''')
-  
+
   template('implDeltaCacheTest', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4759,14 +4759,14 @@ public class $className extends ${c.name('BaseTestCase')} {
     constructorTester.verifyDefaultConstructor(${item.deltaCache.n.cap.impl}.class);
   }
 }''')
-  
+
   template('implDeltaCacheTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
 public class $className extends ${item.deltaCache.n.cap.implTestBase} {
 
 }''')
-  
+
   template('beanTest', purpose: UNIT_TEST, body: '''{{imports}}<% def multiProp = item.props.find { it.multi }; def props = item.props.findAll{!it.primaryKey}; c.props = props %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability<% if (item.superUnit) { %>
@@ -4931,7 +4931,7 @@ public abstract class $item.beanTestGenericBaseName extends BaseEntityImplTestCa
     assertThat(entity.attributesChanged(), is(false));
   }  <% } } %><% } %><% } %>
 }''')
-  
+
   template('beanTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def multiProp = item.props.find { it.multi }; def props = item.props.findAll {!it.primaryKey} %> 
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -4942,7 +4942,7 @@ public class $item.beanTestGenericName extends ${item.beanTestGenericName}Base {
   public void emptyTest_becauseEclipseDoesNotLikeTestClassWithoutTest() throws Exception {
    }
 }''')
-  
+
   template('stateMachineControllerBaseTest', purpose: UNIT_TEST, body: '''{{imports}}<% def controller = item.controller; def idProp = item.entity.idProp %>
 @${c.name('ApplicationScoped')}
 public abstract class $className {
@@ -5079,25 +5079,25 @@ public abstract class $className {
     this.umTestUtils = umTestUtils;
   }<% } %>
 }''')
-  
+
   template('controllerLocalTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 // TODO: Migrate Weld test classes
 // @${c.name('RunWith')}(LocalWeldRunner.class)
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')} }))
 public class $className extends ${controller.cap}TestImpl {
 }''')
-  
+
   template('controllerMemoryTestInteg', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 // TODO: Migrate Weld test classes
 // @${c.name('RunWith')}(MemoryWeldRunner.class)
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))
 public class $className extends ${controller.cap}TestImpl {
 }''')
-  
+
   template('controllerTest', purpose: UNIT_TEST, body: '''<% def controller = item.controller %>{{imports}}
 public abstract class $className extends ${controller.cap}BaseTestImpl {
 }''')
-  
+
   template('conditionHandlerTest', purpose: UNIT_TEST, body: '''
 public abstract class $className {
 
@@ -5117,7 +5117,7 @@ public abstract class $className {
     }
   }
 }''')
-  
+
   template('conditionHandlerTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5133,7 +5133,7 @@ public class $className extends ${item.cap}TestBase {
 
   // tests
 }''')
-  
+
   template('presenterTest', purpose: UNIT_TEST, body: '''{{imports}}<% def presenter = item.presenter %>
 //CHECKSTYLE_OFF: MethodName
   //'_' allowed in test method names for better readability
@@ -5191,7 +5191,7 @@ public class $className extends PresenterTestCase<$presenter.cap> {
     assertThat(new $presenter.cap(), is(notNullValue()));
   }
 }''')
-  
+
   template('presenterTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def presenter = item.presenter %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5199,7 +5199,7 @@ public class $className extends PresenterTestCase<$presenter.cap> {
 public class $className extends ${presenter.cap}TestBase {
   ${macros.generate('setUpSuper', c)}
 }''')
-  
+
   template('viewModelTest', purpose: UNIT_TEST, body: '''{{imports}}<% def model = item.model %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5233,7 +5233,7 @@ public class $className extends BaseModelTestCase<$model.cap> {
     assertThat(new $model.cap(), is(notNullValue()));
   }
 }''')
-  
+
   template('viewModelTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def model = item.model %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5241,7 +5241,7 @@ public class $className extends BaseModelTestCase<$model.cap> {
 public class $className extends ${model.cap}TestBase {
   ${macros.generate('setUpSuper', c)}
 }''')
-  
+
   template('mediatorTest', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
 public class $className extends ${c.name('BaseTestCase')} {
 protected ${view.domainName}Mediator mediator;<% view.mediatorDelegates.each{ delegate -> %>
@@ -5290,7 +5290,7 @@ protected ${view.domainName}Mediator mediator;<% view.mediatorDelegates.each{ de
   <% } } } %>
 }
 ''')
-  
+
   template('mediatorTestExtends', purpose: UNIT_TEST, body: '''{{imports}}<% def view = item %>
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5302,7 +5302,7 @@ public class $className extends ${className}Base {
   }
 }''')
 
-  
+
   template('viewGuidoTest', purpose: UNIT_TEST, body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
 public abstract class $className extends GuidoViewTestCase<$viewClassName> {
 
@@ -5400,8 +5400,8 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
     assertThat(new ${viewClassName}(), is(notNullValue()));
   }
 }''')
-  
-  
+
+
   template('dialogGuidoTest', purpose: UNIT_TEST, body: '''{{imports}}<% def viewClassName = item.dialog.n.cap.guido; def contentViewClassName = item.n.cap.guido %>
 public abstract class $className extends GuidoViewTestCase<$viewClassName> {
 
@@ -5437,7 +5437,7 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
     assertThat(new ${viewClassName}(), is(notNullValue()));
   }
 }''')
-  
+
   template('guidoTestExtends', purpose: UNIT_TEST, body: '''
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5445,7 +5445,7 @@ public abstract class $className extends GuidoViewTestCase<$viewClassName> {
 public class $className extends ${className}Base {
   ${macros.generate('setUpSuper', c)}
 }''')
-  
+
   template('configTest', purpose: UNIT_TEST, body: '''
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5514,7 +5514,7 @@ public<% if (item.base) {%> abstract<% } %> class $className extends ${c.name('B
   }
 
 }''')
-  
+
   template('configTestExtends', purpose: UNIT_TEST, body: '''{{imports}}
 //CHECKSTYLE_OFF: MethodName
 //'_' allowed in test method names for better readability
@@ -5525,7 +5525,7 @@ public class $className extends ${item.cap}TestBase {
    }
 
 }''')
-  
+
   template('unitTestHelper', body: '''{{imports}}
 public class ${className}<T> extends UnitTestHelperBackend<T> {
 
@@ -5559,8 +5559,8 @@ public class ${className}<T> extends UnitTestHelperBackend<T> {
     server().registerImpl(${entity.n.cap.factory}.class, ${entity.beanName}Factory.class);<% } %>
   }
 }''')
-  
-  
+
+
   //metaAttributes
 
 
@@ -5619,24 +5619,24 @@ ${ret-newLine}''')
     b.append("$prop.name=").append($prop.getter).append(SEPARATOR);<% } else { %>
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } %><% } }%>
   }''')
-  
+
   template('entityPropsToString', body: '''<% c.props.each { prop -> if(!prop.relation && !prop.lob && prop.type.name.matches('(String|Boolean|Long|Integer)')) { %>
   expectedResult.append("$prop.name=").append(entity.${prop.getter}).append(SEPARATOR);<% } } %>''')
-  
+
   template('setUpSuper', body: '''
   @Before
   @Override
   public void setUp() {
     super.setUp();
   }''')
-  
+
   template('hashCodeAndEquals', body: '''<% if (item.propsForHashCode) { %>
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = ${item.superUnit ? 'super.hashCode()' : '1'};<% item.propsForHashCode.each { prop-> %>
-    result = prime * result + <% if (prop.typeRef.primitive) { %>$prop.name;<% } else { %>(($prop.name == null) ? 0 : ${prop.name}.hashCode());<% } } %>
+    result = prime * result + <% if (prop.primitive) { %>$prop.name;<% } else { %>(($prop.name == null) ? 0 : ${prop.name}.hashCode());<% } } %>
     return result;
   }
 
@@ -5763,7 +5763,7 @@ ${ret-newLine}''')
 	    counter--;
 	  }
 	  System.out.println(test);''')
-  
+
   template('plannedStartDateOnlyBody', body: '''if (plannedStartDate != null) {\n      this.plannedStartDate = ${c.name('TimeUtils')}.setDate(this.plannedStartDate, plannedStartDate);\n    } ''')
 
 
@@ -5826,7 +5826,7 @@ public abstract class $className extends ${c.name('BaseModel')} { <% def listPro
   } <% } %>
   ${macros.generate('implOperationsAndDelegates', c)}
 }''')
-  
+
   template('modelEventForwarderBase', body: '''<% def model = item.model %><% if(!c.className) { c.className = item.n.cap.eventsBase } %>
 public interface $c.className {
   <% model.handlers.each { def op -> if (op.forward) { %>
@@ -5834,11 +5834,11 @@ public interface $c.className {
   <% } } %>
   void set$model.cap($model.cap $model.uncap);
 }''')
-  
+
   template('modelEventForwarder', body: '''<% def model = item.model %><% if(!c.className) { c.className = item.n.cap.events } %>
 public interface $className extends ${className}Base {
 }''')
-  
+
   template('presenterBase', body: '''<% def presenter = item.presenter %>{{imports}}
 /** Base presenter implementation for ${item.name}. */
 public abstract class $className extends ${c.name('Presenter')}<${item.cap}> {<% if (presenter.withMediator) { %>
@@ -5860,13 +5860,13 @@ public abstract class $className extends ${c.name('Presenter')}<${item.cap}> {<%
     forward.set$item.n.cap.presenterEvents(($presenter.cap) this);
   } <% } %>
 }''')
-  
+
   template('presenter', body: '''<% def presenter = item.presenter %>{{imports}}
 /** Presenter implementation for ${item.name}. */
 @${c.name('RootScoped')}
 public class $className extends ${presenter.cap}Base {
 }''')
-  
+
   template('presenterEventForwarderBase', body: '''<% def view = item; def presenter = item.presenter %>
 public interface $className {
   <% view.controls.each { def control-> control.operations.each { def op -> if (op.forward) { %>
@@ -5874,21 +5874,21 @@ public interface $className {
   <% } } } %>
   void set$presenter.cap($presenter.cap $presenter.uncap);
 }''')
-  
+
   template('presenterEventForwarder', body: '''<% def presenter = item.presenter %>
 public interface $className extends ${className}Base {
 }''')
-  
+
   template('mediatorBase', body: '''<% def view = item.view %>{{imports}}
 public abstract class $className implements $view.mediatorImplements {
 }''')
-  
+
   template('mediator', body: '''<% def view = item.view %>
 @RootScoped
 public class $className extends ${view.n.cap.mediatorBase-"View"} {
 }
 ''')
-  
+
   template('dialogGuido', body: '''{{imports}}<% def dialog = item.dialog; def contentViewClassName = "${item.cap}Guido"-"View" %>
 /** Base Guido implementation of ${item.name}. */
 public abstract class $c.className extends ${c.name('DialogView')} {
@@ -5917,7 +5917,7 @@ public abstract class $c.className extends ${c.name('DialogView')} {
     this.contentView = contentView;
   }
 }''')
-  
+
   template('dialogGuidoExtends', body: '''<% def dialog = item.dialog %>{{imports}}
 /** Guido implementation of ${item.name}. */
 @${c.name('RootScoped')}(${c.name('RootType')}.NEW)
@@ -5933,7 +5933,7 @@ public class $className extends ${dialog.cap}GuidoBase {
     super.initEventHandling();
   }
 }''')
-  
+
   template('dialogDriver', body: '''{{imports}}<% def dialog = item.dialog; def viewClassName = item.dialog.n.cap.guido; def contentViewDriverClassName = item.n.cap.driver %>
 /** Base class for {@link $viewClassName} driver. */
 public class $className extends ViewDriver<$viewClassName> {
@@ -5951,13 +5951,13 @@ public class $className extends ViewDriver<$viewClassName> {
     return contentView;
   }
 }''')
-  
+
   template('dialogDriverExtends', body: '''{{imports}}<% def dialog = item.dialog; def viewClassName = item.dialog.n.cap.guido %>
 /** Driver for {@link $viewClassName} view. */
 public class $className extends ${item.n.cap.driverBase} {
   ${macros.generate('superclassConstructor', c)}
 }''')
-  
+
   template('viewGuido', body: '''{{imports}}<% def baseClass = item.dialog ? c.name('DialogContentView') : c.name('BaseView') %>
 /** Base Guido implementation of ${item.name}. */
 public abstract class $className extends $baseClass implements $item.cap {
@@ -5984,7 +5984,7 @@ public abstract class $className extends $baseClass implements $item.cap {
     ${view.uncap}Panel.addView(${view.uncap});<% } %>
   }
 }''')
-  
+
   template('viewDriverGuido', body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
 /** Base class for {@link $viewClassName} driver. */
 public class $className extends ViewDriver<$viewClassName> {
@@ -6016,7 +6016,7 @@ public class $className extends ViewDriver<$viewClassName> {
   }
   <% } } %>
 }''')
-  
+
   template('viewDriverGuidoExtends', body: '''{{imports}}<% def viewClassName = item.n.cap.guido %>
 /** Driver for {@link $viewClassName} view. */
 @Driver<% if (item.main) { %>
@@ -6028,22 +6028,22 @@ public class $className extends ${item.n.cap.driverBase} {
     super(view);
   }
 }''')
-  
+
   template('fxDialog', body: '''{{imports}}
 public class $className {
 
 }''')
-  
+
   template('fxDialogExtends', body: '''{{imports}}
 @${c.name('RootScoped')}(RootType.NEW)
 @${c.name('View')}
 public class $className extends ${item.n.cap.fxBase} {
 
 }''')
-  
-  
+
+
   //StateMachine
-  
+
   template('eventStateMachine', body: '''<% def entity = item.entity; def idProp = entity.idProp %>{{imports}}
 /** Base state event interface for all state events of state machine $item.name */
 public interface $className extends ${c.name('Serializable')} {
@@ -6067,7 +6067,7 @@ public interface $className extends ${c.name('Serializable')} {
 
   String getActor();
 }''')
-  
+
   template('eventType', body: '''import static ee.common.statemachine.StateFlowType.*;
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.capShortName}Ml;
 {{imports}}
@@ -6093,7 +6093,7 @@ public enum $className implements ${c.name('MlKeyBuilder')} { <% def literals = 
     return flowType;
   }
 }''')
-  
+
   template('implEventStateMachine', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 /** Base implementation of {@link ${item.capShortName}StateEvent} */
 public abstract class $className extends ${c.name('Base')} implements ${item.key.capitalize()}StateEvent {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : '' %>
@@ -6215,7 +6215,7 @@ public abstract class $className extends ${c.name('Base')} implements ${item.key
     return true;
   }
 }''')
-  
+
   template('eventFactory', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 /** Factory for all state events of state machine $item.name */
 public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : '' %>
@@ -6231,7 +6231,7 @@ public interface $className {<% extraArgs = item.stateEvent ? ', ' + item.stateE
 
   ${event.cap}Event new${event.cap}Event($idProp.type.name $idProp.uncapFullName$extraArgs, $item.stateProp.type.name expectedState, ${event.signatureFullConstr(c)});<% } %><% } %>
 }''')
-  
+
   template('implEventFactory', body: '''<% def idProp = item.entity.idProp %>import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
 {{imports}}
 public abstract class $className implements ${item.capShortName}EventFactory {<% argsConstr = item.stateEvent ? ', ' + item.stateEvent.signatureFullConstr(c) : ''; args = item.stateEvent ? ', ' + item.stateEvent.signatureNamesFullConstr(c) : ''; %>
@@ -6273,13 +6273,13 @@ public abstract class $className implements ${item.capShortName}EventFactory {<%
     return new ${event.n.cap.eventImpl}($idProp.uncapFullName$args, expectedState, ${event.signatureNamesFullConstr(c)});
   }<% } %><% } %>
 }''')
-  
+
   template('implEventFactoryExtends', body: '''<% def idProp = item.entity.idProp %>{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('Traceable')}
 public class $className extends ${item.capShortName}EventFactoryBaseImpl {
 }''')
-  
+
   template('actionType', body: '''import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
 {{imports}}
 /** Actions Enum of state machine $item.name */
@@ -6293,7 +6293,7 @@ public enum $className { <% def literals = item.actions.collect {
 
   ${macros.generate('buildMlKey', c)}
 }''')
-  
+
   template('conditionType', body: '''import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
 {{imports}}
 /** Conditions Enum of state machine $module.name */
@@ -6307,7 +6307,7 @@ public enum $className { <% def literals = item.conditions.collect {
 
   ${macros.generate('buildMlKey', c)}
 }''')
-  
+
   template('stateMachineController', body: '''<% def controller = item.controller %>{{imports}}
 <% if (item.description) { %>/**
 * $item.description
@@ -6320,14 +6320,14 @@ public interface $className {
   @${c.name('Transactional')}<% } %>
   $op.ret ${op.name}($op.signature(c));<% } %><% } %>
 }''')
-  
+
   template('stateMachineControllerExtends', body: '''
 <% if (item.description) { %>/**
 * $item.description
 */<% } else { %>/** The controller is the entry point for state machine $item.name */<% } %>
 public interface $className extends ${item.capShortName}ControllerBase {
 }''')
-  
+
   template('implStateMachineController', body: '''<% def controller = item.controller; def idProp = item.entity.idProp; def members = [] %>{{imports}}
 @${c.name('Alternative')}
 public class $className implements ${item.capShortName}Controller {
@@ -6420,7 +6420,7 @@ public class $className implements ${item.capShortName}Controller {
     @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
 public class $className extends ${item.capShortName}ControllerBaseImpl {
 }''')
-  
+
   template('metaModel', body: '''{{imports}}
 /** Meta model for state machine $item.name provides static information of available states, events and actions. */
 @${c.name('ApplicationScoped')}
@@ -6480,7 +6480,7 @@ public class $className extends ${c.name('Base')} {
     this.${state.uncap}MetaState = ${state.uncap}MetaState;
   }<% } %>
 }''')
-  
+
   template('metaState', body: '''{{imports}}
 /** Static information about events and actions for a state of state machine $module.name */
 @${c.name('Alternative')}
@@ -6541,7 +6541,7 @@ public abstract class $className extends ${c.name('Base')} {
     return userInRoleConditionVerifier;
   }
 }''')
-  
+
   template('contextManager', body: '''{{imports}}
 public interface $className {
 
@@ -6554,11 +6554,11 @@ public interface $className {
   ${c.name('List')}<${item.entity.cap}> findExpired${item.entity.instancesName.capitalize()}();
 
 }''')
-  
+
   template('contextManagerExtends', body: '''{{imports}}
 public interface $className extends ${className}Base {
 }''')
-  
+
   template('implContextManager', body: '''{{imports}}
 public abstract class $className implements ${item.capShortName}ContextManager {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -6589,7 +6589,7 @@ public abstract class $className implements ${item.capShortName}ContextManager {
     this.userInRoleConditionVerifier = userInRoleConditionVerifier;
   }
 }''')
-  
+
   template('implContextManagerExtends', body: '''{{imports}}//Manual imports because c.name() does not resolve these classes
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.commands};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${item.entity.n.cap.finders};<% if(item.history) { %>
@@ -6677,13 +6677,13 @@ public class $className extends ${item.capShortName}ContextManagerBaseImpl {
     this.${item.entity.uncap}Finders = ${item.entity.uncap}Finders;
   }
 }''')
-  
+
   template('stateEventProcessor', body: '''{{imports}}
 /** Event processor for single state of the state machine $item.name */
 public interface $className {
   void process(${item.capShortName}Context context);
 }''')
-  
+
   template('implStateEventProcessor', body: '''{{imports}}
 @${c.name('Traceable')}
 public class $className implements ${item.capShortName}StateEventProcessor {
@@ -6710,12 +6710,12 @@ public class $className implements ${item.capShortName}StateEventProcessor {
     this.stateTimeouts = stateTimeouts;
   }<% } %>
 }''')
-  
+
   template('implStateEventProcessorExtends', body: '''{{imports}}
 @${c.name('Traceable')}
 public class $className extends ${item.capShortName}StateEventProcessorBaseImpl {
 }''')
-  
+
   template('context', body: '''<% def entity = item.entity; def idProp = entity.idProp; def context = item.context %>import static com.siemens.ra.cg.pl.common.base.util.TimeUtils.*;
 {{imports}}
 ${context.description?"/*** $context.description */":''}
@@ -6905,13 +6905,13 @@ public class $className extends ${c.name('Base')} {
     }
   }
 }''')
-  
+
   template('contextExtends', body: '''<% def context = item.context %>{{imports}}<% if(context.description) { %>
 /*** @see ${item.capShortName}ContextBase*/<% } %>
 public class $className extends ${item.capShortName}ContextBase {
   private static final long serialVersionUID = 1L;
 }''')
-  
+
   template('actionExecutor', body: '''
 /**
 * An action handler is responsible to execute a transition or state action of for state machine $item.name.
@@ -6922,7 +6922,7 @@ public interface $className {
 
   void execute(${item.capShortName}Context context);
 }''')
-  
+
   template('actionEvent', body: '''<% def sm = item.stateMachine %>{{imports}}
 /** Event object for action $item.name */
 public class $className extends ${c.name('EventImpl')}<${sm.entity.cap}> {
@@ -6999,7 +6999,7 @@ public class $className extends ${c.name('EventImpl')}<${sm.entity.cap}> {
 /** Executor for action $item.name of state machine $item.stateMachine.name */
 public interface $className extends ${item.stateMachine.capShortName}ActionExecutor {
 }''')
-  
+
   template('implExecutor', body: '''<% def sm = item.stateMachine %>{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -7014,14 +7014,14 @@ public class $className implements ${item.cap}Executor {
     //TODO to implement
   }
 }''')
-  
+
   template('eventIfc', body: '''<% def sm = item.stateMachine %>{{imports}}
 /** $item.cap event interface of state machine $sm.name */
 public interface $className extends ${sm.capShortName}StateEvent {
   ${macros.generate('propGettersIfc', c)}
   ${macros.generate('propSettersIfc', c)}
 }''')
-  
+
   template('implEvent', body: '''<% def sm = item.stateMachine; def idProp = sm.entity.idProp %>{{imports}}
 public class $className extends ${sm.capShortName}StateEventImpl implements ${item.cap}Event { <% def argsConstr = sm.stateEvent ? ', ' + sm.stateEvent.signatureFullConstr(c) : ''; %><% def args = sm.stateEvent ? ', ' + sm.stateEvent.signatureNamesFullConstr(c) : ''; %>
   private static final long serialVersionUID = 1L;<% item.props.each { prop-> %>
@@ -7066,14 +7066,14 @@ public class $className extends ${sm.capShortName}StateEventImpl implements ${it
   }
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
-  
+
   template('eventProcessor', body: '''<% def sm = item.stateMachine %>
 /** Event processor for state '$item.name' of '$sm.name'. */
 public interface $className extends ${sm.capShortName}StateEventProcessor {<% item.eventTransitions.each { etrs -> def event = etrs.event; %>
 
   void on$event.cap(${event.cap}Event event, ${sm.capShortName}Context context);<% } %>
 }''')
-  
+
   template('implEventProcessor', body: '''<% def sm = item.stateMachine %>
 import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${sm.stateProp.type.name}.*;
 import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.statemachine.${sm.capShortName}StateConditionType.*;{{imports}}
@@ -7178,7 +7178,7 @@ public class $className extends ${sm.capShortName}StateEventProcessorImpl implem
   }<% } %>
 }
 ''')
-  
+
   template('stateMetaState', body: '''<% def sm = item.stateMachine %>import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.statemachine.${sm.capShortName}StateEventType.*;
 {{imports}}
 /** Static information of state $item.name of state machine $sm.name */
@@ -7231,7 +7231,7 @@ public class $className extends ${sm.capShortName}MetaState {
     this.${cond.uncap}Verifier = ${cond.uncap}Verifier;
   }<% } } %>
 }''')
-  
+
   template('controllerBootstrapBase', body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
 public class $className implements ${c.name('Closeable')} {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -7303,7 +7303,7 @@ public class $className implements ${c.name('Closeable')} {
     JmxUtils.undeployMBean(this);
   }
 }''')
-  
+
   template('controllerFactoryBase', body: '''<% def controller = item.controller; def idProp = item.entity.idProp %>{{imports}}
 public abstract class $className {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -7420,7 +7420,7 @@ public abstract class $className {
 
   protected abstract ${c.name('SessionPrincipal')} getSessionPrincipal();
 }''')
-  
+
   template('stateTimeoutHandler', body: '''
 public interface $className {
 
@@ -7430,7 +7430,7 @@ public interface $className {
 
   void processExpired${item.entity.instancesName.capitalize()}();
 }''')
-  
+
   template('stateTimeoutHandlerBean', body: '''{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.realmConstants};
 @${c.name('Stateless')}
@@ -7479,7 +7479,7 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl {
     super.processExpired${item.entity.instancesName.capitalize()}();
   }
 }''')
-  
+
   template('stateTimeoutHandlerImpl', body: '''<% def controller = item.controller %>{{imports}}
 public abstract class $className implements ${item.capShortName}StateTimeoutHandler {<% extraArgs = ''; if (item.stateEvent) { item.stateEvent.props.each { prop -> extraArgs += ", ${item.entity.uncap}.${prop.getter}" } }; %>
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -7517,7 +7517,7 @@ public abstract class $className implements ${item.capShortName}StateTimeoutHand
     this.eventFactory = eventFactory;
   }
 }''')
-  
+
   template('stateTimeoutHandlerMem', body: '''{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }))
@@ -7558,7 +7558,7 @@ public class $className extends ${item.capShortName}StateTimeoutHandlerImpl impl
     }
   }
 }''')
- 
+
   template('transitionExecutionResult', body: '''{{imports}}
 /** Result object for procession of a transition in state machine $item.name. The object provides especially results action executions bound to a transition. */
 public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${c.name('Base')} {
@@ -7641,7 +7641,7 @@ public class $className<EVENT extends ${item.capShortName}StateEvent> extends ${
     }
   }
 }''')
-  
+
   template('condVerifier', body: '''import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
 {{imports}}
 /**
@@ -7657,11 +7657,11 @@ public abstract class $className extends ${c.name('ConditionVerifierAbstract')}<
     return ${component.capShortName}Ml.ML_BASE;
   }
 }''')
-  
+
   template('conditionVerifierIfc', body: '''<% def sm = item.stateMachine %>{{imports}}
 public interface $className extends ${c.name('ConditionVerifier')}<${sm.capShortName}Context> {
 }''')
-  
+
   template('conditionVerifier', body: '''<% def sm = item.stateMachine %>import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${component.key.capitalize()}Ml;
 ${item.description?"/*** $item.description */":''}
 public abstract class $className extends ${sm.capShortName}ConditionVerifier implements ${item.cap}Verifier {
@@ -7671,7 +7671,7 @@ public abstract class $className extends ${sm.capShortName}ConditionVerifier imp
     return ${component.capShortName}Ml.${item.underscored}_FAIL;
   }
 }''')
-  
+
   template('implConditionVerifier', body: '''<% def sm = item.stateMachine %>{{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('Controller')}
@@ -7689,7 +7689,7 @@ public class $className extends ${item.cap}VerifierBase {
     return ret;
   }
 }''')
-  
+
   template('timeoutsConfig', body: '''<% def props = []; item.states.each { if(it.timeoutInMillis) { props.add(it) } } %> {{imports}}
 @${c.name('ApplicationScoped')}
 @${c.name('Config')}<% if (item.onlyInClient) { %>
@@ -7725,8 +7725,8 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
   }
   ${macros.generate('hashCodeAndEquals', c)}
 }''')
-  
- template('qualifier', body: '''{{imports}}
+
+  template('qualifier', body: '''{{imports}}
 /**
 * The qualifier of '$module.name' what can be used in artifacts at dependency management and event messaging.
 * The qualifier allows to select correct implementation of the common/generic interfaces.
@@ -7736,8 +7736,8 @@ public<% if (item.base) { %> abstract<% } %> class $className extends ${c.name('
 @${c.name('Target')}({ ${c.name('ElementType')}.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.CONSTRUCTOR })
 public @interface $className {
 }''')
- 
- template('xmlConverter', body: '''{{imports}}
+
+  template('xmlConverter', body: '''{{imports}}
 /** Base of Xml converter for types of '$item.name' */
 @${c.name('Alternative')}
 public abstract class $className {
@@ -7751,8 +7751,8 @@ public abstract class $className {
 
   ${macros.generate('convertToXml', c)}<% } } %>
 }''')
- 
- template('xmlConverterExtends', body: '''{{imports}}
+
+  template('xmlConverterExtends', body: '''{{imports}}
 /** Xml converter for types of '$item.name' */
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
@@ -7760,8 +7760,8 @@ public abstract class $className {
 @${c.name('ApplicationScoped')}
 public class $className extends ${item.capShortName}XmlConverterBase {
 }''')
- 
- template('containerImportDataMdb', body: '''{{imports}}
+
+  template('containerImportDataMdb', body: '''{{imports}}
 /**
 * The container import MDB is used to receive asynchronous import commands for container data.
 */
@@ -7781,23 +7781,23 @@ public class $className extends ${c.name('SingleTypeEventListenerBridgeByJms')}<
     super.setEventListener($item.xmlController.uncap);
   }
 }''')
- 
- template('containerXmlConverter', body: '''{{imports}}
+
+  template('containerXmlConverter', body: '''{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 /**
 * The $item.name converts string to container object %>
 */
 public interface $className extends ${c.name('MultiSourceConverter')}<String, $item.cap> {
 }''')
- 
- template('containerXmlConverterExtends', body: '''{{imports}}
+
+  template('containerXmlConverterExtends', body: '''{{imports}}
 /**
 * The $item.name converts string to container%>
 */
 public interface $className extends ${item.n.cap.xmlConverter}Base {
 }''')
- 
- template('implContainerXmlConverter', body: '''{{imports}}
+
+  template('implContainerXmlConverter', body: '''{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 
 /**
@@ -7839,8 +7839,8 @@ public abstract class $className<T> implements $item.n.cap.xmlConverter {
     this.xmlConverter = xmlConverter;
   }
 }''')
- 
- template('implContainerXmlConverterExtends', body: '''{{imports}}
+
+  template('implContainerXmlConverterExtends', body: '''{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.impl.${item.n.cap.impl};
 
@@ -7863,8 +7863,8 @@ public class $className extends ${item.n.cap.xmlConverterBaseImpl}<Object> {
     return ret;
   }
 }''')
- 
- template('xmlController', body: '''{{imports}}
+
+  template('xmlController', body: '''{{imports}}
 /** The $item.name converts xml to container object and imports it into system. */
 public interface $className extends ${c.name('EventListener')}<String> {
   ${macros.generate('interfaceBody', c)}
@@ -7874,15 +7874,15 @@ public interface $className extends ${c.name('EventListener')}<String> {
   @${c.name('Transactional')}
   public void importDataFromPath(String fileInClassPath);
 }''')
- 
- template('xmlControllerExtends', body: '''<% def xmlController = item.xmlController %>
+
+  template('xmlControllerExtends', body: '''<% def xmlController = item.xmlController %>
 /**
 * The $item.name converts xml to container
 */
 public interface $className extends $xmlController.n.cap.base {
 }''')
- 
- template('implXmlController', body: '''<% def xmlController = item.xmlController %>{{imports}}
+
+  template('implXmlController', body: '''<% def xmlController = item.xmlController %>{{imports}}
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.model.${item.cap};
 import com.siemens.ra.cg.pl.common.base.messaging.Event; // 'Event' is already defined in facet as javax.enterprise.event
 @${c.name('Alternative')}
@@ -7931,8 +7931,8 @@ public abstract class $className implements $xmlController.cap {
     this.containerController = containerController;
   }
 }''')
- 
- template('implXmlControllerExtends', body: '''<% def xmlController = item.xmlController %>{{imports}}
+
+  template('implXmlControllerExtends', body: '''<% def xmlController = item.xmlController %>{{imports}}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @${c.name('Environment')}(executions = { ${c.name('LOCAL')}, ${c.name('MEMORY')} }, runtimes = { ${c.name('CLIENT')} }) })
@@ -7940,8 +7940,8 @@ public abstract class $className implements $xmlController.cap {
 public class $className extends ${xmlController.n.cap.baseImpl} {
   ${macros.generate('implOperations', c)}
 }''')
-  
- template('event', body: '''{{imports}}<% def aal = module.facets['aal'] %>
+
+  template('event', body: '''{{imports}}<% def aal = module.facets['aal'] %>
 /** Event object for @$item.name */
 public class $className extends ${c.name('EventImpl')}<${c.name(item.name)}> {
   private static final long serialVersionUID = 1L;
@@ -7961,28 +7961,28 @@ public class $className extends ${c.name('EventImpl')}<${c.name(item.name)}> {
     setUriPrefix(${item.name}.URI_PREFIX);<% } %>
   }
 }''')
- 
- template('initializer', body: '''{{imports}}
+
+  template('initializer', body: '''{{imports}}
 @${c.name('Alternative')}
 public abstract class $className extends ${c.name('ModuleInitializerBase')} implements ${module.initializerName} {
 }''')
- 
- template('implInitializer', body: '''{{imports}}
+
+  template('implInitializer', body: '''{{imports}}
 /** Initializer bean for '$module.name' */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
 public class $className extends ${module.initializerName}Base {
 }''')
- 
- 
- template('implInitializerComponent', body: '''{{imports}}
+
+
+  template('implInitializerComponent', body: '''{{imports}}
 /** Initializer bean for '$item.name' */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }))
 public class $className extends ${component.capShortName}InitializerBase {
 }''')
- 
- template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% def profile = component.hasProfiles %><% startupInitializers.each { %>
+
+  template('initializerComponent', body: '''{{imports}}<% def startupInitializers = component.modules.findAll { it.startupInitializer } %><% def profile = component.hasProfiles %><% startupInitializers.each { %>
 import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.${it.initializerName};<% } %>
 /** Initializer for '$module.name' */
 //TODO: Re-integrate Profiles & StateMachine if necessary. StateMachine is not of type Module anymore.
@@ -8015,7 +8015,7 @@ public class $className extends ${c.name('ApplicationInitializerBase')} {<% if(p
     this.profileManager = profileManager;
   }<% } %>
 }''')
- 
+
   template('initializerWakeup', body: '''{{imports}}
 /** Startup for Initializer bean for '$item.name' */
 @${c.name('Singleton')}
@@ -8042,7 +8042,7 @@ public class $className  {
     this.initializer = initializer;
   }
 }''')
- 
+
   template('initializerMem', body: '''{{imports}}
 /** Initializer bean for '$module.name' for memory mode */
 @${c.name('ApplicationScoped')}
@@ -8065,8 +8065,8 @@ public class $className extends ${module.initializerName}Base {
     this.clusterSingleton = clusterSingleton;
   }
 }''')
-  
- template('producer', body: '''{{imports}}
+
+  template('producer', body: '''{{imports}}
 /** Resources producer for '$module.name' for server and client in production mode */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')}, SERVER }))
@@ -8082,8 +8082,8 @@ public class $className {
     return notificationTopic;
   }
 }''')
- 
- template('producerLocal', body: '''{{imports}}
+
+  template('producerLocal', body: '''{{imports}}
 /** CDI resources producer for '$module.name' in Local Mode*/
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('LOCAL')} }))
@@ -8106,8 +8106,8 @@ public class $className {
     return entityManager();
   }
 }''')
- 
- template('producerServer', body: '''{{imports}}
+
+  template('producerServer', body: '''{{imports}}
 /** Server CDI resources producer for '$module.name' */
 @${c.name('Stateless')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
@@ -8123,7 +8123,7 @@ public class $className {
     return entityManager;
   }
 }''')
- 
+
   template('producerClient', body: '''{{imports}}
 /** Client CDI resources producer for '$module.name' */
 @${c.name('ApplicationScoped')}
@@ -8140,7 +8140,7 @@ public class $className {<% module.services.each { service-> %>
     return ret;
   }<% } %>
 }''')
-  
+
   template('producerTestClient', body: '''{{imports}}
 /** Test CDI resources producer for '$module.name' */
 @${c.name('ApplicationScoped')}
@@ -8153,7 +8153,7 @@ public class $className {<% module.services.each { service-> %>
     return ${c.name('mock')}(${service.name}.class);
   }<% } %>
 }''')
-  
+
   template('producerEjbClient', body: '''{{imports}}
 /** Producer of '$module.name' services for ejb clients in production mode */
 @${c.name('ApplicationScoped')}
@@ -8176,7 +8176,7 @@ public class $className {
     this.$service.uncap = $service.uncap;
   }<% } %>
 }''')
-  
+
   template('containerProducerInternal', body: '''{{imports}}
 /** Server CDI container producer for '$module.name' */
 @${c.name('SupportsEnvironments')}({
@@ -8194,7 +8194,7 @@ public class $className {<% module.containers.each { container -> if(container.c
     return ${container.controller.uncap}.loadAll();
   }<% } } %>
 }''')
-  
+
   template('converter', body: '''{{imports}}
 /** Base converter between interface and entities for types of '$module.name' */
 @${c.name('Alternative')}
@@ -8283,7 +8283,7 @@ public class $className {
     this.external = external;
   }
 }''')
-  
+
   template('converterExtends', body: '''{{imports}}
 /** Converter between interface and entities for types of '$module.name' */
 @${c.name('SupportsEnvironments')}({
@@ -8292,7 +8292,7 @@ public class $className {
 @${c.name('ApplicationScoped')}
 public class $className extends ${module.capShortName}ConverterBase {
 }''')
-  
+
   template('implDataFactory', body: '''{{imports}}
 /** Data factory implementation for '$module.name' based on Internal model factory */
 @${c.name('ApplicationScoped')}
@@ -8313,7 +8313,7 @@ public class $className extends ${module.capShortName}DataFactoryBase {
     super.setModelFactory(modelFactory);
   }
 }''')
-  
+
   template('implModelFactory', body: '''{{imports}}
 /** Implementation of {@link ${module.capShortName}ModelFactory for Impl. model classes*/
 @${c.name('ApplicationScoped')}
@@ -8327,7 +8327,7 @@ public class $className extends ${module.capShortName}ModelFactoryBase {
     addFactory(${t.cap}.class, $t.uncap);<% } } } %>
   }
 }''')
-  
+
   template('dataFactory', body: '''{{imports}}
 /** Base implementation of data factory for '$module.name' */
 public abstract class $className {
@@ -8380,7 +8380,7 @@ public abstract class $className {
     this.modelFactory = modelFactory;
   }
 }''')
-  
+
   template('modelFactory', body: '''{{imports}}
 @${c.name('Alternative')}
 @${c.name('Traceable')}
@@ -8410,7 +8410,7 @@ public class $className implements ${module.capShortName}ModelFactory {
     typeToFactory.put(type, factory);
   }
 }''')
-  
+
   template('ejbDataFactory', body: '''{{imports}}
 /** Data factory implementation for '$module.name' based on Ejb Model Factory */
 @${c.name('ApplicationScoped')}
@@ -8431,7 +8431,7 @@ public class $className extends ${module.capShortName}DataFactoryBase {
     super.setModelFactory(modelFactory);
   }
 }''')
-  
+
   template('ejbModelFactory', body: '''{{imports}}
 /** JPA implementation of {@link ${module.capShortName}ModelFactory} */
 @${c.name('ApplicationScoped')}
@@ -8446,7 +8446,7 @@ public class $className extends ${module.capShortName}ModelFactoryBase {
     addFactory(${t.cap}.class, $t.uncap);<% } } } %>
   }
 }''')
- 
+
   template('moduleCache', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 public abstract class $className {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());<% cachedContainers.each { container -> %>
@@ -8493,7 +8493,7 @@ public abstract class $className {
   }
 <% } %>
 }''')
-  
+
   template('moduleCacheExtends', body: '''{{imports}}
 @${c.name('Controller')}
 @${c.name('SupportsEnvironments')}({
@@ -8502,7 +8502,7 @@ public abstract class $className {
 @${c.name('ApplicationScoped')}
 public class $className extends ${module.capShortName}CacheBase {
 }''')
-  
+
   template('cacheSynchronizerPeriodic', body: '''{{imports}}<% def cachedContainers = module.containers.findAll { it.controller && it.controller.cache } %>
 @${c.name('Singleton')}
 public class $className {<% cachedContainers.each { container -> def controller = container.controller %>
@@ -8518,7 +8518,7 @@ public class $className {<% cachedContainers.each { container -> def controller 
     this.$controller.uncap = $controller.uncap;
   }<% } %>
 }''')
-  
+
   template('builderFactory', body: '''{{imports}}
 /** Base implementation of builder factory for '$module.name' */
 public abstract class $className {<% module.entities.each { entity -> if (!entity.virtual) { %>
@@ -8534,7 +8534,7 @@ public abstract class $className {<% module.entities.each { entity -> if (!entit
     return new ${container.cap}Builder();
   }<% } %>
 }''')
-  
+
   template('builderFactoryExtends', body: '''{{imports}}
 /** Implementation of builder factory for '$module.name' */
 public class $className extends ${module.capShortName}BuilderFactoryBase { <% module.entities.each { entity -> if (!entity.virtual) { %>
@@ -8551,7 +8551,7 @@ public class $className extends ${module.capShortName}BuilderFactoryBase { <% mo
     return ${module.capShortName}BuilderFactoryBase.a${container.cap}();
   } <% } %>
 }''')
-  
+
   template('jpaSchemaGenerator', body: '''{{imports}}<% def entity = module.entities.find { !it.virtual } %>
 @${c.name('Singleton')}
 //each DDL operation is COMMIT operation, therefore Container Transaction Management must be disabled
@@ -8576,45 +8576,45 @@ public class $className {
 
   ${macros.generate('setEntityManager', c)}
 }''')
- 
- 
+
+
   //logic
   template('convertFromXml', body: '''
   public ${c.enum.nameFull(c)} convertFromXml(${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} from) {
     ${c.enum.nameFull(c)} ret = from != null ? ${c.enum.nameFull(c)}.valueOf(from.name()) : null;
     return ret;
   }''')
-  
+
   template('convertToXml', body: '''public ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} convertToXml(${c.enum.nameFull(c)} from) {
     ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName} ret = ${macros.generate('namespaceXmlSchema', c)}.${c.enum.xmlName}.valueOf(from.name());
     return ret;
   }''')
- 
- template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
- 
- template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
+
+  template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
+
+  template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
     publisher.fire(event);
   }''')
-  
+
   template('setPublisher', body: '''
-  @Inject
+  @${c.name('Inject')}
   public void setPublisher(@${component.capShortName} @${c.name('Backend')} ${c.name('Event')}<${item.n.cap.event}> publisher) {
     this.publisher = publisher;
   }''')
-  
+
   template('onEventSuper', body: '''
   @Override
   public void onEvent(@Observes(during = AFTER_COMPLETION, notifyObserver = IF_EXISTS)${item.clientCache?' @Internal':''} $item.n.cap.event event) {
     super.onEvent(event);
   }''')
-  
+
   template('fillToString', body: '''
   @Override
   protected void fillToString(StringBuffer b) {
     super.fillToString(b);<% item.props.each { prop-> if (!prop.multi && !prop.lob && (prop.type.name.matches("String|Boolean|boolean|Long|long|Integer|int") || prop.typeEnum )) { %>
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
   }''')
-  
+
   template('createBySignature', body: '''
 public $op.return ${op.name}(${op.signature(c)}) {
     $item.cap ret = factory.newInstance();<% op.params.each { def param -> def prop = param.prop; if (prop.defaultValue) { %>
@@ -8623,38 +8623,38 @@ public $op.return ${op.name}(${op.signature(c)}) {
     ret = create(ret);
     return ret;
   }''')
-  
+
   template('operationIdProp', body: '''@Override
   @Transactional
   public $c.op.returnTypeExternal ${c.op.name}(${c.item.idProp.computedType(c)} $c.item.idProp.name, ${c.op.signature(c)}) {
     return ${c.op.name}(findById(${c.item.idProp.name}), $c.op.signatureName);
   }''')
-  
+
   template('operationIdPropFireEvent', body: '''@Override
   @Transactional
   public $c.op.returnTypeExternal ${c.op.name}(${c.itemidProp.computedType(c)} $c.item.idProp.name, ${c.op.signature(c)}, boolean fireEvent) {
     return ${c.op.name}(findById(${c.item.idProp.name}), $c.op.signatureName, fireEvent);
   }''')
-  
+
   template('operationEntity', body: '''@Override
   @Transactional
   public $c.op.returnTypeExternal ${c.op.name}($item.cap entity, ${c.op.signature(c)}) {
     return ${c.op.name}(entity, $c.op.signatureName, true);
   }''')
-  
+
   template('buildMlParams', body: '''
 Object[] mlParameters = new Object[] { ret.$c.idProp.getter, ret.getNaturalKey(), $c.retPropGetters, $c.propNames };
 ''')
-  
+
   template('updateProps', body: '''<% c.op.params.each { def param -> def prop = param.prop; if (prop.defaultValue) { %> ret.set$prop.cap($prop.defaultValue);<% } else { %>ret.set$prop.cap($prop.name);<% } } %>
     ret = merge(ret);''')
-  
+
   template('sendMlEvent', body: '''
     forceVersionUpdate();
     $item.n.cap.event event = new $citem.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
     event.initMlKey(${module.capShortName}Ml.ML_BASE, ${module.capShortName}Ml.${c.op.underscored}, mlParameters);
     fireEvent(event);''')
-  
+
   template('fillOrderList', body: '''
   @Override
   @Transactional
@@ -8662,7 +8662,7 @@ Object[] mlParameters = new Object[] { ret.$c.idProp.getter, ret.getNaturalKey()
     fillOrder(entities, 1);
     return super.createAll(entities, fireEvent);
   }''')
-  
+
   template('fillOrder', body: '''//TODO: When default props are implemented replace 'Order' by orderProp
 protected void fillOrder(List<$item.cap> entities, long startOrder) {
     long order = startOrder;
@@ -8672,7 +8672,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
       }
     }
   }''')
-  
+
   template('fireEventEntity', body: '''
   @Override
   public void fireEvent($item.cap entity, ${c.name('ActionType')} actionType) {
@@ -8681,7 +8681,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
     initMlKey(event);
     fireEvent(event);
   }''')
-  
+
   template('fireEventWithIds', body: '''<% def idProp = c.item.idProp %>
   @Override
   public void fireEventWithIds(List<$idProp.type.name> ids, ${c.name('ActionType')} actionType) {
@@ -8690,7 +8690,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
     fillIds(event, ids);
     fireEvent(event);
   }''')
-  
+
   template('fireEventEntities', body: '''
   @Override
   public void fireEvent(List<$item.cap> entities, ${c.name('ActionType')} actionType) {
@@ -8699,7 +8699,7 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
     initMlKey(event);
     fireEvent(event);
   }''')
-  
+
   template('fireEvent', body: '''
   @Override
   public void fireEvent(${c.name('ActionType')} actionType) {
@@ -8707,13 +8707,13 @@ protected void fillOrder(List<$item.cap> entities, long startOrder) {
     initMlKey(event);
     fireEvent(event);
   }''')
-  
+
   template('publisherSendMlEvent', body: '''
     forceVersionUpdate();
     $item.n.cap.event event = new $item.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
     event.initMlKey(${component.capShortName}Ml.ML_BASE, ${component.capShortName}Ml.${c.op.mlKeyConstant}, mlParameters);
     publisher.fire(event);''')
-  
+
   template('initMlKeyForEntityEvent', body: '''
 private void initMlKey($item.n.cap.event event) {
     ${c.name('List')}<$item.cap> entities = event.getObjectList();
@@ -8737,32 +8737,32 @@ private void initMlKey($item.n.cap.event event) {
     Object[] params = multiple ? ${c.name('CollectionUtils')}.EMPTY_ARRAY : new Object[] { entities.get(0).getId(), entities.get(0).getNaturalKey() };
     event.initMlKey(${module.capShortName}Ml.ML_BASE, key, params);
   }''')
-  
+
   template('setEntityManager', body: '''
   @${c.name('Inject')}
   public void setEntityManager(@${component.capShortName} ${c.name('EntityManager')} entityManager) {
     this.entityManager = entityManager;
   }''')
-  
+
   template('setFactoryManager', body: '''
   @Inject
   public void setFactory($item.n.cap.factory factory) {
     super.setFactory(factory);
   }''')
-  
+
   template('propsBasicTypeTestValues', body: '''<% c.obj.props.each { prop -> if (!prop.derived) { if (prop.type == 'String') { %>
     ret.set${prop.cap}("$prop.cap" + itemNumber);<% } else if (prop.type == 'Long') { %>
     ret.set${prop.cap}(Long.valueOf(itemNumber));<% } else if (prop.type == 'byte[]') { %>
     ret.set${prop.cap}(("$prop.cap" + itemNumber).getBytes());<% } else if (prop.type == 'Integer') { %>
     ret.set${prop.cap}(Integer.valueOf(itemNumber));<% } else if (prop.type == 'Date') { %>
     ret.set${prop.cap}(TimeUtils.now());<% } %><% } } %>''')
-  
+
   template('propsEntityTestValues', body: '''<% c.entity.props.each { prop -> if (!prop.derived) { if ((!prop.primaryKey || item.manualId ) && !prop.multi) {  if (prop.type == 'String') { %>
     ret.set${prop.cap}("$prop.cap" + entityNumber);<% } else if (prop.type == 'Long') { %>
     ret.set${prop.cap}(Long.valueOf(entityNumber));<% } else if (prop.type == 'Integer') { %>
     ret.set${prop.cap}(Integer.valueOf(entityNumber));<% } else if (prop.type == 'Date') { %>
     ret.set${prop.cap}(TimeUtils.now());<% } } %><% } } %>''')
-  
+
   template('expectSameObjectByConvert', body: '''@Test
   public void expectSameObjectByConvert${c.t.cap}$c.capMethod() {
     $c.t.cap entity = DATA_FACTORY.new${c.t.cap}(1);
@@ -8770,9 +8770,9 @@ private void initMlKey($item.n.cap.event event) {
     assertThat(convertedEntity.${prop.getter}, is(entity.${prop.getter}));<% } else if (prop.typeEntity && (prop.manyToOne || prop.oneToOne)) { def relationIdProp = prop.type.idProp %>
     assertThat(convertedEntity.get${prop.cap}${relationIdProp.cap}(), is(entity.get${prop.cap}${relationIdProp.cap}()));<% } } } %>
   }''')
-  
+
   template('suffixDependingOnType', body: '''<% if (c.type == 'Long' || c.type == 'long') { %>L<% } %>''')
-  
+
   template('componentCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="
@@ -8780,14 +8780,14 @@ private void initMlKey($item.n.cap.event event) {
       http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
 </beans>
 ''')
-  
+
   template('componentTestCdiBeansXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="
       http://java.sun.com/xml/ns/javaee
       http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
 </beans>''')
-  
+
   template('ejbJarXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <ejb-jar xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="http://java.sun.com/xml/ns/javaee" xmlns:ejb="http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd"
@@ -8804,7 +8804,7 @@ private void initMlKey($item.n.cap.event event) {
         </interceptor-binding>
     </assembly-descriptor>
 </ejb-jar>''')
-  
+
   template('ormXml', body: '''
 <?xml version="1.0" encoding="UTF-8"?>
 <entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8815,7 +8815,7 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd" vers
     </persistence-unit-defaults>
 </persistence-unit-metadata>
 </entity-mappings>''')
-  
+
   template('wildflyEjbJarXml', body: '''<?xml version="1.0" encoding="UTF-8"?>
 <jboss:jboss
         xmlns="http://java.sun.com/xml/ns/javaee"
@@ -8848,7 +8848,7 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd" vers
         </interceptor-binding>
     </assembly-descriptor>
 </jboss:jboss>''')
-  
+
   template('wildFlyDatasource', body: '''
 <datasource jndi-name="java:/jdbc/${component.key}DS" pool-name="cg${component.key}DS" enabled="true" use-java-context="true">
     <connection-url></connection-url>
@@ -8858,7 +8858,7 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd" vers
         <password>${component.key}</password>
     </security>
 </datasource>''')
-  
+
   template('wildFlyJmsDestinations', body: '''
 <jms-queue name="${component.uncapShortName}ImportQueue">
     <entry name="java:global/jms/cg/${component.uncapShortName}/ImportQueue"/>
@@ -8875,7 +8875,7 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd" vers
     <entry name="java:jboss/exported/jms/cg/${component.uncapShortName}/NotificationTopic"/>
     <entry name="java:/jms/cg/${component.uncapShortName}/NotificationTopic"/>
 </jms-topic>''')
-  
+
   template('build', body: '''
 apply plugin: 'maven'
 apply plugin: 'idea'
@@ -8891,5 +8891,5 @@ repositories {
 dependencies {
   $item.dependencies
 }''')
-  
+
 }

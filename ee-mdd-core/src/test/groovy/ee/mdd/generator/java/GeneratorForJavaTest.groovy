@@ -32,7 +32,7 @@ class GeneratorForJavaTest {
         jms()
         jpa()
         test()
-        ee()
+        //ee()
         cg()
         ui()
         sm()
@@ -41,7 +41,7 @@ class GeneratorForJavaTest {
 
     model = generator.deriveModel(model)
 
-    generator.generate(model, new File('D:/temp'), null, 'shared')
+    generator.generate(model, new File('D:/CG/src/cg-pl'), null, 'shared')
     
     println model
   }

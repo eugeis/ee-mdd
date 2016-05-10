@@ -27,6 +27,7 @@ import ee.mdd.model.component.Commands
 import ee.mdd.model.component.CompilationUnit
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Container
+import ee.mdd.model.component.Controller
 import ee.mdd.model.component.Count
 import ee.mdd.model.component.DataTypeOperation
 import ee.mdd.model.component.DataTypeProp
@@ -1532,7 +1533,7 @@ class EnhancerForJava {
 
       isTypeEntity << {
         ->
-        def key = System.identityHashCode(delegate) +'typeEntity'
+        def key = System.identityHashCode(delegate) + 'typeEntity'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -1546,7 +1547,7 @@ class EnhancerForJava {
       
       isTypeContainer << {
         ->
-        def key = System.identityHashCode(delegate) +'typeContainer'
+        def key = System.identityHashCode(delegate) + 'typeContainer'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -1557,10 +1558,38 @@ class EnhancerForJava {
         }
         properties[key]
       }
-      
+
+      isTypeController << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeController'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Controller.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
+      isTypeFacade << {
+        ->
+        def key = System.identityHashCode(delegate) + 'typeFacade'
+        if(!properties.containsKey(key)) {
+          def prop = delegate
+          def ret = false
+          if(Facade.isInstance(prop.type)) {
+            ret = true
+          }
+          properties[key] = ret
+        }
+        properties[key]
+      }
+
       isTypeCompilationUnit << {
         ->
-        def key = System.identityHashCode(delegate) +'typeCompilationUnit'
+        def key = System.identityHashCode(delegate) + 'typeCompilationUnit'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -1574,7 +1603,7 @@ class EnhancerForJava {
 
       isTypeBasicType << {
         ->
-        def key = System.identityHashCode(delegate) +'typeBasicType'
+        def key = System.identityHashCode(delegate) + 'typeBasicType'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false
@@ -1588,7 +1617,7 @@ class EnhancerForJava {
 
       isTypeDate << {
         ->
-        def key = System.identityHashCode(delegate) +'typeDate'
+        def key = System.identityHashCode(delegate) + 'typeDate'
         if(!properties.containsKey(key)) {
           def prop = delegate
           def ret = false

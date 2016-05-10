@@ -29,10 +29,12 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'SingletonContainer' : 'com.siemens.ra.cg.pl.common.base.integ', 'NamedThreadFactoryHolderByPrefix' : 'com.siemens.ra.cg.pl.common.base.util', 'HolderImpl' : 'com.siemens.ra.cg.pl.common.base',
   'PublisherEmpty' : 'com.siemens.ra.cg.pl.common.base.cdi','ConditionVerifierAbstract' : 'com.siemens.ra.cg.pl.common.base.cond', 'StringUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'Link' : 'com.siemens.ra.cg.pl.common.base.model', 'Receiver' : 'com.siemens.ra.cg.pl.common.base.cdi', 'Cache' : 'com.siemens.ra.cg.pl.common.base.cache',
-  'DeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache',
-  'LongEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'IntegerEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'StringEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
+  'DeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'TempIdCache' : 'com.siemens.ra.cg.pl.common.base.cache','LongEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
+  'IntegerEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'StringEntityDeltaCache' : 'com.siemens.ra.cg.pl.common.base.cache',
   'DeltaCacheImpl' : 'com.siemens.ra.cg.pl.common.base.cache', 'CollectionUtils' : 'com.siemens.ra.cg.pl.common.base.util', 'Manager' : 'com.siemens.ra.cg.pl.common.ejb.core',
-  'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'DiffIds' : 'com.siemens.ra.cg.pl.common.base.cache', 'ExceptionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
+  'StringEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache','LongEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache', 'IntegerEntityCache' : 'com.siemens.ra.cg.pl.common.base.cache',
+  'LongCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'IntegerCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'StringCacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache',
+  'CacheOverride' : 'com.siemens.ra.cg.pl.common.base.cache', 'DiffIds' : 'com.siemens.ra.cg.pl.common.base.cache', 'ExceptionUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion', 'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util',
   'RootScoped' : 'com.siemens.ra.cg.pl.common.base.cdi.root', 'RootType' : 'com.siemens.ra.cg.pl.common.base.cdi.root.RootScoped', 'View' : 'com.siemens.ra.cg.pl.common.base.annotations',
   'Event' : 'com.siemens.ra.cg.pl.common.base.messaging', 'EventListener' : 'com.siemens.ra.cg.pl.common.base.messaging', 'SingleTypeEventListenerBridgeByJms' : 'com.siemens.ra.cg.pl.common.ejb.messaging',
@@ -42,7 +44,12 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'DbSchemaGenerator' : 'com.siemens.ra.cg.pl.common.ejb.schemagen', 'ReconnectServiceProvider' : 'com.siemens.ra.cg.pl.common.ejb.locator', 'ServiceLocatorFactory' : 'com.siemens.ra.cg.pl.common.ejb.locator',
   'Internal' : 'com.siemens.ra.cg.pl.common.base.cdi', 'TransactionProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ', 'TraceProxyHandler' : ' com.siemens.ra.cg.pl.common.ejb.integ',
   'BaseTestCase' : 'com.siemens.ra.cg.pl.common.base.testcase', 'ManagerMemAbstract' : 'com.siemens.ra.cg.pl.common.ejb.core.mem', 'ManagerAbstract' : 'com.siemens.ra.cg.pl.common.ejb.core',
-  'StringLink' : 'com.siemens.ra.cg.pl.common.base.model'] as TreeMap
+  'StringLink' : 'com.siemens.ra.cg.pl.common.base.model', 'SupportsEnvironments' : 'com.siemens.ra.cg.pl.common.base.cdi.env', 'Environment' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
+  'Traceable' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Service' : 'com.siemens.ra.cg.pl.common.base.annotations',
+  'Backend' : 'com.siemens.ra.cg.pl.common.base.annotations', 'SERVER' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'CLIENT' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*',
+  'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'PRODUCTIVE' : 'com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*',
+  'Labeled' : 'com.siemens.ra.cg.pl.common.base.model', 'MlKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml', 'MlKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MlKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
+  'Controller' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Config' : 'com.siemens.ra.cg.pl.common.base.config'] as TreeMap
 
 extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   nameToNamespace.each { n, ns ->
@@ -76,15 +83,15 @@ extModule(name: 'CgEnvBridge', artifact: 'cg-pl-env-bridge') {
 
 extModule(name: 'CgUifShared', artifact: 'cg-pl-uif-shared') {
   ['Button' : 'com.siemens.ra.cg.pl.uif.widget',
-   'DialogViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'TextInput' : 'com.siemens.ra.cg.pl.uif.widget', 'Table' : 'com.siemens.ra.cg.pl.uif.widget',
-   'ContextMenu' : 'com.siemens.ra.cg.pl.uif.widget', 'ViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp'].each { n, ns ->
+    'DialogViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'TextInput' : 'com.siemens.ra.cg.pl.uif.widget', 'Table' : 'com.siemens.ra.cg.pl.uif.widget',
+    'ContextMenu' : 'com.siemens.ra.cg.pl.uif.widget', 'ViewInterface' : 'com.siemens.ra.cg.pl.uif.widget', 'Presenter' : 'com.siemens.ra.cg.pl.uif.mvp'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
 
 extModule(name: 'CgUifGuido', artifact: 'cg-pl-uif-guido') {
   ['View' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'BaseView' : 'com.siemens.ra.cg.pl.uif.guido.widget',
-  'DialogView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'DialogContentView' : 'com.siemens.ra.cg.pl.uif.guido.widget'].each { n, ns ->
+    'DialogView' : 'com.siemens.ra.cg.pl.uif.guido.widget', 'DialogContentView' : 'com.siemens.ra.cg.pl.uif.guido.widget'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
