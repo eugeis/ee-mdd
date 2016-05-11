@@ -1689,8 +1689,14 @@ class EnhancerForJava {
       }
 
       signature << { Context c ->
-        //register usage of the type, in order to calculate imports, etc.
-        delegate.params.each { c.name(it.type) }
+          //register usage of the type, in order to calculate imports, etc.
+
+            delegate.params.each {
+              if (!(it.type.name).equals(c.item.name)) {
+                c.name(it.type)
+              }
+            }
+
         delegate.signature
       }
 

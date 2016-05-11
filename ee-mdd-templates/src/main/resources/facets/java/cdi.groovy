@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
- /**
-  *
-  * @author Eugen Eisler
-  * @author Niklas Cappelmann
-  */
+/**
+ *
+ * @author Eugen Eisler
+ * @author Niklas Cappelmann
+ */
 
- extModule(name: 'CdiApi', namespace: 'javax.enterprise', artifact: 'cdi-api', version: '1.2') {
-  ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject','Alternative' : 'inject',
-   'Event' : 'event', 'Observes' : 'javax.enterprise.event', 'Reception' : 'javax.enterprise.event',
-   'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*', 'IF_EXISTS' : 'static javax.enterprise.event.Reception.*',
-   'Instance' : 'javax.enterprise.inject', 'Default' : 'javax.enterprise.inject'].each { n, ns ->
+extModule(name: 'CdiApi', namespace: 'javax.enterprise', artifact: 'cdi-api', version: '1.2') {
+  ['ApplicationScoped' : 'context', 'Produces' : 'inject','Alternative' : 'inject',
+    'Event' : 'event', 'Observes' : 'event', 'Reception' : 'event',
+    'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*', 'IF_EXISTS' : 'static javax.enterprise.event.Reception.*',
+    'Instance' : 'inject', 'Default' : 'inject'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
@@ -42,5 +42,5 @@ extModule(name: 'Inject', artifact: 'inject', version: '1') {
 }
 
 
-  
+
 

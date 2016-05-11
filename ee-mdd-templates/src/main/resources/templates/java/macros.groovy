@@ -331,9 +331,8 @@ templates ('macros') {
   ${op.description?"   /** $op.description */":''}
   ${op.ref.returnTypeExternal(c)} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
 
-  template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
-
-  @Override<% if (op.rawType) { %>
+  template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %><% if(c.override) { %>
+  @Override<% } %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
     //TODO to implement <% if (op.returnTypeBoolean) { %>
@@ -375,7 +374,7 @@ templates ('macros') {
   <% if (c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public $op.ret ${op.name}($op.signature) {
+  public ${op.return} ${op.name}($op.signature) {
     $op.body
   }<% } } %>''')
 
@@ -1239,7 +1238,7 @@ public class $className extends $item.n.cap.base {
   ${macros.generate('implOperations', c)}
 }''')
 
-  template('configAnnotations', body: '''{{imports}}
+  template('configAnnotations', body: '''
 @${c.name('ApplicationScoped')}
 @${c.name('Config')}<% if (c.item.onlyInClient) { %>
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }))<% } %>''')
@@ -3233,7 +3232,7 @@ public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder
   ${macros.generate('buildMlKey', c)}
 
   @Override
-  public String getLabel() {
+  public String getNaturalKey() {
     return name();
   }
 
@@ -5727,8 +5726,8 @@ ${ret-newLine}''')
   }''')
 
   template('buildMlKey', body: '''
-  public ${c.name('MlKey')} buildMlKey() {
-    return new ${c.name('MlKeyImpl')}(${component.capShortName}Ml.ML_BASE, name());
+  public ${c.name('MLKey')} buildMlKey() {
+    return new ${c.name('MLKeyImpl')}(${component.capShortName}Ml.ML_BASE, name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (!parent.isEmpty()) {<% if (op.unique) { %>
