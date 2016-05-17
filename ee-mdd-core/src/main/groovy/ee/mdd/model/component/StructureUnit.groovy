@@ -47,6 +47,7 @@ class StructureUnit extends Composite implements BuilderAware {
     super.init()
     initArtifact()
     initKey()
+    initUri()
     true
   }
 
@@ -66,6 +67,16 @@ class StructureUnit extends Composite implements BuilderAware {
         key = name
       } else {
         key = component().key
+      }
+    }
+  }
+
+  protected initUri() {
+    if(!uri) {
+      if(parent?.uri) {
+        uri = "${parent.uri}/${key ? key : name}"
+      } else {
+        uri = key ? key : name
       }
     }
   }
@@ -99,7 +110,7 @@ class StructureUnit extends Composite implements BuilderAware {
   String getUncapShortName() {
     underscoreToCamelCase(key).toLowerCase()
   }
-  
+
   String getUnderscoredShortName() {
     key.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase()
   }
