@@ -29,6 +29,17 @@ subprojects {
       mavenCentral()
     }
   }
+  
+  publishing {
+    repositories {
+      maven { url uri('D:/CG-maven-repo') }
+    }
+    publications {
+      mavenJava(MavenPublication) {
+        from components.java
+      }
+    }
+  }
 
   sourceCompatibility = 1.8
   targetCompatibility = 1.8
