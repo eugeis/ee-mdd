@@ -23,7 +23,7 @@ class GeneratorForJavaTest {
   @Test
   void testLoadTemplates() {
 
-    def modelFile = new File('D:/git/ee-mdd_example/model.groovy')
+    def modelFile = new File('D:/views/git/ee-mdd_example/model.groovy')
     def model = generator.loadModel(modelFile.toURI().toURL(), {
       java {
         common()

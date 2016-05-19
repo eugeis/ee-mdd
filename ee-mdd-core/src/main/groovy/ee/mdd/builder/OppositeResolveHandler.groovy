@@ -15,46 +15,43 @@
  */
 package ee.mdd.builder
 
-import ee.mdd.model.Composite
-import ee.mdd.model.Element
+import ee.mdd.model.Base
 import ee.mdd.model.component.DataTypeProp
-
-
 
 /**
  *
  * @author Eugen Eisler
  */
-class OppositeResolveHandler implements ResolveHandler {
+class OppositeResolveHandler extends AbstractResolveHandler {
 	String name
 	Class type
 	Map<DataTypeProp, String> notResolved = [:]
 
 	Closure setter
 
-	void onElement(Element el) {
-	}
-
 	void onDataTypeProp(DataTypeProp prop) {
 		if(notResolved.containsKey(prop)) {
-			if(resolve(prop, notResolved[prop])) {
+			if(doResolve(prop, notResolved[prop])) {
 				notResolved.remove(prop)
 			}
 		}
 
 		//try to find opposite by type, also without definition
 		if(!prop.opposite) {
-			resolve(prop)
+			doResolve(prop)
 		}
 	}
 
-	void addResolveRequest(String oppositeName, Composite parent, prop) {
-		if(!resolve(prop, oppositeName)) {
-			notResolved[prop] = oppositeName
+	Base resolve(String ref, Base el, Base parent) {
+	}
+
+	void addResolveRequest(String oppositeName, Base el, Base parent) {
+		if(!doResolve(el, oppositeName)) {
+			notResolved[el] = oppositeName
 		}
 	}
 
-	private def resolve(DataTypeProp prop, String oppositeName = null) {
+	private def doResolve(DataTypeProp prop, String oppositeName = null) {
 		if(prop.type) {
 			if(oppositeName) {
 				prop.opposite = prop.type.props.find { it.name == oppositeName }

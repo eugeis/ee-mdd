@@ -13,15 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.builder
+
+import ee.mdd.model.Base
+
 /**
  *
  * @author Eugen Eisler
  */
-class ExternalModule extends Module {
-  List<ExternalType> externalTypes = []
-  
-  def add(ExternalType child) {
-	  externalTypes << super.add(child)
-  }
+abstract class AbstractResolveHandler implements ResolveHandler {
+    String name
+
+    @Override
+    void on(String ref, Base el) {
+        on(ref, el, el?.parent)
+    }
+
+    @Override
+    void on(String ref, Base el, Base parent) {
+    }
+
+    @Override
+    void addResolveRequest(String ref, Base el) {
+        addResolveRequest(ref, el, el?.parent)
+    }
+
+    @Override
+    Base resolve(String ref, Base el) {
+        resolve(ref, el, el?.parent)
+    }
+
+    @Override
+    boolean isResolved() {
+        true
+    }
+
+    @Override
+    void printNotResolved() {
+    }
 }

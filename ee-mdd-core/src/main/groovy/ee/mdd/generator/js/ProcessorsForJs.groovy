@@ -21,44 +21,44 @@ import ee.mdd.model.Element
 import ee.mdd.model.component.Module
 
 
-
 /**
  *
  * @author Eugen Eisler
  */
 class ProcessorsForJs {
 
-  Closure targetModuleResolver = { Context c -> c.module }
+    Closure targetModuleResolver = { Context c -> c.module }
 
-  Processor jsPathProcessor() {
-    Processor ret = new Processor(name: 'jsImportsPath')
+    Processor jsPathProcessor() {
+        Processor ret = new Processor(name: 'jsImportsPath')
 
-    ret.before = { c ->
-      //add 'name' methods to context object
-      c.metaClass {
+        ret.before = { c ->
+            //add 'name' methods to context object
+            def meta = c.metaClass
 
-        name = { Element element -> element.name  }
-        name = { String ref -> ref }
-      }
-    }
-
-    ret.after = { c ->
-      if(c.className) {
-        def ns = c.module?.ns
-        def subPkg = c.subPkg ? ".$c.subPkg" : ''
-        c.overwrite = !c.src
-
-        if(!c.path) {
-          Module outputModule = targetModuleResolver(c)
-          def artifact = (outputModule ? "${outputModule.artifact}/" : '/')
-
-          if(!c.scope) { c.scope = 'main' }
-          def path = c.src ? "${artifact}src/$c.scope/js" : "${artifact}src-gen/$c.scope/js"
-          def subPath = c.subPkg ? "/$c.subPkg" : ''
-          c.path = "$path/$ns.name$subPath/${c.className}.js"
+            meta.name = { Element element -> element.name }
+            meta.name = { String ref -> ref }
         }
-      }
+
+        ret.after = { c ->
+            if (c.className) {
+                def ns = c.module?.ns
+                def subPkg = c.subPkg ? ".$c.subPkg" : ''
+                c.overwrite = !c.src
+
+                if (!c.path) {
+                    Module outputModule = targetModuleResolver(c)
+                    def artifact = (outputModule ? "${outputModule.artifact}/" : '/')
+
+                    if (!c.scope) {
+                        c.scope = 'main'
+                    }
+                    def path = c.src ? "${artifact}src/$c.scope/js" : "${artifact}src-gen/$c.scope/js"
+                    def subPath = c.subPkg ? "/$c.subPkg" : ''
+                    c.path = "$path/$ns.name$subPath/${c.className}.js"
+                }
+            }
+        }
+        ret
     }
-    ret
-  }
 }

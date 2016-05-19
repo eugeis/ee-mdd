@@ -15,32 +15,26 @@
  */
 package ee.mdd.builder
 
-import ee.mdd.model.Composite
-import ee.mdd.model.Element
-
-
+import ee.mdd.model.Base
 
 /**
  *
  * @author Eugen Eisler
  */
-class ParentResolveHandler implements ResolveHandler {
+class ParentResolveHandler extends AbstractResolveHandler {
   String name
   Class type
   int depth = 0
   List<String> notResolved = []
   Closure setter
 
-  void onElement(Element el) {
-  }
-
-  void addResolveRequest(String ref, Composite parent, item) {
-    def el
+  void addResolveRequest(String ref, Base el, Base parent) {
+    def ret
     def base = parent
     for (int i = 0; i <= depth; i++) {
       if (base) {
-        el = base.find { Element e -> type.isInstance(e) && e.name == ref }
-        if(el) {
+        ret = base.find { Base e -> type.isInstance(e) && e.name == ref }
+        if(ret) {
           break
         } else {
           base = base?.parent
@@ -48,11 +42,14 @@ class ParentResolveHandler implements ResolveHandler {
       }
     }
 
-    if(el) {
-      setter(item, el)
+    if(ret) {
+      setter(el, ret)
     } else {
       notResolved << "The '$ref' can not be resolved in $base for child of $parent"
     }
+  }
+
+  Base resolve(String ref, Base el, Base parent) {
   }
 
   @Override

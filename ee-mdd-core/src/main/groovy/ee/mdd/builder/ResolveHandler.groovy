@@ -15,16 +15,28 @@
  */
 package ee.mdd.builder
 
-import ee.mdd.model.Composite
-import ee.mdd.model.Element
+import ee.mdd.model.Base
 
 /**
  *
  * @author Eugen Eisler
  */
 interface ResolveHandler {
-  void onElement(Element el)
-  void addResolveRequest(String ref, Composite parent, item)
-  boolean isResolved()
-  void printNotResolved()
+    String getName()
+
+    void on(String ref, Base el)
+
+    void on(String ref, Base el, Base parent)
+
+    void addResolveRequest(String ref, Base el)
+
+    void addResolveRequest(String ref, Base el, Base parent)
+
+    Base resolve(String ref, Base el)
+
+    Base resolve(String ref, Base el, Base parent)
+
+    boolean isResolved()
+
+    void printNotResolved()
 }

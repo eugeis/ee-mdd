@@ -48,7 +48,7 @@ class Element extends Base {
   }
 
   String getUri() {
-    if(uri == null) {
+    if(uri == null && parent) {
       uri = "${parent.getUri()}"
     }; uri
   }

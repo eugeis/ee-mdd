@@ -15,12 +15,10 @@
  */
 package ee.mdd.generator.java
 
-import ee.mdd.ModelBuilder
 import ee.mdd.generator.FacetTemplateLoader
 import ee.mdd.generator.Generator
 import ee.mdd.generator.GeneratorFactoryBase
 import ee.mdd.generator.ProcessorsFactory
-import ee.mdd.model.component.Model
 
 /**
  *
@@ -33,7 +31,7 @@ class GeneratorForJava extends GeneratorFactoryBase {
   }
 
   protected extendGenerator(Generator generator, ProcessorsFactory processorFactory, FacetTemplateLoader templateLoader, Closure targetModuleResolver) {
-    def javaProcessorFactory = new ProcessorsForJava(refToElement: builder.typeResolver.refToElement)
+    def javaProcessorFactory = new ProcessorsForJava(typeResolver: builder.typeResolver)
     if(targetModuleResolver) {
       javaProcessorFactory.targetModuleResolver = targetModuleResolver
     }
