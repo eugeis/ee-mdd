@@ -19,60 +19,69 @@ package ee.mdd.model
  * @author Eugen Eisler
  */
 class Composite extends Element {
-  List<Element> children = []
-  Map<String, Element> refToResolved
+    List<Element> children = []
+    Map<String, Element> refToResolved
 
-  def add(Element child) {
-    children << child; child.checkAndInit(this); child
-  }
-
-  Element find(Closure matcher) {
-    children.find(matcher)
-  }
-
-  List findAll(Closure matcher) {
-    children.findAll(matcher)
-  }
-
-  List findAllRecursiveDown(Closure matcher) {
-    fillRecursiveDown(matcher, [])
-  }
-
-  List fillRecursiveDown(Closure matcher, List fill) {
-    fill.addAll ( children.findAll(matcher) )
-    children.findAll { Composite.isInstance(it) }*.fillRecursiveDown(matcher, fill)
-    fill
-  }
-
-  Element findRecursiveDown(Closure matcher) {
-    Element ret = children.find(matcher)
-    if(!ret) {
-      children.find { Composite.isInstance(it) }*.findRecursiveDown(matcher)
+    def add(Element child) {
+        children << child; child.checkAndInit(this); child
     }
-    ret
-  }
 
-  Element findRecursiveUp(Closure matcher) {
-    Element ret = children.find(matcher)
-    if(!ret && parent) {
-      parent.findRecursiveUp(matcher)
+    Element find(Closure matcher) {
+        children.find(matcher)
     }
-    ret
-  }
 
-  Element resolve(String ref) {
-    //lazy init of resolved
-    if(refToResolved == null) {
-      refToResolved = [:]
-      children.each { Element element -> element.fillReference(refToResolved) }
+    List findAll(Closure matcher) {
+        children.findAll(matcher)
     }
-    refToResolved[ref]
-  }
 
-  /** resolve */
-  def propertyMissing(String ref) {
-    resolve(ref)
-  }
-  
-  void buildChildren() { if(children) { children.clone().each { it.buildMe(); it.buildChildren() } } }
+    List findAllRecursiveDown(Closure matcher, boolean stopSteppingDownIfFound = false) {
+        fillRecursiveDown(matcher, [], stopSteppingDownIfFound)
+    }
+
+    List fillRecursiveDown(Closure matcher, List fill, boolean stopSteppingDownIfFound = false) {
+        def items = children.findAll(matcher)
+        if (items) {
+            fill.addAll(items)
+        }
+        if (!stopSteppingDownIfFound || !items) {
+            children.findAll { Composite.isInstance(it) }*.fillRecursiveDown(matcher, fill)
+        }
+        fill
+    }
+
+    Element findRecursiveDown(Closure matcher) {
+        Element ret = children.find(matcher)
+        if (!ret) {
+            children.find { Composite.isInstance(it) }*.findRecursiveDown(matcher)
+        }
+        ret
+    }
+
+    Element findRecursiveUp(Closure matcher) {
+        Element ret = children.find(matcher)
+        if (!ret && parent) {
+            parent.findRecursiveUp(matcher)
+        }
+        ret
+    }
+
+    Element resolve(String ref) {
+        //lazy init of resolved
+        if (refToResolved == null) {
+            refToResolved = [:]
+            children.each { Element element -> element.fillReference(refToResolved) }
+        }
+        refToResolved[ref]
+    }
+
+    /** resolve */
+    def propertyMissing(String ref) {
+        resolve(ref)
+    }
+
+    void buildChildren() {
+        if (children) {
+            children.clone().each { it.buildMe(); it.buildChildren() }
+        }
+    }
 }
