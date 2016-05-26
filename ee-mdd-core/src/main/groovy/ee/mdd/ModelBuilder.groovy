@@ -68,6 +68,7 @@ import ee.mdd.model.component.Message
 import ee.mdd.model.component.MetaAttribute
 import ee.mdd.model.component.Model
 import ee.mdd.model.component.Module
+import ee.mdd.model.component.ModuleGroup
 import ee.mdd.model.component.Namespace
 import ee.mdd.model.component.Operation
 import ee.mdd.model.component.OperationRef
@@ -157,7 +158,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     private def commandFactory = new CompositeFactory(beanClass: CommandFactory, parent: dataType)
     private
     def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update', 'prop', 'op'], parent: controller)
-    private def component = new CompositeFactory(beanClass: Component, childFactories: ['module', 'realm'], parent: su)
+    private def moduleGroup = new CompositeFactory(beanClass: ModuleGroup)
+    private def component = new CompositeFactory(beanClass: Component, childFactories: ['moduleGroup', 'module', 'realm'], parent: su)
     private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
     private def config = new CompositeFactory(beanClass: Config, parent: dataType, childFactories: ['configController'])
     private def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
@@ -277,10 +279,11 @@ class ModelBuilder extends AbstractFactoryBuilder {
                 oppositeResolver.onDataTypeProp(prop)
             }
         })
-        typeResolver.addGlobalResolver('type', ExternalType)
+        typeResolver.addGlobalResolver('type', ExternalType, [Object] as Set)
+        typeResolver.addGlobalResolver('component', Component, [Model] as Set)
 
         typeResolver.addGlobalResolverByParentRoot('ret', Type, Component)
-        typeResolver.addGlobalResolver('ret', ExternalType)
+        typeResolver.addGlobalResolver('ret', ExternalType, [Object] as Set)
 
         typeResolver.addGlobalResolverByParentRoot('ref', Element, Component)
 
@@ -292,7 +295,10 @@ class ModelBuilder extends AbstractFactoryBuilder {
         typeResolver.addGlobalResolverByParentRoot('meta', Type, Component, metaAttributeHolder.&forType, true)
         typeResolver.addParentResolver('props', Prop, 2, null, true)
 
-        typeResolver.addGlobalResolverByParentRoot('view', Component, View)
+        typeResolver.addGlobalResolverByParentRoot('modules', Module, Component, null, true)
+        typeResolver.addGlobalResolver('dependencies', Module, null, null, true)
+
+        typeResolver.addGlobalResolverByParentRoot('view', View, Component)
 
         facets.names.each { facetName -> registerFactory facetName, new FacetFactory(facetName: facetName, facets: facets, parent: facet) }
 
@@ -308,6 +314,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
         registerFactory 'command', command
         registerFactory 'commandFactory', commandFactory
         registerFactory 'component', component
+        registerFactory 'moduleGroup', moduleGroup
         registerFactory 'config', config
         registerFactory 'constr', constructor
         registerFactory 'container', container

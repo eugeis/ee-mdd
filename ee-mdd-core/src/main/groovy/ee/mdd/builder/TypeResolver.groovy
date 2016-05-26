@@ -27,9 +27,9 @@ class TypeResolver extends AbstractResolveHandler {
     Set<Class> globalTypes = [] as Set
     Map<String, ResolveHandler> handlers = [:]
 
-    ResolveHandler addGlobalResolver(String name, Class type, Set<Class> allowedSourceTypes = null,
+    ResolveHandler addGlobalResolver(String name, Class type, Set<Class> registerElementsOfParentTypesOnly = null,
                                      Closure converter = null, boolean multi = false, Closure afterSetter = null) {
-        addResolver(new GlobalResolveHandler(name: name, type: type, parentTypes: allowedSourceTypes,
+        addResolver(new GlobalResolveHandler(name: name, type: type, registerElementsOfParentTypesOnly: registerElementsOfParentTypesOnly,
                 setter: setter(name, converter, multi, afterSetter), globalTypes: globalTypes))
     }
 

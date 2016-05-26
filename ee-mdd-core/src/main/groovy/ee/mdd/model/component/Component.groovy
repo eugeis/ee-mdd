@@ -18,43 +18,49 @@ package ee.mdd.model.component
 import ee.mdd.model.realm.Realm
 
 
-
 /**
  *
  * @author Eugen Eisler
  * @author Niklas Cappelmann
  */
 class Component extends StructureUnit {
-	List<Module> modules = []
-  Module shared
-  Realm realm
-  ComponentProfile componentProfile
-  UserProfile userProfile
-  String group
-  
-	protected boolean init() {
-		if(!namespace) { namespace = new Namespace(name: key ?: name); namespace.checkAndInit(this) }
-		super.init()
-	}
+    List<ModuleGroup> moduleGroups = []
+    List<Module> modules = []
+    Module shared
+    Realm realm
+    ComponentProfile componentProfile
+    UserProfile userProfile
+    String group
 
-  Component getComponent() { this }
-  
-  boolean hasProfiles() { componentProfile || userProfile }
-
-	def add(Module child) {
-		modules << child; super.add(child)
-	}
-  
-  def add(Realm item) {
-    realm = super.add(item)
-    if(!realm)
-      realm = item
-  }
-  
-  Module getModule() {
-    if(!shared && modules) {
-      shared = modules.get(0)
+    protected boolean init() {
+        if (!namespace) {
+            namespace = new Namespace(name: key ?: name); namespace.checkAndInit(this)
+        }
+        super.init()
     }
-    shared
-  }
+
+    Component getComponent() { this }
+
+    boolean hasProfiles() { componentProfile || userProfile }
+
+    def add(Module child) {
+        modules << child; super.add(child)
+    }
+
+    def add(Realm item) {
+        realm = super.add(item)
+        if (!realm)
+            realm = item
+    }
+
+    def add(ModuleGroup child) {
+        moduleGroups << child; super.add(child)
+    }
+
+    Module getModule() {
+        if (!shared && modules) {
+            shared = modules.get(0)
+        }
+        shared
+    }
 }

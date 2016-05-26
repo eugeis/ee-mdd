@@ -5,44 +5,61 @@ import org.junit.Test
 import ee.mdd.model.component.Model
 
 class GeneratorForJavaTest {
-  GeneratorForJava generator = new GeneratorForJava()
+    GeneratorForJava generator = new GeneratorForJava()
 
-  @Test
-  void testExtendModel() {
-    Model model = generator.builder.model('Test') {
+    @Test
+    void testExtendModel() {
+        Model model = generator.builder.model('Test') {
+            component('Test1') {
+                //moduleGroup('base', modules: ['module1', 'module2'])
+                module('module1')
+                module('module2')
+                module('module3')
+                module('module4', dependencies: ['module2'])
+            }
+
+            component('Test2') {
+                //moduleGroup('base', modules: ['module1', 'module2'])
+                module('module1')
+                module('module2')
+                module('module3')
+                module('module4', dependencies: ['Test1.module1'])
+            }
+        }
+
+        generator.builder.typeResolver.printNotResolved()
+
+        model.extend {
+            component('Foo') {
+            }
+        }
+
+        println model
     }
 
-    model.extend {
-      component('Foo') {
-      }
+    @Test
+    void testLoadTemplates() {
+
+        def modelFile = new File('D:/views/git/ee-mdd_example/model.groovy')
+        def model = generator.loadModel(modelFile.toURI().toURL(), {
+            java {
+                common()
+                cdi()
+                ejb()
+                jms()
+                jpa()
+                test()
+                //ee()
+                cg()
+                ui()
+                sm()
+            }
+        })
+
+        model = generator.deriveModel(model)
+
+        generator.generate(model, new File('D:/CG/src/cg-pl'), null, 'shared')
+
+        println model
     }
-
-    println model
-  }
-
-  @Test
-  void testLoadTemplates() {
-
-    def modelFile = new File('D:/views/git/ee-mdd_example/model.groovy')
-    def model = generator.loadModel(modelFile.toURI().toURL(), {
-      java {
-        common()
-        cdi()
-        ejb()
-        jms()
-        jpa()
-        test()
-        //ee()
-        cg()
-        ui()
-        sm()
-      }
-    })
-
-    model = generator.deriveModel(model)
-
-    generator.generate(model, new File('D:/CG/src/cg-pl'), null, 'shared')
-    
-    println model
-  }
 }

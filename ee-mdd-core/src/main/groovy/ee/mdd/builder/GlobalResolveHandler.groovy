@@ -25,7 +25,7 @@ class GlobalResolveHandler extends AbstractResolveHandler {
     final static SEPARATOR = '.'
     String name
     Class type
-    Set<Class> parentTypes
+    Set<Class> registerElementsOfParentTypesOnly
 
     Closure setter
     Set<Class> globalTypes
@@ -39,9 +39,9 @@ class GlobalResolveHandler extends AbstractResolveHandler {
     void on(String ref, Base el, Base parent) {
         if (type.isInstance(el)) {
             Class globalType = globalTypes.find { Class clazz -> clazz.isInstance(el) }
-            if (!globalTypes || globalType) {
-                Class parentType = parentTypes?.find { Class clazz -> clazz.isInstance(parent) }
-                if (!parentTypes || parentType) {
+            if (globalType) {
+                Class parentType = registerElementsOfParentTypesOnly?.find { Class clazz -> clazz.isInstance(parent) }
+                if (parentType) {
                     register(ref, el)
                     //resolve not resolved yet
                     if (notResolvedToItems.containsKey(ref)) {
