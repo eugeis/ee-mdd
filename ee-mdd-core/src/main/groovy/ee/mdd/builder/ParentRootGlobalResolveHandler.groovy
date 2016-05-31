@@ -58,6 +58,9 @@ class ParentRootGlobalResolveHandler extends AbstractResolveHandler {
                 }
             } else if (parent) {
                 ret = getOrCreateParentRootHandler(parent, parent.parent)
+            } else {
+              parentRootToResolveHandler[el] = ret = new GlobalResolveHandler(name: name, type: type,
+                      setter: setter, globalTypes: globalTypes)
             }
         }
         ret
