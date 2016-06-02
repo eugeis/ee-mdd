@@ -10,20 +10,40 @@ class GeneratorForJavaTest {
     @Test
     void testExtendModel() {
         Model model = generator.builder.model('Test') {
-            component('Test1') {
-                //moduleGroup('base', modules: ['module1', 'module2'])
-                module('module1')
-                module('module2')
-                module('module3')
-                module('module4', dependencies: ['module2'])
+            model('g1') {
+                component('Test1') {
+                    //moduleGroup('base', modules: ['module1', 'module2'])
+                    module('module1')
+                    module('module2')
+                    module('module3')
+                    module('module4', dependencies: ['module2'])
+                }
             }
 
-            component('Test2') {
+            model('g2') {
+                component('Test2') {
+                    //moduleGroup('base', modules: ['module1', 'module2'])
+                    module('module1')
+                    module('module2')
+                    module('module3')
+                    module('module4', dependencies: ['g1.Test1.module1'])
+                }
+            }
+
+            component('Test3') {
                 //moduleGroup('base', modules: ['module1', 'module2'])
                 module('module1')
                 module('module2')
                 module('module3')
                 module('module4', dependencies: ['Test1.module1'])
+            }
+
+            component('Test4') {
+                //moduleGroup('base', modules: ['module1', 'module2'])
+                module('module1')
+                module('module2')
+                module('module3')
+                module('module4', dependencies: ['Test3.module1'])
             }
         }
 

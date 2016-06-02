@@ -31,7 +31,7 @@ templates ('common') {
 	useMacros('commonMacros', '/common/macros')
 
 	//  templates ('api',
-	//  items: { c -> c.model.findAllRecursiveDown( { Entity.isInstance(it) }) },
+	//  items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
 	//  context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
 	//
 	//    template('impl', body: '''<% c.virtual=true; c.serializable=true; c.className="${entity.name}Base" %>${macros.generate('impl', c)}''')
@@ -39,14 +39,14 @@ templates ('common') {
 	//  }
 	//
 	//  templates ('enum',
-	//  items: { c -> c.model.findAllRecursiveDown( { EnumType.isInstance(it) }) },
+	//  items: { c -> c.model.findAllDown( { EnumType.isInstance(it) }) },
 	//  context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
 	//
 	//    template('enum', body: '''${macros.generate('enum', c)}''')
 	//  }
 
 	templates ('independentGeneration',
-	items: { c -> c.model.findAllRecursiveDown( { Module.isInstance(it) && it.name == "ui"}) },
+	items: { c -> c.model.findAllDown( { Module.isInstance(it) && it.name == "ui"}) },
 	context: { c -> def module = c.item; c.putAll( [ component: module.component, module: module, subPkg: 'impl', project: "eeMddUi"] ); c.filepath = 'generated' } ) {
 		template('indexhtml', body: '''<% c.path = "${c.filepath}/index.html" %>${macros.generate('indexhtml', c)}''')
 		template('appjs', body: '''<% c.path = "${c.filepath}/app.js" %>${macros.generate('appjs', c)}''')
@@ -54,7 +54,7 @@ templates ('common') {
 
 
 	templates ('mainViews',
-	items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && it.main}) },
+	items: { c -> c.model.findAllDown( { View.isInstance(it) && it.main}) },
 	context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
 		template('framehtml', body: '''<% c.main = true; c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
 		template('framejs', body: '''<% c.main = true; c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
@@ -62,7 +62,7 @@ templates ('common') {
 	}
 
 	templates ('frameViews',
-	items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) && !it.main}) },
+	items: { c -> c.model.findAllDown( { View.isInstance(it) && !it.main}) },
 	context: { c -> def view = c.item; c.putAll( [ component: view.component, module: view.module, view: view, subPkg: 'impl' ] ); c.filepath = 'generated' } ) {
 		template('framehtml', body: '''<% c.path = "${c.filepath}/src-gen/templates/${item.name}.html" %>${macros.generate('framehtml', c)}''')
 		template('framejs', body: '''<% c.path = "${c.filepath}/src-gen/views/${item.name}.js" %>${macros.generate('framejs', c)}''')
@@ -70,7 +70,7 @@ templates ('common') {
 	}
 
 	templates ('tableViews',
-		items: { c -> c.model.findAllRecursiveDown( { Table.isInstance(it) }) },
+		items: { c -> c.model.findAllDown( { Table.isInstance(it) }) },
 		context: { c -> def control = c.item; c.filepath = 'generated' } ) {
 		template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/controls/${item.view.name}${item.type.name}.js" %>${macros.generate('tablejs', c)}''')
 	}

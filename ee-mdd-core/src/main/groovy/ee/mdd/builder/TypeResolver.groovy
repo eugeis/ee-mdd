@@ -27,21 +27,26 @@ class TypeResolver extends AbstractResolveHandler {
     Set<Class> globalTypes = [] as Set
     Map<String, ResolveHandler> handlers = [:]
 
-    ResolveHandler addGlobalResolver(String name, Class type, Set<Class> registerElementsOfParentTypesOnly = null,
+    ResolveHandler addGlobalResolver(String name, Class type, PathResolveHandler pathResolver, Set<Class> registerElementsOfParentTypesOnly = null,
                                      Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+        Closure setter = setter(name, converter, multi, afterSetter)
+        pathResolver.setter = setter
         addResolver(new GlobalResolveHandler(name: name, type: type, registerElementsOfParentTypesOnly: registerElementsOfParentTypesOnly,
-                setter: setter(name, converter, multi, afterSetter), globalTypes: globalTypes))
+                setter: setter, globalTypes: globalTypes, pathResolver: pathResolver))
     }
 
-    ResolveHandler addGlobalResolverByParentRoot(String name, Class type, Class parentRootType,
+    ResolveHandler addGlobalResolverByParentRoot(String name, Class type, Class parentRootType, PathResolveHandler pathResolver,
                                                  Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+        def setter = setter(name, converter, multi, afterSetter)
+        pathResolver.setter = setter
         addResolver(new ParentRootGlobalResolveHandler(name: name, type: type, parentRootType: parentRootType,
-                setter: setter(name, converter, multi, afterSetter), globalTypes: globalTypes))
+                setter: setter, globalTypes: globalTypes, pathResolver: pathResolver))
     }
 
     ResolveHandler addParentResolver(String name, Class type, int depth = 0, Closure converter = null, boolean multi = false, Closure afterSetter = null) {
+        def setter = setter(name, converter, multi, afterSetter)
         addResolver(new ParentResolveHandler(name: name, type: type, depth: depth,
-                setter: setter(name, converter, multi, afterSetter)))
+                setter: setter))
     }
 
     Closure setter(String name, Closure converter, boolean multi, Closure afterSetter) {
@@ -60,6 +65,7 @@ class TypeResolver extends AbstractResolveHandler {
                 }
             }
         }
+        setter
     }
 
     ResolveHandler addResolver(ResolveHandler resolver) {
@@ -109,7 +115,7 @@ class TypeResolver extends AbstractResolveHandler {
 
     void printNotResolved() {
         handlers.each { name, ResolveHandler handler ->
-            if (!handler.resolved) {
+            if (!handler.empty) {
                 handler.printNotResolved()
             }
         }
@@ -144,11 +150,7 @@ class TypeResolver extends AbstractResolveHandler {
         handlers.values().findResult { it.resolve(ref, el, parent) }
     }
 
-    boolean addGlobalType(Class item) {
-        globalTypes.add(item)
-    }
-
-    boolean addGlobalTypes(Collection<? extends Class> items) {
+    boolean addGlobalType(Class... items) {
         globalTypes.addAll(items)
     }
 }

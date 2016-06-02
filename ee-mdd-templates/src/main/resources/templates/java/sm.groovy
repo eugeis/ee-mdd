@@ -34,21 +34,21 @@ templates('sm') {
   useMacros('macros')
 
     templates('metas', type: API,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       template('metaModel', appendName: true, body: '''<% c.className = "${item.capShortName}StateMetaModel" %> ${macros.generate('metaModel', c)}''')
       template('metaState', appendName: true, body: '''<% c.className = "${item.capShortName}MetaState" %> ${macros.generate('metaState', c)}''')
     }
 
     templates('typeEnums', type: API,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       template('actionType', appendName: true, body: '''<% c.className = "${item.capShortName}StateActionType" %> ${macros.generate('actionType', c)}''')
       template('conditionType', appendName: true, body: '''<% c.className = "${item.capShortName}StateConditionType" %> ${macros.generate('conditionType', c)}''')
     }
 
     templates('controller', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       template('controller', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerBase" %> ${macros.generate('stateMachineController', c)}''')
       template('controllerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}Controller" %> ${macros.generate('stateMachineControllerExtends', c)}''')
@@ -59,7 +59,7 @@ templates('sm') {
     }
 
     templates('stateMachineEvents', type: API,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('event', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEvent" %> ${macros.generate('eventStateMachine', c)}''')
@@ -71,7 +71,7 @@ templates('sm') {
     }
 
     templates('stateEventProcessor', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('stateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessor" %> ${macros.generate('stateEventProcessor', c)}''')
@@ -80,7 +80,7 @@ templates('sm') {
     }
 
     templates('context', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('context', appendName: true, body: '''<% c.className = "${item.capShortName}ContextBase" %> ${macros.generate('context', c)}''')
@@ -88,7 +88,7 @@ templates('sm') {
     }
 
     templates('contextManager', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('contextManager', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerBase" %> ${macros.generate('contextManager', c)}''')
@@ -98,7 +98,7 @@ templates('sm') {
     }
 
     templates('execution', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('actionExecutor', appendName: true, body:'''<% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}''')
@@ -106,7 +106,7 @@ templates('sm') {
     }
 
     templates('action', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {Action.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {Action.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('actionEvent', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}Event" %> ${macros.generate('actionEvent', c)}<% } %>''')
@@ -116,14 +116,14 @@ templates('sm') {
     }
 
     templates('event',
-    items: { c -> c.model.findAllRecursiveDown( {Event.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {Event.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
       template('eventIfc', appendName: true, body: '''<% c.className = "${item.cap}Event" %> ${macros.generate('eventIfc', c)}''')
       template('implEvent', appendName: true, body: '''<% c.className = "${item.cap}EventImpl" %> ${macros.generate('implEvent', c)}''')
     }
 
     templates('state', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {State.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {State.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('eventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessor" %> ${macros.generate('eventProcessor', c)}''')
@@ -132,7 +132,7 @@ templates('sm') {
     }
 
     templates('stateTimeoutHandler', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
@@ -142,14 +142,14 @@ templates('sm') {
     }
 
     templates('conditionVerifier', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('condVerifier', appendName: true, body: '''<% c.className = "${item.capShortName}ConditionVerifier" %> ${macros.generate('condVerifier', c)}''')
     }
 
     templates('condition', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {Condition.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {Condition.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('conditionVerifierIfc', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}Verifier" %> ${macros.generate('conditionVerifierIfc', c)}<% } %>''')
@@ -158,7 +158,7 @@ templates('sm') {
     }
 
     templates('timeoutsConfig', type: LOGIC,
-    items: { c -> c.model.findAllRecursiveDown( {StateMachine.isInstance(it) }) },
+    items: { c -> c.model.findAllDown( {StateMachine.isInstance(it) }) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
       template('timeoutsConfig', appendName: true, body: '''<% c.className = "${item.capShortName}Timeouts" %> ${macros.generate('timeoutsConfig', c)}''')

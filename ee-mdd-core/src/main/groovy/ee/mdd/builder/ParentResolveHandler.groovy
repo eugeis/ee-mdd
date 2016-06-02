@@ -53,7 +53,7 @@ class ParentResolveHandler extends AbstractResolveHandler {
   }
 
   @Override
-  boolean isResolved() {
+  boolean isEmpty() {
     notResolved.isEmpty()
   }
 

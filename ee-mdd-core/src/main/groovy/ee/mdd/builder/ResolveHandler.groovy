@@ -36,7 +36,7 @@ interface ResolveHandler {
 
     Base resolve(String ref, Base el, Base parent)
 
-    boolean isResolved()
+    boolean isEmpty()
 
     void printNotResolved()
 }

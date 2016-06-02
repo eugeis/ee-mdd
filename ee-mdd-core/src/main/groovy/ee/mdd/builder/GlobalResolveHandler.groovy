@@ -22,7 +22,6 @@ import ee.mdd.model.Base
  * @author Eugen Eisler
  */
 class GlobalResolveHandler extends AbstractResolveHandler {
-    final static SEPARATOR = '.'
     String name
     Class type
     Set<Class> registerElementsOfParentTypesOnly
@@ -33,8 +32,7 @@ class GlobalResolveHandler extends AbstractResolveHandler {
     Set<String> duplicates = [] as Set
 
     Map<String, List<Object>> notResolvedToItems = [:]
-    Map<String, List<Object>> notResolvedPathToItems = [:]
-    Map<String, List<Object>> notResolvedPathRefToResolvers = [:]
+    PathResolveHandler pathResolver
 
     void on(String ref, Base el, Base parent) {
         if (type.isInstance(el)) {
@@ -63,44 +61,11 @@ class GlobalResolveHandler extends AbstractResolveHandler {
         if (resolved.containsKey(ref)) {
             setter.call(el, resolved[ref])
         } else {
-            if (ref.contains(SEPARATOR)) {
-                addResolvePathRequest(ref, el)
+            if (pathResolver?.isPath(ref, el, parent)) {
+                pathResolver.addResolveRequest(ref, el, parent)
             } else {
                 addRequest(ref, el)
             }
-        }
-    }
-
-    private addResolvePathRequest(String ref, Base el) {
-        def parts = ref.split("\\$SEPARATOR")
-        String refPart = parts[0]
-        if (resolved.containsKey(refPart)) {
-            resolveParts(resolved[refPart], parts[1..parts.length - 1], el)
-        } else {
-            def subParts = parts[1..parts.length - 1]
-            notResolvedToItems[refPart] = { resolveParts(it, subParts, el) }
-        }
-    }
-
-    private void resolveParts(Base base, List<String> parts, Base item) {
-        def el = base
-        def partsSize = parts.size()
-        for (int i = 0; i < partsSize; i++) {
-            String refPart = parts[i]
-            def resolved = el.resolve(refPart)
-            if (resolved) {
-                el = resolved
-            } else {
-                def subParts = (i < partsSize - 1) ? parts[i + 1..partsSize - 1] : []
-                notResolvedPathRefToResolvers[refPart] = { resolveParts(el.resolve(it), subParts, item) }
-                //println "Can not resolve ${refPart} in '$el.reference'"
-                el = null
-                break
-            }
-        }
-
-        if (el) {
-            setter(item, el)
         }
     }
 
@@ -112,8 +77,8 @@ class GlobalResolveHandler extends AbstractResolveHandler {
     }
 
     @Override
-    boolean isResolved() {
-        notResolvedToItems.isEmpty() && notResolvedPathToItems.isEmpty()
+    boolean isEmpty() {
+        notResolvedToItems.isEmpty()
     }
 
     @Override
@@ -121,10 +86,6 @@ class GlobalResolveHandler extends AbstractResolveHandler {
 
         if (!notResolvedToItems.isEmpty()) {
             println "Not resolved: $name: ${notResolvedToItems.keySet()}"
-        }
-
-        if (!notResolvedPathToItems.isEmpty()) {
-            println "Not resolved: $name: ${notResolvedPathToItems.keySet()}"
         }
     }
 

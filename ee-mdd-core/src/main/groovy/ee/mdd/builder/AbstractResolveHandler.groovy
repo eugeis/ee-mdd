@@ -44,7 +44,7 @@ abstract class AbstractResolveHandler implements ResolveHandler {
     }
 
     @Override
-    boolean isResolved() {
+    boolean isEmpty() {
         true
     }
 

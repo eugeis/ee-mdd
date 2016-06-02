@@ -34,33 +34,37 @@ class Composite extends Element {
         children.findAll(matcher)
     }
 
-    List findAllRecursiveDown(Closure matcher, boolean stopSteppingDownIfFound = false) {
-        fillRecursiveDown(matcher, [], stopSteppingDownIfFound)
+    List findAllDown(Closure matcher, boolean stopSteppingDownIfFound = false) {
+        fillDown(matcher, [], stopSteppingDownIfFound)
     }
 
-    List fillRecursiveDown(Closure matcher, List fill, boolean stopSteppingDownIfFound = false) {
+    List fillDown(Closure matcher, List fill, boolean stopSteppingDownIfFound = false) {
         def items = children.findAll(matcher)
         if (items) {
             fill.addAll(items)
         }
         if (!stopSteppingDownIfFound || !items) {
-            children.findAll { Composite.isInstance(it) }*.fillRecursiveDown(matcher, fill)
+            children.findAll { Composite.isInstance(it) }*.fillDown(matcher, fill)
         }
         fill
     }
 
-    Element findRecursiveDown(Closure matcher) {
+    Element findDown(Closure matcher) {
         Element ret = children.find(matcher)
         if (!ret) {
-            children.find { Composite.isInstance(it) }*.findRecursiveDown(matcher)
+            ret = children.find { Composite.isInstance(it) }*.findRecursiveDown(matcher)
         }
         ret
     }
 
-    Element findRecursiveUp(Closure matcher) {
+    Element findUp(Base p = parent, Closure matcher) {
         Element ret = children.find(matcher)
-        if (!ret && parent) {
-            parent.findRecursiveUp(matcher)
+        if (!ret && p) {
+            if (matcher(p)) {
+                ret = p
+            } else {
+                ret = p.findUp(matcher)
+            }
         }
         ret
     }

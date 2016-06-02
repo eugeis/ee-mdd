@@ -44,8 +44,8 @@ class ListResolveHandler extends AbstractResolveHandler {
     }
 
     @Override
-    boolean isResolved() {
-        handlers.find { !it.isResolved() }
+    boolean isEmpty() {
+        handlers.find { !it.isEmpty() }
     }
 
     @Override

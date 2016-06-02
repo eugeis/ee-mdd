@@ -15,117 +15,14 @@
  */
 package ee.mdd
 
-import ee.mdd.builder.AbstractFactoryBuilder
-import ee.mdd.builder.CompositeFactory
-import ee.mdd.builder.EnumTypeFactory
-import ee.mdd.builder.FacetAwareFactory
-import ee.mdd.builder.FacetFactory
-import ee.mdd.builder.Facets
-import ee.mdd.builder.MddFactory
-import ee.mdd.builder.MetaAttributeHolder
-import ee.mdd.builder.ModelFactory
-import ee.mdd.builder.OppositeResolveHandler
-import ee.mdd.builder.PropFactory
+import ee.mdd.builder.*
+import ee.mdd.model.Base
 import ee.mdd.model.Body
 import ee.mdd.model.Element
-import ee.mdd.model.component.Attribute
-import ee.mdd.model.component.BasicType
-import ee.mdd.model.component.Cache
-import ee.mdd.model.component.Channel
-import ee.mdd.model.component.Command
-import ee.mdd.model.component.CommandFactory
-import ee.mdd.model.component.Commands
-import ee.mdd.model.component.CompilationUnit
-import ee.mdd.model.component.Component
-import ee.mdd.model.component.ComponentProfile
-import ee.mdd.model.component.ConditionParam
-import ee.mdd.model.component.Config
-import ee.mdd.model.component.ConfigController
-import ee.mdd.model.component.Constructor
-import ee.mdd.model.component.Container
-import ee.mdd.model.component.Controller
-import ee.mdd.model.component.Count
-import ee.mdd.model.component.Create
-import ee.mdd.model.component.DataType
-import ee.mdd.model.component.DataTypeOperation
-import ee.mdd.model.component.DataTypeProp
-import ee.mdd.model.component.Delete
-import ee.mdd.model.component.Entity
-import ee.mdd.model.component.EnumType
-import ee.mdd.model.component.Exist
-import ee.mdd.model.component.ExternalModule
-import ee.mdd.model.component.ExternalType
-import ee.mdd.model.component.Facade
-import ee.mdd.model.component.Facet
-import ee.mdd.model.component.Find
-import ee.mdd.model.component.Finders
-import ee.mdd.model.component.Index
-import ee.mdd.model.component.Initializer
-import ee.mdd.model.component.InterfType
-import ee.mdd.model.component.Literal
-import ee.mdd.model.component.LogicUnit
-import ee.mdd.model.component.Message
-import ee.mdd.model.component.MetaAttribute
-import ee.mdd.model.component.Model
-import ee.mdd.model.component.Module
-import ee.mdd.model.component.ModuleGroup
-import ee.mdd.model.component.Namespace
-import ee.mdd.model.component.Operation
-import ee.mdd.model.component.OperationRef
-import ee.mdd.model.component.Param
-import ee.mdd.model.component.Pojo
-import ee.mdd.model.component.Profile
-import ee.mdd.model.component.Prop
-import ee.mdd.model.component.StructureUnit
-import ee.mdd.model.component.Type
-import ee.mdd.model.component.TypeRef
-import ee.mdd.model.component.Update
-import ee.mdd.model.component.UserProfile
-import ee.mdd.model.component.XmlController
-import ee.mdd.model.realm.Realm
-import ee.mdd.model.realm.RealmGroup
-import ee.mdd.model.realm.RealmRole
-import ee.mdd.model.realm.RealmUser
-import ee.mdd.model.realm.RealmWorkstationType
-import ee.mdd.model.statemachine.Action
-import ee.mdd.model.statemachine.Condition
-import ee.mdd.model.statemachine.Context
-import ee.mdd.model.statemachine.Event
-import ee.mdd.model.statemachine.History
-import ee.mdd.model.statemachine.State
-import ee.mdd.model.statemachine.StateEvent
-import ee.mdd.model.statemachine.StateMachine
-import ee.mdd.model.statemachine.StateMachineController
-import ee.mdd.model.statemachine.Transition
-import ee.mdd.model.ui.Button
-import ee.mdd.model.ui.CheckBox
-import ee.mdd.model.ui.Column
-import ee.mdd.model.ui.ComboBox
-import ee.mdd.model.ui.ContextMenu
-import ee.mdd.model.ui.Control
-import ee.mdd.model.ui.DateField
-import ee.mdd.model.ui.Dialog
-import ee.mdd.model.ui.GroupBoxHeader
-import ee.mdd.model.ui.GroupContentFrame
-import ee.mdd.model.ui.Header
-import ee.mdd.model.ui.Label
-import ee.mdd.model.ui.Listener
-import ee.mdd.model.ui.OnAction
-import ee.mdd.model.ui.OnActivation
-import ee.mdd.model.ui.OnChange
-import ee.mdd.model.ui.OnContextMenuRequest
-import ee.mdd.model.ui.OnItemEditorItemSelect
-import ee.mdd.model.ui.OnSelect
-import ee.mdd.model.ui.Panel
-import ee.mdd.model.ui.Presenter
-import ee.mdd.model.ui.Spinner
-import ee.mdd.model.ui.Table
-import ee.mdd.model.ui.TextField
-import ee.mdd.model.ui.TimeField
-import ee.mdd.model.ui.View
-import ee.mdd.model.ui.ViewModel
-import ee.mdd.model.ui.ViewRef
-import ee.mdd.model.ui.Widget
+import ee.mdd.model.component.*
+import ee.mdd.model.realm.*
+import ee.mdd.model.statemachine.*
+import ee.mdd.model.ui.*
 
 /**
  *
@@ -159,7 +56,8 @@ class ModelBuilder extends AbstractFactoryBuilder {
     private
     def commands = new CompositeFactory(beanClass: Commands, childFactories: ['create', 'delete', 'update', 'prop', 'op'], parent: controller)
     private def moduleGroup = new CompositeFactory(beanClass: ModuleGroup)
-    private def component = new CompositeFactory(beanClass: Component, childFactories: ['moduleGroup', 'module', 'realm'], parent: su)
+    private
+    def component = new CompositeFactory(beanClass: Component, childFactories: ['moduleGroup', 'module', 'realm'], parent: su)
     private def condition = new CompositeFactory(beanClass: ConditionParam, parent: param)
     private def config = new CompositeFactory(beanClass: Config, parent: dataType, childFactories: ['configController'])
     private def constructor = new CompositeFactory(beanClass: Constructor, parent: lu)
@@ -269,40 +167,63 @@ class ModelBuilder extends AbstractFactoryBuilder {
     ModelBuilder(Closure postInstantiateDelegate = null) {
         super(postInstantiateDelegate)
 
-        typeResolver.addGlobalTypes([Model, Module, Type])
+        typeResolver.addGlobalType(Model, Module, Type)
 
         OppositeResolveHandler oppositeResolver = typeResolver.addResolver(new OppositeResolveHandler(name: 'opposite'))
         typeResolver.addResolver(oppositeResolver)
 
-        typeResolver.addGlobalResolverByParentRoot('type', Type, Component, null, false, { prop, resolved ->
+        typeResolver.addGlobalResolverByParentRoot('type', Type, Component, pathResolver(), null, false, { prop, resolved ->
             if (DataTypeProp.isInstance(prop) && DataType.isInstance(resolved) && !prop.opposite) {
                 oppositeResolver.onDataTypeProp(prop)
             }
         })
-        typeResolver.addGlobalResolver('type', ExternalType, [Object] as Set)
-        typeResolver.addGlobalResolver('component', Component, [Model] as Set)
+        typeResolver.addGlobalResolver('type', ExternalType, pathResolver(), [Object] as Set)
+        typeResolver.addGlobalResolver('component', Component, pathResolver(), [Model] as Set)
 
-        typeResolver.addGlobalResolverByParentRoot('ret', Type, Component)
-        typeResolver.addGlobalResolver('ret', ExternalType, [Object] as Set)
+        typeResolver.addGlobalResolverByParentRoot('ret', Type, Component, pathResolver())
+        typeResolver.addGlobalResolver('ret', ExternalType, pathResolver(), [Object] as Set)
 
-        typeResolver.addGlobalResolverByParentRoot('ref', Element, Component)
+        typeResolver.addGlobalResolverByParentRoot('ref', Element, Component, pathResolver())
 
         typeResolver.addParentResolver('prop', Prop, 2)
-        typeResolver.addGlobalResolverByParentRoot('module', Module, Component)
-        typeResolver.addGlobalResolverByParentRoot('superUnit', CompilationUnit, Component)
+        typeResolver.addGlobalResolverByParentRoot('module', Module, Component, pathResolver())
+        typeResolver.addGlobalResolverByParentRoot('superUnit', CompilationUnit, Component, pathResolver())
 
         MetaAttributeHolder metaAttributeHolder = new MetaAttributeHolder()
-        typeResolver.addGlobalResolverByParentRoot('meta', Type, Component, metaAttributeHolder.&forType, true)
+        typeResolver.addGlobalResolverByParentRoot('meta', Type, Component, pathResolver(), metaAttributeHolder.&forType, true)
         typeResolver.addParentResolver('props', Prop, 2, null, true)
 
-        typeResolver.addGlobalResolverByParentRoot('modules', Module, Component, null, true)
-        typeResolver.addGlobalResolver('dependencies', Module, null, null, true)
+        typeResolver.addGlobalResolverByParentRoot('modules', Module, Component, pathResolver(), null, true)
+        typeResolver.addGlobalResolverByParentRoot('dependencies', Module, Component, pathResolver(), null, true)
 
-        typeResolver.addGlobalResolverByParentRoot('view', View, Component)
+        typeResolver.addGlobalResolverByParentRoot('view', View, Component, pathResolver())
 
         facets.names.each { facetName -> registerFactory facetName, new FacetFactory(facetName: facetName, facets: facets, parent: facet) }
 
         reg()
+    }
+
+    protected PathResolveHandler pathResolver() {
+        new PathResolveHandler(
+                rootFindParentMatcher: { String part, Base el, Base parent ->
+                    el.findUp(parent) { Base item ->
+                        part.equalsIgnoreCase(item.name) ||
+                                (StructureUnit.isInstance(item) && part.equalsIgnoreCase(((StructureUnit) item).key))
+                    }
+                },
+                midPartFindMatcher: { String part, Component el, Base parent ->
+                    el.find { Base item ->
+                        part.equalsIgnoreCase(item.name) ||
+                                (StructureUnit.isInstance(item) && part.equalsIgnoreCase(((StructureUnit) item).key))
+                    }
+                },
+                lastPartFindMatcher: { String part, Component el, Base parent ->
+                    el.find { Base item ->
+                        part.equalsIgnoreCase(item.name) ||
+                                (StructureUnit.isInstance(item) && part.equalsIgnoreCase(((StructureUnit) item).key))
+                    }
+                }
+        )
     }
 
     void reg() {

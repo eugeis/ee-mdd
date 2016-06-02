@@ -11,7 +11,7 @@ templates('ui') {
   useMacros('macros')
 
   templates ('viewInterface',
-  items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( { View.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
 
     template('viewInterface', appendName: true, body: '''<% c.className = c.item.n.cap.base %> ${macros.generate('viewInterfaceBase', c)}''')
@@ -19,7 +19,7 @@ templates('ui') {
   }
 
   templates ('viewModel',
-  items: { c -> c.model.findAllRecursiveDown( { View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( { View.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
     template('viewModel', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.base %> ${macros.generate('viewModelBase', c)}<% } %>''')
@@ -27,7 +27,7 @@ templates('ui') {
   }
 
   templates ('modelEventForwarder',
-  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
 
     template('modelEventForwarder', appendName: true, body: '''<% if (item.model) { %><% c.className = item.model.n.cap.eventsBase%> ${macros.generate('modelEventForwarderBase', c)}<% } %>''')
@@ -35,7 +35,7 @@ templates('ui') {
   }
 
   templates ('presenter',
-  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
 
     template('presenter', appendName: true, body: '''<% c.className = item.n.cap.presenterBase-"View" %> ${macros.generate('presenterBase', c)}''')
@@ -45,7 +45,7 @@ templates('ui') {
   }
 
   templates ('mediator',
-  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
 
     template('mediator', appendName: true, body: '''<% if (item.view.withMediator) { %><% c.className = item.n.cap.mediatorBase-"View" %> ${macros.generate('mediatorBase', c)}<% } %>''')
@@ -53,7 +53,7 @@ templates('ui') {
   }
 
   templates ('guido',
-  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
 
     template('dialogGuido', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.dialog.n.cap.guidoBase-"View" %> ${macros.generate('dialogGuido', c)}<% } %>''')
@@ -66,7 +66,7 @@ templates('ui') {
   }
   
   templates('fx',
-  items: { c -> c.model.findAllRecursiveDown( {View.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( {View.isInstance(it) }) },
   context: { c -> c.putAll( [component: c.item.component, module: c.item.module] ) } ) {
     template('fxDialog', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.n.cap.fxBase %> ${macros.generate('fxDialog', c)} <% } %>''')
     template('fxDialogExtends', appendName: true, body: '''<% if (item.dialog) { %><% c.className = item.n.cap.fx %> ${macros.generate('fxDialogExtends', c)} <% } %>''')

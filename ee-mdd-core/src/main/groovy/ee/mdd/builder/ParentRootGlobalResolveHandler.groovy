@@ -26,6 +26,7 @@ class ParentRootGlobalResolveHandler extends AbstractResolveHandler {
     Class parentRootType
     Closure setter
     Set<Class> globalTypes
+    PathResolveHandler pathResolver
     Map<Object, GlobalResolveHandler> parentRootToResolveHandler = new HashMap<>()
 
     void on(String ref, Base el, Base parent) {
@@ -54,7 +55,8 @@ class ParentRootGlobalResolveHandler extends AbstractResolveHandler {
                 ret = parentRootToResolveHandler[el];
                 if (ret == null) {
                     parentRootToResolveHandler[el] = ret = new GlobalResolveHandler(name: name, type: type,
-                            setter: setter, globalTypes: globalTypes)
+                            setter: setter, globalTypes: globalTypes, registerElementsOfParentTypesOnly: [parentRootType],
+                            pathResolver: pathResolver)
                 }
             } else if (parent) {
                 ret = getOrCreateParentRootHandler(parent, parent.parent)
@@ -69,8 +71,8 @@ class ParentRootGlobalResolveHandler extends AbstractResolveHandler {
     }
 
     @Override
-    boolean isResolved() {
-        !parentRootToResolveHandler.values().find { !it.isResolved() }
+    boolean isEmpty() {
+        !parentRootToResolveHandler.values().find { !it.isEmpty() }
     }
 
     @Override

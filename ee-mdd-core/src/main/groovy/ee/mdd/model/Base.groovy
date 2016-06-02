@@ -15,60 +15,61 @@
  */
 package ee.mdd.model
 
-
-
-
 /**
  *
  * @author Eugen Eisler
  */
 class Base {
-  protected boolean init = false
-  String name
-  Base parent
+    protected boolean init = false
+    String name
+    Base parent
 
-  void checkAndInit(Base parent) {
-    if(!init) {
-      this.parent = parent
-      init = init()
+    void checkAndInit(Base parent) {
+        if (!init) {
+            this.parent = parent
+            init = init()
+        }
     }
-  }
 
-  protected boolean init() {
-    true
-  }
-
-  Base findParent(Closure matcher) {
-    if(parent) {
-      if(matcher(parent)){
-        parent
-      } else {
-        parent.findParent(matcher)
-      }
+    protected boolean init() {
+        true
     }
-  }
 
-  List<Base> findParents(boolean stopAfterFirstMismatch = false, def fill = [], Closure matcher) {
-    if(parent) {
-      if(matcher(parent)) {
-        fill << parent
-        fill = parent.findParents(stopAfterFirstMismatch, fill, matcher)
-      } else if(!stopAfterFirstMismatch){
-        fill = parent.findParents(stopAfterFirstMismatch, fill, matcher)
-      }
+    Base findParent(Base p = parent, Closure matcher) {
+        if (p) {
+            if (matcher(p)) {
+                p
+            } else {
+                p.findParent(matcher)
+            }
+        }
     }
-    fill
-  }
 
-  String deriveName(Base p = parent ) {
-    p ? "${p.name}${getClass().simpleName}" : getClass().simpleName
-  }
+    Element findUp(Base p = parent, Closure matcher) {
+        findParent(p, matcher)
+    }
 
-  String getName() {
-    if(!name) {
-      name = deriveName()
-    }; name
-  }
+    List<Base> findParents(Base p = parent, boolean stopAfterFirstMismatch = false, def fill = [], Closure matcher) {
+        if (p) {
+            if (matcher(p)) {
+                fill << p
+                fill = p.findParents(stopAfterFirstMismatch, fill, matcher)
+            } else if (!stopAfterFirstMismatch) {
+                fill = p.findParents(stopAfterFirstMismatch, fill, matcher)
+            }
+        }
+        fill
+    }
 
-  Map attributes() {}
+    String deriveName(Base p = parent) {
+        p ? "${p.name}${getClass().simpleName}" : getClass().simpleName
+    }
+
+    String getName() {
+        if (!name) {
+            name = deriveName()
+        }; name
+    }
+
+    Map attributes() {}
 }

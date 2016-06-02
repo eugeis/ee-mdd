@@ -67,7 +67,7 @@ class OppositeResolveHandler extends AbstractResolveHandler {
 	}
 
 	@Override
-	boolean isResolved() {
+	boolean isEmpty() {
 		notResolved.isEmpty()
 	}
 
