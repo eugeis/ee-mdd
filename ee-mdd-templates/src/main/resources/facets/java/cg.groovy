@@ -47,7 +47,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'StringLink' : 'com.siemens.ra.cg.pl.common.base.model', 'SupportsEnvironments' : 'com.siemens.ra.cg.pl.common.base.cdi.env', 'Environment' : 'com.siemens.ra.cg.pl.common.base.cdi.env',
   'Traceable' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Service' : 'com.siemens.ra.cg.pl.common.base.annotations',
   'Backend' : 'com.siemens.ra.cg.pl.common.base.annotations', 'SERVER' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*', 'CLIENT' : 'static com.siemens.ra.cg.pl.common.base.integ.RuntimeType.*',
-  'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'PRODUCTIVE' : 'com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*',
+  'LOCAL' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'MEMORY' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*', 'PRODUCTIVE' : 'static com.siemens.ra.cg.pl.common.base.integ.ExecutionType.*',
   'Labeled' : 'com.siemens.ra.cg.pl.common.base.model', 'MlKeyBuilder' : 'com.siemens.ra.cg.pl.common.base.ml', 'MLKey' : 'com.siemens.ra.cg.pl.common.base.ml', 'MLKeyImpl' : 'com.siemens.ra.cg.pl.common.base.ml',
   'Controller' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Config' : 'com.siemens.ra.cg.pl.common.base.config', 'DateTimeProvider' : 'com.siemens.ra.cg.pl.common.base.util'] as TreeMap
 

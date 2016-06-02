@@ -43,20 +43,20 @@ templates ('common') {
 
   useMacros('commonMacros', '/common/macros')
   useMacros('macros')
-  
+
   templates('build',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('build', appendName: true, body: '''<% if (component) { %><% c.path = "${component.artifact}-${module.key}/build.gradle" %>${macros.generate('build', c)}<% } %>''')
   }
-    
+
   templates ('modelApi',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcEntity', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %><% c.serializable = true %>${macros.generate('ifcEntity', c)}''')
     template('ifcEntityExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
   }
-  
+
   templates('ifcFactory',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -69,34 +69,34 @@ templates ('common') {
     template('ifcBasicType', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %> ${macros.generate('ifcBasicType', c)}''')
     template('ifcBasicTypeExtends', appendName: true, body: '''<% if(c.item.base) { %>${macros.generate('ifcExtends', c)}<% } %>''')
   }
-  
+
   templates('basicTypeFactory',
   items: { c -> c.model.findAllDown( { BasicType.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
     template('basicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %><% c.baseClass = 'AbstractFactory' %> ${macros.generate('factory', c)}<% } %>''' )
     template('basicTypeFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
   }
-  
+
   templates('implBasicTypeFactory',
   items: { c -> c.model.findAllDown( { BasicType.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
     template('implBasicTypeFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('implFactory', c)}<% } %>''')
   }
-    
+
   templates ('modelImplEntity',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implEntity', appendName: true, body: '''<% c.metas = item.metas; c.serializable = true; if(c.item.base) { c.className = item.n.cap.baseImpl } else { c.className = item.n.cap.impl } %>${macros.generate('implEntity', c)}''')
     template('implEntityExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.serializable = true; c.className = item.n.cap.impl %>${macros.generate('implEntityExtends', c)}<% } %>''')
   }
-  
+
   templates('interfsBase',
   items: { c -> c.model.findAllDown( { InterfType.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('interfs', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.base %><% } else { %><% c.className = item.cap %><% } %> ${macros.generate('interfs', c)} ''')
   }
-        
-    
+
+
   templates('cache',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'cache']) } ) {
@@ -116,13 +116,13 @@ templates ('common') {
     template('cacheOverride', appendName: true, body: '''<% c.className = item.n.cap.cacheOverrideBase %><% c.override = true %> ${macros.generate('implCache', c)}''')
     template('cacheOverrideExtends', appendName: true, body: '''<% c.className = item.n.cap.cacheOverride %><% c.override = true %> ${macros.generate('implCacheExtends', c)}''')
   }
-  
+
   templates('entityEvent',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'event'] ) } ) {
-      template('entityEvent', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.event %> ${macros.generate('event', c)}<% } %>''')
+    template('entityEvent', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.event %> ${macros.generate('event', c)}<% } %>''')
   }
-  
+
   templates('entityBuilder',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
@@ -131,7 +131,7 @@ templates ('common') {
     template('entityFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %><% c.baseClass = 'AbstractEntityFactory' %> ${macros.generate('factory', c)}<% } %>''' )
     template('entityFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
   }
-  
+
   templates('implEntityBuilder',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
@@ -139,7 +139,7 @@ templates ('common') {
     template('implEntityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilder %>${macros.generate('implEntityBuilderExtends', c)}<% } %>''')
     template('implEntityFactory', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implFactory %>${macros.generate('implFactory', c)}<% } %>''')
   }
-  
+
   templates('entityEventReceiver',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'receiver' ] ) } ) {
@@ -151,14 +151,14 @@ templates ('common') {
   context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
     template('enum', appendName: true, body: '''${macros.generate('enum', c)}''')
   }
-  
+
   templates('pojo',
   items: { c -> c.model.findAllDown( { Pojo.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('pojo', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.base %><% } else { %><% c.className = item.cap %><% } %> ${macros.generate('pojo', c)}''')
     template('pojoExtends', appendName: true, body: '''<% if(item.base) { %><% c.className = item.cap %>${macros.generate('pojoExtends', c)}<% } %>''')
   }
-  
+
   templates('pojoEvent',
   items: { c -> c.model.findAllDown( { Pojo.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'event'] ) } ) {
@@ -172,7 +172,7 @@ templates ('common') {
     template('ifcServiceExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.src = true %><% c.className = item.cap %> ${macros.generate('ifcServiceExtends', c)}<% } %>''')
     template('serviceEmpty', appendName: true, body: '''<% c.className = item.n.cap.empty %> ${macros.generate('serviceEmpty', c)}''')
   }
-  
+
   templates('serviceProvider',
   items: { c -> c.model.findAllDown( { Facade.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'provider'] ) } ) {
@@ -204,33 +204,33 @@ templates ('common') {
     template('implContainerVersions', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsBaseImpl %><% } else { %><% c.className = item.n.cap.versionsImpl %><% } %>${macros.generate('implContainerVersions', c)}''')
     template('implContainerVersionsExtends', appendName: true, body: '''<% if(c.item.base) { %><% c.className = item.n.cap.versionsImpl %> ${macros.generate('implContainerVersionsExtends', c)}<% } %>''')
   }
-  
+
   templates('containerFactory',
   items: { c -> c.model.findAllDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
     template('containerFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %> ${macros.generate('containerFactory', c)}<% } %>''' )
     template('containerFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
   }
-  
+
   templates('implContainerFactory',
   items: { c -> c.model.findAllDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl'] ) } ) {
     template('implContainerFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.implFactory %> ${macros.generate('implContainerFactory', c)}<% } %>''' )
   }
-  
+
   templates('containerFactoryBean',
   items: { c -> c.model.findAllDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb'] ) } ) {
     template('containerFactoryBean', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.beanFactory %> ${macros.generate('containerFactoryBean', c)}<% } %>''' )
   }
-    
-  
+
+
   templates('containerEvent',
   items: { c -> c.model.findAllDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'event'] ) } ) {
     template('containerEvent', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.event %> ${macros.generate('containerEvent', c)}<% } %>''')
   }
-  
+
   templates('containerEventReceiver',
   items: { c -> c.model.findAllDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'receiver' ] ) } ) {
@@ -243,55 +243,59 @@ templates ('common') {
     template('ifcController', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('ifcController', c)}''')
     template('ifcControllerExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('ifcControllerExtends', c)}<% } %>''')
   }
-  
+
   templates('implController',
+<<<<<<< HEAD
   items: { c -> c.model.findAllDown( {Controller.isInstance(it) }) },
+=======
+  items: { c -> c.model.findAllRecursiveDown( {Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
+>>>>>>> branch 'master' of https://github.com/eugeis/ee-mdd.git
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implController', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.baseImpl %><% } else { %><% c.className = item.n.cap.impl %><% } %> ${macros.generate('implController', c)}''')
     template('implControllerExtends', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.impl %>${macros.generate('implControllerExtends', c)}<% } %>''')
   }
-   
+
   templates('implContainerController',
   items: { c -> c.model.findAllDown( {Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% if(controller.base) { %><% c.className = controller.n.cap.baseImpl %><% } else { %><% c.className = item.controller.n.cap.impl %><% } %> ${macros.generate('implContainerController', c)}<% } %>''')
     template('implContainerControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = controller.n.cap.impl %>${macros.generate('implContainerControllerExtends', c)}<% } %>''')
   }
-    
+
   templates('containerController',
   items: { c -> c.model.findAllDown( { Container.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcContainerController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.base %> ${macros.generate('ifcContainerController', c)}<% } %>''')
     template('ifcContainerControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = controller.cap %> ${macros.generate('ifcContainerControllerExtends', c)}<% } %>''')
   }
-  
+
   templates('config',
   items: { c -> c.model.findAllDown( { Config.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('config', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('config', c)}''')
     template('configExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('configExtends', c)}<% } %>''')
   }
-  
+
   templates('configController',
   items: { c -> c.model.findAllDown( { Config.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcConfigController', appendName: true, body: '''<% def controller = item.controller %><% if(controller && controller.base) { %><% c.className = controller.n.cap.base %> ${macros.generate('ifcConfigController', c)}<% } %>''')
     template('ifcConfigControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = controller.cap %> ${macros.generate('ifcConfigControllerExtends', c)}<% } %>''')
   }
-  
+
   templates('implConfigController',
   items: { c -> c.model.findAllDown( {Config.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implConfigControllerExtends', appendName: true, body: '''<% def controller = item.controller %><% if (controller && controller.base) { %><% c.className = controller.n.cap.impl %> ${macros.generate('implConfigControllerExtends', c)}<% } %>''')
     template('implConfigController', appendName: true, body: '''<% def controller = item.controller %><% if(controller) { %><% c.className = controller.n.cap.baseImpl %> ${macros.generate('implConfigController', c)}<% } %>''')
   }
-  
+
   templates('configEventReceiver',
   items: { c -> c.model.findAllDown( { Config.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'receiver' ] ) } ) {
     template('configEventReceiver', appendName: true, body: '''<% c.className = item.n.cap.eventReceiver %> ${macros.generate('eventReceiver', c)}''')
   }
-    
+
   templates ('jmsToCdi',
   items: { c -> c.model.findAllDown( { Channel.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
@@ -326,7 +330,6 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item] ) } ) {
     template('xmlConverter', appendName: true, body: '''<% if(item.entities) { %><% c.className = "${item.capShortName}XmlConverterBase" %> ${macros.generate('xmlConverter', c)} <% } %>''')
     template('xmlConverterExtends', appendName: true, body: '''<% if(item.entities) { %><% c.className = "${item.capShortName}XmlConverter" %> ${macros.generate('xmlConverterExtends', c)} <% } %>''')
-
   }
 
   templates('xmlContainerImport',
@@ -347,15 +350,15 @@ templates ('common') {
     template('implXmlController', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.n.cap.baseImpl %> ${macros.generate('implXmlController', c)}<% } %>''')
     template('implXmlControllerExtends', appendName: true, body: '''<% if(item.xmlController) { %><% c.className = c.item.xmlController.n.cap.Impl %> ${macros.generate('implXmlControllerExtends', c)}<% } %>''')
   }
-  
+
   templates('converter',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('converter', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ConverterBase" %> ${macros.generate('converter', c)}<% } %>''')
     template('converterExends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}Converter" %> ${macros.generate('converterExtends', c)} <% } %>''')
   }
-    
-  
+
+
   templates('initializer',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -363,21 +366,21 @@ templates ('common') {
     template('initializer', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}Base" %> ${macros.generate('initializer', c)} <% } %>''')
     template('implInitializer', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}Impl" %> ${macros.generate('implInitializer', c)} <% } %>''')
   }
-  
+
   templates('intializerComponent',
   items: { c -> c.model.findAllDown( { Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ'] ) } ) {
     template('implInitializerComponent', appendName:true,  body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerImpl" %><% c.path = "ee-mdd_example-backend/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %>  ${macros.generate('implInitializerComponent', c)}<% } %>''')
     template('initializerComponent', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerBase" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('initializerComponent', c)}<% } %>''')
-    template('initializerWakeup', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerWakeup" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('initializerWakeup', c)}<% } %>''')    
+    template('initializerWakeup', appendName: true, body: '''<% if(item.modules.find { it.name.equals('backend') }) { %><% c.className = "${component.capShortName}InitializerWakeup" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('initializerWakeup', c)}<% } %>''')
   }
-  
+
   templates('initializerMem',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('initializerMem', appendName: true, body: '''<% if(module.startupInitializer) { %><% c.className = "${module.initializerName}Mem" %> ${macros.generate('initializerMem', c)} <% } %>''')
   }
-  
+
   templates('moduleCache',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -385,14 +388,14 @@ templates ('common') {
     template('moduleCacheExtends', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache } && module.name.equals('backend') ) { %><% c.className = "${module.capShortName}Cache" %> ${macros.generate('moduleCacheExtends', c)}<% } %>''')
     template('cacheSynchronizerPeriodic', appendName: true, body: '''<% if(module.containers.find { it.controller && it.controller.cache }) { %><% c.className = "${module.capShortName}CacheSynchronizerPeriodic" %> ${macros.generate('cacheSynchronizerPeriodic', c)} <% } %> ''')
   }
-  
+
   templates('builderFactory',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('builderFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactoryBase" %> ${macros.generate('builderFactory', c)} <% } %>''')
     template('builderFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactory" %> ${macros.generate('builderFactoryExtends', c)} <% } %>''')
   }
-  
+
   templates('producerClient',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -400,27 +403,27 @@ templates ('common') {
     template('producerTestClient', appendName: true, body: '''<% if(module.services) { %><% c.className = "${module.capShortName}ProducerTestClient" %> ${macros.generate('producerTestClient', c)} <% } %> ''' )
     template('producerEjbClient', appendName: true, body: '''<% if(module.services) { %><% c.className = "${module.capShortName}ProducerEjbClient" %> ${macros.generate('producerEjbClient', c)} <% } %> ''' )
   }
-  
+
   templates('containerProducerInternal',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('containerProducerInternal', appendName: true, body: '''<% if(module.containers) { %><% c.className = "${module.capShortName}ContainerProducerInternal" %> ${macros.generate('containerProducerInternal', c)} <% } %>''')
   }
-  
+
   templates('implFactory',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('implDataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryImpl" %> ${macros.generate('implDataFactory', c)}<% } %>''')
     template('implModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactoryImpl" %> ${macros.generate('implModelFactory', c)}<% } %>''')
   }
-  
+
   templates('factory',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('dataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryBase" %> ${macros.generate('dataFactory', c)}<% } %>''')
     template('modelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactoryBase" %> ${macros.generate('modelFactory', c)}<% } %>''')
   }
-  
+
   templates('commandsFindersFactoryMem',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -429,7 +432,7 @@ templates ('common') {
     template('commandsFactoryMemExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryMemory" %> ${macros.generate('commandsFactoryMemExtends', c)} <% } %>''')
     template('findersFactoryMemExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryMemory" %> ${macros.generate('findersFactoryMemExtends', c)} <% } %>''')
   }
-  
+
   templates('commandsFindersMem',
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {

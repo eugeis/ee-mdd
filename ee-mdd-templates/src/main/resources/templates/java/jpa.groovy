@@ -51,7 +51,7 @@ templates('jpa') {
     template('entityBeanBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilderBase %> ${macros.generate('entityBeanBuilder', c)}<% } %>''')
     template('entityBeanBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilder %> ${macros.generate('entityBeanBuilderExtends', c)}<% } %>''')
   }
-  
+
   templates('implCommandsFinders', type: SHARED,
   items: { c -> c.model.findAllDown( {Entity.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
@@ -60,7 +60,7 @@ templates('jpa') {
     template('implFinders', appendName: true, body: '''<% if(item.finders && !item.virtual) { %><% if(item.finders.base) { %><% c.className = item.finders.n.cap.baseImpl %><% } else { %><% c.className = item.finders.n.cap.impl %><% } %> ${macros.generate('implFinders', c)}<% } %>''')
     template('implFindersExtends', appendName: true, body: '''<% if(item.finders && !item.virtual && item.finders.base) { %><% c.className = item.finders.n.cap.impl %> ${macros.generate('implFindersExtends', c)} <% } %>''')
   }
-  
+
   templates('factoryCommandsFinders', type: SHARED,
   items: { c -> c.model.findAllDown( {Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -77,8 +77,8 @@ templates('jpa') {
     template('implCommandsFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryImpl" %> ${macros.generate('implCommandsFactoryExtends', c)} <% } %>''')
     template('implFindersFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryImpl" %> ${macros.generate('implFindersFactoryExtends', c)} <% } %>''')
   }
-    
-  
+
+
   templates('jpaProducer', type: SHARED,
   items: { c -> c.model.findAllDown( {Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
@@ -86,11 +86,10 @@ templates('jpa') {
     template('producerServer', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerServer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producerServer', c)}''')
     template('producer', appendName: true, body: '''<% c.className = "${component.capShortName}Producer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producer', c)}''')
   }
-  
+
   templates('jpaSchemaGenerator', type: SHARED,
   items: { c -> c.model.findAllDown( {Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('jpaSchemaGenerator', appendName: true, body: '''<% if (module.entities) { %><% c.className = "${module.capShortName}SchemaGenerator" %> ${macros.generate('jpaSchemaGenerator', c)}<% } %>''')
   }
-    
 }

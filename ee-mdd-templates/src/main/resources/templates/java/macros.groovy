@@ -43,7 +43,7 @@ templates ('macros') {
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
   template('refsMember', body: '''<% item.props.each { member -> if(member.typeContainer || member.typeController || member.typeFacade) { %>
-  protected ${c.name(member.cap)} $member.uncap;<% } } %>''')
+  protected ${c.name(member)} $member.uncap;<% } } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember(c)}> $idProp.uncap;<% } else { %>
@@ -1248,7 +1248,7 @@ public class $className extends $item.n.cap.base {
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')}, MEMORY }, runtimes = { CLIENT }) })<% } %>
-public ${item.base?'abstract ':''}class $className<% if (item.superUnit) { %> extends ${item.superUnit.n.cap.impl}${item.superGenericSgn}<% } %> implements ${c.name(item.cap)} {
+public ${item.base?'abstract ':''}class $className<% if (item.superUnit) { %> extends ${item.superUnit.n.cap.impl}${item.superGenericSgn}<% } %> implements ${c.name(item)} {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   ${macros.generate('refsMember', c)}
   ${macros.generate('implOperationsAndDelegates', c)}
@@ -1937,7 +1937,7 @@ public class $className extends $controller.n.cap.baseImpl {
 }''')
 
   template('implEntity', body: '''<% if (!c.className) { c.className = item.cap.baseImpl} %>{{imports}}
-public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(item.name)} {
+public ${item.virtual || item.base ? 'abstract ' : ''}class $c.className extends<% if(c.item.superUnit) { %> $c.item.superUnit.n.cap.impl <% } else { %> ${c.name('BaseEntityImpl')}<${item.idProp.type.name}> <% } %>implements ${c.name(item)} {
   private static final long serialVersionUID = 1L;
   ${macros.generate('props', c)}<% if(!c.item.superUnit) { %>
   protected Long version;
@@ -2550,7 +2550,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = it
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
-public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${c.name(item.cap)}> implements ${c.name(commands.name)} {
+public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${commands.name} {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
   protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% commands.creators.each { op-> %>
@@ -2655,7 +2655,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = ite
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
-public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${c.name(item.cap)}> implements ${c.name(finders.name)} {
+public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${c.name(finders.name)} {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
   protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% finders.counters.each { op-> %>
@@ -2725,6 +2725,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 }''')
 
   template('implCommandsExtends', body: '''{{imports}}<% def commands = item.commands; c.manager = commands %>
+import com.siemens.ra.cg.pl.common.base.annotations.Manager;
 /** JPA implementation of {@link $commands.name} */
 @Manager
 @${c.name('SupportsEnvironments')}({
@@ -3531,7 +3532,7 @@ public class $className {
   template('implInjects', body: ''' <% def op = []; item.operations.each { opRef -> if(opRef.ref) { def ref = opRef.ref.parent %><% if (!op.contains(ref)) { %>
 
   @${c.name('Inject')}
-  public void set${ref.cap}(${c.name(ref.name)} $ref.uncap) {
+  public void set${ref.cap}(${c.name(ref)} $ref.uncap) {
     this.$ref.uncap = $ref.uncap;
   }<% op << ref %><% } } } %>''')
 
@@ -7942,7 +7943,7 @@ public class $className extends ${xmlController.n.cap.baseImpl} {
 
   template('event', body: '''{{imports}}<% def aal = module.facets['aal'] %>
 /** Event object for @$item.name */
-public class $className extends ${c.name('EventImpl')}<${c.name(item.name)}> {
+public class $className extends ${c.name('EventImpl')}<${c.name(item)}> {
   private static final long serialVersionUID = 1L;
 
   public $item.n.cap.event(${item.name} object, ${c.name('ActionType')} type, String source) {
