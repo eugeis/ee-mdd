@@ -69,33 +69,6 @@ class PathResolveHandler extends AbstractResolveHandler {
             }
         }
 
-
-        for (int i = partIndex; i < parts.size(); i++) {
-            String part = parts[i]
-
-            def resolved
-            if (partIndex == 0) {
-                resolved = rootFindParentMatcher(part, el, parent)
-            } else if (i == parts.size() - 1) {
-                resolved = midPartFindMatcher(part, el, parent)
-            } else {
-                resolved = lastPartFindMatcher(part, el, parent)
-            }
-
-            if (resolved) {
-                el = resolved
-                elParent = parent
-            } else if (trackNotResolved) {
-                if (!notResolvedPathRefToResolvers.containsKey(part)) {
-                    notResolvedPathRefToResolvers[part] = []
-                }
-                notResolvedPathRefToResolvers[part] << { resolveParts(el, elParent, parts, i) }
-                //println "Can not resolve $part of $parts for $el'"
-                el = null
-                break
-            }
-        }
-
         if (trackNotResolved && el) {
             setter(item, el)
         }

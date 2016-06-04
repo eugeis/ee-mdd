@@ -29,9 +29,13 @@ class Model extends StructureUnit {
 
   def add(Component child) {
     components << super.add(child)
+    this.metaClass."$child.key" = child
+    this
   }
 
   def add(Model child) {
     model << super.add(child)
+    this.metaClass."$child.key" = child
+    this
   }
 }
