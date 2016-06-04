@@ -103,6 +103,8 @@ class StructureUnit extends Composite implements BuilderAware {
     n
   }
 
+  String getRef() { key }
+
   String getCapShortName() {
     underscoreToCamelCase(key).capitalize()
   }

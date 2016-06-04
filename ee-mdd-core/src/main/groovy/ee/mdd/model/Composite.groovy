@@ -34,17 +34,17 @@ class Composite extends Element {
         children.findAll(matcher)
     }
 
-    List findAllDown(Closure matcher, boolean stopSteppingDownIfFound = false) {
-        fillDown(matcher, [], stopSteppingDownIfFound)
+    List findAllDown(boolean stopSteppingDownIfFound = true, Closure matcher) {
+        findAllDown([], stopSteppingDownIfFound, matcher)
     }
 
-    List fillDown(Closure matcher, List fill, boolean stopSteppingDownIfFound = false) {
+    List findAllDown(List fill, boolean stopSteppingDownIfFound = true, Closure matcher) {
         def items = children.findAll(matcher)
         if (items) {
             fill.addAll(items)
         }
         if (!stopSteppingDownIfFound || !items) {
-            children.findAll { Composite.isInstance(it) }*.fillDown(matcher, fill)
+            children.findAll { Composite.isInstance(it) }*.findAllDown(fill, stopSteppingDownIfFound, matcher)
         }
         fill
     }
@@ -52,7 +52,7 @@ class Composite extends Element {
     Element findDown(Closure matcher) {
         Element ret = children.find(matcher)
         if (!ret) {
-            ret = children.find { Composite.isInstance(it) }*.findRecursiveDown(matcher)
+            ret = children.find { Composite.isInstance(it) }*.findDown(matcher)
         }
         ret
     }
@@ -67,6 +67,26 @@ class Composite extends Element {
             }
         }
         ret
+    }
+
+    Element find(Class type) {
+        find { type.isInstance(it) }
+    }
+
+    Element findDown(Class type) {
+        findDown { type.isInstance(it) }
+    }
+
+    List findAll(Class type) {
+        findAll { type.isInstance(it) }
+    }
+
+    List findAllDown(boolean stopSteppingDownIfFound = true, Class type) {
+        findAllDown(stopSteppingDownIfFound) { type.isInstance(it) }
+    }
+
+    Element findUp(Base p = parent, Class type) {
+        findUp(p) { type.isInstance(it) }
     }
 
     Element resolve(String ref) {

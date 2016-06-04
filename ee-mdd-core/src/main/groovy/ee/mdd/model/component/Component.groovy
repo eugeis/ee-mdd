@@ -45,7 +45,7 @@ class Component extends StructureUnit {
 
     def add(Module child) {
         modules << child; super.add(child)
-        this.metaClass."$child.key" = child
+        this.metaClass."$child.ref" = child
         this
     }
 

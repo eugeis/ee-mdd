@@ -29,7 +29,7 @@ class Model extends StructureUnit {
 
   def add(Component child) {
     components << super.add(child)
-    this.metaClass."$child.key" = child
+    this.metaClass."$child.ref" = child
     this
   }
 

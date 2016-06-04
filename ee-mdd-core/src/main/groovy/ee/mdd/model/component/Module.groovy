@@ -55,6 +55,8 @@ class Module extends StructureUnit {
     underscoreToCamelCase(key).toLowerCase();
   }
 
+  String getRef() { name }
+
   def add(EnumType child) {
     enumTypes << child; super.add(child)
   }
