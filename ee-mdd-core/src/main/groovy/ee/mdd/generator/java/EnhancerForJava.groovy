@@ -1132,7 +1132,7 @@ class EnhancerForJava {
         def prop = delegate
         def ret
         ret = prop.multi ? "List<${prop.type.name}>" : "${prop.type.name}"
-        c.name(prop.type.name)
+        c.name(prop.type)
         properties[key] = ret
       }
       properties[key]
@@ -1679,7 +1679,7 @@ class EnhancerForJava {
       //register usage of the type, in order to calculate imports, etc.
 
       delegate.params.each {
-        if (!(it.type.name).equals(c.item.name)) {
+        if (it.type && !(it.type.name).equals(c.item.name)) {
           c.name(it.type)
         }
       }
