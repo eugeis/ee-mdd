@@ -29,8 +29,12 @@ class Operation extends LogicUnit {
   boolean staticOp = false
   String signatureTestValues = ''
   String signatureNamesExternal
+  String nameExternal
+
 
   String getNameExternal() {
-    name
+    if(!nameExternal) {
+      nameExternal = name
+    }; nameExternal
   }
 }

@@ -22,9 +22,10 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  */
 class DataTypeOperation extends Operation {
-  String nameExternal
   DataType dataType
-  Entity getEntity() { parent.entity }
+  Entity getEntity() {
+    parent.entity
+  }
   boolean fireEventProp = false
 
   String getNameExternal() {
