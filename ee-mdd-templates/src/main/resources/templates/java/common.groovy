@@ -245,11 +245,7 @@ templates ('common') {
   }
 
   templates('implController',
-<<<<<<< HEAD
-  items: { c -> c.model.findAllDown( {Controller.isInstance(it) }) },
-=======
-  items: { c -> c.model.findAllRecursiveDown( {Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
->>>>>>> branch 'master' of https://github.com/eugeis/ee-mdd.git
+  items: { c -> c.model.findAllDown( {Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implController', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.baseImpl %><% } else { %><% c.className = item.n.cap.impl %><% } %> ${macros.generate('implController', c)}''')
     template('implControllerExtends', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.impl %>${macros.generate('implControllerExtends', c)}<% } %>''')

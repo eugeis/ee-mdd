@@ -43,7 +43,7 @@ templates ('macros') {
   protected ${prop.typeEjbMember(c)} $prop.uncap;<% } } } %>''')
 
   template('refsMember', body: '''<% item.props.each { member -> if(member.typeContainer || member.typeController || member.typeFacade) { %>
-  protected ${c.name(member)} $member.uncap;<% } } %>''')
+  protected $member.cap $member.uncap;<% } } %>''')
 
   template('idProp', body: '''<% def idProp = c.item.idProp; if(idProp && !c.item.virtual) { c.prop = idProp%>${macros.generate('metaAttributesProp', c)}<% if (idProp.multi) { %>
   protected ${c.name('List')}<${idProp.typeEjbMember(c)}> $idProp.uncap;<% } else { %>
@@ -317,8 +317,7 @@ templates ('macros') {
   ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
 
-  template('interfaceBodyController', body: '''<% def controller = item.controller %><% controller.operations.each { op -> if (!op.override) { %>
-  ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
+  template('interfaceBodyController', body: '''<% def controller = item.controller %><% controller.operations.each { op -> if (!op.override) { %> ${op.description?"   /** $op.description */":''}<% if (op.transactional) { %>@${c.name('Transactional')}<% } %>
   ${op.return} $op.name(${op.signature(c)});<% } } %>''')
 
   template('interfaceBodyCache', body: '''<% item.cache.operations.each { op -> if (!op.override) { %>
@@ -327,9 +326,9 @@ templates ('macros') {
 
   template('interfaceBodyExternal', body: '''<% item.operations.each { op -> if(!op.delegateOp) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.return} ${op.name}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp && op.ref) { %>
+  ${op.return} ${op.getNameExternal()}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp && op.ref) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.ref.returnTypeExternal(c)} ${op.ref.name}(${op.ref.signature(c)});<% } } %>''')
+  ${op.ref.returnTypeExternal(c)} ${op.ref.getNameExternal()}(${op.ref.signature(c)});<% } } %>''')
 
   template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %><% if(c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
@@ -624,10 +623,7 @@ public interface $className extends ${c.name('EventListener')}<${item.cap}> {
 
   template('ifcConfigController', body: '''{{imports}}<% def controller = item.controller %>
 /** Base interface of {@link $controller.name} */
-public interface $className {<% if(controller.addDefaultOperations) { %>
-  @${c.name('Transactional')}
-  $item.cap update($item.cap $item.uncap);
-  $item.cap load();<% } %>
+public interface $className {
   ${macros.generate('interfaceBodyController', c)}
 }''')
 
@@ -2651,11 +2647,11 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   template('implFinders', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; def idProp = item.idProp %><% def refs = finders.props %>
 /** JPA implementation of {@link $finders.name} */
-<% if (finders.base) { %>@Alternative<% }else { %>@Manager
+<% if (finders.base) { %>@Alternative<% } else { %>@Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
-public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${c.name(finders.name)} {
+public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${finders.name} {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
   protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% finders.counters.each { op-> %>
@@ -3107,12 +3103,12 @@ public class $className {
   }<% module.entities.findAll { !it.virtual && it.commands}.each { entity = it; commands = entity.commands; %>
 
   public $commands.name get$commands.cap() {
-    $commands.n.cap.impl commands = new $commands.n.cap.impl();
+    ${c.name(commands.n.cap.impl)} commands = new $commands.n.cap.impl();
     commands.setEntityManager(entityManager);
     commands.setPublisher((Event<$entity.n.cap.event>) publisher);
     commands.setFactory(new ${entity.n.cap.entity}Factory());
     $commands.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(commands, ${commands.cap}.class, entityManager);
-    ret = TraceProxyHandler.wrap(ret, ${commands.cap}.class);
+    ret = ${c.name('TraceProxyHandler')}.wrap(ret, ${commands.cap}.class);
     return ret;
   }<% } %>
 
