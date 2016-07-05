@@ -43,5 +43,9 @@ class Names {
     public String toString() {
       name
     }
+
+    Namespace getNs() {
+      parent.ns
+    }
   }
 }

@@ -26,27 +26,27 @@ import ee.mdd.model.Namespace
  * @author Niklas Cappelmann
  */
 class Type extends Composite {
-  Names n
-	List<MetaAttribute> metas
-  
-  Names getN() {
-    if (!n) {
-      n = new Names(this, name)
+    Names n
+    List<MetaAttribute> metas
+
+    Names getN() {
+        if (!n) {
+            n = new Names(this, name)
+        }
+        n
     }
-    n
-  }
 
-	Namespace getNs() {
-		parent.ns
-	}
+    Namespace getNs() {
+        parent.ns
+    }
 
-	Model getModel() {
-		parent.model
-	}
+    Model getModel() {
+        parent.model
+    }
 
-	def add(MetaAttribute item) {
-		if(!metas) {
-			metas = []
-		}; metas << super.add(item)
-	}
+    def add(MetaAttribute item) {
+        if (!metas) {
+            metas = []
+        }; metas << super.add(item)
+    }
 }
