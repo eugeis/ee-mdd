@@ -16,6 +16,7 @@
 package ee.mdd.model.component
 
 import ee.mdd.model.Element
+import ee.mdd.model.Names
 
 /**
  *

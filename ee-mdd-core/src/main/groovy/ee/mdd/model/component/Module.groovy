@@ -34,7 +34,7 @@ class Module extends StructureUnit {
   List<Initializer> initializers = []
   List<Facade> services = []
   List<Channel> channels = []
-  List<Module> dependencies = []
+  List<Dependencies> dependencies = []
   List<Config> configs = []
   List<Container> containers = []
   List<StateMachine> stateMachines = []
@@ -78,8 +78,8 @@ class Module extends StructureUnit {
   def add(Initializer child) {
     initializers << child; super.add(child)
   }
-  def add(Module child) {
-    dependencies << child; super.add(child)
+  def add(Dependencies child) {
+    dependencies << child;
   }
   def add(Channel child) {
     channels << child; super.add(child)

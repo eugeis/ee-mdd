@@ -19,7 +19,8 @@ import ee.mdd.builder.AbstractFactoryBuilder
 import ee.mdd.builder.BuilderAware
 import ee.mdd.builder.MddFactory
 import ee.mdd.model.Composite
-
+import ee.mdd.model.Names
+import ee.mdd.model.Namespace
 
 
 /**
@@ -147,6 +148,16 @@ class StructureUnit extends Composite implements BuilderAware {
 
   def extend(Closure closure) {
     builder.createChildNodes(this, factory, closure)
+  }
+
+  def add(StructureUnit child) {
+    super.add(child)
+    try {
+      this.metaClass["$child.ref"] = child
+    } catch (e) {
+      println "Can't add structure unit '$child' as dynamic property in '$this' because of $e"
+    }
+    child
   }
 
   String toString() {

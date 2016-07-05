@@ -18,8 +18,8 @@ package ee.mdd.model.ui
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Module
-import ee.mdd.model.component.Names
-import ee.mdd.model.component.Namespace
+import ee.mdd.model.Names
+import ee.mdd.model.Namespace
 import ee.mdd.model.component.Type
 
 

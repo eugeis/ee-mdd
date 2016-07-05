@@ -32,15 +32,15 @@ class Facet extends Composite implements BuilderAware {
   String path
   List<ExternalModule> externalModules = []
   Map<String, Facet> facets = [:]
-  List<Module> dependencies = []
+  List<Dependencies> dependencies = []
   Closure modelExtender
 
   def add(ExternalModule child) {
     externalModules << child; super.add(child)
   }
 
-  def add(Module child) {
-    dependencies << child; super.add(child)
+  def add(Dependencies child) {
+    dependencies << child; super.add(child);
   }
 
   def add(Facet child) {

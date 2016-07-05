@@ -1,6 +1,6 @@
 package ee.mdd.model.ui;
 
-import ee.mdd.model.component.Names
+import ee.mdd.model.Names
 
 class ViewModel extends PresentationLogicUnit {
   Names n

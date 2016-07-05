@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import static ee.mdd.generator.OutputPurpose.*
-import static ee.mdd.generator.OutputType.*
+
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Module
+
+import static ee.mdd.generator.OutputType.SHARED
 
 /**
  *
@@ -33,7 +34,7 @@ templates('jpa') {
   useMacros('macros')
 
   templates ('basicType', type: SHARED,
-  items: { c -> c.model.findAllDown( {BasicType.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(BasicType) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
     template('basicTypeBase', appendName: true, body: '''<% if(c.item.base) {  c.className = item.n.cap.baseEmbeddable } else { c.className = item.n.cap.embeddable } %>${macros.generate('basicTypeBaseBean', c)}''')
@@ -42,7 +43,7 @@ templates('jpa') {
   }
 
   templates ('entity', type: SHARED,
-  items: { c -> c.model.findAllDown( {Entity.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Entity) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
 
     template('entityBaseBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('entityBaseBean', c)}''')
@@ -53,7 +54,7 @@ templates('jpa') {
   }
 
   templates('implCommandsFinders', type: SHARED,
-  items: { c -> c.model.findAllDown( {Entity.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Entity) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
     template('implCommands', appendName: true, body: '''<% if(item.commands && !item.virtual) { %><% if(item.commands.base) { %><% c.className = item.commands.n.cap.baseImpl %><% } else { %><% c.className = item.commands.n.cap.impl %><% } %> ${macros.generate('implCommands', c)}<% } %>''')
     template('implCommandsExtends', appendName: true, body: '''<% if(item.commands && !item.virtual && item.commands.base) { %><% c.className = item.commands.n.cap.impl %> ${macros.generate('implCommandsExtends', c)} <% } %>''')
@@ -62,7 +63,7 @@ templates('jpa') {
   }
 
   templates('factoryCommandsFinders', type: SHARED,
-  items: { c -> c.model.findAllDown( {Module.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Module) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('commandsFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryBase" %> ${macros.generate('commandsFactory', c)} <% } %>''')
     template('findersFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}FindersFactoryBase" %> ${macros.generate('findersFactory', c)} <% } %>''')
@@ -80,7 +81,7 @@ templates('jpa') {
 
 
   templates('jpaProducer', type: SHARED,
-  items: { c -> c.model.findAllDown( {Component.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Component) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('producerLocal', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerLocal" %>${macros.generate('producerLocal', c)}''')
     template('producerServer', appendName: true, body: '''<% c.className = "${component.capShortName}ProducerServer" %><% c.path = "ee-mdd_example-backend/src-gen/main/java/${c.item.ns.path}/integ/ejb/${c.className}.java" %> ${macros.generate('producerServer', c)}''')
@@ -88,7 +89,7 @@ templates('jpa') {
   }
 
   templates('jpaSchemaGenerator', type: SHARED,
-  items: { c -> c.model.findAllDown( {Module.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Module) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('jpaSchemaGenerator', appendName: true, body: '''<% if (module.entities) { %><% c.className = "${module.capShortName}SchemaGenerator" %> ${macros.generate('jpaSchemaGenerator', c)}<% } %>''')
   }

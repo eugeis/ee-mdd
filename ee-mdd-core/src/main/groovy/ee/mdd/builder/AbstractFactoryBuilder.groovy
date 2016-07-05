@@ -20,8 +20,7 @@ package ee.mdd.builder
 import org.codehaus.groovy.runtime.InvokerHelper
 
 import ee.mdd.model.Base
-import ee.mdd.model.component.Namespace
-import groovy.lang.Script
+import ee.mdd.model.Namespace
 import groovy.util.logging.Slf4j
 
 

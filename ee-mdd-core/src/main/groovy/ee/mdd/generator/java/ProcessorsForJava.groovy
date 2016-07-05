@@ -18,6 +18,7 @@ package ee.mdd.generator.java
 import ee.mdd.builder.TypeResolver
 import ee.mdd.generator.Context
 import ee.mdd.generator.Processor
+import ee.mdd.model.Base
 import ee.mdd.model.Element
 import ee.mdd.model.component.Module
 
@@ -109,11 +110,11 @@ class ProcessorsForJava {
                 name
             }
 
-            meta.name = { Element element -> name(element, element.name) }
+            meta.name = { Base base -> name(base, base.name) }
 
-            meta.name = { Element element, String derivedName ->
+            meta.name = { Base base, String derivedName ->
                 if (!nameToPackage.containsKey(derivedName)) {
-                    nameToPackage[derivedName] = element.ns?.dot
+                    nameToPackage[derivedName] = base.ns?.dot
                 }
                 addImport(derivedName)
             }
@@ -125,7 +126,7 @@ class ProcessorsForJava {
                     ref
                 } else {
                     if (!nameToPackage.containsKey(ref)) {
-                        Element resolved = typeResolver.resolve(ref, delegate.module)
+                        Base resolved = typeResolver.resolve(ref, delegate.module)
                         if (resolved) {
                             name(resolved)
                         } else {
@@ -137,7 +138,7 @@ class ProcessorsForJava {
                 }
             }
 
-            meta.getNameRegister << { { Element element, String derivedName -> name(element, derivedName) } }
+            meta.getNameRegister << { { Base base, String derivedName -> name(base, derivedName) } }
         }
 
         ret.after = { Context c ->

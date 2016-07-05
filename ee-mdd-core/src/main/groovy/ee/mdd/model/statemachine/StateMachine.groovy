@@ -6,7 +6,7 @@ import ee.mdd.model.component.Config
 import ee.mdd.model.component.ConfigController
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Module
-import ee.mdd.model.component.Names
+import ee.mdd.model.Names
 import ee.mdd.model.component.Prop
 
 class StateMachine extends Composite {

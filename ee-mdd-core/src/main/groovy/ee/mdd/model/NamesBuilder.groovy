@@ -13,31 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ee.mdd.model.component
+package ee.mdd.model
+
+import ee.mdd.model.Element
+
 /**
  *
  * @author Eugen Eisler
- * @author Niklas Cappelmann
  */
-class DataType extends CompilationUnit {
-  Finders finders
-  Commands commands
-  List<Index> indexes
-  boolean event = false
-  boolean xmlBinding = false
-  boolean toShared = false
+class NamesBuilder {
+  Map storage = [:]
+  Element el
+  String _base
+  Closure builder = { b, n -> "${b}$n" }
 
-  def add(Finders item) {
-    finders = super.add(item)
+  def propertyMissing(String name, value) {
+    storage[name] = value
   }
 
-  def add(Commands item) {
-    commands = super.add(item)
+  def propertyMissing(String name) {
+    if(!storage.containsKey(name)) {
+      storage[name] = builder(_base, name)
+      //println "New name $name ${storage[name]}"
+    }
+    storage[name]
   }
 
-  def add(Index item) {
-    if(!indexes) {
-      indexes = []
-    }; indexes << super.add(item)
+  def methodMissing(String name, callback) {
+    String ret = propertyMissing(name)
+    callback[0](el, ret)
+  }
+
+  void putAll(Map m) {
+    storage.putAll(m)
   }
 }

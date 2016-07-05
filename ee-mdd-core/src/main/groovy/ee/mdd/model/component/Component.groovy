@@ -15,6 +15,7 @@
 */
 package ee.mdd.model.component
 
+import ee.mdd.model.Namespace
 import ee.mdd.model.realm.Realm
 
 

@@ -16,6 +16,8 @@
 package ee.mdd.model.component
 
 import ee.mdd.model.Composite
+import ee.mdd.model.Names
+import ee.mdd.model.Namespace
 
 
 /**

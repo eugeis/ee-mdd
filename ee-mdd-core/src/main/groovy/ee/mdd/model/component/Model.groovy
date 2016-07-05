@@ -20,22 +20,20 @@ package ee.mdd.model.component
  * @author Eugen Eisler
  */
 class Model extends StructureUnit {
-  List<Model> model = []
-  List<Component> components = []
-  
-  Model getModel() {
-    this
-  }
+    List<Model> model = []
+    List<Component> components = []
 
-  def add(Component child) {
-    components << super.add(child)
-    this.metaClass."$child.ref" = child
-    this
-  }
+    Model getModel() {
+        this
+    }
 
-  def add(Model child) {
-    model << super.add(child)
-    this.metaClass."$child.key" = child
-    this
-  }
+    def add(Component child) {
+        components << super.add(child)
+        this
+    }
+
+    def add(Model child) {
+        model << super.add(child)
+        this
+    }
 }

@@ -15,36 +15,22 @@
  */
 package ee.mdd.model.component
 
+import ee.mdd.model.Base
 import ee.mdd.model.Element
 
 /**
  *
  * @author Eugen Eisler
  */
-class NamesBuilder {
-  Map storage = [:]
-  Element el
-  String _base
-  Closure builder = { b, n -> "${b}$n" }
+class Dependencies extends Element {
+  String scope = 'compile'
+  List<Module> modules = []
 
-  def propertyMissing(String name, value) {
-    storage[name] = value
+  def add(Module child) {
+    modules << child; child
   }
 
-  def propertyMissing(String name) {
-    if(!storage.containsKey(name)) {
-      storage[name] = builder(_base, name)
-      //println "New name $name ${storage[name]}"
-    }
-    storage[name]
-  }
-
-  def methodMissing(String name, callback) {
-    String ret = propertyMissing(name)
-    callback[0](el, ret)
-  }
-
-  void putAll(Map m) {
-    storage.putAll(m)
+  String deriveName(Base p = parent) {
+    scope
   }
 }

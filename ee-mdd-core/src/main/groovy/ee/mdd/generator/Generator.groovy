@@ -15,7 +15,6 @@
  */
 package ee.mdd.generator
 
-import ee.mdd.model.component.Model
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.Callable

@@ -16,7 +16,9 @@ class GeneratorForJavaTest {
                     module('module1')
                     module('module2')
                     module('module3')
-                    module('module4', dependencies: ['module2'])
+                    module('module4') {
+                        dependencies(modules: ['module2'])
+                    }
                 }
             }
 
@@ -26,7 +28,9 @@ class GeneratorForJavaTest {
                     module('module1')
                     module('module2')
                     module('module3')
-                    module('module4', dependencies: ['g1.Test1.module1'])
+                    module('module4') {
+                        dependencies(modules: ['g1.Test1.module1'])
+                    }
                 }
             }
 
@@ -35,7 +39,9 @@ class GeneratorForJavaTest {
                 module('module1')
                 module('module2')
                 module('module3')
-                module('module4', dependencies: ['Test1.module1'])
+                module('module4') {
+                    dependencies(modules: ['Test1.module1'])
+                }
             }
 
             component('Test4') {
@@ -43,9 +49,13 @@ class GeneratorForJavaTest {
                 module('module1')
                 module('module2')
                 module('module3')
-                module('module4', dependencies: ['Test3.module1'])
+                module('module4') {
+                    dependencies(modules: ['Test3.module1'])
+                }
             }
         }
+
+        c.name(entity.n.cap.implBuilder).
 
         generator.builder.typeResolver.printNotResolved()
 

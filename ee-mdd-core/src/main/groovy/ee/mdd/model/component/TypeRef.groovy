@@ -15,10 +15,7 @@
  */
 package ee.mdd.model.component
 
-import java.util.List;
-
 import ee.mdd.model.Element
-
 
 /**
  * @author Eugen Eisler

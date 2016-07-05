@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import static ee.mdd.generator.OutputPurpose.*
-import static ee.mdd.generator.OutputType.*
+
 import ee.mdd.model.component.Facade
 import ee.mdd.model.component.Module
+
+import static ee.mdd.generator.OutputType.LOGIC
 
 /**
  *
@@ -31,7 +32,7 @@ templates('ejb') {
   useMacros('macros')
 
   templates ('facadeEjbService',
-  items: { c -> c.model.findAllDown( { Facade.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Facade) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'facade' ] ) } ) {
 
     template('serviceBaseBean', appendName: true, body: '''<% if (c.item.base) { c.className = c.item.n.cap.baseBean  } else { c.className = c.item.n.cap.bean } %>${macros.generate('serviceBaseBean', c)}''')
@@ -39,7 +40,7 @@ templates('ejb') {
   }
   
   templates('ejbFactory', type: LOGIC,
-  items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
+  items: { c -> c.model.findAllDown(Module) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('ejbDataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}DataFactoryEjb" %> ${macros.generate('ejbDataFactory', c)} <% } %>''')
     template('ejbModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}ModelFactoryEjb" %> ${macros.generate('ejbModelFactory', c)} <% } %>''')

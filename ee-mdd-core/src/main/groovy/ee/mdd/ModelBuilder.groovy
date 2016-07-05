@@ -19,6 +19,7 @@ import ee.mdd.builder.*
 import ee.mdd.model.Base
 import ee.mdd.model.Body
 import ee.mdd.model.Element
+import ee.mdd.model.Namespace
 import ee.mdd.model.component.*
 import ee.mdd.model.realm.*
 import ee.mdd.model.statemachine.*
@@ -48,7 +49,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     private def param = new CompositeFactory(beanClass: Param, parent: attr)
     private def operation = new CompositeFactory(beanClass: Operation, parent: lu)
     private def operationRef = new CompositeFactory(beanClass: OperationRef, valueProperty: 'ref', parent: operation)
-    private def facet = new FacetFactory(beanClass: Facet, childFactories: ['extModule', 'facet'], facets: facets)
+    private def facet = new FacetFactory(beanClass: Facet, childFactories: ['dependencies', 'extModule', 'facet'], facets: facets)
     private
     def su = new FacetAwareFactory(beanClass: StructureUnit, childFactories: ['facet', 'namespace'], facets: facets)
     private def command = new CompositeFactory(beanClass: Command, childFactories: ['prop'], parent: dataType)
@@ -100,6 +101,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     private def literal = new CompositeFactory(beanClass: Literal)
     private def facade = new CompositeFactory(beanClass: Facade, parent: cu)
     private def namespace = new MddFactory(beanClass: Namespace)
+    private def dependencies = new MddFactory(beanClass: Dependencies)
 
     //UI
     private def factoryWidget = new MddFactory(beanClass: Widget)
@@ -161,7 +163,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
     private def factoryView = new MddFactory(beanClass: View, valueProperty: 'domainName',
             childFactories: ['dialog', 'header', 'viewRef', 'viewModel', 'presenter', 'button', 'comboBox', 'contextMenu', 'checkBox', 'groupContentFrame', 'groupBoxHeader', 'label', 'panel', 'spinner', 'textField', 'timeField', 'dateField', 'table'], parent: factoryWidget)
     private CompositeFactory module = new CompositeFactory(beanClass: Module,
-            childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'command', 'commandFactory', 'controller', 'facade', 'container', 'channel', 'dependency', 'view', 'stateMachine', 'interf'], parent: su)
+            childFactories: ['entity', 'basicType', 'enumType', 'pojo', 'config', 'command', 'commandFactory', 'controller', 'facade', 'container', 'channel', 'dependencies', 'view', 'stateMachine', 'interf'], parent: su)
 
 
     ModelBuilder(Closure postInstantiateDelegate = null) {
@@ -261,6 +263,7 @@ class ModelBuilder extends AbstractFactoryBuilder {
         registerFactory 'commands', commands
         registerFactory 'module', module
         registerFactory 'extModule', externalModule
+        registerFactory 'dependencies', dependencies
         registerFactory 'op', operation
         registerFactory 'param', param
         registerFactory 'pojo', pojo
