@@ -29,23 +29,18 @@ class Names {
   Names(Element el, String base) {
     this.el = el
     this._base = base
-    cap = new NamesBuilder(el: el, _base: base.capitalize(), builder: { b, n ->
-      new DerivedName(name: "${b}${n.capitalize()}", parent: el, init: true) })
-    uncap = new NamesBuilder(el: el, _base: Introspector.decapitalize(base), builder: { b, n ->
-      new DerivedName(name: "${b}${Introspector.decapitalize(n)}", parent: el, init: true) })
-    underscored = new NamesBuilder(el: el, _base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n ->
-      new DerivedName(name: n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), parent: el, init: true) })
+    cap = new NamesBuilder(el: el, _base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
+    uncap = new NamesBuilder(el: el, _base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
+    underscored = new NamesBuilder(el: el, _base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
   }
 
-  class DerivedName extends Base {
+  void addAll(List<String> names, String namespace = null) {
+    names.each { add(it, namespace )}
+  }
 
-    @Override
-    public String toString() {
-      name
-    }
-
-    Namespace getNs() {
-      parent.ns
-    }
+  void add(String name, String namespace = null) {
+    cap.add(name, namespace)
+    uncap.add(name, namespace)
+    underscored.add(name, namespace)
   }
 }

@@ -28,6 +28,19 @@ abstract class AbstractGenerator extends Composite {
   OutputPurpose purpose
   OutputType type
   String facet
+  Closure init
+  boolean initContext = false
+
+  void init(Context c) {
+    if(isToInit()) {
+      init(c)
+    }
+    initContext = true
+  }
+
+  protected boolean isToInit() {
+    !initContext && init
+  }
 
   protected void before(Context c) {
     if(processors) {

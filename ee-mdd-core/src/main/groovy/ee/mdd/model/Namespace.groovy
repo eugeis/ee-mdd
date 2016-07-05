@@ -19,17 +19,21 @@ package ee.mdd.model
  * @author Eugen Eisler
  */
 class Namespace extends Base {
-	String name, dot, path
+    String name, dot, path
 
-	protected boolean init() {
-		Namespace parentNs = parent.parent?.ns
-		if(parentNs) {
-			dot = "${parentNs.dot}.${name}"
-			path = "${parentNs.path}/${name}"
-		} else {
-			dot = name
-			path = name.replace('.', '/')
-		}
-    super.init()
-	}
+    protected boolean init() {
+        Namespace parentNs = parent.parent?.ns
+        init(parentNs)
+    }
+
+    void init(Namespace parentNs) {
+        if (parentNs) {
+            dot = "${parentNs.dot}.${name}"
+            path = "${parentNs.path}/${name}"
+        } else {
+            dot = name
+            path = name.replace('.', '/')
+        }
+        super.init()
+    }
 }

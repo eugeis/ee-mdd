@@ -19,6 +19,7 @@ import ee.mdd.builder.TypeResolver
 import ee.mdd.generator.Context
 import ee.mdd.generator.Processor
 import ee.mdd.model.Base
+import ee.mdd.model.DerivedName
 import ee.mdd.model.Element
 import ee.mdd.model.component.Module
 
@@ -143,7 +144,13 @@ class ProcessorsForJava {
 
         ret.after = { Context c ->
             if (!c.error && c.className) {
-                def ns = (c.module ? c.module.ns : c.item.ns)
+                def ns
+                if(DerivedName.isInstance(c.className)) {
+                    ns = c.className.ns
+                } else {
+                    ns = c.module ? c.module.ns : c.item.ns
+                }
+
                 def subPkg = c.subPkg ? ".$c.subPkg" : ''
                 def imports = c.imports.toList().sort().collect { "import $it;" }.join('\n')
                 def staticImports = c.staticImports ? c.staticImports.toList().sort().collect {

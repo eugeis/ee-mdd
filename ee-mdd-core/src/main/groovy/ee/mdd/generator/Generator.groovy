@@ -27,6 +27,15 @@ import java.util.concurrent.Callable
 class Generator extends AbstractGenerator {
   Map<String, TemplateGroup> templateGroups = [:]
 
+  void init(Context globalContext) {
+    if (isToInit()) {
+      log.debug "$name: Init context '$globalContext'."
+      templateGroups.each { groupName, TemplateGroup templateGroup ->
+        templateGroup*.init(globalContext)
+      }
+    }
+  }
+
   void generate(Context context) {
     log.info "$name: Generate for context '$context'"
     Executor executor = new Executor(5)

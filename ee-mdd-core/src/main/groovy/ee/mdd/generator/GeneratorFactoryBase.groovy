@@ -78,6 +78,8 @@ class GeneratorFactoryBase {
     c.model = model
     c.targetLayout = targetLayout
 
+    generator.init(c)
+
     generator.generate(c)
   }
 

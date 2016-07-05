@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 package ee.mdd.model
-
-import ee.mdd.model.Element
-
 /**
  *
  * @author Eugen Eisler
  */
 class NamesBuilder {
-  Map storage = [:]
+  Map<String, DerivedName> storage = [:]
   Element el
   String _base
   Closure builder = { b, n -> "${b}$n" }
 
   def propertyMissing(String name, value) {
-    storage[name] = value
+    add(name, value)
   }
 
   def propertyMissing(String name) {
     if(!storage.containsKey(name)) {
-      storage[name] = builder(_base, name)
+      storage[name] = add(builder(_base, name))
       //println "New name $name ${storage[name]}"
     }
     storage[name]
@@ -46,5 +43,22 @@ class NamesBuilder {
 
   void putAll(Map m) {
     storage.putAll(m)
+  }
+
+  void addAll(List<String> names, String namespace = null) {
+    names.each { add(it, namespace )}
+  }
+
+  void add(String name, String namespace = null) {
+    def derivedName = new DerivedName(name: builder(_base, name), parent: el)
+    Namespace ns = namespace ? buildNamespace(namespace, derivedName) : el.ns
+    derivedName.ns = ns
+    storage[name] = derivedName
+  }
+
+  protected Namespace buildNamespace(String namespace, DerivedName derivedName) {
+    def ret = new Namespace(name: namespace)
+    ret.checkAndInit(derivedName)
+    ret
   }
 }
