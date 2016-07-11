@@ -31,10 +31,10 @@ class Operation extends LogicUnit {
   String signatureNamesExternal
   String nameExternal
 
-
-  String getNameExternal() {
-    if(!nameExternal) {
-      nameExternal = name
-    }; nameExternal
+  protected boolean init() {
+    if (!nameExternal) {
+        nameExternal = name
+    }
+    super.init()
   }
 }
