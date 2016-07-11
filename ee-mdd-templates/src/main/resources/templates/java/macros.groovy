@@ -328,7 +328,7 @@ templates ('macros') {
   ${op.description?"   /** $op.description */":''}
   ${op.return} ${op.getNameExternal()}(${op.signature(c)});<% } }%><% item.operations.each { op -> if(op.delegateOp && op.ref) { %>
   ${op.description?"   /** $op.description */":''}
-  ${op.ref.returnTypeExternal(c)} ${op.ref.getNameExternal()}(${op.ref.signature(c)});<% } } %>''')
+  ${op.ref.returnTypeExternal(c)} ${op.ref.name} (${op.ref.signature(c)});<% } } %>''')
 
   template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %><% if(c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
@@ -404,7 +404,7 @@ public interface $className {
   void init(${c.name('ClusterSingleton')} clusterSingleton);
 }''')
 
-  template('ifcService', body: '''<% if (!c.className) { c.className = item.n.cap.base } %>{{imports}}<% if (!item.base) { %>
+  template('ifcService', body: '''{{imports}}<% if (!item.base) { %>
 /**
 * The service provides public operations for '$module.name'.<% if (item.description) { %>
 * <p>
@@ -412,7 +412,7 @@ public interface $className {
 * </p><% } %>
 */<% } else { %>
 /** Base interface of {@link $item.name} */<% } %>
-public interface $className {
+public interface $c.className {
   ${macros.generate('interfaceBodyExternal', c)}
 }''')
 
@@ -740,9 +740,9 @@ public interface $className extends $item.n.cap.findersBase {
   public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends ${className}Base<${item.simpleGenericSgn}E><% } else { %>$className extends ${className}Base<% } %> {
   }''')
 
-  template('ifcDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def cacheClass = item.n.cap.cache; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>
+  template('ifcDeltaCache', body: '''{{imports}}<% def superUnit = item.superUnit; def cacheClass = item.n.cap.cache; def idProp = item.idProp; def type = item.virtual?'E':c.name(item); def cacheSuper %>
 <% if (superUnit) { cacheSuper = "$superUnit.n.cap.deltaCache<${item.simpleSuperGenericSgn}$type>" } else { cacheSuper = "${c.name('DeltaCache')}<$idProp.type.name, $type>" }%>
-public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {
+public interface <% if (item.virtual) { %>$className<${item.simpleGenericSgn}E extends ${c.name(item)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {
   @Override
   public $cacheClass getNew();
 
@@ -2285,7 +2285,7 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
   template('serviceBaseBean', body: '''<% if(!item.base) { %>import static ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.n.cap.constantsBase}.*;<% } %>{{imports}}
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
-public ${item.base?'abstract ':''}class $className implements ${c.name(item.name)} {<% if (item.useConverter) { %>
+public ${item.base?'abstract ':''}class $className implements ${c.name(item)} {<% if (item.useConverter) { %>
   protected $module.n.cap.converter converter;<% } %>
   ${macros.generate('refsMember', c)}
 <% item.operations.each { op -> if(!op.delegateOp && op.body) { %>
@@ -3103,7 +3103,7 @@ public class $className {
   }<% module.entities.findAll { !it.virtual && it.commands}.each { entity = it; commands = entity.commands; %>
 
   public $commands.name get$commands.cap() {
-    ${c.name(commands.n.cap.impl)} commands = new $commands.n.cap.impl();
+    ${commands.n.cap.impl} commands = new $commands.n.cap.impl();
     commands.setEntityManager(entityManager);
     commands.setPublisher((Event<$entity.n.cap.event>) publisher);
     commands.setFactory(new ${entity.n.cap.entity}Factory());
@@ -8539,7 +8539,7 @@ public class $className extends ${module.capShortName}BuilderFactoryBase { <% mo
     return ${module.capShortName}BuilderFactoryBase.a${entity.name}();
   }
 
-  public static ${entity.n.cap.EntityBuilder} a${entity.n.cap.entity}() {
+  public static ${entity.n.cap.entityBuilder} a${entity.n.cap.entity}() {
     return ${module.capShortName}BuilderFactoryBase.a${entity.n.cap.entity}();
   }<% } } %><% module.containers.each { container -> %>
 
@@ -8647,7 +8647,7 @@ Object[] mlParameters = new Object[] { ret.$c.idProp.getter, ret.getNaturalKey()
 
   template('sendMlEvent', body: '''
     forceVersionUpdate();
-    $item.n.cap.event event = new $citem.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
+    $item.n.cap.event event = new $c.item.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
     event.initMlKey(${module.capShortName}Ml.ML_BASE, ${module.capShortName}Ml.${c.op.underscored}, mlParameters);
     fireEvent(event);''')
 

@@ -34,7 +34,7 @@ class Commands extends Controller {
     op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}'), type: (Type) entity.idProp.type))
     add(op)
     op = new Delete(name: 'delete', nameExternal: "delete${entity.cap}", ret: (Type) entity)
-    op.add(new Param(name: '${entity.uncap}Id', prop: entity.idProp, type: (Type) entity.idProp.type))
+    op.add(new Param(name: "${entity.uncap}Id", prop: entity.idProp, type: (Type) entity.idProp.type))
     add(op)
   }
 

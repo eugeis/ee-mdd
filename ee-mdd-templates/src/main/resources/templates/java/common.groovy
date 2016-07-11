@@ -1,5 +1,3 @@
-import static ee.mdd.generator.OutputPurpose.*
-import static ee.mdd.generator.OutputType.*
 import ee.mdd.model.component.BasicType
 import ee.mdd.model.component.Channel
 import ee.mdd.model.component.Commands

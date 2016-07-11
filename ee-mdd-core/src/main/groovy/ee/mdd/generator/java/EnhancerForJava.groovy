@@ -780,8 +780,6 @@ class EnhancerForJava {
 
     meta.returnTypeRaw = { Context c -> delegate.returnTypeExternal }
 
-    meta.returnTypeExternal = { Context c -> delegate.return }
-
     meta.getReturnTypeRaw = { -> delegate.returnTypeExternal }
 
     meta.getReturnTypeExternal = { -> delegate.return }
