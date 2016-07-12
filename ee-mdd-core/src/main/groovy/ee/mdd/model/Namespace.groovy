@@ -29,7 +29,7 @@ class Namespace extends Base {
     void init(Namespace parentNs) {
         if (parentNs) {
             dot = "${parentNs.dot}.${name}"
-            path = "${parentNs.path}/${name}"
+            path = "${parentNs.path}/${name.replace('.', '/')}"
         } else {
             dot = name
             path = name.replace('.', '/')
