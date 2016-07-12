@@ -30,7 +30,7 @@ class NamesBuilder {
 
   def propertyMissing(String name) {
     if(!storage.containsKey(name)) {
-      storage[name] = add(builder(_base, name))
+      add(name)
       //println "New name $name ${storage[name]}"
     }
     storage[name]

@@ -31,15 +31,15 @@ abstract class AbstractGenerator extends Composite {
   Closure init
   boolean initContext = false
 
-  void init(Context c) {
-    if(isToInit()) {
+  void initialize(Context c) {
+    if(isToInit() && init) {
       init(c)
     }
     initContext = true
   }
 
   protected boolean isToInit() {
-    !initContext && init
+    !initContext
   }
 
   protected void before(Context c) {

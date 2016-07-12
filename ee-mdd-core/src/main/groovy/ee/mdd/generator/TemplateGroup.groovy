@@ -32,12 +32,13 @@ class TemplateGroup extends AbstractGenerator {
     Closure onlyIf
     Closure context
 
-    void init(Context globalContext) {
+    void initialize(Context globalContext) {
         if (isToInit()) {
             log.debug "$name: Init context '$globalContext'."
-            templates*.init(globalContext)
+            super.initialize(globalContext)
+            templates.each { initialize(globalContext) }
             templateGroups.each { groupName, TemplateGroup templateGroup ->
-                templateGroup*.init(globalContext)
+                templateGroup*.initialize(globalContext)
             }
         }
     }
