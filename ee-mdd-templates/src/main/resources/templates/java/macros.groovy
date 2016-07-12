@@ -1270,7 +1270,7 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
   protected final String source = ${c.name('StringUtils')}.formatSource(this);
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
   ${macros.generate('refsMember', c)}
-  protected ${c.name('Event')}<${item.n.cap.event}> publisher;<% if(controller.addDefaultOperations) { %>
+  protected ${c.name('Event')}<${c.name(item.n.cap.event)}> publisher;<% if(controller.addDefaultOperations) { %>
   protected $item.cap $item.uncap;
 
   @Override
@@ -1304,7 +1304,7 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
   template('eventReceiver', body: '''{{imports}}
 /** Event receiver for JSE environment only  of {@link $item.n.cap.event} */
 @${c.name('ApplicationScoped')}
-public class $className extends Receiver<${item.n.cap.event}> {
+public class $className extends ${c.name('Receiver')}<${c.name(item.n.cap.event)}> {
   ${macros.generate('onEventSuper', c)}
 }''')
 
@@ -8519,15 +8519,15 @@ public class $className {<% cachedContainers.each { container -> def controller 
 /** Base implementation of builder factory for '$module.name' */
 public abstract class $className {<% module.entities.each { entity -> if (!entity.virtual) { %>
 
-  public static ${entity.n.cap.implBuilder} a${entity.name}() {
+  public static ${c.name(entity.n.cap.implBuilder)} a${entity.name}() {
     return new ${entity.n.cap.implBuilder}();
   }
 
-  public static ${entity.n.cap.EntityBuilder} a${entity.n.cap.entity}() {
+  public static ${c.name(entity.n.cap.EntityBuilder)} a${entity.n.cap.entity}() {
     return new ${entity.n.cap.EntityBuilder}();
   } <% } } %><% module.containers.each { container -> %>
-  public static ${container.cap}Builder a${container.cap}() {
-    return new ${container.cap}Builder();
+  public static ${c.name(container.n.cap.builder)} a${container.cap}() {
+    return new ${container.n.cap.builder}();
   }<% } %>
 }''')
 
@@ -8535,15 +8535,15 @@ public abstract class $className {<% module.entities.each { entity -> if (!entit
 /** Implementation of builder factory for '$module.name' */
 public class $className extends ${module.capShortName}BuilderFactoryBase { <% module.entities.each { entity -> if (!entity.virtual) { %>
 
-  public static ${entity.n.cap.implBuilder} a${entity.name}() {
+  public static ${c.name(entity.n.cap.implBuilder)} a${entity.name}() {
     return ${module.capShortName}BuilderFactoryBase.a${entity.name}();
   }
 
-  public static ${entity.n.cap.entityBuilder} a${entity.n.cap.entity}() {
+  public static ${c.name(entity.n.cap.entityBuilder)} a${entity.n.cap.entity}() {
     return ${module.capShortName}BuilderFactoryBase.a${entity.n.cap.entity}();
   }<% } } %><% module.containers.each { container -> %>
 
-  public static ${container.cap}Builder a${container.cap}() {
+  public static ${c.name(container.n.cap.builder)} a${container.cap}() {
     return ${module.capShortName}BuilderFactoryBase.a${container.cap}();
   } <% } %>
 }''')
@@ -8600,7 +8600,7 @@ public class $className {
 
   template('onEventSuper', body: '''
   @Override
-  public void onEvent(@Observes(during = AFTER_COMPLETION, notifyObserver = IF_EXISTS)${item.clientCache?' @Internal':''} $item.n.cap.event event) {
+  public void onEvent(@${c.name('Observes')}(during = ${c.name('AFTER_COMPLETION')}, notifyObserver = ${c.name('IF_EXISTS')})${item.clientCache?' @Internal':''} $item.n.cap.event event) {
     super.onEvent(event);
   }''')
 

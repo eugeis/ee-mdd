@@ -131,8 +131,9 @@ templates ('common') {
   }
 
   templates('implEntityBuilder',
+  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['implBuilderBase', 'implBuilder', 'implFactory'], 'impl') } },
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('implEntityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilderBase %>${macros.generate('implEntityBuilder', c)}<% } %>''')
     template('implEntityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implBuilder %>${macros.generate('implEntityBuilderExtends', c)}<% } %>''')
     template('implEntityFactory', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.implFactory %>${macros.generate('implFactory', c)}<% } %>''')
@@ -270,6 +271,13 @@ templates ('common') {
     template('configExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('configExtends', c)}<% } %>''')
   }
 
+  templates('configEvent',
+  init: { c -> c.model.findAllDown({ Config.isInstance(it) }).each { it.n.cap.addAll(['event'], 'integ.event') } },
+  items: { c -> c.model.findAllDown( { Config.isInstance(it) }) },
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
+    template('configEvent', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.event %> ${macros.generate('event', c)}<% } %>''')
+  }
+  
   templates('configController',
   items: { c -> c.model.findAllDown( { Config.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
@@ -308,13 +316,14 @@ templates ('common') {
   }
 
   templates ('constants',
+  init: { c -> c.model.findAllDown({ Component.isInstance(it) }).each { it.n.cap.addAll(['constantsBase', 'constants',  '', 'MlBase'], 'integ') } },
   items: { c -> c.model.findAllDown( { Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item, module: c.item.module, subPkg: 'integ'] ) } ) {
     //Custom paths for Component templates
     template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constants', c)}''')
-    template('qualifier', appendName: true, body: '''<% c.className = c.item.key.capitalize() %>${macros.generate('qualifier', c)}''')
+    template('qualifier', appendName: true, body: '''<% c.className = c.item.n.cap %>${macros.generate('qualifier', c)}''')
     template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
-    template('Ml', appendName: true, body: '''<% c.className = "${item.key.capitalize()}MlBase" %>${macros.generate('constantsMl', c)}''')
+    template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.mlBase %>${macros.generate('constantsMl', c)}''')
     template('MlExtends', appendName: true, body: '''<% c.className = "${item.key.capitalize()}Ml" %>${macros.generate('constantsMlExtends', c)}''')
     template('constantsRealm', appendName: true, body: '''<% c.className = "${item.capShortName}RealmConstants" %><% c.path = "ee-mdd_example-shared/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsRealm', c)}''')
   }

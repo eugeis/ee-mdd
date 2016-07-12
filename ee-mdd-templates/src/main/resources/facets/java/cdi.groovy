@@ -20,11 +20,11 @@
  * @author Niklas Cappelmann
  */
 
-extModule(name: 'CdiApi', namespace: 'javax.enterprise', artifact: 'cdi-api', version: '1.2') {
-  ['ApplicationScoped' : 'context', 'Produces' : 'inject','Alternative' : 'inject',
-    'Event' : 'event', 'Observes' : 'event', 'Reception' : 'event',
+extModule(name: 'CdiApi', artifact: 'cdi-api', version: '1.2') {
+  ['ApplicationScoped' : 'javax.enterprise.context', 'Produces' : 'javax.enterprise.inject','Alternative' : 'javax.enterprise.inject',
+    'Event' : 'javax.enterprise.event', 'Observes' : 'javax.enterprise.event', 'Reception' : 'javax.enterprise.event',
     'AFTER_COMPLETION' : 'static javax.enterprise.event.TransactionPhase.*', 'IF_EXISTS' : 'static javax.enterprise.event.Reception.*',
-    'Instance' : 'inject', 'Default' : 'inject'].each { n, ns ->
+    'Instance' : 'javax.enterprise.inject', 'Default' : 'javax.enterprise.inject'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }

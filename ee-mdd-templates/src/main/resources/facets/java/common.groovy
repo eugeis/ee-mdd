@@ -55,7 +55,7 @@ extModule(name: 'Java') {
   }
 }
 
-extModule(name: 'Slf4j', namespace: 'org.slf4j.ext', artifact: 'slf4j-ext', version: '1.7.12') {
+extModule(name: 'Slf4j', artifact: 'slf4j-ext', version: '1.7.12') {
   
     ['XLogger' : 'org.slf4j.ext', 'XLoggerFactory' : 'org.slf4j.ext'].each { n, ns ->
       extType(name: n, namespace: ns)
