@@ -103,7 +103,7 @@ class ProcessorsForJava {
                     if (pkg.startsWith('static')) {
                         staticImports << pkg
                     } else {
-                        if (c.subPkg || !(c.module ? c.module.ns : c.item.ns).dot != pkg) {
+                        if (!(c.module ? c.module.ns : c.item.ns).dot != pkg) {
                             imports << "$pkg.$name"
                         }
                     }
@@ -151,23 +151,21 @@ class ProcessorsForJava {
                     ns = c.module ? c.module.ns : c.item.ns
                 }
 
-                def subPkg = c.subPkg ? ".$c.subPkg" : ''
                 def imports = c.imports.toList().sort().collect { "import $it;" }.join('\n')
                 def staticImports = c.staticImports ? c.staticImports.toList().sort().collect {
                     "import $it;"
                 }.join('\n') : ''
                 staticImports = staticImports ? "\n$staticImports\n" : ''
                 imports = imports ? "$staticImports\n$imports\n" : ''
-                c.output = "package $ns.dot$subPkg;\n" + c.output.replace('{{imports}}', imports)
+                c.output = "package $ns.dot;\n" + c.output.replace('{{imports}}', imports)
                 if (!c.scope) {
                     c.scope = c.outputPurpose?.test ? 'test' : 'main'
                 }
                 Module outputModule = targetModuleResolver(c)
                 def artifact = (outputModule ? "${outputModule.artifact}/" : '/')
                 def path = c.src ? "${artifact}src/$c.scope/java" : "${artifact}src-gen/$c.scope/java"
-                def subPath = c.subPkg ? "/$c.subPkg" : ''
                 if (!c.path) {
-                    c.path = "$path/$ns.path$subPath/${c.className}.java"
+                    c.path = "$path/$ns.path/${c.className}.java"
                 }
                 c.overwrite = !c.src
             }
