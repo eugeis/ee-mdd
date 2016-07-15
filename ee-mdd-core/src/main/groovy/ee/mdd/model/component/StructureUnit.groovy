@@ -130,7 +130,7 @@ class StructureUnit extends Composite implements BuilderAware {
   }
 
   String getVersion() {
-    version ? version : parent.version
+    version ? version : parent?.version
   }
 
   def add(Namespace item) {
@@ -160,7 +160,8 @@ class StructureUnit extends Composite implements BuilderAware {
     child
   }
 
-  String toString() {
-    "$name@${getClass().simpleName}"
+  protected StringBuffer fillToString(StringBuffer buffer) {
+    super.fillToString(buffer).append(SEPARATOR)
+    buffer.append(key)
   }
 }

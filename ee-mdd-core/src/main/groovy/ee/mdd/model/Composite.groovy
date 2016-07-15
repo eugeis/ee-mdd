@@ -108,4 +108,12 @@ class Composite extends Element {
             children.clone().each { it.buildMe(); it.buildChildren() }
         }
     }
+
+    protected StringBuffer fillToString(StringBuffer buffer) {
+        super.fillToString(buffer).append(SEPARATOR)
+        if (children) {
+            buffer.append(children.size())
+        }
+        buffer
+    }
 }

@@ -66,4 +66,11 @@ class Component extends StructureUnit {
         }
         shared
     }
+
+    protected StringBuffer fillToString(StringBuffer buffer) {
+        super.fillToString(buffer).append(SEPARATOR)
+        if (group) {
+            buffer.append(group)
+        }
+    }
 }
