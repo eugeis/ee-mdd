@@ -790,11 +790,11 @@ public abstract class $className implements $item.name {<% item.operations.each 
   }<% } %><% } } %>
 }''')
 
-  template('serviceProvider', body: '''{{imports}}
+  template('serviceProvider', body: '''import static ${component.parent.ns.name}.${component.key}.integ.${component.n.cap['']}ConstantsBase.*;{{imports}}
 /** Service provider for remote implementation of {@link $item.name} */
 @${c.name('ApplicationScoped')}
 @${c.name('Traceable')}
-public class $className extends ServiceProviderRemote<$item.name> {
+public class $className extends ${c.name('ServiceProviderRemote')}<$item.name> {
   public static final String BEAN = SERVICE_${item.underscored};
   public static final String MODULE = MODULE_${module.underscored};
 
@@ -802,11 +802,11 @@ public class $className extends ServiceProviderRemote<$item.name> {
     super(BEAN, ${item.name}.class, APPLICATION, MODULE);
   }
 
-  public $className(ServiceLocator serviceLocator, boolean cacheService, boolean lazyInit) {
+  public $className(${c.name('ServiceLocator')} serviceLocator, boolean cacheService, boolean lazyInit) {
     super(BEAN, ${item.name}.class, APPLICATION, MODULE, serviceLocator, cacheService, lazyInit);
   }
 
-  public void onChangeServiceLocator(@Observes(notifyObserver = Reception.IF_EXISTS) ServiceLocator serviceLocator) {
+  public void onChangeServiceLocator(@${c.name('Observes')}(notifyObserver = ${c.name('Reception')}.IF_EXISTS) ServiceLocator serviceLocator) {
     setServiceLocator(serviceLocator);
   }
 }''')

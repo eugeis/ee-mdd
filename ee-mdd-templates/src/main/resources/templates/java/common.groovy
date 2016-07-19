@@ -320,12 +320,12 @@ templates ('common') {
   items: { c -> c.model.findAllDown( { Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item, module: c.item.module, subPkg: 'integ'] ) } ) {
     //Custom paths for Component templates
-    template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constants', c)}''')
+    template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%>${macros.generate('constants', c)}''')
     template('qualifier', appendName: true, body: '''<% c.className = c.item.n.cap[''] %>${macros.generate('qualifier', c)}''')
     template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
     template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.mlBase %>${macros.generate('constantsMl', c)}''')
     template('MlExtends', appendName: true, body: '''<% c.className = item.n.cap.ml %>${macros.generate('constantsMlExtends', c)}''')
-    template('constantsRealm', appendName: true, body: '''<% c.className = "${item.capShortName}RealmConstants" %><% c.path = "ee-mdd_example-shared/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsRealm', c)}''')
+    template('constantsRealm', appendName: true, body: '''<% c.className = "${item.capShortName}RealmConstants" %> ${macros.generate('constantsRealm', c)}''')
   }
 
   templates('xml',

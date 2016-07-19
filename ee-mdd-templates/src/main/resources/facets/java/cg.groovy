@@ -57,8 +57,8 @@ extModule(name: 'CgCommonShared', artifact: 'cg-pl-common-shared') {
   }
 }
 
-extModule(name: 'CgCommonEjb', artifact: 'cg-pl-common-ejb') {
-  ['UserInRoleConditionVerifier' : 'com.siemens.ra.cg.pl.common.ejb.cond'].each { n, ns ->
+extModule(name: 'CgCommonEjb', namespace: 'com.siemens.ra.cg.pl.common.ejb', artifact: 'cg-pl-common-ejb') {
+  ['UserInRoleConditionVerifier' : 'cond', 'ServiceProviderRemote' : 'locator', 'ServiceLocator' : 'locator'].each { n, ns ->
     extType(name: n, namespace: ns)
   }
 }
