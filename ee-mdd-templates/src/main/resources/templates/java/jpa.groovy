@@ -43,14 +43,15 @@ templates('jpa') {
   }
 
   templates ('entity', type: SHARED,
+  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'ejb') } },
   items: { c -> c.model.findAllDown(Entity) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
     template('entityBaseBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.baseEntity } else { c.className = item.n.cap.entity } %>${macros.generate('entityBaseBean', c)}''')
     template('entityBean', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.entity %>${macros.generate('entityBean', c)}<% } %>''')
     template('entityFactoryBean', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.entityFactory; c.bean = 'Entity' %> ${macros.generate('factoryBean', c)}<% } %>''')
-    template('entityBeanBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilderBase %> ${macros.generate('entityBeanBuilder', c)}<% } %>''')
-    template('entityBeanBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.beanBuilder %> ${macros.generate('entityBeanBuilderExtends', c)}<% } %>''')
+    template('entityBeanBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.entityBuilderBase %> ${macros.generate('entityBeanBuilder', c)}<% } %>''')
+    template('entityBeanBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.entityBuilder %> ${macros.generate('entityBeanBuilderExtends', c)}<% } %>''')
   }
 
   templates('implCommandsFinders', type: SHARED,

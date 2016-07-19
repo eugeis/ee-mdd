@@ -244,7 +244,7 @@ templates ('common') {
   }
 
   templates('implController',
-  items: { c -> c.model.findAllDown( {Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) }) },
+  items: { c -> c.model.findAllDown( {Controller.isInstance(it) && !Finders.isInstance(it) && !Commands.isInstance(it) && !Config.isInstance(it.parent) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'impl' ] ) } ) {
     template('implController', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.baseImpl %><% } else { %><% c.className = item.n.cap.impl %><% } %> ${macros.generate('implController', c)}''')
     template('implControllerExtends', appendName: true, body: '''<% if(item.base) { %><% c.className = item.n.cap.impl %>${macros.generate('implControllerExtends', c)}<% } %>''')
@@ -316,15 +316,15 @@ templates ('common') {
   }
 
   templates ('constants',
-  init: { c -> c.model.findAllDown({ Component.isInstance(it) }).each { it.n.cap.addAll(['constantsBase', 'constants',  '', 'MlBase'], 'integ') } },
+  init: { c -> c.model.findAllDown({ Component.isInstance(it) }).each { it.n.cap.addAll(['constantsBase', 'constants',  '', 'MlBase', 'Ml'], 'integ') } },
   items: { c -> c.model.findAllDown( { Component.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item, module: c.item.module, subPkg: 'integ'] ) } ) {
     //Custom paths for Component templates
     template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%><% c.path = "ee-mdd_example-shared/src-gen/main/java/${c.item.ns.path}/integ/${c.className}.java" %>${macros.generate('constants', c)}''')
-    template('qualifier', appendName: true, body: '''<% c.className = c.item.n.cap %>${macros.generate('qualifier', c)}''')
+    template('qualifier', appendName: true, body: '''<% c.className = c.item.n.cap[''] %>${macros.generate('qualifier', c)}''')
     template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')
     template('Ml', appendName: true, body: '''<% c.className = c.item.n.cap.mlBase %>${macros.generate('constantsMl', c)}''')
-    template('MlExtends', appendName: true, body: '''<% c.className = "${item.key.capitalize()}Ml" %>${macros.generate('constantsMlExtends', c)}''')
+    template('MlExtends', appendName: true, body: '''<% c.className = item.n.cap.ml %>${macros.generate('constantsMlExtends', c)}''')
     template('constantsRealm', appendName: true, body: '''<% c.className = "${item.capShortName}RealmConstants" %><% c.path = "ee-mdd_example-shared/src/main/java/${c.item.ns.path}/integ/${c.className}.java" %> ${macros.generate('constantsRealm', c)}''')
   }
 

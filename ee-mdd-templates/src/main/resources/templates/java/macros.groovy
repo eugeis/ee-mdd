@@ -1279,8 +1279,8 @@ public ${controller.base?'abstract ':''}class $className implements $controller.
     log.info("update({})", $item.uncap);
     this.${item.uncap}.update($item.uncap);
 
-    $item.n.cap.event event = new ${item.n.cap.event}($item.uncap, ActionType.UPDATE, source);
-    event.initMlKey(${module.uncapShortName}Ml.ML_BASE, ${module.uncapShortName}Ml.${item.underscored}_UPDATED);
+    $item.n.cap.event event = new ${item.n.cap.event}($item.uncap, ${c.name('ActionType')}.UPDATE, source);
+    event.initMlKey(${c.name(component.n.cap.ml)}.ML_BASE, ${component.n.cap.ml}.${item.underscored}_UPDATED);
     fireEvent(event);
     return $item.uncap;
   }
@@ -3211,8 +3211,7 @@ public class $className extends $item.n.cap.base {
   private static final long serialVersionUID = 1L;
 }''')
 
-  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>
-import ${c.item.component.parent.ns.name}.${c.item.component.ns.name}.integ.${c.item.component.key.capitalize()}Ml;{{imports}}
+  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
 ${item.description?"/*** $item.description */":''}
 public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')}<% item.interfs.each{%>, ${c.name(it)}<% } %> {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
@@ -3480,7 +3479,7 @@ public class $className {
 public class $className extends ${item.n.cap.constantsBase} {
 }''')
 
-  template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %>
+  template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %><% def allUpdates = [] %> 
 /** Multi language constants for '${c.item.name}' */
 public class $className {
   //base name for '$item.name' resource bundle
@@ -3491,8 +3490,8 @@ public class $className {
   public static final String ${entity.mlKeyConstant}_UPDATED = "${entity.mlKey}_updated";
   public static final String ${entity.mlKeyConstant}_UPDATED_MULTIPLE = "${entity.mlKey}_updated_multiple";
   public static final String ${entity.mlKeyConstant}_DELETED = "${entity.mlKey}_deleted";
-  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updates.each { def op -> %>
-  public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } %><% depModule.containers.each { def container -> %>
+  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updates.each { def op -> %><% if(!allUpdates.contains(op.name)) {%><% allUpdates.add(op.name) %>
+  public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } } %><% depModule.containers.each { def container -> %>
   public static final String $container.underscored = "${container.underscored.toLowerCase()}";
   public static final String ${container.underscored}_IMPORTED = "${container.underscored.toLowerCase()}_imported";
   public static final String ${container.underscored}_IMPORT_FAILED = "${container.underscored.toLowerCase()}_import_failed";
@@ -5724,7 +5723,7 @@ ${ret-newLine}''')
 
   template('buildMlKey', body: '''
   public ${c.name('MLKey')} buildMlKey() {
-    return new ${c.name('MLKeyImpl')}(${component.capShortName}Ml.ML_BASE, name());
+    return new ${c.name('MLKeyImpl')}(${component.n.cap['']}Ml.ML_BASE, name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (!parent.isEmpty()) {<% if (op.unique) { %>
@@ -8594,7 +8593,7 @@ public class $className {
 
   template('setPublisher', body: '''
   @${c.name('Inject')}
-  public void setPublisher(@${component.capShortName} @${c.name('Backend')} ${c.name('Event')}<${item.n.cap.event}> publisher) {
+  public void setPublisher(@${c.name(component.n.cap[''])} @${c.name('Backend')} ${c.name('Event')}<${item.n.cap.event}> publisher) {
     this.publisher = publisher;
   }''')
 
