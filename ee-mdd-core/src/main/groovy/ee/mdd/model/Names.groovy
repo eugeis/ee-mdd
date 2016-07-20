@@ -29,9 +29,9 @@ class Names {
   Names(Element el, String base) {
     this.el = el
     this._base = base
-    cap = new NamesBuilder(el: el, _base: base.capitalize(), builder: { b, n -> "${b}${n.capitalize()}" })
-    uncap = new NamesBuilder(el: el, _base: Introspector.decapitalize(base), builder: { b, n -> "${b}${Introspector.decapitalize(n)}" })
-    underscored = new NamesBuilder(el: el, _base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builder: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
+    cap = new NamesBuilder(el: el, _base: base.capitalize(), builderClosure: { b, n -> "${b}${n.capitalize()}" })
+    uncap = new NamesBuilder(el: el, _base: Introspector.decapitalize(base), builderClosure: { b, n -> "${b}${Introspector.decapitalize(n)}" })
+    underscored = new NamesBuilder(el: el, _base: base.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase(), builderClosure: { b, n -> n + n.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase() })
   }
 
   void addAll(List<String> names, String namespace = null) {

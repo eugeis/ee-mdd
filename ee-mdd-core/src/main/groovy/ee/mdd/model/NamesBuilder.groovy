@@ -22,7 +22,7 @@ class NamesBuilder {
   Map<String, DerivedName> storage = [:]
   Element el
   String _base
-  Closure builder = { b, n -> "${b}$n" }
+  Closure builderClosure = { b, n -> "${b}$n" }
 
   def propertyMissing(String name, value) {
     add(name, value)
@@ -50,7 +50,7 @@ class NamesBuilder {
   }
 
   void add(String name, String namespace = null) {
-    def derivedName = new DerivedName(name: builder(_base, name), parent: el)
+    def derivedName = new DerivedName(name: builderClosure(_base, name), parent: el)
     Namespace ns = namespace ? buildNamespace(namespace, derivedName) : el.ns
     derivedName.ns = ns
     storage[name] = derivedName
