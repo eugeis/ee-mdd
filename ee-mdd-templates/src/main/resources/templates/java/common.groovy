@@ -122,10 +122,11 @@ templates ('common') {
   }
 
   templates('entityBuilder',
+  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['builderBase', 'builder', 'factoryBase', 'factory'], 'builder') } },
   items: { c -> c.model.findAllDown( { Entity.isInstance(it) }) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'builder'] ) } ) {
-    template('entityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.cap}BuilderBase" %> ${macros.generate('entityBuilder', c)}<% } %>''')
-    template('entityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = "${item.cap}Builder" %> ${macros.generate('entityBuilderExtends', c)}<% } %>''')
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('entityBuilder', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.builderBase %> ${macros.generate('entityBuilder', c)}<% } %>''')
+    template('entityBuilderExtends', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.builder %> ${macros.generate('entityBuilderExtends', c)}<% } %>''')
     template('entityFactory', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factoryBase %><% c.baseClass = 'AbstractEntityFactory' %> ${macros.generate('factory', c)}<% } %>''' )
     template('entityFactoryExtends', appendName: true, body: '''<% if (!item.virtual) { %><% c.className = item.n.cap.factory %> ${macros.generate('factoryExtends', c)}<% } %>''')
   }
@@ -311,8 +312,8 @@ templates ('common') {
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('ifcFinders', appendName: true, body: '''<% if (item.finders && !item.virtual) { %><% c.className = item.n.cap.findersBase %>${macros.generate('ifcFinders', c)}<% } %>''')
     template('ifcCommands', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.n.cap.commandsBase %>${macros.generate('ifcCommands', c)}<% } %>''')
-    template('ifcFindersExtends', appendName: true, body: '''<% if (item.finders && !item.virtual) { %><% c.className = item.n.cap.finders %>${macros.generate('ifcFindersExtends', c)}<% } %>''' )
-    template('ifcCommandsExtends', appendName: true, body: '''<% if (item.commands && !item.virtual) { %><% c.className = item.n.cap.commands %>${macros.generate('ifcCommandsExtends', c)}<% } %>''' )
+    template('ifcFindersExtends', appendName: true, body: '''<% if (item.finders && !item.virtual && item.finders.base) { %><% c.className = item.n.cap.finders %>${macros.generate('ifcFindersExtends', c)}<% } %>''' )
+    template('ifcCommandsExtends', appendName: true, body: '''<% if (item.commands && !item.virtual && item.commands.base) { %><% c.className = item.n.cap.commands %>${macros.generate('ifcCommandsExtends', c)}<% } %>''' )
   }
 
   templates ('constants',
@@ -428,6 +429,7 @@ templates ('common') {
   }
 
   templates('commandsFindersFactoryMem',
+
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('commandsFactoryMem', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}CommandsFactoryMemoryBase" %> ${macros.generate('commandsFactoryMem', c)} <% } %>''')

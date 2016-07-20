@@ -690,7 +690,7 @@ public interface $className extends $item.n.cap.commandsBase {
 public interface $className extends $item.n.cap.findersBase {
 }''')
 
-  template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item.cap); def cacheSuper %>{{imports}}
+  template('ifcCache', body: '''<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E':c.name(item); def cacheSuper %>{{imports}}
   <% if (superUnit) { cacheSuper = "${superUnit.n.cap.cache}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong || idProp.typeInteger) { cacheSuper = "${c.name('Cache')}<${c.name(idProp.type.name)}, $type>, ${c.name('TempIdCache')}" } else { cacheSuper = "Cache<${c.name(idProp.type.name)}, $type>" } %>
   <% def singlePropIndexes = item.props.findAll {!it.primaryKey && ( it.index || it.unique )}; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join ('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
   public interface <% if(item.virtual) { %>$className<$item.simpleGenericSgn E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper<% } else { %>$className extends $cacheSuper<% } %> {<% if (item.finders && item.finders.finders) { item.finders.finders.each { op -> if(!op.originalParent(c)) { %><% String finderKeyName = op.params.collect { it.prop.cap }.join('And')[0].toLowerCase(); if ((op.params.size() == 1 && singlePropIndexes.contains(op.params.get(0).prop)) || (keyNameToIndex.containsKey(finderKeyName) && !op.params.find { it.multi })) { %>
@@ -2088,7 +2088,7 @@ public abstract class $className extends ${c.name('AbstractFactory')}<$item.cap>
   }
 }''')
 
-  template('factoryExtends', type: RESOURCE, body: '''{{imports}}
+  template('factoryExtends', body: '''{{imports}}
 public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
 }''')
 
@@ -2212,7 +2212,7 @@ public${c.item.virtual?' abstract':''} class $c.className extends ${item.n.cap.b
 }''')
 
   template('entityBeanBuilder', body: '''{{imports}}
-public abstract class $className extends ${item.cap}Builder<$item.n.cap.entity> {
+public abstract class $className extends ${c.name(item.n.cap.builder)}<$item.n.cap.entity> {
   <% item.propsRecursive.each { prop -> if (prop.type && prop.manyToOne && !prop.type.virtual) { %>
   protected ${prop.computedTypeEjb(c)} $prop.name = <% if (prop.computedTypeEjb(c) != item.n.cap.entity) { %>new ${prop.type.n.cap.beanBuilder}().build();<%} else {%> null; // To avoid infinite recursion when building this object<% } %><% } else if (prop.relation) { %>
   protected ${prop.computedTypeEjb(c)} $prop.name = ${prop.testValue};<% } } %>
@@ -2261,7 +2261,7 @@ public abstract class $className extends ${item.cap}Builder<$item.n.cap.entity> 
 }''')
 
   template('entityBeanBuilderExtends', body: '''
-public class $className extends ${item.n.cap.beanBuilderBase} {
+public class $className extends ${item.n.cap.entityBuilderBase} {
 }''')
 
 
@@ -2488,10 +2488,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   ${macros.generate('operationRawType', c)}<% } } %><% if (item.ordered) { %>
-
-  ${macros.generate('fillOrderList')}
-
-  ${macros.generate('fillOrder', c)}<% } %>
+<% } %>
 
   @Override
   protected void beforePersist($item.cap entity) {
@@ -2501,15 +2498,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
     }
   }
 
-  ${macros.generate('fireEventEntity', c)}
 
-  ${macros.generate('fireEvent', c)}
-
-  ${macros.generate('publisherFireEvent', c)}
-
-  ${macros.generate('initMlKeyForEntityEvent', c)}
-
-  ${macros.generate('setPublisher', c)}
 
   @${c.name('Inject')}
   public void setFactory($item.n.cap.factory factory) {
@@ -2539,10 +2528,10 @@ public class $className extends $manager.n.cap.baseMem {
 }
 ''')
 
-  template('implCommands', body: '''{{imports}}
-import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
+  template('implCommands', body: '''{{imports}}import com.siemens.ra.cg.pl.common.base.annotations.Manager;
+<% def commands = item.commands; def idProp = item.idProp %><% def refs = commands.props %>
 /** JPA implementation of {@link $commands.name} */
-<% if (commands.base) { %>@${c.name('Alternative')}<% }else { %>@Manager
+<% if (commands.base) { %>@${c.name('Alternative')}<% } else { %>@Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
@@ -2558,7 +2547,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   @Override
   @${c.name('Transactional')}
   public ${op.return} ${op.name}(${op.signature(c)}) {
-    executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks(c)});
+    executeByProperties(${c.name(item.n.cap.entity)}.$op.operationName, ${op.propLinks(c)});
   }<% } %><% commands.operationsNotManager.each { op -> if (op.body) { c.op = op; %>
 
   @Override<% if (op.transactional) { %>
@@ -2640,7 +2629,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
 
   @Override
   public Class<? extends $item.cap> findEntityClass() {
-    return ${item.n.cap.entity}.class;
+    return ${c.name(item.n.cap.entity)}.class;
   }
 }''')
 
@@ -3106,7 +3095,7 @@ public class $className {
     ${commands.n.cap.impl} commands = new $commands.n.cap.impl();
     commands.setEntityManager(entityManager);
     commands.setPublisher((Event<$entity.n.cap.event>) publisher);
-    commands.setFactory(new ${entity.n.cap.entity}Factory());
+    commands.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
     $commands.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(commands, ${commands.cap}.class, entityManager);
     ret = ${c.name('TraceProxyHandler')}.wrap(ret, ${commands.cap}.class);
     return ret;
@@ -8741,7 +8730,7 @@ private void initMlKey($item.n.cap.event event) {
 
   template('setFactoryManager', body: '''
   @Inject
-  public void setFactory($item.n.cap.factory factory) {
+  public void setFactory(${c.name(item.n.cap.factory)} factory) {
     super.setFactory(factory);
   }''')
 
