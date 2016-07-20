@@ -2556,7 +2556,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op-> %>
 
   @Override
-  @Transactional
+  @${c.name('Transactional')}
   public ${op.return} ${op.name}(${op.signature(c)}) {
     executeByProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks(c)});
   }<% } %><% commands.operationsNotManager.each { op -> if (op.body) { c.op = op; %>

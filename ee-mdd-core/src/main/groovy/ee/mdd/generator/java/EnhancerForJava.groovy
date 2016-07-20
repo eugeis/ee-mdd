@@ -19,6 +19,7 @@ import ee.mdd.ModelBuilder
 import ee.mdd.generator.Context
 import ee.mdd.model.Body
 import ee.mdd.model.Composite
+import ee.mdd.model.DerivedName
 import ee.mdd.model.Element
 import ee.mdd.model.component.Attribute
 import ee.mdd.model.component.BasicType
@@ -474,6 +475,7 @@ class EnhancerForJava {
       if (!properties.containsKey(key)) {
         Entity entity = delegate
         ModelBuilder builder = entity.component.builder
+        def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
         def jpaMetasForEntity = []
         def namedQueries = builder.meta(type: 'NamedQueries', multi: true, value: [])
         if (entity.finders) {
@@ -486,7 +488,7 @@ class EnhancerForJava {
         }
         meta.jpaMetasForEntity = namedQueries
         def table = builder.meta(type: 'Table', value: [:])
-        table.value['name'] = c.className + '.TABLE'
+        table.value['name'] = className + '.TABLE'
         def indexes = entity.indexesForMeta(c)
         if (indexes != null) {
           table.value['indexes'] = indexes
@@ -500,11 +502,12 @@ class EnhancerForJava {
     meta.metasForEntity = { Context c ->
       Entity entity = delegate
       ModelBuilder builder = entity.component.builder
+      def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
       def metasForEntity = []
       if (entity.metas) {
         metasForEntity.addAll(entity.metas)
       }
-      if (c.className.contains('BaseEntity') && entity.base || entity.virtual) {
+      if (className.contains('BaseEntity') && entity.base || entity.virtual) {
         meta.metasForEntity = builder.meta(type: 'MappedSuperclass')
       } else {
         meta.metasForEntity = builder.meta(type: 'Entity')
@@ -603,11 +606,12 @@ class EnhancerForJava {
     meta.metasForBasicType = { Context c ->
       BasicType basic = delegate
       ModelBuilder builder = basic.component.builder
+      def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
       def metasForBasicType = []
       if (basic.metas) {
         metasForBasicType.addAll(basic.metas)
       }
-      if (c.className.contains('BaseEmbeddable') && basic.base) {
+      if (className.contains('BaseEmbeddable') && basic.base) {
         meta.metasForBasicType = builder.meta(type: 'MappedSuperclass')
       } else if (!basic.base && !basic.virtual) {
         meta.metasForBasicType = builder.meta(type: 'Embeddable')
@@ -638,11 +642,12 @@ class EnhancerForJava {
     meta.metasForService = { Context c ->
       Facade service = delegate
       ModelBuilder builder = service.component.builder
+      def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
       def metasForService = []
       if (service.metas) {
         metasForService.addAll(service.metas)
       }
-      if (c.className.contains('ServiceBean') || c.className.contains('ServiceBase') && !service.base) {
+      if (className.contains('ServiceBean') || className.contains('ServiceBase') && !service.base) {
         metasForService << builder.meta(type: 'Service')
         def stateless = builder.meta(type: 'Stateless', value: [:])
         stateless.value['name'] = "SERVICE_${service.underscored}"
@@ -700,11 +705,12 @@ class EnhancerForJava {
 
     meta.deleterNamedQuery = { Context c ->
       if (delegate.deleters != null) {
+        def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
         def deleterQueries = []
         ModelBuilder builder = c.item.component.builder
         delegate.deleters.each { deleter ->
           def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-          namedQuery.value['name'] = c.className + '.' + deleter.operationName
+          namedQuery.value['name'] = className + '.' + deleter.operationName
           namedQuery.value['query'] = "\"DELETE FROM ${c.item.n.cap.entity} e WHERE ( ${deleter.propWhere} )\""
           meta.deleterQueries = namedQuery
         }
@@ -719,11 +725,12 @@ class EnhancerForJava {
 
     meta.finderNamedQuery = { Context c ->
       if (delegate.finders != null) {
+        def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
         def finderQueries = []
         ModelBuilder builder = c.item.component.builder
         delegate.finders.each { finder ->
           def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-          namedQuery.value['name'] = c.className + '.' + finder.operationName
+          namedQuery.value['name'] = className + '.' + finder.operationName
           namedQuery.value['query'] = "\"SELECT e FROM ${c.item.n.cap.entity} e WHERE ( ${finder.propWhere} )\""
           meta.finderQueries = namedQuery
         }
@@ -733,11 +740,12 @@ class EnhancerForJava {
 
     meta.counterNamedQuery = { Context c ->
       if (delegate.counters != null) {
+        def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
         def counterQueries = []
         ModelBuilder builder = c.item.component.builder
         delegate.counters.each { counter ->
           def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-          namedQuery.value['name'] = c.className + '.' + counter.operationName
+          namedQuery.value['name'] = className + '.' + counter.operationName
           namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${counter.propWhere} )\""
           meta.counterQueries = namedQuery
         }
@@ -747,11 +755,12 @@ class EnhancerForJava {
 
     meta.existerNamedQuery = { Context c ->
       if (delegate.exists != null) {
+        def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
         def existsQueries = []
         ModelBuilder builder = c.item.component.builder
         delegate.exists.each { exist ->
           def namedQuery = builder.meta(type: 'NamedQuery', value: [:])
-          namedQuery.value['name'] = c.className + '.' + exist.operationName
+          namedQuery.value['name'] = className + '.' + exist.operationName
           namedQuery.value['query'] = "\"SELECT COUNT(e) FROM ${c.item.n.cap.entity} e WHERE ( ${exist.propWhere} )\""
           meta.existsQueries = namedQuery
         }
@@ -1913,22 +1922,23 @@ class EnhancerForJava {
     meta.metasForBridge = { Context c ->
       Channel channel = delegate
       ModelBuilder builder = channel.component.builder
+      def className = DerivedName.isInstance(c.className) ? c.className.name : c.className
       def metasForBridge = []
-      if (!(c.className.contains('Mdb')) && (c.className.contains('JmsToCdi') || c.className.contains('EventToCdi') || c.className.contains('NotificationPlugin'))) {
+      if (!(className.contains('Mdb')) && (className.contains('JmsToCdi') || className.contains('EventToCdi') || className.contains('NotificationPlugin'))) {
         meta.metasForBridge = builder.meta(type: 'ApplicationScoped')
         def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
         def environment = builder.meta(type: 'Environment', value: [:])
         environment.value['executions'] = "{ ${c.name('PRODUCTIVE')} }"
-        if (c.className.contains('EventToCdi'))
+        if (className.contains('EventToCdi'))
           environment.value['runtimes'] = "{ ${c.name('CLIENT')}, SERVER }"
-        else if (c.className.contains('External'))
+        else if (className.contains('External'))
           environment.value['runtimes'] = "{ ${c.name('SERVER')} }"
         else
           environment.value['runtimes'] = "{ ${c.name('CLIENT')} }"
         supportsEnvironments.value.add(environment)
         meta.metasForBridge = supportsEnvironments
         meta.metasForBridge = builder.meta(type: 'Traceable')
-      } else if (c.className.contains('CdiToJms')) {
+      } else if (className.contains('CdiToJms')) {
         meta.metasForBridge = builder.meta(type: 'Stateless')
         def supportsEnvironments = builder.meta(type: 'SupportsEnvironments', value: [])
         def environment = builder.meta(type: 'Environment', value: [:])
@@ -1940,7 +1950,7 @@ class EnhancerForJava {
         messageDriven.value['messageListenerInterface'] = "${c.name('MessageListener')}.class"
         def configProps = []
         def destinationValue, destinationTypeValue
-        if (c.className.contains('Import')) {
+        if (className.contains('Import')) {
           destinationValue = 'JMS_IMPORT_QUEUE'
           destinationTypeValue = 'QUEUE'
         } else {
@@ -1974,9 +1984,9 @@ class EnhancerForJava {
 
         def messageSelector = builder.meta(type: 'ActivationConfigProperty', value: [:])
         messageSelector.value['propertyName'] = 'MESSAGE_SELECTOR'
-        if (c.className.contains('ImportData'))
+        if (className.contains('ImportData'))
           messageSelector.value['propertyValue'] = "datatype = '" + "${module.shared.names.constants}.JMS_MESSAGE_SELECTOR_${item.underscored}_DATA" + "'"
-        else if (c.className.contains('Import'))
+        else if (className.contains('Import'))
           messageSelector.value['propertyValue'] = "datatype = '" + "${module.shared.names.constants}.JMS_MESSAGE_SELECTOR_${item.underscored}" + "'"
         else
           messageSelector.value['propertyValue'] = c.messageSelectors.join(' + " OR " + ')
