@@ -28,12 +28,12 @@ class Commands extends Controller {
   protected boolean init() {
     super.init()
     def op = new Update(name: 'update', nameExternal: "update${entity.cap}", ret: (Type) parent)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}'), type: (Type) parent))
+    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
     add(op)
     op = new Create(name: 'create', nameExternal: "create${entity.cap}", ret: (Type) entity)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}'), type: (Type) entity.idProp.type))
+    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) entity.idProp.type)))
     add(op)
-    op = new Delete()
+    op = new Delete(name: 'delete', nameExternal: "delete${entity.cap}")
     op.add(new Param(name: "${entity.uncap}Id", prop: entity.idProp, type: (Type) entity.idProp.type))
     add(op)
   }

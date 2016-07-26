@@ -905,6 +905,74 @@ class EnhancerForJava {
     meta = DataTypeProp.metaClass
 
     meta.getRelation = { delegate.typeEntity }
+    
+    meta.getManyToMany = {
+      ->
+      def key = System.identityHashCode(delegate) + 'manyToMany'
+      if (!properties.containsKey(key)) {
+        def ret = false
+        def prop = delegate
+        def opposite = prop.opposite
+        if (opposite && prop.multi && opposite.multi) {
+          ret = true
+        } else if (!opposite && prop.multi && prop.mm) {
+          ret = true
+        }
+        properties[key] = ret
+      }
+      properties[key]
+    }
+
+    meta.getOneToMany = {
+      ->
+      def key = System.identityHashCode(delegate) + 'oneToMany'
+      if (!properties.containsKey(key)) {
+        def ret = false
+        def prop = delegate
+        def opposite = prop.opposite
+        if (opposite && prop.multi && !opposite.multi) {
+          ret = true
+        } else if (!opposite && prop.multi && !prop.mm) {
+          ret = true
+        }
+        properties[key] = ret
+      }
+      properties[key]
+    }
+
+    meta.getManyToOne = {
+      ->
+      def key = System.identityHashCode(delegate) + 'manyToOne'
+      if (!properties.containsKey(key)) {
+        def ret = false
+        def prop = delegate
+        def opposite = prop.opposite
+        if (prop.typeEntity) {
+          if (opposite && opposite.multi && !prop.multi) {
+            ret = true
+          } else if (!opposite && !prop.multi) {
+            ret = true
+          }
+        }
+        properties[key] = ret
+      }
+      properties[key]
+    }
+
+    meta.getOneToOne = {
+      ->
+      def key = System.identityHashCode(delegate) + 'oneToOne'
+      if (!properties.containsKey(key)) {
+        def ret = false
+        def prop = delegate
+        def opposite = prop.opposite
+        if (opposite && !opposite.multi && !prop.multi) {
+          ret = true
+        }
+        properties[key] = ret
+      }
+      properties[key]
+    }
 
 
 
@@ -1072,7 +1140,11 @@ class EnhancerForJava {
       ->
       def key = System.identityHashCode(delegate) + 'getter'
       if (!properties.containsKey(key)) {
-        properties[key] = "${delegate.type.name.equalsIgnoreCase('Boolean') ? 'is' : 'get'}$delegate.cap()"
+        if(delegate.type) {
+          properties[key] = "${delegate.type.name.equalsIgnoreCase('Boolean') ? 'is' : 'get'}$delegate.cap()"
+        } else {
+          properties[key] = "get${delegate.cap}"
+        }
       }
       properties[key]
     }
@@ -1234,7 +1306,9 @@ class EnhancerForJava {
       ->
       def key = System.identityHashCode(delegate) + 'relationIdProp'
       if (!properties.containsKey(key)) {
-        properties[key] = delegate.manyToOne || delegate.oneToOne ? delegate.type.idProp : null
+        if(DataTypeProp.isInstance(delegate)) {
+          properties[key] = (delegate.manyToOne || delegate.oneToOne) ? delegate.type.idProp : null
+        }
       }
       properties[key]
     }
@@ -1248,77 +1322,9 @@ class EnhancerForJava {
     }
 
     meta.getBoxedType = {
-      def key = System.identityHashCode(delegate) + 'computedBoxedType'
+      def key = System.identityHashCode(delegate) + 'boxedType'
       if (!properties.containsKey(key)) {
         properties[key] = delegate.type.name == 'boolean' ? 'Boolean' : delegate.type.name == 'int' ? 'Integer' : delegate.type.name == 'long' ? 'Long' : delegate.type.name
-      }
-      properties[key]
-    }
-
-    meta.getManyToMany = {
-      ->
-      def key = System.identityHashCode(delegate) + 'manyToMany'
-      if (!properties.containsKey(key)) {
-        def ret = false
-        def prop = delegate
-        def opposite = prop.opposite
-        if (opposite && prop.multi && opposite.multi) {
-          ret = true
-        } else if (!opposite && prop.multi && prop.mm) {
-          ret = true
-        }
-        properties[key] = ret
-      }
-      properties[key]
-    }
-
-    meta.getOneToMany = {
-      ->
-      def key = System.identityHashCode(delegate) + 'oneToMany'
-      if (!properties.containsKey(key)) {
-        def ret = false
-        def prop = delegate
-        def opposite = prop.opposite
-        if (opposite && prop.multi && !opposite.multi) {
-          ret = true
-        } else if (!opposite && prop.multi && !prop.mm) {
-          ret = true
-        }
-        properties[key] = ret
-      }
-      properties[key]
-    }
-
-    meta.getManyToOne = {
-      ->
-      def key = System.identityHashCode(delegate) + 'manyToOne'
-      if (!properties.containsKey(key)) {
-        def ret = false
-        def prop = delegate
-        def opposite = prop.opposite
-        if (prop.typeEntity) {
-          if (opposite && opposite.multi && !prop.multi) {
-            ret = true
-          } else if (!opposite && !prop.multi) {
-            ret = true
-          }
-        }
-        properties[key] = ret
-      }
-      properties[key]
-    }
-
-    meta.getOneToOne = {
-      ->
-      def key = System.identityHashCode(delegate) + 'oneToOne'
-      if (!properties.containsKey(key)) {
-        def ret = false
-        def prop = delegate
-        def opposite = prop.opposite
-        if (opposite && !opposite.multi && !prop.multi) {
-          ret = true
-        }
-        properties[key] = ret
       }
       properties[key]
     }

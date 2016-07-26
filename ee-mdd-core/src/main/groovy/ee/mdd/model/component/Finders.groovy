@@ -27,10 +27,10 @@ class Finders extends Controller {
   protected boolean init() {
     super.init()
     def op = new Find(ret: (Type) entity)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}'), type: (Type) entity))
+    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
     add(op)
     op = new Count(ret: (Type) entity.idProp.type)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}'), type: (Type) entity))
+    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
     add(op)
   }
 

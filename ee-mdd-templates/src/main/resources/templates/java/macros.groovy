@@ -24,7 +24,7 @@ import static ee.mdd.generator.OutputType.*
  */
 
 templates ('macros') {
-
+  
   useMacros('commonMacros', '/common/macros')
 
   template('header', body: '''/* EE Software */''')
@@ -2498,9 +2498,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
     }
   }
 
-
-
-  @${c.name('Inject')}
+@${c.name('Inject')}
   public void setFactory($item.n.cap.factory factory) {
     super.setFactory(factory);
   }
