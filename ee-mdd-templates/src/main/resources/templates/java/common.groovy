@@ -396,8 +396,8 @@ templates ('common') {
   templates('builderFactory',
   items: { c -> c.model.findAllDown( { Module.isInstance(it) }) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
-    template('builderFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactoryBase" %> ${macros.generate('builderFactory', c)} <% } %>''')
-    template('builderFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = "${module.capShortName}BuilderFactory" %> ${macros.generate('builderFactoryExtends', c)} <% } %>''')
+    template('builderFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = module.n.cap.builderFactoryBase %> ${macros.generate('builderFactory', c)} <% } %>''')
+    template('builderFactoryExtends', appendName: true, body: '''<% if(module.entities) { %><% c.className = module.n.cap.builderFactory %> ${macros.generate('builderFactoryExtends', c)} <% } %>''')
   }
 
   templates('producerClient',

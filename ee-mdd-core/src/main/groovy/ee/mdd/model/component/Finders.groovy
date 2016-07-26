@@ -25,6 +25,7 @@ import ee.mdd.model.Element
 class Finders extends Controller {
   
   protected boolean init() {
+    this.base = true
     super.init()
     def op = new Find(ret: (Type) entity)
     op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))

@@ -27,6 +27,7 @@ class Commands extends Controller {
 
   protected boolean init() {
     super.init()
+    this.base = true
     def op = new Update(name: 'update', nameExternal: "update${entity.cap}", ret: (Type) parent)
     op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
     add(op)

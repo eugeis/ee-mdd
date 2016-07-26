@@ -979,12 +979,12 @@ class EnhancerForJava {
     meta = DataTypeOperation.metaClass
 
     meta.returnTypeExternal = { Context c ->
-      def ret = ''
+      def ret = 'void'
       if (Find.isInstance(delegate) && !delegate.unique) {
         c.name('List')
         c.name(delegate.parent.entity.name)
         ret = "${c.name('List')}<$delegate.parent.entity.cap>"
-      } else {
+      } else if(!Delete.isInstance(delegate)) {
         ret = "$delegate.parent.entity.cap"
       }
       ret

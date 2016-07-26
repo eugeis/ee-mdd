@@ -24,7 +24,7 @@ import static ee.mdd.generator.OutputType.*
  */
 
 templates ('macros') {
-  
+
   useMacros('commonMacros', '/common/macros')
 
   template('header', body: '''/* EE Software */''')
@@ -552,9 +552,9 @@ public interface $className {<% [module.basicTypes, module.entities, module.cont
 
   $t.cap new${t.cap}();
 
-  $t.n.cap.factory get${t.cap}Factory();<% } } } %>
+  ${c.name(t.n.cap.factory)} get${t.cap}Factory();<% } } } %>
 
-  <E> Factory<E> findFactoryByType(Class<E> type);
+  <E> ${c.name('Factory')}<E> findFactoryByType(Class<E> type);
 }''')
 
   template('ifcEntity', body: '''{{imports}}
@@ -2144,7 +2144,7 @@ public class $className extends ${item.n.cap.factoryBase} {
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL, MEMORY }, runtimes = { CLIENT }) })
-public class $className extends ${item.n.cap.factoryBase} {
+public class $className extends ${c.name(item.n.cap.factoryBase)} {
 
   public $className() {
     super(${item.cap}${c.bean}.class);
@@ -2430,7 +2430,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   ${macros.generate('setPublisher', c)}
 
   @${c.name('Inject')}
-  public void setFactory($item.n.cap.factory factory) {
+  public void setFactory(${c.name(item.n.cap.factory)} factory) {
     super.setFactory(factory);
   }
 }''')
@@ -2442,7 +2442,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = ite
 @Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
 public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerMemAbstract')}<${idProp.type.name}, $item.cap> implements $finders.name {
-  protected Event<${item.n.cap.event}> publisher;<% finders.counters.each { op -> %>
+  protected ${c.name('Event')}<${item.n.cap.event}> publisher;<% finders.counters.each { op -> %>
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
@@ -2469,7 +2469,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    $op.returnTypeExternal ret = ${op.unique ? null : "new ArrayList<>()"};
+    $op.returnTypeExternal ret = ${op.unique ? null : "new ${c.name('ArrayList')}<>()"};
     for ($op.entity.cap entity : findAll()) {
       if (${op.propCompare}) {<% if (op.unique) { %>
         ret = entity;
@@ -3050,7 +3050,7 @@ public abstract class $className implements ${module.capShortName}ManagerFactory
     return $finder.uncap;
   }<% };  finders.each { finder -> %>
 
-  @Inject
+  @${c.name('Inject')}
   public void set$finder.cap($finder.name $finder.uncap) {
     this.$finder.uncap= $finder.uncap;
   }<% }; module.entities.findAll { it.virtual }.each { entity -> def children = module.entities.findAll { it.superUnit == entity &&( (it.finders && !it.virtual) || (it.virtual)) }; %>
@@ -3139,7 +3139,7 @@ public class $className {
   public $commands.name get$commands.cap(${c.name('Event')}<$entity.n.cap.event> publisher) {
     $commands.n.cap.mem ret = new $commands.n.cap.mem();
     ret.setPublisher(publisher);
-    ret.setFactory(new ${entity.n.cap.entiy}Factory())
+    ret.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
     return ret;
   }<% } %>
 }''')
@@ -3154,7 +3154,7 @@ public class $className {
   public $finders.name get$finders.cap(${c.name('Event')}<$entity.n.cap.event> publisher) {
     $finders.n.cap.mem ret = new $finders.n.cap.mem();
     ret.setPublisher(publisher);
-    ret.setFactory(new ${entity.n.cap.entiy}Factory())
+    ret.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
     return ret;
   }<% } %>
 }''')
@@ -8199,15 +8199,15 @@ public class $className {
     return ret;
   }<% } } } %><% [module.basicTypes, module.entities].each { it.each { t -> %><% if (!t.virtual) { %>
 
-  public List<$t.cap> convert${t.cap}sToInternal(Collection<$t.cap> items) {
-    ArrayList<$t.cap> ret = new ArrayList<>();
+  public ${c.name('List')}<$t.cap> convert${t.cap}sToInternal(${c.name('Collection')}<$t.cap> items) {
+    ${c.name('ArrayList')}<$t.cap> ret = new ArrayList<>();
     for($t.cap item : items) {
       ret.add(toInternal(item));
     }
     return ret;
   }
 
-  public List<$t.cap> convert${t.cap}sToExternal(Collection<$t.cap> items) {
+  public List<$t.cap> convert${t.cap}sToExternal(${c.name('Collection')}<$t.cap> items) {
     ArrayList<$t.cap> ret = new ArrayList<>();
     for($t.cap item : items) {
       ret.add(toExternal(item));
@@ -8255,8 +8255,8 @@ public class $className {
     }
   }<% } } } %>
 
-  @Inject
-  public void setInternal(@Internal${module.capShortName}ModelFactory internal) {
+  @${c.name('Inject')}
+  public void setInternal(@${c.name('Internal')} ${module.capShortName}ModelFactory internal) {
     this.internal = internal;
   }
 
@@ -8284,7 +8284,7 @@ public class $className extends ${module.capShortName}DataFactoryBase {
 
   ${macros.generate('superclassConstructor', c)}
 
-  public $className(${module.capShortName}ModelFactory} modelFactory) {
+  public $className(${module.capShortName}ModelFactory modelFactory) {
     super();
     setModelFactory(modelFactory);
   }
@@ -8328,9 +8328,9 @@ public abstract class $className {
     return ret;
   }
 
-  public List<${basicType.cap}> new${basicType.cap}List(int fromItemNumber, int toItemNumber) {
+  public ${c.name('List')}<${basicType.cap}> new${basicType.cap}List(int fromItemNumber, int toItemNumber) {
     log.debug("${basicType.uncap}List({}, {})", fromItemNumber, toItemNumber);
-    ArrayList<${basicType.cap}> ret = new ArrayList<>();
+    ${c.name('ArrayList')}<${basicType.cap}> ret = new ArrayList<>();
     for (int i = fromItemNumber; i < toItemNumber; i++) {
       ret.add(new${basicType.cap}(i));
     }
@@ -8349,9 +8349,9 @@ public abstract class $className {
     return ret;
   }
 
-  public List<${entity.cap}> new${entity.cap}List(int fromEntityNumber, int toEntityNumber) {
+  public ${c.name('List')}<${entity.cap}> new${entity.cap}List(int fromEntityNumber, int toEntityNumber) {
     log.debug("${entity.uncap}List({}, {})", fromEntityNumber, toEntityNumber);
-    ArrayList<${entity.cap}> ret = new ArrayList<>();
+    ${c.name('ArrayList')}<${entity.cap}> ret = new ArrayList<>();
     for (int i = fromEntityNumber; i < toEntityNumber; i++) {
       ret.add(new${entity.cap}(i));
     }
