@@ -35,16 +35,21 @@ class Composite extends Element {
     }
 
     List findAllDown(boolean stopSteppingDownIfFound = true, Closure matcher) {
-        findAllDown([], stopSteppingDownIfFound, matcher)
+        findAllDown([], [] as Set, stopSteppingDownIfFound, matcher)
     }
 
-    List findAllDown(List fill, boolean stopSteppingDownIfFound = true, Closure matcher) {
-        def items = children.findAll(matcher)
-        if (items) {
-            fill.addAll(items)
-        }
-        if (!stopSteppingDownIfFound || !items) {
-            children.findAll { Composite.isInstance(it) }*.findAllDown(fill, stopSteppingDownIfFound, matcher)
+    List findAllDown(List fill, Set alreadySearched = [] as Set, boolean stopSteppingDownIfFound = true, Closure matcher) {
+        if (!alreadySearched.contains(this)) {
+            alreadySearched << this
+            def items = children.findAll(matcher)
+            if (items) {
+                fill.addAll(items)
+            }
+            if (!stopSteppingDownIfFound || !items) {
+                children.findAll {
+                    Composite.isInstance(it)
+                }*.findAllDown(fill, alreadySearched, stopSteppingDownIfFound, matcher)
+            }
         }
         fill
     }
@@ -81,7 +86,7 @@ class Composite extends Element {
         findAll { type.isInstance(it) }
     }
 
-    List findAllDown(boolean stopSteppingDownIfFound = true, Class type) {
+    List findAllDown(Class type, boolean stopSteppingDownIfFound = true) {
         findAllDown(stopSteppingDownIfFound) { type.isInstance(it) }
     }
 

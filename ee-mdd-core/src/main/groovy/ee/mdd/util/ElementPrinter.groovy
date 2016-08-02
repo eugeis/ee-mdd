@@ -25,106 +25,114 @@ import ee.mdd.model.Element
  */
 class ElementPrinter {
 
-  protected final IndentPrinter out
+    protected final IndentPrinter out
 
-  ElementPrinter() {
-    this(new IndentPrinter(new PrintWriter(new OutputStreamWriter(System.out))))
-  }
-
-  ElementPrinter(PrintWriter out) {
-    this(new IndentPrinter(out))
-  }
-
-  ElementPrinter(IndentPrinter out) {
-    if (out == null) {
-      throw new NullPointerException('IndentPrinter "out" must not be null!')
+    ElementPrinter() {
+        this(new IndentPrinter(new PrintWriter(new OutputStreamWriter(System.out))))
     }
-    this.out = out
-  }
 
-  void print(Element item, Closure filter = { true }) {
-    if(filter(item)) {
-      out.printIndent()
-      printNameAndAttributes(item)
+    ElementPrinter(PrintWriter out) {
+        this(new IndentPrinter(out))
+    }
 
-      if(Composite.isInstance(item)) {
-        Composite composite = (Composite)item
-        if(composite.children) {
-          printList(composite.children, filter)
-        } else {
-          out.println()
+    ElementPrinter(IndentPrinter out) {
+        if (out == null) {
+            throw new NullPointerException('IndentPrinter "out" must not be null!')
         }
-      } else {
-        out.println()
-      }
-      out.flush()
+        this.out = out
     }
-  }
 
-  private printNameAndAttributes(Element item) {
-    out.print(item.name)
-    Map attributes = item.attributes()
-    boolean hasAttributes = attributes != null && !attributes.isEmpty()
-    if (hasAttributes) {
-      printAttributes(attributes)
+    void print(Element item, Closure filter = { true }, Set<Element> fillAlreadyPrinted = [] as Set) {
+        if (filter(item)) {
+            fillAlreadyPrinted << item
+            out.printIndent()
+            printNameAndAttributes(item)
+
+            if (Composite.isInstance(item)) {
+                Composite composite = (Composite) item
+                if (composite.children) {
+                    printList(composite.children, filter, fillAlreadyPrinted)
+                } else {
+                    out.println()
+                }
+            } else {
+                out.println()
+            }
+            out.flush()
+        }
     }
-  }
 
-  protected void printList(List<Element> list, Closure filter) {
-
-    def itemsWithoutChildren = list.findAll { filter && (!Composite.isInstance(it) || !it.children) }
-    def itemsWithChildren = list.findAll { filter && (Composite.isInstance(it) && it.children) }
-
-    if(itemsWithChildren) {
-      out.println(' {')
-      out.incrementIndent()
-      if(itemsWithoutChildren) {
-        out.printIndent()
-        printListWithoutChildren(itemsWithoutChildren)
-        out.println('')
-      }
-      itemsWithChildren.each { print(it, filter) }
-
-      out.decrementIndent()
-      out.printIndent()
-      out.println('}')
-    } else if(itemsWithoutChildren){
-      out.print(' { ')
-      printListWithoutChildren(itemsWithoutChildren)
-      out.println(' }')
+    private printNameAndAttributes(Element item) {
+        out.print(item.name)
+        Map attributes = item.attributes()
+        boolean hasAttributes = attributes != null && !attributes.isEmpty()
+        if (hasAttributes) {
+            printAttributes(attributes)
+        }
     }
-  }
 
-  protected void printListWithoutChildren(List<Element> list) {
-    boolean first = true
-    list.each {
-      if(first) {
-        first = false
-      } else {
-        out.print(', ')
-      }
-      printNameAndAttributes(it)
-    }
-  }
+    protected void printList(List<Element> list, Closure filter, Set<Element> fillAlreadyPrinted) {
 
-  protected void printAttributes(Map attributes) {
-    out.print('(')
-    boolean first = true
-    for (Object o : attributes.entrySet()) {
-      Map.Entry entry = (Map.Entry) o
-      if (first) {
-        first = false
-      } else {
-        out.print(', ')
-      }
-      out.print(entry.getKey().toString())
-      out.print(':')
-      if (entry.getValue() instanceof String) {
-        out.print(''' + entry.getValue() + ''')
-      } else {
-        out.print(InvokerHelper.toString(entry.getValue()))
-      }
+        def itemsWithoutChildren = list.findAll {
+            !fillAlreadyPrinted.contains(it) && filter && (!Composite.isInstance(it) || !it.children)
+        }
+        def itemsWithChildren = list.findAll {
+            !fillAlreadyPrinted.contains(it) && filter && (Composite.isInstance(it) && it.children)
+        }
+
+        if (itemsWithChildren) {
+            out.println(' {')
+            out.incrementIndent()
+            if (itemsWithoutChildren) {
+                out.printIndent()
+                printListWithoutChildren(itemsWithoutChildren, fillAlreadyPrinted)
+                out.println('')
+            }
+            itemsWithChildren.each {
+                print(it, filter, fillAlreadyPrinted)
+            }
+
+            out.decrementIndent()
+            out.printIndent()
+            out.println('}')
+        } else if (itemsWithoutChildren) {
+            out.print(' { ')
+            printListWithoutChildren(itemsWithoutChildren, fillAlreadyPrinted)
+            out.println(' }')
+        }
     }
-    out.print(')')
-  }
+
+    protected void printListWithoutChildren(List<Element> list, Set<Element> fillAlreadyPrinted) {
+        boolean first = true
+        list.each {
+            fillAlreadyPrinted << it
+            if (first) {
+                first = false
+            } else {
+                out.print(', ')
+            }
+            printNameAndAttributes(it)
+        }
+    }
+
+    protected void printAttributes(Map attributes) {
+        out.print('(')
+        boolean first = true
+        for (Object o : attributes.entrySet()) {
+            Map.Entry entry = (Map.Entry) o
+            if (first) {
+                first = false
+            } else {
+                out.print(', ')
+            }
+            out.print(entry.getKey().toString())
+            out.print(':')
+            if (entry.getValue() instanceof String) {
+                out.print(''' + entry.getValue() + ''')
+            } else {
+                out.print(InvokerHelper.toString(entry.getValue()))
+            }
+        }
+        out.print(')')
+    }
 }

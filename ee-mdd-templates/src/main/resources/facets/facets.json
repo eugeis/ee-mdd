@@ -1,4 +1,4 @@
 { 
-  "java": [ "common", "cdi", "cg", "ejb", "jms", "jpa", "test", "ee", "ui", "sm"],
+  "java": [ "common", "cdi", "cg", "ejb", "jms", "jpa", "test", "ee", "ui", "sm", "wildfly"],
   "js": [ "common" ] 
 }

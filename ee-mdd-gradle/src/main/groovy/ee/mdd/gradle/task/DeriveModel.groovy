@@ -12,7 +12,7 @@ class DeriveModel extends MddTask {
   @TaskAction
   void generate() {
     validateState()
-    mdd.model = mdd.generator.deriveModel(mdd.model)
+    mdd.model = mdd.generator.derive(mdd.model)
   }
 
   private validateState() {

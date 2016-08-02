@@ -1,8 +1,10 @@
 package ee.mdd.generator
 
 import ee.mdd.TemplatesBuilder
+import ee.mdd.model.Element
 import ee.mdd.model.component.Facet
 import ee.mdd.model.component.Model
+import ee.mdd.model.component.StructureUnit
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -10,8 +12,8 @@ class FacetTemplateLoader {
   String path = '/templates'
   TemplatesBuilder builder = new TemplatesBuilder()
 
-  TemplateGroup loadFacetTemplates(Model model) {
-    TemplateGroup ret = new TemplateGroup(name: model.name)
+  TemplateGroup loadFacetTemplates(StructureUnit item) {
+    TemplateGroup ret = new TemplateGroup(name: item.name)
 
     Map<String, TemplateGroup> fullNameToLoadedTemplates = [:]
 
@@ -41,7 +43,7 @@ class FacetTemplateLoader {
         }
       }
     }
-    facetTemplateLoader ret, model.facets
+    facetTemplateLoader ret, item.collectFacets()
 
     ret
   }

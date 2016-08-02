@@ -138,7 +138,7 @@ class GenerateJsTest {
     }
 
     model.add(facet)
-    facet.extendModel(model)
+    facet.extend(model)
 
     generator.builder.typeResolver.printNotResolved()
 

@@ -71,7 +71,7 @@ class GeneratorForJavaTest {
     void testLoadTemplates() {
 
         def modelFile = new File('D:/views/git/ee-mdd_example/model.groovy')
-        def model = generator.loadModel(modelFile.toURI().toURL(), {
+        def model = generator.load(modelFile.toURI().toURL(), {
             java {
                 common()
                 cdi()
@@ -86,7 +86,7 @@ class GeneratorForJavaTest {
             }
         })
 
-        model = generator.deriveModel(model)
+        model = generator.derive(model)
 
         generator.generate(model, new File('D:/CG/src/cg-pl'), null, 'shared')
 

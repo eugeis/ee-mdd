@@ -19,6 +19,7 @@ import ee.mdd.builder.AbstractFactoryBuilder
 import ee.mdd.builder.BuilderAware
 import ee.mdd.builder.MddFactory
 import ee.mdd.model.Composite
+import ee.mdd.model.Element
 
 /**
  *
@@ -33,7 +34,7 @@ class Facet extends Composite implements BuilderAware {
   List<ExternalModule> externalModules = []
   Map<String, Facet> facets = [:]
   List<Dependencies> dependencies = []
-  Closure modelExtender
+  Closure extender
 
   def add(ExternalModule child) {
     externalModules << child; super.add(child)
@@ -47,12 +48,12 @@ class Facet extends Composite implements BuilderAware {
     facets[child.name] = super.add(child); child
   }
 
-  def extendModel(Model model) {
-    if(modelExtender) {
-      modelExtender.call(model)
+  def extend(Element item) {
+    if(extender) {
+      extender.call(item)
     }
     facets.each { name, childFacet ->
-      childFacet.extendModel(model)
+      childFacet.extend(item)
     }
   }
 

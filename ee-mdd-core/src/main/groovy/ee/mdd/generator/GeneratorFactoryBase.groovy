@@ -16,10 +16,12 @@
 package ee.mdd.generator
 
 import ee.mdd.ModelBuilder
+import ee.mdd.model.Composite
+import ee.mdd.model.Element
 import ee.mdd.model.component.Facet
-import ee.mdd.model.component.Model
 import ee.mdd.model.component.OperationRef
 import ee.mdd.model.component.Prop
+import ee.mdd.model.component.StructureUnit
 
 /**
  *
@@ -27,62 +29,64 @@ import ee.mdd.model.component.Prop
  */
 class GeneratorFactoryBase {
 
-  ModelBuilder builder = new ModelBuilder()
+    ModelBuilder builder = new ModelBuilder()
 
-  Model loadModel(URL modelSource, Closure facetClosure = null) {
-    Model model
-    if(facetClosure) {
-      Facet facet =  builder.build(facetClosure)
-      model =  builder.build(modelSource)
-      if(facet) {
-        model.add(facet)
-        facet.extendModel(model)
-      }
-    } else {
-      model =  builder.build(modelSource)
+    StructureUnit load(URL modelSource, Closure facetClosure = null) {
+        StructureUnit ret
+        if (facetClosure) {
+            Facet facet = builder.build(facetClosure)
+            ret = builder.build(modelSource)
+            if (facet) {
+                ret.add(facet)
+                facet.extend(ret)
+            }
+        } else {
+            ret = builder.build(modelSource)
+        }
+
+        builder.typeResolver.printNotResolved()
+        ret
     }
 
-    builder.typeResolver.printNotResolved()
-    model
-  }
-
-  Model deriveModel(Model model) {
-    //create props for delegates
-    model.findAllDown { OperationRef.isInstance(it) }.each { OperationRef d ->
-      if(d.ref) {
-        d.parent.add( new Prop(name: d.ref.parent.uncap, type: d.ref.parent) ) }
-      else {
-        println "Delegate $d.name was not resolved"
-      }
+    StructureUnit derive(StructureUnit item) {
+        //create props for delegates
+        if (Composite.isInstance(item)) {
+            ((Composite) item).findAllDown { OperationRef.isInstance(it) }.each { OperationRef d ->
+                if (d.ref) {
+                    d.parent.add(new Prop(name: d.ref.parent.uncap, type: d.ref.parent))
+                } else {
+                    println "Delegate $d.name was not resolved"
+                }
+            }
+        }
+        item
     }
-    model
-  }
 
 
-  void generate(Model model, File target, Closure targetModuleResolver, String targetLayout) {
-    FacetTemplateLoader templateLoader = new FacetTemplateLoader()
+    void generate(StructureUnit item, File target, Closure targetModuleResolver, String targetLayout) {
+        FacetTemplateLoader templateLoader = new FacetTemplateLoader()
 
-    Generator generator = new Generator()
-    generator.add(templateLoader.loadFacetTemplates(model))
+        Generator generator = new Generator()
+        generator.add(templateLoader.loadFacetTemplates(item))
 
-    def processorFactory = new ProcessorsFactory()
+        def processorFactory = new ProcessorsFactory()
 
-    extendGenerator(generator, processorFactory, templateLoader, targetModuleResolver)
+        extendGenerator(generator, processorFactory, templateLoader, targetModuleResolver)
 
-    generator.add(processorFactory.printProcessor())
-    generator.add(processorFactory.fileProcessor(target))
+        generator.add(processorFactory.printProcessor())
+        generator.add(processorFactory.fileProcessor(target))
 
 
-    Context c = new Context(name: model.name, 
-      outputType:  OutputType.LOGIC, outputPurpose: OutputPurpose.PRODUCTION)
-    c.model = model
-    c.targetLayout = targetLayout
+        Context c = new Context(name: item.name,
+                outputType: OutputType.LOGIC, outputPurpose: OutputPurpose.PRODUCTION)
+        c.model = item
+        c.targetLayout = targetLayout
 
-    generator.initialize(c)
+        generator.initialize(c)
 
-    generator.generate(c)
-  }
+        generator.generate(c)
+    }
 
-  void extendGenerator(generator, processorFactory, templateLoader) {
-  }
+    void extendGenerator(generator, processorFactory, templateLoader) {
+    }
 }

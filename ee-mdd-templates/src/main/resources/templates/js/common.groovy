@@ -31,7 +31,7 @@ templates ('common') {
 	useMacros('commonMacros', '/common/macros')
 
 	//  templates ('api',
-	//  items: { c -> c.model.findAllDown(Entity) },
+	//  items: { c -> c.model.findAllDown(ee.mdd.model.component.Entity) },
 	//  context: { c -> def entity = c.item; c.putAll( [ component: entity.component, module: entity.module, entity: entity, subPkg: 'impl' ] ) } ) {
 	//
 	//    template('impl', body: '''<% c.virtual=true; c.serializable=true; c.className="${entity.name}Base" %>${macros.generate('impl', c)}''')
@@ -39,7 +39,7 @@ templates ('common') {
 	//  }
 	//
 	//  templates ('enum',
-	//  items: { c -> c.model.findAllDown(EnumType) },
+	//  items: { c -> c.model.findAllDown(ee.mdd.model.component.EnumType) },
 	//  context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
 	//
 	//    template('enum', body: '''${macros.generate('enum', c)}''')
@@ -70,7 +70,7 @@ templates ('common') {
 	}
 
 	templates ('tableViews',
-		items: { c -> c.model.findAllDown(Table) },
+		items: { c -> c.model.findAllDown(ee.mdd.model.component.Table) },
 		context: { c -> def control = c.item; c.filepath = 'generated' } ) {
 		template('tablejs', body: '''<% c.path = "${c.filepath}/src-gen/controls/${item.view.name}${item.type.name}.js" %>${macros.generate('tablejs', c)}''')
 	}

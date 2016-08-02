@@ -28,140 +28,157 @@ import ee.mdd.model.Namespace
  * @author Niklas Cappelmann
  */
 class StructureUnit extends Composite implements BuilderAware {
-  AbstractFactoryBuilder builder
-  MddFactory factory
+    AbstractFactoryBuilder builder
+    MddFactory factory
 
-  static final sameNamespaceModules = [
-    'shared',
-    'client',
-    'backend',
-    'ejb',
-    'facade',
-    'cfg'] as Set
+    static final sameNamespaceModules = [
+            'shared',
+            'client',
+            'backend',
+            'ejb',
+            'facade',
+            'cfg'] as Set
 
-  String artifact, key, superKey, version
-  Namespace namespace
-  Names n
-  Map<String, Facet> facets = [:]
+    String artifact, key, superKey, version
+    Namespace namespace
+    Names n
+    Map<String, Facet> facets = [:]
 
-  protected boolean init() {
-    super.init()
-    initArtifact()
-    initKey()
-    initUri()
-    true
-  }
-
-  protected initArtifact() {
-    if(!artifact) {
-      if(parent?.artifact) {
-        artifact = "${parent.artifact}-${key ? key : name}"
-      } else {
-        artifact = key ? key : name
-      }
+    protected boolean init() {
+        super.init()
+        initArtifact()
+        initKey()
+        initUri()
+        true
     }
-  }
 
-  protected initKey() {
-    if(!key) {
-      if(!sameNamespaceModules.contains(name)) {
-        key = name
-      } else {
-        key = component().key
-      }
+    protected initArtifact() {
+        if (!artifact) {
+            if (parent?.artifact) {
+                artifact = "${parent.artifact}-${key ? key : name}"
+            } else {
+                artifact = key ? key : name
+            }
+        }
     }
-  }
 
-  protected initUri() {
-    if(!uri) {
-      if(parent?.uri) {
-        uri = "${parent.uri}/${key ? key : name}"
-      } else {
-        uri = key ? key : name
-      }
+    protected initKey() {
+        if (!key) {
+            if (!sameNamespaceModules.contains(name)) {
+                key = name
+            } else {
+                key = component().key
+            }
+        }
     }
-  }
 
-  def add(Facet child) {
-    facets[child.name] = super.add(child); child
-  }
-
-  StructureUnit getSu() {
-    this
-  }
-
-  Namespace getNs() {
-    namespace ? namespace : parent?.ns
-  }
-
-  Names getN() {
-    if (!n) {
-      if(key)
-        n = new Names(this, key)
-      else
-        n = new Names(this, name)
+    protected initUri() {
+        if (!uri) {
+            if (parent?.uri) {
+                uri = "${parent.uri}/${key ? key : name}"
+            } else {
+                uri = key ? key : name
+            }
+        }
     }
-    n
-  }
 
-  String getRef() { key }
-
-  String getCapShortName() {
-    underscoreToCamelCase(key).capitalize()
-  }
-
-  String getUncapShortName() {
-    underscoreToCamelCase(key).toLowerCase()
-  }
-
-  String getUnderscoredShortName() {
-    key.replaceAll(/(\B[A-Z])/,'_$1').toUpperCase()
-  }
-
-  String underscoreToCamelCase(String underscoreStr) {
-    if(!underscoreStr || underscoreStr.isAllWhitespace()){
-      return ''
+    def add(Facet child) {
+        facets[child.name] = super.add(child); child
     }
-    return underscoreStr.replaceAll(/_\w/){ it[1].toUpperCase() }
-  }
 
-  Model getModel() {
-    parent ? parent.model : null
-  }
-
-  String getVersion() {
-    version ? version : parent?.version
-  }
-
-  def add(Namespace item) {
-    namespace = item
-  }
-
-  boolean isFacetEnabled(Facet facet) {
-    isFacetEnabled(facet.rootFacet.name)
-  }
-
-  boolean isFacetEnabled(String facetName) {
-    boolean ret = facets[facetName] != null
-    ret
-  }
-
-  def extend(Closure closure) {
-    builder.createChildNodes(this, factory, closure)
-  }
-
-  def add(StructureUnit child) {
-    super.add(child)
-    try {
-      this.metaClass["$child.ref"] = child
-    } catch (e) {
-      println "Can't add structure unit '$child' as dynamic property in '$this' because of $e"
+    StructureUnit getSu() {
+        this
     }
-    child
-  }
 
-  protected StringBuffer fillToString(StringBuffer buffer) {
-    super.fillToString(buffer).append(SEPARATOR)
-    buffer.append(key)
-  }
+    Namespace getNs() {
+        namespace ? namespace : parent?.ns
+    }
+
+    Names getN() {
+        if (!n) {
+            if (key)
+                n = new Names(this, key)
+            else
+                n = new Names(this, name)
+        }
+        n
+    }
+
+    String getRef() { key }
+
+    String getCapShortName() {
+        underscoreToCamelCase(key).capitalize()
+    }
+
+    String getUncapShortName() {
+        underscoreToCamelCase(key).toLowerCase()
+    }
+
+    String getUnderscoredShortName() {
+        key.replaceAll(/(\B[A-Z])/, '_$1').toUpperCase()
+    }
+
+    String underscoreToCamelCase(String underscoreStr) {
+        if (!underscoreStr || underscoreStr.isAllWhitespace()) {
+            return ''
+        }
+        return underscoreStr.replaceAll(/_\w/) { it[1].toUpperCase() }
+    }
+
+    Model getModel() {
+        parent ? parent.model : null
+    }
+
+    String getVersion() {
+        version ? version : parent?.version
+    }
+
+    def add(Namespace item) {
+        namespace = item
+    }
+
+    Map<String, Facet> collectFacets(Map<String, Facet> facetsToFill = [:]) {
+        facets.findAll { k, v ->
+            if (!facetsToFill.containsKey(k)) {
+                facetsToFill[k] = v
+            }
+        }
+        if (StructureUnit.isInstance(parent)) {
+            ((StructureUnit) parent).collectFacets(facetsToFill)
+        }
+        facetsToFill
+    }
+
+    boolean isFacetEnabled(Facet facet) {
+        isFacetEnabled(facet.rootFacet.name)
+    }
+
+    boolean isFacetEnabled(String facetName) {
+        boolean ret = false
+        if (facets.containsKey(facetName)) {
+            ret = facets[facetName] != null
+        } else if (StructureUnit.isInstance(parent)) {
+            ret = ((StructureUnit) parent).isFacetEnabled(facetName)
+        }
+        ret
+    }
+
+    def extend(Closure closure) {
+        builder.createChildNodes(this, factory, closure)
+    }
+
+    def add(StructureUnit child) {
+        super.add(child)
+        try {
+            this.metaClass["$child.ref"] = child
+        } catch (e) {
+            println "Can't add structure unit '$child' as dynamic property in '$this' because of $e"
+        }
+        child
+    }
+
+    protected StringBuffer fillToString(StringBuffer buffer) {
+        super.fillToString(buffer).append(SEPARATOR)
+        buffer.append(key)
+    }
 }
