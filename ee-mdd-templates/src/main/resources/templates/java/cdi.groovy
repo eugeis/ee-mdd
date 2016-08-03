@@ -32,15 +32,17 @@ templates('cdi') {
   useMacros('macros')
 
   templates ('cdiToJms', type: INTEG,
+  init: { c -> c.model.findAllDown({ Channel.isInstance(it) }).each { it.n.cap.addAll(['cdiToJms'], 'integ.ejb') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Channel) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ/ejb' ] ) } ) {
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
     template('cdiToJms', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.cdiToJms %> ${macros.generate('cdiToJms', c)}<% } %>''')
   }
 
   templates ('eventToCdi', type: INTEG,
+  init: { c -> c.model.findAllDown({ Channel.isInstance(it) }).each { it.n.cap.addAll(['eventToCdiBase', 'eventToCdi', 'eventToCdiExternalBase', 'eventToCdiExternal'], 'integ') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Channel) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'integ' ] ) } ) {
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
     template('eventToCdi', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdiBase %> ${macros.generate('eventToCdi', c)}<% } %>''')
     template('eventToCdiExtends', appendName: true, body: '''<% if (module.entities || module.configs) { %><% c.className = c.item.n.cap.eventToCdi %> ${macros.generate('eventToCdiExtends', c)}<% } %>''')
@@ -49,9 +51,10 @@ templates('cdi') {
   }
   
   templates('cdiToAal', type: INTEG,
+  init: { c -> c.model.findAllDown({ Module.isInstance(it) }).each { it.n.cap.addAll(['cdiToAal'], 'ejb') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Module) },
-  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'ejb' ] ) } ) {
-    template('cdiToAal', appendName: true, body: '''<% def aalEntities = module.entities.findAll {it.aal && !it.virtual}; def aalContainers = module.containers.findAll{it.aal} %><% if(aalEntities || aalContainers) { %><% c.className = "${module.capShortName}CdiToAal" %> ${macros.generate('cdiToAal', c)} <% } %>''')
+  context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+    template('cdiToAal', appendName: true, body: '''<% def aalEntities = module.entities.findAll {it.aal && !it.virtual}; def aalContainers = module.containers.findAll{it.aal} %><% if(aalEntities || aalContainers) { %><% c.className = module.n.cap.cdiToAal %> ${macros.generate('cdiToAal', c)} <% } %>''')
   }
     
 }

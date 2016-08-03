@@ -32,95 +32,106 @@ templates('sm') {
   useMacros('macros')
 
     templates('metas', type: API,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['stateMetaModel', 'metaState'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-      template('metaModel', appendName: true, body: '''<% c.className = "${item.capShortName}StateMetaModel" %> ${macros.generate('metaModel', c)}''')
-      template('metaState', appendName: true, body: '''<% c.className = "${item.capShortName}MetaState" %> ${macros.generate('metaState', c)}''')
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+      template('metaModel', appendName: true, body: '''<% c.className = item.n.cap.stateMetaModel %> ${macros.generate('metaModel', c)}''')
+      template('metaState', appendName: true, body: '''<% c.className = item.n.cap.metaState %> ${macros.generate('metaState', c)}''')
     }
 
     templates('typeEnums', type: API,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['stateActionType', 'stateConditionType'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-      template('actionType', appendName: true, body: '''<% c.className = "${item.capShortName}StateActionType" %> ${macros.generate('actionType', c)}''')
-      template('conditionType', appendName: true, body: '''<% c.className = "${item.capShortName}StateConditionType" %> ${macros.generate('conditionType', c)}''')
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+      template('actionType', appendName: true, body: '''<% c.className = item.n.cap.stateActionType %> ${macros.generate('actionType', c)}''')
+      template('conditionType', appendName: true, body: '''<% c.className = item.n.cap.stateConditionType" %> ${macros.generate('conditionType', c)}''')
     }
 
     templates('controller', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['controllerBase', 'controller',  'controllerBaseImpl', 'controllerImpl', 'bootstrapBase', 'factoryBase'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-      template('controller', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerBase" %> ${macros.generate('stateMachineController', c)}''')
-      template('controllerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}Controller" %> ${macros.generate('stateMachineControllerExtends', c)}''')
-      template('implStateMachineController', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerBaseImpl" %> ${macros.generate('implStateMachineController', c)}''')
-      template('implStateMachineControllerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ControllerImpl" %> ${macros.generate('implStateMachineControllerExtends', c)}''')
-      template('controllerBootstrapBase', appendName: true, body: '''<% c.className = "${item.controller.cap}BootstrapBase" %> ${macros.generate('controllerBootstrapBase', c)}''')
-      template('controllerFactoryBase', appendName: true, body: '''<% c.className = "${item.controller.cap}FactoryBase" %> ${macros.generate('controllerFactoryBase', c)}''')
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+      template('controller', appendName: true, body: '''<% c.className = item.n.cap.controllerBase %> ${macros.generate('stateMachineController', c)}''')
+      template('controllerExtends', appendName: true, body: '''<% c.className = item.n.cap.controller %> ${macros.generate('stateMachineControllerExtends', c)}''')
+      template('implStateMachineController', appendName: true, body: '''<% c.className = item.n.cap.controllerBaseImpl %> ${macros.generate('implStateMachineController', c)}''')
+      template('implStateMachineControllerExtends', appendName: true, body: '''<% c.className = item.n.cap.controllerImpl %> ${macros.generate('implStateMachineControllerExtends', c)}''')
+      template('controllerBootstrapBase', appendName: true, body: '''<% c.className = item.controller.n.cap.bootstrapBase %> ${macros.generate('controllerBootstrapBase', c)}''')
+      template('controllerFactoryBase', appendName: true, body: '''<% c.className = item.controller.n.cap.factoryBase %> ${macros.generate('controllerFactoryBase', c)}''')
     }
 
     templates('stateMachineEvents', type: API,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['stateEvent', 'stateEventImpl',  'stateEventType', 'eventFactory', 'eventFactoryBaseImpl', 'eventFactoryImpl'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('event', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEvent" %> ${macros.generate('eventStateMachine', c)}''')
-      template('implEventStateMachine', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventImpl" %> ${macros.generate('implEventStateMachine', c)}''')
-      template('eventType', appendName: true, body: '''<% c.className = "${item.key.capitalize()}StateEventType" %> ${macros.generate('eventType', c)}''')
-      template('eventFactory', appendName: true, body: '''<% c.className = "${item.key.capitalize()}EventFactory" %> ${macros.generate('eventFactory', c)}''')
-      template('implEventFactory', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryBaseImpl" %> ${macros.generate('implEventFactory', c)}''')
-      template('implEventFactoryExtends', appendName: true, body: '''<% c.className = "${item.capShortName}EventFactoryImpl" %> ${macros.generate('implEventFactoryExtends', c)}''')
+      template('event', appendName: true, body: '''<% c.className = item.n.cap.stateEvent %> ${macros.generate('eventStateMachine', c)}''')
+      template('implEventStateMachine', appendName: true, body: '''<% c.className = item.n.cap.stateEventImpl %> ${macros.generate('implEventStateMachine', c)}''')
+      template('eventType', appendName: true, body: '''<% c.className = item.n.cap.stateEventType %> ${macros.generate('eventType', c)}''')
+      template('eventFactory', appendName: true, body: '''<% c.className = item.n.cap.eventFactory %> ${macros.generate('eventFactory', c)}''')
+      template('implEventFactory', appendName: true, body: '''<% c.className = item.n.cap.eventFactoryBaseImpl %> ${macros.generate('implEventFactory', c)}''')
+      template('implEventFactoryExtends', appendName: true, body: '''<% c.className = item.n.cap.eventFactoryImpl %> ${macros.generate('implEventFactoryExtends', c)}''')
     }
 
     templates('stateEventProcessor', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['stateEventProcessor', 'stateEventProcessorBaseImpl',  'stateEventProcessorImpl'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('stateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessor" %> ${macros.generate('stateEventProcessor', c)}''')
-      template('implStateEventProcessor', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorBaseImpl" %> ${macros.generate('implStateEventProcessor', c)}''')
-      template('implStateEventProcessorExtends', appendName: true, body: '''<% c.className = "${item.capShortName}StateEventProcessorImpl" %> ${macros.generate('implStateEventProcessorExtends', c)}''')
+      template('stateEventProcessor', appendName: true, body: '''<% c.className = item.n.cap.stateEventProcessor %> ${macros.generate('stateEventProcessor', c)}''')
+      template('implStateEventProcessor', appendName: true, body: '''<% c.className = item.n.cap.stateEventProcessorBaseImpl %> ${macros.generate('implStateEventProcessor', c)}''')
+      template('implStateEventProcessorExtends', appendName: true, body: '''<% c.className = item.n.cap.stateEventProcessorImpl %> ${macros.generate('implStateEventProcessorExtends', c)}''')
     }
 
     templates('context', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['contextBase', 'context'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('context', appendName: true, body: '''<% c.className = "${item.capShortName}ContextBase" %> ${macros.generate('context', c)}''')
-      template('contextExtends', appendName: true, body: '''<% c.className = "${item.capShortName}Context" %> ${macros.generate('contextExtends', c)}''')
+      template('context', appendName: true, body: '''<% c.className = item.n.cap.contextBase %> ${macros.generate('context', c)}''')
+      template('contextExtends', appendName: true, body: '''<% c.className = item.n.cap.context %> ${macros.generate('contextExtends', c)}''')
     }
 
     templates('contextManager', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['contextManagerBase', 'contextManager',  'contextManagerBaseImpl', 'contextManagerImpl'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('contextManager', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerBase" %> ${macros.generate('contextManager', c)}''')
-      template('contextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManager" %> ${macros.generate('contextManagerExtends', c)}''')
-      template('implContextManager', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerBaseImpl" %> ${macros.generate('implContextManager', c)}''')
-      template('implContextManagerExtends', appendName: true, body: '''<% c.className = "${item.capShortName}ContextManagerImpl" %> ${macros.generate('implContextManagerExtends', c)}''')
+      template('contextManager', appendName: true, body: '''<% c.className = item.n.cap.contextManagerBase %> ${macros.generate('contextManager', c)}''')
+      template('contextManagerExtends', appendName: true, body: '''<% c.className = item.n.cap.contextManager %> ${macros.generate('contextManagerExtends', c)}''')
+      template('implContextManager', appendName: true, body: '''<% c.className = item.n.cap.contextManagerBaseImpl %> ${macros.generate('implContextManager', c)}''')
+      template('implContextManagerExtends', appendName: true, body: '''<% c.className = item.n.cap.contextManagerImpl %> ${macros.generate('implContextManagerExtends', c)}''')
     }
 
     templates('execution', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['actionExecutor', 'transitionExecutionResult'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('actionExecutor', appendName: true, body:'''<% c.className = "${item.capShortName}ActionExecutor" %> ${macros.generate('actionExecutor', c)}''')
-      template('transitionExecutionResult', appendName: true, body: '''<% c.className = "${item.capShortName}TransitionExecutionResult" %> ${macros.generate('transitionExecutionResult', c)}''')
+      template('actionExecutor', appendName: true, body:'''<% c.className = item.n.cap.actionExecutor %> ${macros.generate('actionExecutor', c)}''')
+      template('transitionExecutionResult', appendName: true, body: '''<% c.className = item.n.cap.transitionExecutionResult %> ${macros.generate('transitionExecutionResult', c)}''')
     }
 
     templates('action', type: LOGIC,
+    init: { c -> c.model.findAllDown({ Action.isInstance(it) }).each { it.n.cap.addAll(['event', 'eventReceiver',  'executor', 'executorImpl'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.Action) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('actionEvent', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}Event" %> ${macros.generate('actionEvent', c)}<% } %>''')
-      template('actionEventReceiver', appendName: true, body: '''<% if(item.async) { %><% c.className = "${item.cap}EventReceiver" %> ${macros.generate('eventReceiver', c)}<% } %>''')
-      template('executorIfc', appendName: true, body: '''<% if(!item.body && !item.async) { %><% c.className = "${item.cap}Executor" %> ${macros.generate('executorIfc', c)}<% } %>''')
-      template('implExecutor', appendName: true, body: '''<% if (!item.body && !item.async && item.stateMachine.generateDefaultImpl) { %><% c.className = "${item.cap}ExecutorImpl" %> ${macros.generate('implExecutor', c)}<% } %>''')
+      template('actionEvent', appendName: true, body: '''<% if(item.async) { %><% c.className = item.n.cap.event %> ${macros.generate('actionEvent', c)}<% } %>''')
+      template('actionEventReceiver', appendName: true, body: '''<% if(item.async) { %><% c.className = item.n.cap.eventReceiver %> ${macros.generate('eventReceiver', c)}<% } %>''')
+      template('executorIfc', appendName: true, body: '''<% if(!item.body && !item.async) { %><% c.className = item.n.cap.executor %> ${macros.generate('executorIfc', c)}<% } %>''')
+      template('implExecutor', appendName: true, body: '''<% if (!item.body && !item.async && item.stateMachine.generateDefaultImpl) { %><% c.className = item.n.cap.executorImpl %> ${macros.generate('implExecutor', c)}<% } %>''')
     }
 
     templates('event',
+    init: { c -> c.model.findAllDown({ Event.isInstance(it) }).each { it.n.cap.addAll(['event', 'eventImpl'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.Event) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
-      template('eventIfc', appendName: true, body: '''<% c.className = "${item.cap}Event" %> ${macros.generate('eventIfc', c)}''')
-      template('implEvent', appendName: true, body: '''<% c.className = "${item.cap}EventImpl" %> ${macros.generate('implEvent', c)}''')
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
+      template('eventIfc', appendName: true, body: '''<% c.className = item.n.cap.event %> ${macros.generate('eventIfc', c)}''')
+      template('implEvent', appendName: true, body: '''<% c.className = item.n.cap.eventImpl %> ${macros.generate('implEvent', c)}''')
     }
 
     templates('state', type: LOGIC,
+    init: { c -> c.model.findAllDown({ State.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.State) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
@@ -130,6 +141,7 @@ templates('sm') {
     }
 
     templates('stateTimeoutHandler', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
@@ -140,6 +152,7 @@ templates('sm') {
     }
 
     templates('conditionVerifier', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
@@ -147,6 +160,7 @@ templates('sm') {
     }
 
     templates('condition', type: LOGIC,
+    init: { c -> c.model.findAllDown({ Condition.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.Condition) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 
@@ -156,6 +170,7 @@ templates('sm') {
     }
 
     templates('timeoutsConfig', type: LOGIC,
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
 

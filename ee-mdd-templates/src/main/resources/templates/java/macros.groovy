@@ -2469,7 +2469,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    $op.returnTypeExternal ret = ${op.unique ? null : "new ${c.name('ArrayList')}<>()"};
+    $op.returnTypeExternal ret =<% if (op.unique) { %>null<% } else { %>${c.name('ArrayList')}<>()<% } %>;
     for ($op.entity.cap entity : findAll()) {
       if (${op.propCompare}) {<% if (op.unique) { %>
         ret = entity;
