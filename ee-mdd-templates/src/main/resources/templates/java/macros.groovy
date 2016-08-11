@@ -2348,7 +2348,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
     ArrayList<$op.entity.cap> toDelete = new ${c.name('ArrayList')}<>();
     for ($op.entity.cap entity : findAll()) {
-      if (${op.propCompare}) {
+      if (${op.propCompare(c)}) {
         toDelete.add(entity);
       }
     }
@@ -2448,7 +2448,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
     $op.returnTypeExternal ret = 0;
     for ($op.entity.cap entity : findAll()) {
-      if (${op.propCompare}) {
+      if (${op.propCompare(c)}) {
         ret++;
       }
     }
@@ -2459,7 +2459,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
     boolean ret = false;
     for ($op.entity.cap entity : findAll()) {
-      if (${op.propCompare}) {
+      if (${op.propCompare(c)}) {
         ret = true;
         break;
       }
@@ -2471,7 +2471,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
     $op.returnTypeExternal ret =<% if (op.unique) { %>null<% } else { %>${c.name('ArrayList')}<>()<% } %>;
     for ($op.entity.cap entity : findAll()) {
-      if (${op.propCompare}) {<% if (op.unique) { %>
+      if (${op.propCompare(c)}) {<% if (op.unique) { %>
         ret = entity;
         break;<% } else { %>
         ret.add(entity);<% } %>
@@ -3041,7 +3041,7 @@ public abstract class $className implements ${module.capShortName}CommandsFactor
 }''')
 
   template('implFindersFactory', body: '''{{imports}}<% def finders = module.entities.findAll { !it.virtual && it.finders }.collect { it.finders }; %>
-public abstract class $className implements ${module.capShortName}ManagerFactory {<% finders.each { finder -> %>
+public abstract class $className implements ${module.n.cap.findersFactory} {<% finders.each { finder -> %>
 
   protected $finder.name $finder.uncap;<% }; finders.each { finder -> %>
 
@@ -3118,9 +3118,9 @@ public class $className {
     $finders.n.cap.impl finders = new $finders.n.cap.impl();
     finders.setEntityManager(entityManager);
     finders.setPublisher((Event<$entity.n.cap.event>) publisher);
-    finders.setFactory(new ${entity.n.cap.entity}Factory());
+    finders.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
     $finders.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(finders, ${finders.cap}.class, entityManager);
-    ret = TraceProxyHandler.wrap(ret, ${finders.cap}.class);
+    ret = ${c.name('TraceProxyHandler')}.wrap(ret, ${finders.cap}.class);
     return ret;
   }<% } %>
 

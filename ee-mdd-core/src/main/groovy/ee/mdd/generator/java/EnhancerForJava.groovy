@@ -1054,12 +1054,11 @@ class EnhancerForJava {
       properties[key]
     }
 
-    meta.getPropCompare = {
-      ->
+    meta.propCompare = { Context c ->
       def key = System.identityHashCode(delegate) + 'propCompare'
       if (!properties.containsKey(key)) {
-        paramsWithoutDefaults.collect { param ->
-          def prop = param.prop; param.multi ? "${param.paramName}s.contains(${entity}.$prop.getterWithIdIfRelation)" : "$param.compareMethod(${entity}.${prop.getterWithIdIfRelation}, $param.paramName)"
+        properties[key] = paramsWithoutDefaults.collect { param ->
+          def prop = param.prop; param.multi ? "${param.paramName}s.contains(entity.${prop.getterWithIdIfRelation})" : "${param.compareMethod(c)}(entity.${prop.getterWithIdIfRelation}, $param.paramName)"
         }.join(' && ')
       }
       properties[key]
@@ -1141,7 +1140,7 @@ class EnhancerForJava {
       def key = System.identityHashCode(delegate) + 'getter'
       if (!properties.containsKey(key)) {
         if(delegate.type) {
-          properties[key] = "${delegate.type.name.equalsIgnoreCase('Boolean') ? 'is' : 'get'}$delegate.cap()"
+          properties[key] = "${delegate.type.name.equalsIgnoreCase('Boolean') ? 'is' : 'get'}${delegate.cap}()"
         } else {
           properties[key] = "get${delegate.cap}"
         }
@@ -1754,23 +1753,22 @@ class EnhancerForJava {
 
     meta = Param.metaClass
 
-    meta.getCompareMethod = {
-      ->
+    meta.compareMethod = { Context c ->
       def key = System.identityHashCode(delegate) + 'compareMethod'
       if (!properties.containsKey(key)) {
-        def ret = 'areEquals'
+        def ret = "${c.name('areEquals')}"
         switch (delegate.compare) {
           case '<=':
-            ret = 'lessOrEqual'
+            ret = "${c.name('lessOrEqual')}"
             break
           case '<':
-            ret = 'less'
+            ret = "${c.name('less')}"
             break
           case '=>':
-            ret = 'greaterOrEqual'
+            ret = "${c.name('greaterOrEqual')}"
             break
           case '>':
-            ret = 'greater'
+            ret = "${c.name('greater')}"
             break
         }
         properties[key] = ret

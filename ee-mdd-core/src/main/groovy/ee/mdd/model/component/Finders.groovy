@@ -28,10 +28,10 @@ class Finders extends Controller {
     this.base = true
     super.init()
     def op = new Find(ret: (Type) entity)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
+    op.add(new Param(name: entity.uncap, prop: new Prop(name: "${entity.uncap}", type: (Type) parent)))
     add(op)
-    op = new Count(ret: (Type) entity.idProp.type)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
+    op = new Count(ret: new Type(name: 'long'))
+    op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
     add(op)
   }
 

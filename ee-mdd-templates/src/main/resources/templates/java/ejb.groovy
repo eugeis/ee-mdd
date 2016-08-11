@@ -44,6 +44,6 @@ templates('ejb') {
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Module) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('ejbDataFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = module.n.cap.dataFactoryEjb %> ${macros.generate('ejbDataFactory', c)} <% } %>''')
-    template('ejbModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = module.n.cap.modelFactoryEjb" %> ${macros.generate('ejbModelFactory', c)} <% } %>''')
+    template('ejbModelFactory', appendName: true, body: '''<% if(module.entities) { %><% c.className = module.n.cap.modelFactoryEjb %> ${macros.generate('ejbModelFactory', c)} <% } %>''')
   }
 }
