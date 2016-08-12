@@ -133,7 +133,7 @@ templates('sm') {
     templates('state', type: LOGIC,
     init: { c -> c.model.findAllDown({ State.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.State) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
       template('eventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessor" %> ${macros.generate('eventProcessor', c)}''')
       template('implEventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessorImpl" %> ${macros.generate('implEventProcessor', c)}''')
@@ -143,7 +143,7 @@ templates('sm') {
     templates('stateTimeoutHandler', type: LOGIC,
     init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
       template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
       template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerBean" %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
@@ -154,7 +154,7 @@ templates('sm') {
     templates('conditionVerifier', type: LOGIC,
     init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
       template('condVerifier', appendName: true, body: '''<% c.className = "${item.capShortName}ConditionVerifier" %> ${macros.generate('condVerifier', c)}''')
     }
@@ -162,7 +162,7 @@ templates('sm') {
     templates('condition', type: LOGIC,
     init: { c -> c.model.findAllDown({ Condition.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.Condition) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
       template('conditionVerifierIfc', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}Verifier" %> ${macros.generate('conditionVerifierIfc', c)}<% } %>''')
       template('conditionVerifier', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}VerifierBase" %> ${macros.generate('conditionVerifier', c)}<% } %>''')
@@ -172,7 +172,7 @@ templates('sm') {
     templates('timeoutsConfig', type: LOGIC,
     init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
-    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module, subPkg: 'statemachine'] ) } ) {
+    context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
       template('timeoutsConfig', appendName: true, body: '''<% c.className = "${item.capShortName}Timeouts" %> ${macros.generate('timeoutsConfig', c)}''')
     }

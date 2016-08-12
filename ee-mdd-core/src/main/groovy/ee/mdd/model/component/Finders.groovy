@@ -27,12 +27,15 @@ class Finders extends Controller {
   protected boolean init() {
     this.base = true
     super.init()
-    def op = new Find(ret: (Type) entity)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: "${entity.uncap}", type: (Type) parent)))
-    add(op)
-    op = new Count(ret: new Type(name: 'long'))
+    def op = new Count(ret: new Type(name: 'long'))
     op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
     add(op)
+    if(!entity.virtual && entity.idProp) {
+      op = new Find(ret: (Type) entity, unique: true)
+      op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
+      add(op)
+
+    }
   }
 
   Entity getEntity() {

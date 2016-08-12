@@ -41,6 +41,7 @@ def nameToNamespace = ['EventImpl' : 'com.siemens.ra.cg.pl.common.base.messaging
   'LogStringBuilder' : 'com.siemens.ra.cg.pl.common.base.util', 'AssertionUtils' : 'com.siemens.ra.cg.pl.common.base.assertion', 'LogStringProvider' : 'com.siemens.ra.cg.pl.common.base.util',
   'RootScoped' : 'com.siemens.ra.cg.pl.common.base.cdi.root', 'RootType' : 'com.siemens.ra.cg.pl.common.base.cdi.root.RootScoped', 'View' : 'com.siemens.ra.cg.pl.common.base.annotations',
   'Event' : 'com.siemens.ra.cg.pl.common.base.messaging', 'EventListener' : 'com.siemens.ra.cg.pl.common.base.messaging', 'SingleTypeEventListenerBridgeByJms' : 'com.siemens.ra.cg.pl.common.ejb.messaging',
+  'JmsDestinationConfig' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 'JmsDestinationConfigImpl' : 'com.siemens.ra.cg.pl.common.ejb.messaging', 
   'MultiTypeCdiEventListener' : 'com.siemens.ra.cg.pl.common.base.messaging.impl', 'MultiSourceConverter' : 'com.siemens.ra.cg.pl.common.base.converter', 'XmlUtils' : 'com.siemens.ra.cg.pl.common.base.util',
   'Transactional' : 'com.siemens.ra.cg.pl.common.base.annotations', 'Builder' : 'com.siemens.ra.cg.pl.common.base', 'Factory' : 'com.siemens.ra.cg.pl.common.base',
   'AbstractEntityFactory' : 'com.siemens.ra.cg.pl.common.base.model', 'AbstractFactory' : 'com.siemens.ra.cg.pl.common.base', 'EntityManagerFactoryLocator' : 'com.siemens.ra.cg.pl.common.ejb.locator',

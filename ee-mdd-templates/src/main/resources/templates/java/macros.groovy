@@ -353,10 +353,12 @@ templates ('macros') {
 
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
+  public ${op.return} $op.name(${op.signature(c)}) {
     //TODO to implement <% if (op.returnTypeBoolean) { %>
-    return false;<% } else if (op.ret) { %>
-    return null; <% } %>
+    return false;<% } else if (op.ret && op.ret.name.matches("double|float|int|long|short")) { %>
+    return 0; <% } else if (op.ret && op.ret.name.matches("char")) { %>
+    return ""; <% } else if (op.ret) { %>
+    return null;<% } %>
   }<% } } %>''')
 
   template('implOperationsCache', body: ''' <% item.cache.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
@@ -794,7 +796,7 @@ public abstract class $className implements $item.name {<% item.operations.each 
 /** Service provider for remote implementation of {@link $item.name} */
 @${c.name('ApplicationScoped')}
 @${c.name('Traceable')}
-public class $className extends ${c.name('ServiceProviderRemote')}<$item.name> {
+public class $className extends ${c.name('ServiceProviderRemote')}<${c.name(item.n.cap[''])}> {
   public static final String BEAN = SERVICE_${item.underscored};
   public static final String MODULE = MODULE_${module.underscored};
 
@@ -2096,15 +2098,15 @@ public interface $className extends ${c.name('Factory')}<${c.name(item.cap)}> {
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')} }) })
-public class $className extends ${item.n.cap.factoryBase} {
+public class $className extends ${c.name(item.n.cap.factoryBase)} {
 
   public $className() {
-    super(${item.n.cap.impl}.class);
+    super(${c.name(item.n.cap.impl)}.class);
   }
 
   @Override
-  public $item.cap newInstance() {
-    return new ${item.n.cap.impl}();
+  public ${c.name(item.n.cap[''])} newInstance() {
+    return new ${c.name(item.n.cap.impl)}();
   }
 }''')
 
@@ -2423,6 +2425,8 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
 
   ${macros.generate('fireEvent', c)}
 
+  ${macros.generate('fireEventWithIds', c)}
+
   ${macros.generate('publisherFireEvent', c)}
 
   ${macros.generate('initMlKeyForEntityEvent', c)}
@@ -2446,7 +2450,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    $op.returnTypeExternal ret = 0;
+    ${op.returnTypeExternal(c)} ret = 0;
     for ($op.entity.cap entity : findAll()) {
       if (${op.propCompare(c)}) {
         ret++;
@@ -2456,7 +2460,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
   }<% } %><% finders.existers.each { op-> %>
 
   @Override
-  public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
+  public ${op.returnTypeExternal(c)} ${op.name}(${op.signature(c)}) {
     boolean ret = false;
     for ($op.entity.cap entity : findAll()) {
       if (${op.propCompare(c)}) {
@@ -2469,7 +2473,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    $op.returnTypeExternal ret =<% if (op.unique) { %>null<% } else { %>${c.name('ArrayList')}<>()<% } %>;
+    ${op.returnTypeExternal(c)} ret =<% if (op.unique) { %> null<% } else { %> new ${c.name('ArrayList')}<>()<% } %>;
     for ($op.entity.cap entity : findAll()) {
       if (${op.propCompare(c)}) {<% if (op.unique) { %>
         ret = entity;
@@ -2488,7 +2492,10 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
   ${macros.generate('operationRawType', c)}<% } } %><% if (item.ordered) { %>
-<% } %>
+
+  ${macros.generate('fillOrderList', c)}
+
+  ${macros.generate('fillOrder', c)}<% } %>
 
   @Override
   protected void beforePersist($item.cap entity) {
@@ -2498,8 +2505,20 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerM
     }
   }
 
-@${c.name('Inject')}
-  public void setFactory($item.n.cap.factory factory) {
+  ${macros.generate('fireEventEntity', c)}
+
+  ${macros.generate('fireEvent', c)}
+
+  ${macros.generate('fireEventWithIds', c)}
+
+  ${macros.generate('publisherFireEvent', c)}
+
+  ${macros.generate('initMlKeyForEntityEvent', c)}
+
+  ${macros.generate('setPublisher', c)}
+
+  @${c.name('Inject')}
+  public void setFactory(${c.name(item.n.cap.factory)} factory) {
     super.setFactory(factory);
   }
 }''')
@@ -8048,19 +8067,19 @@ public class $className extends ${module.initializerName}Base {
   }
 }''')
 
-  template('producer', body: '''{{imports}}
+  template('producer', body: '''import static ${component.parent.ns.name}.${component.key}.integ.${component.n.cap['']}ConstantsBase.*;{{imports}}
 /** Resources producer for '$module.name' for server and client in production mode */
 @${c.name('ApplicationScoped')}
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('CLIENT')}, SERVER }))
 @${c.name('Traceable')}
 public class $className {
 
-  private JmsDestinationConfigImpl notificationTopic =
+  private ${c.name('JmsDestinationConfigImpl')} notificationTopic =
     new JmsDestinationConfigImpl(JMS_NOTIFICATION_TOPIC, JMS_CONNECTION_FACTORY, false);
 
   @${c.name('Produces')}
-  @${component.capShortName}Qualifier
-  public JmsDestinationConfig getNotificationTopicConfig() {
+  @${c.name(component.n.cap[''])}
+  public ${c.name('JmsDestinationConfig')} getNotificationTopicConfig() {
     return notificationTopic;
   }
 }''')
@@ -8083,7 +8102,7 @@ public class $className {
   }
 
   @${c.name('Produces')}
-  @${component.capShortName}
+  @${c.name(component.n.cap[''])}
   public EntityManager getEntityManager() {
     return entityManager();
   }
@@ -8100,7 +8119,7 @@ public class $className {
   private EntityManager entityManager;
 
   @${c.name('Produces')}
-  @${component.capShortName}
+  @${c.name(component.n.cap[''])}
   public ${c.name('EntityManager')} getEntityManager() {
     return entityManager;
   }
@@ -8114,7 +8133,7 @@ public class $className {
 public class $className {<% module.services.each { service-> %>
 
   @${c.name('Inject')}
-  private ${c.name('Instance')}<${service.n.cap.provider}> ${service.uncap}ProviderDef;<% } %><% module.services.each { service-> %>
+  private ${c.name('Instance')}<${c.name(service.n.cap.provider)}> ${service.uncap}ProviderDef;<% } %><% module.services.each { service-> %>
 
   @${c.name('Produces')}
   public $service.name get$service.name() {
@@ -8148,7 +8167,7 @@ public class $className {
   @${c.name('Produces')}
   public $service.cap get$service.cap() {
     if ($service.uncap == null) {
-      $service.uncap = new $service.n.cap.provider(${c.name('ServiceLocatorFactory')}.getInstance(), false, true).getService();
+      $service.uncap = new ${c.name(service.n.cap.provider)}(${c.name('ServiceLocatorFactory')}.getInstance(), false, true).getService();
     }
     return $service.uncap;
   }<% } %>
@@ -8304,8 +8323,8 @@ public class $className extends ${module.capShortName}DataFactoryBase {
 public class $className extends ${module.capShortName}ModelFactoryBase {
 
   public $className() {<% [module.basicTypes, module.entities].each { it.each { t -> if (!t.virtual) { %>
-    $t.uncap = new ${t.n.cap.impl}Factory();<% } } } %><% [module.containers].each { it.each { t -> if (!t.virtual) { %>
-    $t.uncap = new ${t.n.cap.impl}Factory(this);<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${c.name(t.n.cap.implFactory)}();<% } } } %><% [module.containers].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${c.name(t.n.cap.implFactory)}(this);<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
     addFactory(${t.cap}.class, $t.uncap);<% } } } %>
   }
 }''')
@@ -8369,7 +8388,7 @@ public abstract class $className {
 public class $className implements ${module.capShortName}ModelFactory {
   protected ${c.name('HashMap')}<Class<?>, ${c.name('Factory')}<?>> typeToFactory = new HashMap<>();
   <% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
-  protected ${t.cap}Factory $t.uncap;<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+  protected ${c.name(t.n.cap.factory)} $t.uncap;<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
 
   @Override
   public $t.cap new${t.cap}() {
@@ -8423,8 +8442,8 @@ public class $className extends ${module.capShortName}DataFactoryBase {
 public class $className extends ${module.capShortName}ModelFactoryBase {
 
   public $className() {<% [module.basicTypes, module.entities].each { it.each { t -> if (!t.virtual) { %>
-    $t.uncap = new ${t.beanName}Factory();<% } } } %><% [module.containers].each { it.each { t -> if (!t.virtual) { %>
-    $t.uncap = new ${t.beanName}Factory(this);<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${t.beanNameFactory(c)}();<% } } } %><% [module.containers].each { it.each { t -> if (!t.virtual) { %>
+    $t.uncap = new ${t.beanNameFactory(c)}(this);<% } } } %><% [module.basicTypes, module.entities, module.containers].each { it.each { t -> if (!t.virtual) { %>
     addFactory(${t.cap}.class, $t.uncap);<% } } } %>
   }
 }''')
@@ -8537,7 +8556,7 @@ public class $className extends ${module.capShortName}BuilderFactoryBase { <% mo
   template('jpaSchemaGenerator', body: '''{{imports}}<% def entity = module.entities.find { !it.virtual } %>
 @${c.name('Singleton')}
 //each DDL operation is COMMIT operation, therefore Container Transaction Management must be disabled
-@${c.name('TransactionManagement')}(TransactionManagementType.BEAN)
+@${c.name('TransactionManagement')}(${c.name('TransactionManagementType')}.BEAN)
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }))
 public class $className {
   protected final ${c.name('XLogger')} log = ${c.name('XLoggerFactory')}.getXLogger(getClass());
@@ -8572,7 +8591,7 @@ public class $className {
     return ret;
   }''')
 
-  template('namespaceXmlSchema', body: '''ee.mdd.example.model.topology''')
+  template('namespaceXmlSchema', body: '''${component.parent.ns.name}.${component.key}.integ.topology''')
 
   template('publisherFireEvent', body: '''protected void fireEvent(${item.n.cap.event} event) {
     publisher.fire(event);
@@ -8722,7 +8741,7 @@ private void initMlKey($item.n.cap.event event) {
 
   template('setEntityManager', body: '''
   @${c.name('Inject')}
-  public void setEntityManager(@${component.capShortName} ${c.name('EntityManager')} entityManager) {
+  public void setEntityManager(@${c.name(component.n.cap[''])} ${c.name('EntityManager')} entityManager) {
     this.entityManager = entityManager;
   }''')
 

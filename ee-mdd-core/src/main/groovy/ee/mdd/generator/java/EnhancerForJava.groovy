@@ -224,7 +224,7 @@ class EnhancerForJava {
       ->
       def key = System.identityHashCode(delegate) + 'beanName'
       if (!properties.containsKey(key)) {
-        def ret = "${delegate.cap}"
+        def ret = "${delegate.n.cap['']}"
         if (Entity.isInstance(delegate)) {
           if (delegate.base)
             ret = "${delegate.n.cap.baseEntity}"
@@ -232,6 +232,20 @@ class EnhancerForJava {
             ret = "${delegate.n.cap.entity}"
         } else if (BasicType.isInstance(delegate)) {
           ret = "${delegate.n.cap.embeddable}"
+        }
+        properties[key] = ret
+      }
+      properties[key]
+    }
+
+    meta.beanNameFactory = { Context c ->
+      def key = System.identityHashCode(delegate) + 'beanNameFactory'
+      if (!properties.containsKey(key)) {
+        def ret = c.name(delegate.n.cap.factory)
+        if (Entity.isInstance(delegate)) {
+            ret = c.name(delegate.n.cap.entityFactory)
+        } else if (BasicType.isInstance(delegate)) {
+          ret = c.name(delegate.n.cap.embeddableFactory)
         }
         properties[key] = ret
       }
@@ -974,21 +988,27 @@ class EnhancerForJava {
       properties[key]
     }
 
-
+    
+    
+    meta = Find.metaClass
+    
+    meta.returnTypeExternal = { Context c ->
+      c.name(delegate.parent.entity.n.cap[''])
+      delegate.unique ? "${delegate.parent.entity.n.cap['']}" : "${c.name('List')}<${delegate.parent.entity.n.cap['']}>"
+    }
+    
+    
+    
+    meta = Delete.metaClass
+    
+    meta.returnTypeExternal = { Context c ->
+        'void'
+    }
+    
 
     meta = DataTypeOperation.metaClass
 
-    meta.returnTypeExternal = { Context c ->
-      def ret = 'void'
-      if (Find.isInstance(delegate) && !delegate.unique) {
-        c.name('List')
-        c.name(delegate.parent.entity.name)
-        ret = "${c.name('List')}<$delegate.parent.entity.cap>"
-      } else if(!Delete.isInstance(delegate)) {
-        ret = "$delegate.parent.entity.cap"
-      }
-      ret
-    }
+    meta.returnTypeExternal = { Context c -> delegate.return }
 
     meta.returnTypeRaw = { Context c ->
       def ret = ''
@@ -1097,8 +1117,7 @@ class EnhancerForJava {
       }
       properties[key]
     }
-
-
+    
 
 
     meta = Literal.metaClass

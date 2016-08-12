@@ -44,7 +44,7 @@ templates('jpa') {
   }
 
   templates ('entity', type: SHARED,
-  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'ejb') } },
+  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['entityBuilderBase', 'entityBuilder', 'baseEntity', 'entity',  'entityFactory'], 'ejb') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Entity) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 

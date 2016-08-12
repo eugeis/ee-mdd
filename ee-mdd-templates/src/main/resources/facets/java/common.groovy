@@ -62,7 +62,7 @@ extModule(name: 'Slf4j', artifact: 'slf4j-ext', version: '1.7.12') {
     }
 }
 
-extModule(name: 'MockitoCore', namespace: 'org.mockito', artifact: 'mockito-core', version: '1.9.5') {
+extModule(name: 'MockitoCore', artifact: 'mockito-core', version: '1.9.5') {
   
     ['mock' : 'static org.mockito.Mockito.*'].each { n, ns ->
       extType(name: n, namespace: ns)
