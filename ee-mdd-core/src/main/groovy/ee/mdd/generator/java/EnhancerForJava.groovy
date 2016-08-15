@@ -49,6 +49,7 @@ import ee.mdd.model.component.Param
 import ee.mdd.model.component.Prop
 import ee.mdd.model.component.StructureUnit
 import ee.mdd.model.component.Type
+import ee.mdd.model.component.Update
 import ee.mdd.model.ui.Button
 import ee.mdd.model.ui.CheckBox
 import ee.mdd.model.ui.ComboBox
@@ -833,6 +834,20 @@ class EnhancerForJava {
         properties[key] = ret
       }
       properties[key]
+    }
+
+    meta.isUpdator = {
+      ->
+      def key = System.identityHashCode(delegate) + 'updator'
+      if (!properties.containsKey(key)) {
+        def ret = false
+        def op = delegate
+        if (Update.isInstance(op))
+          ret = true
+        properties[key] = ret
+      }
+      properties[key]
+
     }
 
     meta.isVoid = {

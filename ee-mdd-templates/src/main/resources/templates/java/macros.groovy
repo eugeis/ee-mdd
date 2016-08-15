@@ -352,8 +352,8 @@ templates ('macros') {
   template('implOperationsManager', body: '''<% c.manager.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %>
 
   @Override<% if (op.rawType) { %>
-  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.return} $op.name(${op.signature(c)}) {
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% def idProp = op.parent.entity.idProp %>
+  public ${op.return} $op.name(${op.updator ? "$idProp.type.name $idProp.name, " : ""}${op.signature(c)}) {
     //TODO to implement <% if (op.returnTypeBoolean) { %>
     return false;<% } else if (op.ret && op.ret.name.matches("double|float|int|long|short")) { %>
     return 0; <% } else if (op.ret && op.ret.name.matches("char")) { %>
@@ -663,9 +663,9 @@ public interface $className extends $controller.n.cap.base {
      */<% } else { %>/** The commands provide Delete, Update, Create operations for entity {@link $item.cap}.*/<% } %>
   public interface $className extends ${c.name('Manager')}<${idProp.type.name}, ${c.name(item.cap)}> {<% commands.deleters.each { op -> %>
       ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.creates.each { op -> %>
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.creators.each { op -> %>
       ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updates.each { op -> %>
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% commands.updators.each { op -> %>
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${idProp.computedType(c)} $idProp.name, ${op.signature(c)});
       ${op.description?"   /** $op.description */":''}
@@ -2341,7 +2341,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = it
 @Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
 public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerMemAbstract')}<${idProp.type.name}, $item.cap> implements $commands.name {
-  protected Event<${item.n.cap.event}> publisher;<% commands.creators.each { op -> %>
+  protected Event<${item.n.cap.event}> publisher;<% commands.creators.each { op -> c.op = op %>
 
   @Override
   ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op -> %>
@@ -2362,7 +2362,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
 
   @Override<% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  ${macros.generate('operationRawType', c)}<% } } %><% commands.updators.each { op -> c.op = op;
+  ${macros.generate('operationRawType', c)}<% } } %><% commands.updators.each { op -> c.op = op; c.idProp = idProp;
     def retPropGetters = op.params.collect { "ret.${it.prop.getter}" }.join(', ')
     def propNames = op.params.collect { it.prop.name }.join(', '); c.retPropGetters = retPropGetters; c.propNames = propNames; %>
 
@@ -2392,7 +2392,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   }
   <% } else { %>
   @Override
-  @Transactional
+  @${c.name('Transactional')}
   public $op.returnTypeExternal ${op.name}($item.cap entity, ${op.signature(c)}) {
     $item.cap ret = entity;
     //build ml key parameter
@@ -2555,11 +2555,10 @@ public class $className extends $manager.n.cap.baseMem {
 public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${commands.name} {
   protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
 
-  protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% commands.creators.each { op-> %>
+  protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% commands.creators.each { op-> c.op = op %>
 
   @Override
-  @${c.name('Transactional')}
-  ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op-> %>
+  @${c.name('Transactional')}${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op-> %>
 
   @Override
   @${c.name('Transactional')}
@@ -2570,7 +2569,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   @Override<% if (op.transactional) { %>
   @Transactional<% } %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  ${macros.generate('operationRawType', c)}<% } } %><% commands.updators.each { op-> c.op = op;
+  ${macros.generate('operationRawType', c)}<% } } %><% commands.updators.each { op-> c.op = op; c.idProp = idProp;
     def retPropGetters = op.params.collect { "ret.$it.prop.getter" }.join(', '); c.retPropGetters = retPropGetters;
     def propNames = op.params.collect { it.prop.name }.join(', '); c.propNames = propNames %>
 
@@ -3496,7 +3495,7 @@ public class $className {
   public static final String ${entity.mlKeyConstant}_UPDATED = "${entity.mlKey}_updated";
   public static final String ${entity.mlKeyConstant}_UPDATED_MULTIPLE = "${entity.mlKey}_updated_multiple";
   public static final String ${entity.mlKeyConstant}_DELETED = "${entity.mlKey}_deleted";
-  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updates.each { def op -> %><% if(!allUpdates.contains(op.name)) {%><% allUpdates.add(op.name) %>
+  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updators.each { def op -> %><% if(!allUpdates.contains(op.name)) {%><% allUpdates.add(op.name) %>
   public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } } %><% depModule.containers.each { def container -> %>
   public static final String $container.underscored = "${container.underscored.toLowerCase()}";
   public static final String ${container.underscored}_IMPORTED = "${container.underscored.toLowerCase()}_imported";
@@ -8616,11 +8615,11 @@ public class $className {
     b.append("$prop.name=").append($prop.name).append(SEPARATOR);<% } } %>
   }''')
 
-  template('createBySignature', body: '''
-public $op.return ${op.name}(${op.signature(c)}) {
+  template('createBySignature', body: '''<% def op = c.op %>
+public ${op.return} ${op.name}(${op.signature(c)}) {
     $item.cap ret = factory.newInstance();<% op.params.each { def param -> def prop = param.prop; if (prop.defaultValue) { %>
-    ret.set$prop.cap($prop.defaultValue);<% } else { %>
-    ret.set$prop.cap($prop.name);<% } } %>
+    ret.set${prop.cap}(${prop.defaultValue});<% } else { %>
+    ret.set${prop.cap}(${prop.name});<% } } %>
     ret = create(ret);
     return ret;
   }''')

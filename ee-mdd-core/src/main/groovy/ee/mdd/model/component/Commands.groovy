@@ -29,13 +29,16 @@ class Commands extends Controller {
     super.init()
     this.base = true
     def op = new Update(name: 'update', nameExternal: "update${entity.cap}", ret: (Type) parent)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) parent)))
+    entity.props.each {
+      if(!it.equals(entity.idProp))
+      op.add(new Param(name: it.uncap, prop: it))
+    }
     add(op)
-    op = new Create(name: 'create', nameExternal: "create${entity.cap}", ret: (Type) entity)
-    op.add(new Param(name: entity.uncap, prop: new Prop(name: '${entity.uncap}', type: (Type) entity.idProp.type)))
+    op = new Create(nameExternal: "create${entity.cap}", ret: (Type) entity)
+    op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
     add(op)
-    op = new Delete(name: 'delete', nameExternal: "delete${entity.cap}")
-    op.add(new Param(name: "${entity.uncap}Id", prop: entity.idProp, type: (Type) entity.idProp.type))
+    op = new Delete(nameExternal: "delete${entity.cap}")
+    op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
     add(op)
   }
 
@@ -56,7 +59,7 @@ class Commands extends Controller {
     ret
   }
 
-  List<Delete> getUpdates() {
+  List<Delete> getUpdators() {
     def ret = []
     if(operations)
       ret = operations.findAll { Update.isInstance(it) }
@@ -65,7 +68,7 @@ class Commands extends Controller {
     ret
   }
 
-  List<Delete> getCreates() {
+  List<Delete> getCreators() {
     def ret = []
     if(operations)
       ret = operations.findAll { Create.isInstance(it) }
