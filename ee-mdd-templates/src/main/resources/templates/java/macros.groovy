@@ -330,12 +330,12 @@ templates ('macros') {
   ${op.description?"   /** $op.description */":''}
   ${op.ref.returnTypeExternal(c)} ${op.ref.name} (${op.ref.signature(c)});<% } } %>''')
 
-  template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body && !op.provided && !op.delegateOp) { %><% if(c.override) { %>
+  template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body) { %><% if(c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
-  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %>
-  public ${op.ret ? op.ret.name : 'void'} $op.name(${op.signature(c)}) {
-    //TODO to implement <% if (op.returnTypeBoolean) { %>
-    return false;<% } else if (op.ret) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% c.op = op.delegateOp ? op.ref : op %>
+  public ${c.op.ret ? c.op.ret.name : 'void'} $c.op.name(${c.op.signature(c)}) {
+    //TODO to implement <% if (c.op.returnTypeBoolean) { %>
+    return false;<% } else if (c.op.ret) { %>
     return null; <% } %>
   }<% } } %>''')
 
@@ -654,7 +654,10 @@ public interface $className extends $controller.n.cap.base {
       ${op.returnTypeExternal(c)} ${op.name}Strict(${op.signature(c)});
       <% } %><% finders.exists.each { op -> %>
       ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}(${op.signature(c)});<% } %>
+      ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.operationsNotManager.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      $op.returnTypeExternal ${op.name}($op.signature);
+  <% } %>
 }''')
 
   template('ifcCommands', body: '''<% if(!c.className) { c.className = item.n.cap.commands } %><% def commands = item.commands; def idProp = item.idProp; %>{{imports}}
@@ -674,8 +677,10 @@ public interface $className extends $controller.n.cap.base {
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${idProp.computedType(c)} $idProp.name, ${op.signature(c)}, boolean fireEvent);
       ${op.description?"   /** $op.description */":''}
-      ${op.return} ${op.name}($item.cap entity, ${op.signature(c)}, boolean fireEvent);
-<% } } %>
+      ${op.return} ${op.name}($item.cap entity, ${op.signature(c)}, boolean fireEvent);<% } } %><% commands.operationsNotManager.each { op -> %>
+      ${op.description?"   /** $op.description */":''}
+      $op.returnTypeExternal ${op.name}($op.signature);
+      <% } %> 
   }''')
 
   template('ifcCommandsExtends', body: '''<% def commands = item.commands %>
@@ -813,11 +818,11 @@ public class $className extends ${c.name('ServiceProviderRemote')}<${c.name(item
   }
 }''')
 
-  template('implCache', body: '''import static ee.common.util.ComparisonUtils.*;{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>
+  template('implCache', body: '''{{imports}}<% def superUnit = item.superUnit; def idProp = item.idProp; def type = item.virtual?'E' : c.name(item.cap); def cacheSuper%>
   <% if (!c.override) { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheImpl}<${item.simpleSuperGenericSgn}$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongEntityCache')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerEntityCache')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringEntityCache')}<$type>"} else { cacheSuper = "CacheImpl<$idProp.type, $type>" } %>
   <% } else { %><% if (superUnit) { cacheSuper = "${superUnit.n.cap.cacheOverride}<$type>" } else if (idProp.typeLong) { cacheSuper = "${c.name('LongCacheOverride')}<$type>" } else if (idProp.typeInteger) { cacheSuper = "${c.name('IntegerCacheOverride')}<$type>" } else if (idProp.typeString) { cacheSuper = "${c.name('StringCacheOverride')}<$type>" } else { cacheSuper = "CacheOverride<$idProp.type, $type>" } %>
   <% } %><% def singlePropIndexes = item.props.findAll { !it.primaryKey && (it.index || it.unique ) }; def relationIdPropIndexes = item.props.findAll { it.typeEl && it.manyToOne }; def keyNameToIndex = [:]; item.indexes.collect { def index -> String keyName = index.props.collect { it.cap }.join('And')[0].toLowerCase(); keyNameToIndex[keyName] = index; } %>
-public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${item.n.cap.cache}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements $item.n.cap.cache<% } %> {
+public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSgn}E extends ${c.name(item.cap)}${item.genericSgn}> extends $cacheSuper implements ${c.name(item.n.cap.cache)}<${item.simpleGenericSgn}E><% } else { %>class $className extends $cacheSuper implements ${c.name(item.n.cap.cache)}<% } %> {
   private static final long serialVersionUID = 1L;<% relationIdPropIndexes.each { prop -> def relationIdProp = prop.type.idProp; if(relationIdProp) { %>
   protected LinkToSetCache<$relationIdProp.type.name, $idProp.type.name> ${prop.uncap}${relationIdProp.cap}ToIds = null;<% } %><% } %><% singlePropIndexes.each { prop -> if (prop.unique) { %>
   protected transient ${c.name('Map')}<${c.name(prop.type.name)}, ${c.name(idProp.type.name)}> ${prop.uncap}ToId = null;<% } else { %>
@@ -1097,13 +1102,13 @@ public abstract <% if (item.virtual) { %>class $className<${item.simpleGenericSg
   }<% } %><% } %>
 
   @Override
-  public ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update, ${c.name('Collection')}<$idProp.type.name> removedKeys) {
-    return (${item.deltaCache.cap}) super.synchronizeWithDelta(update, removedKeys);
+  public ${c.name(item.n.cap.deltaCache)} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update, ${c.name('Collection')}<$idProp.type.name> removedKeys) {
+    return (${c.name(item.n.cap.deltaCache)}) super.synchronizeWithDelta(update, removedKeys);
   }
 
   @Override
-  public ${item.deltaCache.cap} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update) {
-    return (${item.deltaCache.cap}) super.synchronizeWithDelta(update);
+  public ${c.name(item.n.cap.deltaCache)} synchronizeWithDelta(${c.name('Cache')}<$idProp.type.name, $type> update) {
+    return (${c.name(item.n.cap.deltaCache)}) super.synchronizeWithDelta(update);
   }
 }''')
 
@@ -2288,7 +2293,7 @@ public class $className extends ${item.n.cap.baseEmbeddable} {
 /** Ejb implementation of {@link $item.name} */
 ${macros.generate('metaAttributesService', c)}
 public ${item.base?'abstract ':''}class $className implements ${c.name(item)} {<% if (item.useConverter) { %>
-  protected $module.n.cap.converter converter;<% } %>
+  protected ${c.name(module.n.cap.converter)} converter;<% } %>
   ${macros.generate('refsMember', c)}
 <% item.operations.each { op -> if(!op.delegateOp && op.body) { %>
 
@@ -2307,7 +2312,7 @@ public ${item.base?'abstract ':''}class $className implements ${c.name(item)} {<
       $ref.ret.name entity = ($ref.ret.name) ret;<% if (raw) { %>
       //load LAZY loading
       entity.${ref.ret.getter}.size();
-      return (${c.name('List')})entity.${ref.ret.getter};<% } else { if (item.useConverter && (ref.ret.typeEntity || ref.ret.typeBasicType)) { %>
+      return (${c.name('List')})entity.${ref.ret.getter};<% } else { %><% if ((ref.ret.typeEntity || ref.ret.typeBasicType) && item.useConverter) { %>
       return converter.toExternal(entity.${ref.ret.getter});<% } else { %>
       return entity.${ref.ret.getter};<% } } %>
     } else {
@@ -2652,7 +2657,7 @@ public ${commands.base?'abstract ':''}class $className extends ${c.name('Manager
   template('implFinders', body: '''{{imports}}
 import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; def idProp = item.idProp %><% def refs = finders.props %>
 /** JPA implementation of {@link $finders.name} */
-<% if (finders.base) { %>@Alternative<% } else { %>@Manager
+<% if (finders.base) { %>@${c.name('Alternative')}<% } else { %>@Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
@@ -2663,13 +2668,13 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.$op.underscored, ${op.propLinks(c)});
+    Long ret = findValueByUniqueProperties(${c.name(item.n.cap.entity)}.$op.underscored, ${op.propLinks(c)});
     return ret.longValue();
   }<% } %><% finders.existers.each { op-> %>
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    Long ret = findValueByUniqueProperties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks(c)});
+    Long ret = findValueByUniqueProperties(${c.name(item.n.cap.entity)}.${op.underscored}, ${op.propLinks(c)});
     return ret > 0;
   }<% } %><% finders.finders.each { op-> %>
 <% if(op.oneOfPropsRelationId) { %>
@@ -2677,7 +2682,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
-    $op.returnTypeExternal ret = findBy${op.unique?'Unique':''}Properties(${item.n.cap.entity}.${op.underscored}, ${op.propLinks(c)});
+    $op.returnTypeExternal ret = findBy${op.unique?'Unique':''}Properties(${c.name(item.n.cap.entity)}.${op.underscored}, ${op.propLinks(c)});
     return ret;
   }
 
@@ -2721,7 +2726,7 @@ public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerA
 
   @Override
   public Class<? extends $item.cap> findEntityClass() {
-    return ${item.n.cap.entity}.class;
+    return ${c.name(item.n.cap.entity)}.class;
   }
 }''')
 
@@ -2733,17 +2738,18 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
 public class $className extends $commands.n.cap.baseImpl { 
-  ${macros.generate('implOperations', c)}
+  ${macros.generate('implOperationsManager', c)}
 }''')
 
-  template('implFindersExtends', body: '''{{imports}}<% def finders = item.finders; c.manager = finders %>
+  template('implFindersExtends', body: '''{{imports}}import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = item.finders; c.manager = finders %>
+
 /** JPA implementation of {@link $finders.name} */
 @Manager
 @${c.name('SupportsEnvironments')}({
     @${c.name('Environment')}(executions = { ${c.name('PRODUCTIVE')} }, runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { LOCAL }, runtimes = { CLIENT }) })
 public class $c.className extends $finders.n.cap.baseImpl {
-  ${macros.generate('implOperations', c)}
+  ${macros.generate('implOperationsManager', c)}
 }''')
 
   template('implContainer', body: '''{{imports}}
@@ -3484,7 +3490,7 @@ public class $className {
 public class $className extends ${item.n.cap.constantsBase} {
 }''')
 
-  template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %><% def allUpdates = [] %> 
+  template('constantsMl', body: '''<% if (!c.className) { c.className = "${item.name}MlBase" } %> 
 /** Multi language constants for '${c.item.name}' */
 public class $className {
   //base name for '$item.name' resource bundle
@@ -3495,8 +3501,8 @@ public class $className {
   public static final String ${entity.mlKeyConstant}_UPDATED = "${entity.mlKey}_updated";
   public static final String ${entity.mlKeyConstant}_UPDATED_MULTIPLE = "${entity.mlKey}_updated_multiple";
   public static final String ${entity.mlKeyConstant}_DELETED = "${entity.mlKey}_deleted";
-  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updators.each { def op -> %><% if(!allUpdates.contains(op.name)) {%><% allUpdates.add(op.name) %>
-  public static final String $op.underscored = "${op.underscored.toLowerCase()}";<% } } } } %><% depModule.containers.each { def container -> %>
+  public static final String ${entity.mlKeyConstant}_DELETED_MULTIPLE = "${entity.mlKey}_deleted_multiple";<%commands.updators.each { def op -> %>
+  public static final String ${op.mlKeyConstant} = "${op.underscored.toLowerCase()}";<% } } } %><% depModule.containers.each { def container -> %>
   public static final String $container.underscored = "${container.underscored.toLowerCase()}";
   public static final String ${container.underscored}_IMPORTED = "${container.underscored.toLowerCase()}_imported";
   public static final String ${container.underscored}_IMPORT_FAILED = "${container.underscored.toLowerCase()}_import_failed";
@@ -3686,7 +3692,7 @@ public class $className {
     MockitoCg.resetMocks(<% first = true; refs.each { ref-> if (first) { first = false } else { %>,<% } %>
       ${item.uncap}.${ref.uncap}<% } %><% item.props.each { ref -> if(ref.typeContainer) { if (first) { first = false } else { %>,<% } } %>
       ${item.uncap}.${ref.uncap}<% } %>);<% if (item.useConverter) { %>
-      ${item.uncap}.set$module.names.converter(converter);<% } %>
+      ${item.uncap}.set${module.n.cap.converter}(converter);<% } %>
   }<% item.operationRefs.each { opRef -> def op = opRef.ref; if (op) { def raw = op.rawType || (op.resultExpression && OpRef.ref.multi && OpRef.ref.typeEntity) %>
 
   @Test
@@ -5763,6 +5769,11 @@ ${ret-newLine}''')
 	    counter--;
 	  }
 	  System.out.println(test);''')
+  
+  template('findAllInactiveServices', body: '''
+   ${c.name('List')}<ServiceActivityInfo> ret = serviceActivityInfoManager.findAllInactiveServices();
+     ret = converter.toExternal(ret);
+     return ret;''')
 
   template('plannedStartDateOnlyBody', body: '''if (plannedStartDate != null) {\n      this.plannedStartDate = ${c.name('TimeUtils')}.setDate(this.plannedStartDate, plannedStartDate);\n    } ''')
 
@@ -8652,7 +8663,7 @@ Object[] mlParameters = new Object[] { ret.$c.idProp.getter, ret.getNaturalKey()
   template('sendMlEvent', body: '''
     forceVersionUpdate();
     $item.n.cap.event event = new $c.item.n.cap.event(ret, ${c.name('ActionType')}.UPDATE, source);
-    event.initMlKey(${module.capShortName}Ml.ML_BASE, ${module.capShortName}Ml.${c.op.underscored}, mlParameters);
+    event.initMlKey(${module.capShortName}Ml.ML_BASE, ${module.capShortName}Ml.${c.op.mlKeyConstant}, mlParameters);
     fireEvent(event);''')
 
   template('fillOrderList', body: '''

@@ -121,7 +121,7 @@ templates ('common') {
   }
 
   templates('entityEvent',
-  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['cache', 'cacheBase', 'deltaCache', 'deltaCacheBase'], 'event') } },
+  init: { c -> c.model.findAllDown({ Entity.isInstance(it) }).each { it.n.cap.addAll(['event'], 'event') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Entity) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
     template('entityEvent', appendName: true, body: '''<% if(!item.virtual) { %><% c.className = item.n.cap.event %> ${macros.generate('event', c)}<% } %>''')
@@ -341,7 +341,6 @@ templates ('common') {
   init: { c -> c.model.findAllDown({ Component.isInstance(it) }).each { it.n.cap.addAll(['constantsBase', 'constants',  '', 'MlBase', 'Ml'], 'integ') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Component) },
   context: { c -> c.putAll( [ component: c.item, module: c.item.module] ) } ) {
-    //Custom paths for Component templates
     template('constants', appendName: true, body: '''<% c.className = c.item.n.cap.constantsBase%>${macros.generate('constants', c)}''')
     template('qualifier', appendName: true, body: '''<% c.className = c.item.n.cap[''] %>${macros.generate('qualifier', c)}''')
     template('constantsExtends', appendName: true, body: '''<% c.className = c.item.n.cap.constants%> ${macros.generate('constantsExtends', c)}''')

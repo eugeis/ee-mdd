@@ -152,11 +152,11 @@ templates('sm') {
     }
 
     templates('conditionVerifier', type: LOGIC,
-    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['conditionVerifier'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('condVerifier', appendName: true, body: '''<% c.className = "${item.capShortName}ConditionVerifier" %> ${macros.generate('condVerifier', c)}''')
+      template('condVerifier', appendName: true, body: '''<% c.className = item.n.cap.conditionVerifier %> ${macros.generate('condVerifier', c)}''')
     }
 
     templates('condition', type: LOGIC,
@@ -170,10 +170,10 @@ templates('sm') {
     }
 
     templates('timeoutsConfig', type: LOGIC,
-    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['timeouts'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('timeoutsConfig', appendName: true, body: '''<% c.className = "${item.capShortName}Timeouts" %> ${macros.generate('timeoutsConfig', c)}''')
+      template('timeoutsConfig', appendName: true, body: '''<% c.className = item.n.cap.timeouts %> ${macros.generate('timeoutsConfig', c)}''')
     }
    }

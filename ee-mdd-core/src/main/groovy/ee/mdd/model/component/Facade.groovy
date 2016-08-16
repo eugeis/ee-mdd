@@ -22,6 +22,6 @@ package ee.mdd.model.component
  * @author Niklas Cappelmann
  */
 class Facade extends CompilationUnit {
-  boolean useConverter = false
+  boolean useConverter = true
 
 }
