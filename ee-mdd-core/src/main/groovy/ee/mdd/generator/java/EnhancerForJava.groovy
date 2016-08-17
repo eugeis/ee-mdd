@@ -808,7 +808,12 @@ class EnhancerForJava {
 
     meta.getReturnTypeExternal = { -> delegate.return }
 
-    meta.returnTypeExternal = { Context c -> delegate.returnTypeExternal }
+    meta.returnTypeExternal = { Context c ->
+      if(delegate.ret && !delegate.returnTypePrimitive) {
+        c.name(delegate.ret.n.cap[''])
+      }
+      delegate.returnTypeExternal 
+    }
 
     meta.isReturnTypeBoolean = {
       ->

@@ -154,9 +154,10 @@ templates ('common') {
   }
 
   templates ('enum',
+  init: { c -> c.model.findAllDown({ EnumType.isInstance(it) }).each { it.n.cap.addAll([''], 'model') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.EnumType) },
   context: { c -> def enumType = c.item; c.putAll( [ component: enumType.component, module: enumType.module, enumType: enumType ] ) } ) {
-    template('enum', appendName: true, body: '''${macros.generate('enum', c)}''')
+    template('enum', appendName: true, body: '''<% c.className = item.n.cap[''] %>${macros.generate('enum', c)}''')
   }
 
   templates('pojo',
@@ -284,10 +285,11 @@ templates ('common') {
   }
 
   templates('config',
+  init: { c -> c.model.findAllDown({ Config.isInstance(it) }).each { it.n.cap.addAll(['', 'base'], 'integ') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Config) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
     template('config', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('config', c)}''')
-    template('configExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.cap %> ${macros.generate('configExtends', c)}<% } %>''')
+    template('configExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.n.cap[''] %> ${macros.generate('configExtends', c)}<% } %>''')
   }
 
   templates('configEvent',

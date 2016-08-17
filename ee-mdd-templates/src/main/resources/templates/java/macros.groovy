@@ -333,7 +333,7 @@ templates ('macros') {
   template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body) { %><% if(c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
   @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% c.op = op.delegateOp ? op.ref : op %>
-  public ${c.op.ret ? c.op.ret.name : 'void'} $c.op.name(${c.op.signature(c)}) {
+  public ${c.op.ret ? c.name(c.op.ret) : 'void'} $c.op.name(${c.op.signature(c)}) {
     //TODO to implement <% if (c.op.returnTypeBoolean) { %>
     return false;<% } else if (c.op.ret) { %>
     return null; <% } %>
@@ -656,7 +656,7 @@ public interface $className extends $controller.n.cap.base {
       ${op.description?"   /** $op.description */":''}
       ${op.return} ${op.name}(${op.signature(c)});<% } %><% finders.operationsNotManager.each { op -> %>
       ${op.description?"   /** $op.description */":''}
-      $op.returnTypeExternal ${op.name}($op.signature);
+      ${op.return} ${op.name}($op.signature);
   <% } %>
 }''')
 
@@ -1998,12 +1998,12 @@ public class $className<T extends ${c.name(item.cap)}> extends ${item.cap}Builde
 }''')
 
   template('implEntityBuilder', body: '''{{imports}}
-public abstract class $className extends ${item.cap}Builder<$item.n.cap.impl> {<% item.propsRecursive.each { prop -> if (prop.typeEntity && (prop.manyToOne || prop.oneToOne) ) { def relationIdProp = prop.type.idProp %>
+public abstract class $className extends ${c.name(item.n.cap.builder)}<$item.n.cap.impl> {<% item.propsRecursive.each { prop -> if (prop.typeEntity && (prop.manyToOne || prop.oneToOne) ) { def relationIdProp = prop.type.idProp %>
 
   protected ${relationIdProp.computedType(c)} ${prop.name}Id<% if (!prop.type.manualId) { %> = ID_GENERATOR.incrementAndGet()<% } %>;<% } } %>
 
   public $className() {
-    super(new ${item.n.cap.impl}());
+    super(new ${c.name(item.n.cap.impl)}());
   }
 
   @Override
@@ -2346,7 +2346,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def commands = it
 @Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
 public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerMemAbstract')}<${idProp.type.name}, $item.cap> implements $commands.name {
-  protected Event<${item.n.cap.event}> publisher;<% commands.creators.each { op -> c.op = op %>
+  protected Event<${c.name(item.n.cap.event)}> publisher;<% commands.creators.each { op -> c.op = op %>
 
   @Override
   ${macros.generate('createBySignature', c)}<% } %><% commands.deleters.each { op -> %>
@@ -2451,7 +2451,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = ite
 @Manager
 @${c.name('SupportsEnvironments')}(@${c.name('Environment')}(executions = { ${c.name('MEMORY')} }))<% } %>
 public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerMemAbstract')}<${idProp.type.name}, $item.cap> implements $finders.name {
-  protected ${c.name('Event')}<${item.n.cap.event}> publisher;<% finders.counters.each { op -> %>
+  protected ${c.name('Event')}<${c.name(item.n.cap.event)}> publisher;<% finders.counters.each { op -> %>
 
   @Override
   public $op.returnTypeExternal ${op.name}(${op.signature(c)}) {
@@ -2558,7 +2558,7 @@ public class $className extends $manager.n.cap.baseMem {
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
 public ${commands.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${commands.name} {
-  protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
+  protected Event<${c.name(item.n.cap.event)}> publisher;<% refs.each { ref-> %>
 
   protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% commands.creators.each { op-> c.op = op %>
 
@@ -2662,7 +2662,7 @@ import com.siemens.ra.cg.pl.common.base.annotations.Manager;<% def finders = ite
     @${c.name('Environment')}(runtimes = { ${c.name('SERVER')} }),
     @Environment(executions = { ${c.name('LOCAL')} }, runtimes = { CLIENT }) })<% } %>
 public ${finders.base?'abstract ':''}class $className extends ${c.name('ManagerAbstract')}<${idProp.type.name}, ${item.cap}> implements ${finders.name} {
-  protected Event<${item.n.cap.event}> publisher;<% refs.each { ref-> %>
+  protected Event<${c.name(item.n.cap.event)}> publisher;<% refs.each { ref-> %>
 
   protected ${c.name(ref.type.name)} $ref.type.uncap;<% } %><% finders.counters.each { op-> %>
 
@@ -3116,7 +3116,7 @@ public class $className {
   public $commands.name get$commands.cap() {
     ${commands.n.cap.impl} commands = new $commands.n.cap.impl();
     commands.setEntityManager(entityManager);
-    commands.setPublisher((Event<$entity.n.cap.event>) publisher);
+    commands.setPublisher((Event<${c.name(entity.n.cap.event)}>) publisher);
     commands.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
     $commands.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(commands, ${commands.cap}.class, entityManager);
     ret = ${c.name('TraceProxyHandler')}.wrap(ret, ${commands.cap}.class);
@@ -3141,7 +3141,7 @@ public class $className {
   public $finders.name get$finders.cap() {
     $finders.n.cap.impl finders = new $finders.n.cap.impl();
     finders.setEntityManager(entityManager);
-    finders.setPublisher((Event<$entity.n.cap.event>) publisher);
+    finders.setPublisher((Event<${c.name(entity.n.cap.event)}>) publisher);
     finders.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
     $finders.cap ret = ${c.name('TransactionProxyHandler')}.wrapForTransaction(finders, ${finders.cap}.class, entityManager);
     ret = ${c.name('TraceProxyHandler')}.wrap(ret, ${finders.cap}.class);
@@ -3160,7 +3160,7 @@ public class $className {
   public $className() {
   }<% module.entities.findAll { !it.virtual && it.commands }.each { entity = it; def commands = entity.commands; %>
 
-  public $commands.name get$commands.cap(${c.name('Event')}<$entity.n.cap.event> publisher) {
+  public $commands.name get$commands.cap(${c.name('Event')}<${c.name(entity.n.cap.event)}> publisher) {
     $commands.n.cap.mem ret = new $commands.n.cap.mem();
     ret.setPublisher(publisher);
     ret.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
@@ -3175,7 +3175,7 @@ public class $className {
   public $className() {
   }<% module.entities.findAll { !it.virtual && it.finders }.each { entity = it; def finders = entity.finders; %>
 
-  public $finders.name get$finders.cap(${c.name('Event')}<$entity.n.cap.event> publisher) {
+  public $finders.name get$finders.cap(${c.name('Event')}<${c.name(entity.n.cap.event)}> publisher) {
     $finders.n.cap.mem ret = new $finders.n.cap.mem();
     ret.setPublisher(publisher);
     ret.setFactory(new ${c.name(entity.n.cap.entityFactory)}());
@@ -3222,7 +3222,7 @@ public class $className extends $item.n.cap.base {
   private static final long serialVersionUID = 1L;
 }''')
 
-  template('enum', body: '''<% if (!c.className) { c.className = item.cap } %>{{imports}}
+  template('enum', body: '''{{imports}}
 ${item.description?"/*** $item.description */":''}
 public enum $c.className implements ${c.name('Labeled')}, ${c.name('MlKeyBuilder')}<% item.interfs.each{%>, ${c.name(it)}<% } %> {<% def last = item.literals.last(); item.literals.each { lit -> %>
   ${lit.definition}${lit == last ? ';' : ','}<% } %>
@@ -5771,7 +5771,7 @@ ${ret-newLine}''')
 	  System.out.println(test);''')
   
   template('findAllInactiveServices', body: '''
-   ${c.name('List')}<ServiceActivityInfo> ret = serviceActivityInfoManager.findAllInactiveServices();
+   ${c.name('List')}<ServiceActivityInfo> ret = serviceActivityInfoFinders.findAllInactiveServices();
      ret = converter.toExternal(ret);
      return ret;''')
 
