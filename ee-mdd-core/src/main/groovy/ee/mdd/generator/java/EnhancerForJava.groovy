@@ -1736,8 +1736,8 @@ class EnhancerForJava {
       //register usage of the type, in order to calculate imports, etc.
 
       delegate.params.each {
-        if (it.type && !(it.type.name).equals(c.item.name)) {
-          c.name(it.type)
+        if (it.type && !(it.type.name).equals(c.className) && !(it.type.name).equals(c.className.name)) {
+          c.name(it.type.n.cap[''])
         }
       }
 
@@ -1763,7 +1763,11 @@ class EnhancerForJava {
       def key = System.identityHashCode(delegate) + 'signature'
       if (!properties.containsKey(key)) {
         //use 'name', because of primitive types
-        properties[key] = "$delegate.type.name $delegate.uncap"
+        if(delegate.type) {
+          properties[key] = "$delegate.type.name $delegate.uncap"
+        } else {
+          properties[key] = "String $delegate.uncap"
+        }
       }
       properties[key]
     }

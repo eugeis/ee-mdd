@@ -332,10 +332,10 @@ templates ('macros') {
 
   template('implOperations', body: ''' <% item.operations.each { op -> if (!op.body) { %><% if(c.override) { %>
   @Override<% } %><% if (op.rawType) { %>
-  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% c.op = op.delegateOp ? op.ref : op %>
-  public ${c.op.ret ? c.name(c.op.ret) : 'void'} $c.op.name(${c.op.signature(c)}) {
-    //TODO to implement <% if (c.op.returnTypeBoolean) { %>
-    return false;<% } else if (c.op.ret) { %>
+  @SuppressWarnings({ "rawtypes", "unchecked" })<% } %><% def implOp = op.delegateOp ? op.ref : op %>
+  public ${implOp.ret ? c.name(implOp.ret) : 'void'} $implOp.name(${implOp.signature(c)}) {
+    //TODO to implement <% if (implOp.returnTypeBoolean) { %>
+    return false;<% } else if (implOp.ret) { %>
     return null; <% } %>
   }<% } } %>''')
 
@@ -1235,7 +1235,7 @@ public<% if (item.base) {%> abstract<% } %> class $className extends ${c.name('B
 
   template('configExtends', body: '''{{imports}}
 ${macros.generate('configAnnotations', c)}
-public class $className extends $item.n.cap.base {
+public class $c.className extends $item.n.cap.base {
   private static final long serialVersionUID = 1L;
   ${macros.generate('superConstructor', c)}
   ${macros.generate('implOperations', c)}

@@ -288,7 +288,7 @@ templates ('common') {
   init: { c -> c.model.findAllDown({ Config.isInstance(it) }).each { it.n.cap.addAll(['', 'base'], 'integ') } },
   items: { c -> c.model.findAllDown(ee.mdd.model.component.Config) },
   context: { c -> c.putAll( [ component: c.item.component, module: c.item.module ] ) } ) {
-    template('config', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.cap } %>${macros.generate('config', c)}''')
+    template('config', appendName: true, body: '''<% if(c.item.base) { c.className = item.n.cap.base } else { c.className = item.n.cap[''] } %>${macros.generate('config', c)}''')
     template('configExtends', appendName: true, body: '''<% if (c.item.base) { %><% c.className = item.n.cap[''] %> ${macros.generate('configExtends', c)}<% } %>''')
   }
 
