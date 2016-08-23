@@ -1,10 +1,13 @@
 package ee.mdd.model.statemachine
 
+import ee.mdd.model.Names
+import ee.mdd.model.Namespace;
 import ee.mdd.model.component.Component
 import ee.mdd.model.component.LogicUnit
 import ee.mdd.model.component.Module
 
 class State extends LogicUnit {
+  Names n
   List<String> toBeNotified = []
   List<Transition> transitions = []
   List<String> entryActions = []
@@ -24,6 +27,21 @@ class State extends LogicUnit {
 
     ret
   }
+  
+  String deriveName() {
+    "${parent.capShortName}${this.cap}"
+  }
+  
+  Names getN() {
+    if (!n) {
+      n = new Names(this, name)
+    }
+    n
+  }
+  
+  Namespace getNs() {
+    parent?.ns
+ }
   
   Component getComponent() {
     parent.component

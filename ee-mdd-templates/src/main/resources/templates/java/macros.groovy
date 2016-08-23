@@ -5734,7 +5734,7 @@ ${ret-newLine}''')
 
   template('buildMlKey', body: '''
   public ${c.name('MLKey')} buildMlKey() {
-    return new ${c.name('MLKeyImpl')}(${component.n.cap['']}Ml.ML_BASE, name());
+    return new ${c.name('MLKeyImpl')}(${c.name(component.n.cap.ml)}.ML_BASE, name());
   }''')
 
   template('propToIds', body: '''<% def op = c.op %>if (!parent.isEmpty()) {<% if (op.unique) { %>

@@ -44,7 +44,7 @@ templates('sm') {
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
       template('actionType', appendName: true, body: '''<% c.className = item.n.cap.stateActionType %> ${macros.generate('actionType', c)}''')
-      template('conditionType', appendName: true, body: '''<% c.className = item.n.cap.stateConditionType" %> ${macros.generate('conditionType', c)}''')
+      template('conditionType', appendName: true, body: '''<% c.className = item.n.cap.stateConditionType %> ${macros.generate('conditionType', c)}''')
     }
 
     templates('controller', type: LOGIC,
@@ -131,24 +131,24 @@ templates('sm') {
     }
 
     templates('state', type: LOGIC,
-    init: { c -> c.model.findAllDown({ State.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
+    init: { c -> c.model.findAllDown({ State.isInstance(it) }).each { it.n.cap.addAll(['eventProcessor', 'eventProcessorImpl',  'metaState'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.State) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('eventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessor" %> ${macros.generate('eventProcessor', c)}''')
-      template('implEventProcessor', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}EventProcessorImpl" %> ${macros.generate('implEventProcessor', c)}''')
-      template('stateMetaState', appendName: true, body: '''<% c.className = "${item.stateMachine.capShortName}${item.cap}MetaState" %> ${macros.generate('stateMetaState', c)}''')
+      template('eventProcessor', appendName: true, body: '''<% c.className = item.n.cap.eventProcessor %> ${macros.generate('eventProcessor', c)}''')
+      template('implEventProcessor', appendName: true, body: '''<% c.className = item.n.cap.eventProcessorImpl %> ${macros.generate('implEventProcessor', c)}''')
+      template('stateMetaState', appendName: true, body: '''<% c.className = item.n.cap.metaState %> ${macros.generate('stateMetaState', c)}''')
     }
 
     templates('stateTimeoutHandler', type: LOGIC,
-    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
+    init: { c -> c.model.findAllDown({ StateMachine.isInstance(it) }).each { it.n.cap.addAll(['stateTimeoutHandler', 'stateTimeoutHandlerBean',  'stateTimeoutHandlerImpl', 'stateTimeoutHandlerMem'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.StateMachine) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('stateTimeoutHandler', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandler" %> ${macros.generate('stateTimeoutHandler', c)}''')
-      template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerBean" %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
-      template('stateTimeoutHandlerImpl', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerImpl" %> ${macros.generate('stateTimeoutHandlerImpl', c)}''')
-      template('stateTimeoutHandlerMem', appendName: true, body: '''<% c.className = "${item.capShortName}StateTimeoutHandlerMem" %> ${macros.generate('stateTimeoutHandlerMem', c)}''')
+      template('stateTimeoutHandler', appendName: true, body: '''<% c.className = item.n.cap.stateTimeoutHandler %> ${macros.generate('stateTimeoutHandler', c)}''')
+      template('stateTimeoutHandlerBean', appendName: true, body: '''<% c.className = item.n.cap.stateTimeoutHandlerBean %> ${macros.generate('stateTimeoutHandlerBean', c)}''')
+      template('stateTimeoutHandlerImpl', appendName: true, body: '''<% c.className = item.n.cap.stateTimeoutHandlerImpl %> ${macros.generate('stateTimeoutHandlerImpl', c)}''')
+      template('stateTimeoutHandlerMem', appendName: true, body: '''<% c.className = item.n.cap.stateTimeoutHandlerMem %> ${macros.generate('stateTimeoutHandlerMem', c)}''')
     }
 
     templates('conditionVerifier', type: LOGIC,
@@ -159,14 +159,14 @@ templates('sm') {
       template('condVerifier', appendName: true, body: '''<% c.className = item.n.cap.conditionVerifier %> ${macros.generate('condVerifier', c)}''')
     }
 
-    templates('condition', type: LOGIC,
-    init: { c -> c.model.findAllDown({ Condition.isInstance(it) }).each { it.n.cap.addAll(['baseEntity', 'entity',  'entityFactory', 'entityBuilderBase', 'entityBuilder'], 'statemachine') } },
+    templates('verifiers', type: LOGIC,
+    init: { c -> c.model.findAllDown({ Condition.isInstance(it) }).each { it.n.cap.addAll(['verifier', 'verifierBase',  'verifierImpl'], 'statemachine') } },
     items: { c -> c.model.findAllDown(ee.mdd.model.statemachine.Condition) },
     context: { c -> c.putAll( [ component: c.item.component, module: c.item.module] ) } ) {
 
-      template('conditionVerifierIfc', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}Verifier" %> ${macros.generate('conditionVerifierIfc', c)}<% } %>''')
-      template('conditionVerifier', appendName: true, body: '''<% if(!item.body) { %><% c.className = "${item.cap}VerifierBase" %> ${macros.generate('conditionVerifier', c)}<% } %>''')
-      template('implConditionVerifier', appendName: true, body: '''<% if(!item.body && item.parent.generateDefaultImpl) { %><% c.className = "${item.cap}VerifierImpl" %> ${macros.generate('implConditionVerifier', c)}<% } %>''')
+      template('conditionVerifierIfc', appendName: true, body: '''<% if(!item.body) { %><% c.className = item.n.cap.verifier %> ${macros.generate('conditionVerifierIfc', c)}<% } %>''')
+      template('conditionVerifier', appendName: true, body: '''<% if(!item.body) { %><% c.className = item.n.cap.verifierBase %> ${macros.generate('conditionVerifier', c)}<% } %>''')
+      template('implConditionVerifier', appendName: true, body: '''<% if(!item.body && item.parent.generateDefaultImpl) { %><% c.className = item.n.cap.verifierImpl %> ${macros.generate('implConditionVerifier', c)}<% } %>''')
     }
 
     templates('timeoutsConfig', type: LOGIC,

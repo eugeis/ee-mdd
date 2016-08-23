@@ -7,6 +7,7 @@ import ee.mdd.model.component.ConfigController
 import ee.mdd.model.component.Entity
 import ee.mdd.model.component.Module
 import ee.mdd.model.Names
+import ee.mdd.model.Namespace;
 import ee.mdd.model.component.Prop
 
 class StateMachine extends Composite {
@@ -49,6 +50,10 @@ class StateMachine extends Composite {
         n = new Names(this, name)
     }
     n
+  }
+  
+  Namespace getNs() {
+     parent?.ns
   }
   
   String getCapShortName() {
