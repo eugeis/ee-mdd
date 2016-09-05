@@ -26,8 +26,13 @@ import ee.mdd.model.Element
 class Commands extends Controller {
 
   protected boolean init() {
-    super.init()
     this.base = true
+    super.init()
+    if(superCommands && superCommands.operations) {
+      superCommands.operations.each {
+        add(it)
+      }
+    } else {
     def op = new Update(name: 'update', nameExternal: "update${entity.cap}", ret: (Type) parent)
     entity.props.each {
       if(!it.equals(entity.idProp))
@@ -40,6 +45,7 @@ class Commands extends Controller {
     op = new Delete(nameExternal: "delete${entity.cap}")
     op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
     add(op)
+    }
   }
 
   Entity getEntity() {
@@ -54,8 +60,6 @@ class Commands extends Controller {
     def ret = []
     if(operations)
       ret = operations.findAll { Delete.isInstance(it) }
-    if (superCommands)
-      ret.addAll(superCommands.operations?.findAll { Delete.isInstance(it) })
     ret
   }
 
@@ -63,8 +67,6 @@ class Commands extends Controller {
     def ret = []
     if(operations)
       ret = operations.findAll { Update.isInstance(it) }
-    if (superCommands)
-      ret.addAll(superCommands.operations?.findAll { Update.isInstance(it) })
     ret
   }
 
@@ -72,8 +74,6 @@ class Commands extends Controller {
     def ret = []
     if(operations)
       ret = operations.findAll { Create.isInstance(it) }
-    if (superCommands)
-      ret.addAll(superCommands.operations?.findAll { Create.isInstance(it) })
     ret
   }
 

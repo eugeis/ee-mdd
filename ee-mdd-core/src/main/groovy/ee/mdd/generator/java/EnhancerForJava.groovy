@@ -1087,9 +1087,13 @@ class EnhancerForJava {
     meta.propLinks = { Context c ->
       def key = System.identityHashCode(delegate) + 'propLinks'
       if (!properties.containsKey(key)) {
-        properties[key] = delegate.params.collect {
-          it.multi ? "new ${c.name('StringLink')}<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new ${c.name('StringLink')}<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})"
-        }.join(', ')
+        if(delegate.params.empty) {
+         properties[key] = null
+        } else {
+          properties[key] = delegate.params.collect {
+            it.multi ? "new ${c.name('StringLink')}<List<${it.prop.computedTypeForIdIfRelation}>>(\"${it.name}s\", ${it.name}s)" : "new ${c.name('StringLink')}<${it.prop.computedTypeForIdIfRelation}>(\"${it.name}\", ${it.name})"
+          }.join(', ')
+        }
       }
       properties[key]
     }
@@ -1354,7 +1358,7 @@ class EnhancerForJava {
     meta.getComputedBoxedType = {
       def key = System.identityHashCode(delegate) + 'computedBoxedType'
       if (!properties.containsKey(key)) {
-        properties[key] = delegate.multi ? "List<${delegate.boxedType}>" : delegate.boxedType
+        properties[key] = delegate.multi ? "List<${delegate.type}>" : delegate.type
       }
       properties[key]
     }
@@ -1727,7 +1731,11 @@ class EnhancerForJava {
       ->
       def key = System.identityHashCode(delegate) + 'signatureName'
       if (!properties.containsKey(key)) {
-        properties[key] = delegate.paramsCustom.collect { it.name }.join(', ')
+        if(delegate.params.empty) {
+          properties[key] = null
+        } else {
+          properties[key] = delegate.paramsCustom.collect { it.name }.join(', ')
+        }
       }
       properties[key]
     }

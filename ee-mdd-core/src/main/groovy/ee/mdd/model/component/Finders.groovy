@@ -26,16 +26,24 @@ class Finders extends Controller {
   
   protected boolean init() {
     this.base = true
-    super.init()
-    def op = new Count(ret: new Type(name: 'long'))
-    op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
-    add(op)
+    if(superFinders) {
+      if(superFinders.operations) {
+        superFinders.operations.each {
+          add(it)
+        }
+      }
+    } else if(!entity.superUnit) {
+      def op = new Count(name: 'countAll', nameExternal: 'countAll', ret: new Type(name: 'long'))
+      add(op)
+      op = new Find(name: 'findAll', nameExternal: 'findAll', ret: (Type) entity)
+      add(op)
+    }
     if(!entity.virtual && entity.idProp) {
-      op = new Find(ret: (Type) entity, unique: true)
+      def op = new Find(ret: (Type) entity, unique: true)
       op.add(new Param(name: entity.idProp.name, prop: entity.idProp))
       add(op)
-
     }
+    super.init()
   }
 
   Entity getEntity() {
@@ -50,8 +58,6 @@ class Finders extends Controller {
     def ret = []
     if(operations)
       ret = operations.findAll { Find.isInstance(it) }
-    if (superFinders && superFinders.operations)
-      ret.addAll(superFinders.operations.findAll { Find.isInstance(it) })
     ret
   }
 
@@ -59,8 +65,6 @@ class Finders extends Controller {
     def ret = []
     if(operations)
       ret = operations.findAll { Count.isInstance(it) }
-    if (superFinders && superFinders.operations)
-      ret.addAll(superFinders.operations.findAll { Count.isInstance(it) })
     ret
   }
 
@@ -68,8 +72,6 @@ class Finders extends Controller {
     def ret = []
     if(operations)
       ret = operations.findAll { Exist.isInstance(it) }
-    if (superFinders && superFinders.operations)
-      ret.addAll(superFinders.operations.findAll { Exist.isInstance(it) })
     ret
   }
 
