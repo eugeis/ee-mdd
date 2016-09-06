@@ -29,6 +29,24 @@ class Controller extends CompilationUnit {
   boolean cache = false
   boolean asyncImport = false
   
+  protected boolean init() {
+    boolean ret = super.init()
+    if(Container.isInstance(parent)) {
+      def op
+      add(new Operation(name: 'loadAll', nameExternal: "load${parent.cap}", ret: parent))
+      // ret should be: parent.n.cap.versions but cannot be resolved
+      add(new Operation(name: 'loadVersions', nameExternal: "load${parent.n.cap.versions}", ret: parent))
+      add(new Operation(name: 'deleteAll', nameExternal: "delete${parent.cap}"))
+      add(new Operation(name: 'loadDiff', nameExternal: "load${parent.n.cap.diff}", ret: parent))
+      op = new Operation(name: 'importContainer', nameExternal: "import${parent.cap}", transactional: true)
+      op.add(new Param(name: 'container', type: parent))
+      add(op)
+      op = new Operation(name: 'importChangesContainer', nameExternal: "importChanges${parent.cap}", transactional: true)
+      op.add(new Param(name: 'container', type: parent))
+      add(op)
+    }
+  }
+  
   String deriveName() {
     if(!parent) {
       getClass().simpleName
